@@ -5,7 +5,7 @@ import { ListFilter, CirclePlus } from 'lucide-react';
 
 export const Header = () => {
   return (
-    <header className='flex justify-between items-end p-2'>
+    <header className='flex justify-between items-end p-2 w-full'>
       <div className='w-1/3 '>
         <Image
           src='/logo'
@@ -17,10 +17,10 @@ export const Header = () => {
       </div>
       <div className='flex w-full flex-col gap-4 items-end '>
         <div className='flex gap-3'>
-          <Button className='flex gap-2 rounded-2xl p-1 shadow-gray-600 shadow-md'>
+          <Button className='flex gap-2 rounded-2xl p-1 '>
             Filtros <ListFilter />
           </Button>
-          <Button className='flex gap-2 rounded-2xl p-1 shadow-gray-600 shadow-md'>
+          <Button className='flex gap-2 rounded-2xl p-1 '>
             Adicionar <CirclePlus />
           </Button>
         </div>

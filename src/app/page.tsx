@@ -1,12 +1,15 @@
 // import { Button } from '@/components/ui/button';
 
 import { Header } from '@/components/ui/header';
+import { MenuNavegation } from '@/components/ui/menu';
+import { Table } from '@/components/ui/table';
 
 export default function Home() {
   return (
-    <div className=''>
+    <div className='overflow-hidden text-xs'>
       <Header />
-      <main></main>
+      <Table />
+      <MenuNavegation />
     </div>
   );
 }
