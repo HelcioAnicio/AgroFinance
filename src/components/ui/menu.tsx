@@ -6,8 +6,8 @@ import { CgProfile } from 'react-icons/cg';
 
 export const MenuNavegation = () => {
   return (
-    <footer className='absolute bottom-0 -z-10 bg-primary w-full h-24 rounded-t-3xl'>
-      <section className='relative z-20 text-primary-foreground flex justify-between px-5 mt-2'>
+    <footer className='fixed bottom-0 -z-10 bg-primary w-full h-24 rounded-t-3xl lg:hidden'>
+      <section className='relative z-20 text-primary-foreground flex justify-between px-5 mt-2 max-w-xs mx-auto'>
         <Link href='/'>
           <div className='flex flex-col gap-1 items-center bg-primary text-black rounded-full size-16 relative -mt-4 scale-125'>
             <GiCow size={35} />
