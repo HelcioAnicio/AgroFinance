@@ -6,7 +6,7 @@ import { Table } from "@/components/ui/table";
 
 export default function Home() {
   return (
-    <div className="overflow-hidden text-xs">
+    <div className="h-full overflow-hidden text-xs">
       <Header />
       <Table />
       <MenuNavegation />
