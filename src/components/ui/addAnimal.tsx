@@ -16,9 +16,9 @@ import CardFormReproduction from "./cardFormReproduction";
 
 export default function AddAnimals() {
   return (
-    <SheetContent side="bottom" className="mt-5">
+    <SheetContent side="bottom" className="mt-5 max-h-[500px] overflow-y-auto">
       <Tabs defaultValue="principais">
-        <SheetHeader className="mt-5">
+        <SheetHeader className="relative mt-5">
           <SheetTitle>
             <TabsList>
               <TabsTrigger value="principais">Principais</TabsTrigger>
