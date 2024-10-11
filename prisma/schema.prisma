@@ -1,0 +1,97 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  cnpj      String   @unique
+  password  String
+  animals   Animal[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Animal {
+  id                String      @id
+  gender            String      // "Female" or "Male"
+  birthDate         DateTime
+  weight            Float
+  breed             String      // Predefined list of breeds
+  category          String
+  motherId          String?     // Reference to the mother (existing animal)
+  mother            Animal?     @relation("MotherOffspring", fields: [motherId], references: [id])
+  offspringFromMother Animal[]  @relation("MotherOffspring") // Inverse relation
+  
+  fatherId          String?     // Reference to the father (existing animal)
+  father            Animal?     @relation("FatherOffspring", fields: [fatherId], references: [id])
+  offspringFromFather Animal[]  @relation("FatherOffspring") // Inverse relation
+
+  reproductiveStatus String     // "Pregnant", "Empty", "Waiting", "PEV"
+  handlingType      String      // "Bull Covering", "Artificial Insemination", "All Methods"
+  bullId            String?     // Bull used in natural covering or insemination
+  bull              Animal?     @relation("BullHandling", fields: [bullId], references: [id])
+  offspringFromBull  Animal[]   @relation("BullHandling") // Inverse relation
+
+  protocol          String?
+  andrological      String
+  expectedDueDate   DateTime?
+  bodyConditionScore Float
+
+  // Sanitary Information
+  diseases          Disease[]   @relation("AnimalDiseases")
+  vaccines          Vaccine[]   @relation("AnimalVaccines")
+  dewormings        Deworming[] @relation("AnimalDewormings")
+  observations      String?
+
+  ownerId           String
+  owner             User        @relation(fields: [ownerId], references: [id])
+
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+}
+
+model Disease {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  date        DateTime
+  animalId    String
+  animal      Animal   @relation("AnimalDiseases", fields: [animalId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Vaccine {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  date        DateTime
+  animalId    String
+  animal      Animal   @relation("AnimalVaccines", fields: [animalId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Deworming {
+  id          String   @id @default(uuid())
+  name        String
+  date        DateTime
+  animalId    String
+  animal      Animal   @relation("AnimalDewormings", fields: [animalId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
