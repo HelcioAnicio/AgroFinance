@@ -1,13 +1,12 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -16,49 +15,42 @@ model User {
   email     String   @unique
   cnpj      String   @unique
   password  String
-  animals   Animal[]
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  animals   Animal[]
 }
 
 model Animal {
-  id                String      @id
-  gender            String      // "Female" or "Male"
-  birthDate         DateTime
-  weight            Float
-  breed             String      // Predefined list of breeds
-  category          String
-  motherId          String?     // Reference to the mother (existing animal)
-  mother            Animal?     @relation("MotherOffspring", fields: [motherId], references: [id])
-  offspringFromMother Animal[]  @relation("MotherOffspring") // Inverse relation
-  
-  fatherId          String?     // Reference to the father (existing animal)
-  father            Animal?     @relation("FatherOffspring", fields: [fatherId], references: [id])
-  offspringFromFather Animal[]  @relation("FatherOffspring") // Inverse relation
-
-  reproductiveStatus String     // "Pregnant", "Empty", "Waiting", "PEV"
-  handlingType      String      // "Bull Covering", "Artificial Insemination", "All Methods"
-  bullId            String?     // Bull used in natural covering or insemination
-  bull              Animal?     @relation("BullHandling", fields: [bullId], references: [id])
-  offspringFromBull  Animal[]   @relation("BullHandling") // Inverse relation
-
-  protocol          String?
-  andrological      String
-  expectedDueDate   DateTime?
-  bodyConditionScore Float
-
-  // Sanitary Information
-  diseases          Disease[]   @relation("AnimalDiseases")
-  vaccines          Vaccine[]   @relation("AnimalVaccines")
-  dewormings        Deworming[] @relation("AnimalDewormings")
-  observations      String?
-
-  ownerId           String
-  owner             User        @relation(fields: [ownerId], references: [id])
-
-  createdAt         DateTime    @default(now())
-  updatedAt         DateTime    @updatedAt
+  id                  String      @id @default(uuid())
+  manualId            String
+  gender              String
+  birthDate           DateTime
+  weight              Float
+  breed               String
+  category            String
+  motherId            String?
+  fatherId            String?
+  reproductiveStatus  String
+  handlingType        String
+  bullId              String?
+  protocol            String?
+  andrological        String
+  expectedDueDate     DateTime?
+  bodyConditionScore  Float
+  observations        String?
+  ownerId             String
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+  owner               User        @relation(fields: [ownerId], references: [id]) // Certifique-se que a relação está aqui
+  bull                Animal?     @relation("BullHandling", fields: [bullId], references: [id])
+  offspringFromBull   Animal[]    @relation("BullHandling")
+  father              Animal?     @relation("FatherOffspring", fields: [fatherId], references: [id])
+  offspringFromFather Animal[]    @relation("FatherOffspring")
+  mother              Animal?     @relation("MotherOffspring", fields: [motherId], references: [id])
+  offspringFromMother Animal[]    @relation("MotherOffspring")
+  dewormings          Deworming[] @relation("AnimalDewormings")
+  diseases            Disease[]   @relation("AnimalDiseases")
+  vaccines            Vaccine[]   @relation("AnimalVaccines")
 }
 
 model Disease {
@@ -67,10 +59,9 @@ model Disease {
   description String?
   date        DateTime
   animalId    String
-  animal      Animal   @relation("AnimalDiseases", fields: [animalId], references: [id])
-
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  animal      Animal   @relation("AnimalDiseases", fields: [animalId], references: [id])
 }
 
 model Vaccine {
@@ -79,19 +70,17 @@ model Vaccine {
   description String?
   date        DateTime
   animalId    String
-  animal      Animal   @relation("AnimalVaccines", fields: [animalId], references: [id])
-
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  animal      Animal   @relation("AnimalVaccines", fields: [animalId], references: [id])
 }
 
 model Deworming {
-  id          String   @id @default(uuid())
-  name        String
-  date        DateTime
-  animalId    String
-  animal      Animal   @relation("AnimalDewormings", fields: [animalId], references: [id])
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(uuid())
+  name      String
+  date      DateTime
+  animalId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  animal    Animal   @relation("AnimalDewormings", fields: [animalId], references: [id])
 }
