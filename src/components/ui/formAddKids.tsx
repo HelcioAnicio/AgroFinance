@@ -12,7 +12,13 @@ interface InterfaceAddDataKids {
   gender: string;
 }
 
-export default function FormAddKids() {
+interface InterfaceComponentFormReproductionProps {
+  setStatusComponentAddKids: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+const FormAddKids: React.FC<InterfaceComponentFormReproductionProps> = ({
+  setStatusComponentAddKids,
+}) => {
   const [dataKids, setDataKids] = useState<InterfaceAddDataKids>({
     handlingType: "",
     bullId: "",
@@ -32,9 +38,15 @@ export default function FormAddKids() {
     }));
   }
 
-  function clickConsole() {
-    console.log(dataKids);
-  }
+  const handleActiveComponent = (event: React.FormEvent) => {
+    event.preventDefault();
+    console.log("Filhos cadastrado.");
+    setStatusComponentAddKids(false);
+  };
+
+  // function clickConsole() {
+  //   console.log(dataKids);
+  // }
   return (
     <>
       <Card className="mt-2">
@@ -170,20 +182,28 @@ export default function FormAddKids() {
                   type="date"
                   name="birthday"
                   id="birthday"
-                  // onChange={handledataKids}
+                  onChange={handleDataKids}
                   className="w-full border border-b border-b-primary bg-transparent outline-none"
                 />
               </div>
             </article>
             <article className="flex justify-between">
-              <Button className="flex gap-1 border border-secondary bg-card text-card-foreground shadow-md">
+              <Button
+                type="button"
+                onClick={handleActiveComponent}
+                className="flex gap-1 border border-secondary bg-card text-card-foreground shadow-md"
+              >
                 Cancelar
               </Button>
-              <Button onClick={clickConsole}>Salvar</Button>
+              <Button type="button" onClick={handleActiveComponent}>
+                Salvar
+              </Button>
             </article>
           </section>
         </CardContent>
       </Card>
     </>
   );
-}
+};
+
+export default FormAddKids;
