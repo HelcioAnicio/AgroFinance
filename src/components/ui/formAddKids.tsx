@@ -9,7 +9,9 @@ interface InterfaceAddDataKids {
   bullId: string;
   protocol: string;
   andrological: string;
-  gender: string;
+  fetalGender: string;
+  birthday: string;
+  bodyConditionScore: string;
 }
 
 interface InterfaceComponentFormReproductionProps {
@@ -24,7 +26,9 @@ const FormAddKids: React.FC<InterfaceComponentFormReproductionProps> = ({
     bullId: "",
     protocol: "",
     andrological: "",
-    gender: "",
+    fetalGender: "",
+    birthday: "",
+    bodyConditionScore: "",
   });
 
   function handleDataKids(
@@ -77,15 +81,16 @@ const FormAddKids: React.FC<InterfaceComponentFormReproductionProps> = ({
               </div>
             </article>
 
-            <article className="flex gap-2">
-              <div className="flex flex-col gap-1">
+            <article className="flex w-full justify-between gap-2">
+              <div className="flex w-full flex-col gap-1">
                 <label className="text-secondary" htmlFor="bullId">
                   Touro utilizado:
                 </label>
                 <select
                   name="bullId"
                   id="bullId"
-                  className="w-24 border border-b border-b-primary bg-transparent outline-none"
+                  className={`min-w-24 flex-1 border border-b border-b-primary bg-transparent outline-none ${dataKids.handlingType == "bullMating" && "bg-gray-300"}`}
+                  disabled={dataKids.handlingType === "artificialInsemination"}
                   value={dataKids.bullId}
                   onChange={handleDataKids}
                 >
@@ -94,22 +99,22 @@ const FormAddKids: React.FC<InterfaceComponentFormReproductionProps> = ({
                   <option value="bull120">Touro 120</option>
                 </select>
               </div>
-              <div className="flex flex-col gap-1">
+
+              <div className="flex w-full flex-col gap-1">
                 <label htmlFor="protocol" className="text-secondary">
                   Protocolo usado:
                 </label>
                 <select
                   name="protocol"
                   id="protocol"
-                  className="w-28 border border-b border-b-primary bg-transparent outline-none"
+                  className={`flex[1_1_100px] w-full min-w-20 rounded-t-md border border-b border-b-primary bg-transparent outline-none ${dataKids.handlingType == "bullMating" && "bg-gray-300"}`}
                   value={dataKids.protocol}
                   onChange={handleDataKids}
+                  disabled={dataKids.handlingType === "bulMating"}
                 >
                   <option disabled value=""></option>
-                  <option value="inseminationArtificial">
-                    Inseminação artificial
-                  </option>
-                  <option value="insemination">Inseminação </option>
+                  <option value="protocol1">Inseminação artificial</option>
+                  <option value="protocol2">Inseminação </option>
                 </select>
               </div>
             </article>
@@ -124,7 +129,7 @@ const FormAddKids: React.FC<InterfaceComponentFormReproductionProps> = ({
                     id="positive"
                     className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
                     value={dataKids.andrological}
-                    // onChange={handleDataKids}
+                    onChange={handleDataKids}
                   />
                   <label htmlFor="positive">Positivo</label>
                 </div>
@@ -156,9 +161,9 @@ const FormAddKids: React.FC<InterfaceComponentFormReproductionProps> = ({
                 <div className="flex items-center gap-1">
                   <input
                     type="radio"
-                    name="gender"
+                    name="fetalGender"
                     id="female"
-                    value={dataKids.gender}
+                    value={dataKids.fetalGender}
                     className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
                   />
                   <label htmlFor="female">Fêmea</label>
@@ -167,9 +172,9 @@ const FormAddKids: React.FC<InterfaceComponentFormReproductionProps> = ({
                 <div className="flex items-center gap-1">
                   <input
                     type="radio"
-                    name="gender"
+                    name="fetalGender"
                     id="male"
-                    value={dataKids.gender}
+                    value={dataKids.fetalGender}
                     className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
                   />
                   <label htmlFor="male">Macho</label>
@@ -186,7 +191,25 @@ const FormAddKids: React.FC<InterfaceComponentFormReproductionProps> = ({
                   className="w-full border border-b border-b-primary bg-transparent outline-none"
                 />
               </div>
+
+              <div className="flex w-full flex-col gap-1">
+                <label className="text-secondary" htmlFor="bodyConditionScore">
+                  Touro utilizado na IATF:
+                </label>
+                <select
+                  name="bodyConditionScore"
+                  id="bodyConditionScore"
+                  className={`min-w-24 max-w-40 flex-1 border border-b border-b-primary bg-transparent outline-none ${dataKids.handlingType == "bullMating" && "bg-gray-400"}`}
+                  value={dataKids.bodyConditionScore}
+                  onChange={handleDataKids}
+                >
+                  <option disabled value=""></option>
+                  <option value="bull10">Touro 10</option>
+                  <option value="bull120">Touro 120</option>
+                </select>
+              </div>
             </article>
+
             <article className="flex justify-between">
               <Button
                 type="button"

@@ -1,16 +1,28 @@
-import FormMain from "./formMain";
+import FormReproduction from "./formReproduction";
 import FormAddKids from "./formAddKids";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 export default function CardFormReproduction() {
   const [statusComponentAddKids, setStatusComponentAddKids] =
     useState<boolean>(false);
+  const formAddKidsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (statusComponentAddKids && formAddKidsRef.current) {
+      formAddKidsRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  }, [statusComponentAddKids]);
 
   return (
     <>
-      <FormMain setStatusComponentAddKids={setStatusComponentAddKids} />
+      <FormReproduction setStatusComponentAddKids={setStatusComponentAddKids} />
       {statusComponentAddKids && (
-        <FormAddKids setStatusComponentAddKids={setStatusComponentAddKids} />
+        <div ref={formAddKidsRef}>
+          <FormAddKids setStatusComponentAddKids={setStatusComponentAddKids} />
+        </div>
       )}
     </>
   );

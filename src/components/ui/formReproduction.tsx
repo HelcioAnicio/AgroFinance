@@ -13,6 +13,7 @@ interface InterfaceDataAnimalMain {
   andrological: string;
   fetalGender: string;
   expectedDueDate: string;
+  bullIatf: string;
   bodyConditionScore: string;
 }
 
@@ -32,6 +33,7 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
       andrological: "",
       fetalGender: "",
       expectedDueDate: "",
+      bullIatf: "",
       bodyConditionScore: "",
     },
   );
@@ -148,7 +150,11 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                       <select
                         name="bullId"
                         id="bullId"
-                        className="min-w-24 flex-1 border border-b border-b-primary bg-transparent outline-none"
+                        className={`min-w-24 flex-1 border border-b border-b-primary bg-transparent outline-none ${dataAnimalMain.handlingType == "bullMating" && "bg-gray-300"}`}
+                        disabled={
+                          dataAnimalMain.handlingType ===
+                          "artificialInsemination"
+                        }
                         value={dataAnimalMain.bullId}
                         onChange={handleDataAnimalMain}
                       >
@@ -165,19 +171,16 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                       <select
                         name="protocol"
                         id="protocol"
-                        className={`min-w-24 flex-1 border border-b border-b-primary bg-transparent outline-none ${dataAnimalMain.handlingType !== "artificialInsemination" && "bg-gray-400"}`}
+                        className={`flex[1_1_100px] w-full min-w-20 rounded-t-md border border-b border-b-primary bg-transparent outline-none ${dataAnimalMain.handlingType === "bullMating" && "bg-gray-300"}`}
                         value={dataAnimalMain.protocol}
                         onChange={handleDataAnimalMain}
-                        disabled={
-                          dataAnimalMain.handlingType !==
-                          "artificialInsemination"
-                        }
+                        disabled={dataAnimalMain.handlingType === "bullMating"}
                       >
                         <option disabled value=""></option>
-                        <option value="artificialInsemination">
+                        <option value="protocol1">
                           Inseminação artificial
                         </option>
-                        <option value="insemination">Inseminação </option>
+                        <option value="protocol2">Inseminação </option>
                       </select>
                     </div>
                   </article>
@@ -245,16 +248,62 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                     </div>
                   </article>
 
-                  <article>
+                  <article className="flex flex-wrap gap-5">
+                    {/* <h2 className="mb-3 text-xl text-primary">
+                      Diagnóstico de gestação
+                    </h2> */}
                     <div className="flex flex-col gap-1">
-                      <label htmlFor="birthday">Data de Nascimento:</label>
+                      <label
+                        className="text-secondary"
+                        htmlFor="expectedDueDate"
+                      >
+                        Data prevista para o parto:
+                      </label>
                       <input
                         type="date"
-                        name="birthday"
-                        id="birthday"
-                        // onChange={handledataAnimalMain}
-                        className="w-full border border-b border-b-primary bg-transparent outline-none"
+                        name="expectedDueDate"
+                        id="expectedDueDate"
+                        value={dataAnimalMain.expectedDueDate}
+                        onChange={handleDataAnimalMain}
+                        className="w-full max-w-40 border border-b border-b-primary bg-transparent outline-none"
                       />
+                    </div>
+
+                    <div className="flex w-full flex-col gap-1">
+                      <label className="text-secondary" htmlFor="bullIatf">
+                        ECC (Escore de Condição Corporal):
+                      </label>
+                      <input
+                        name="bullIatf"
+                        id="bullIatf"
+                        className={``}
+                        type="range"
+                        min="0"
+                        max="5"
+                        step="0,25"
+                        value={dataAnimalMain.bodyConditionScore}
+                        onChange={handleDataAnimalMain}
+                      />
+                    </div>
+
+                    <div className="flex w-full flex-col gap-1">
+                      <label
+                        className="text-secondary"
+                        htmlFor="bodyConditionScore"
+                      >
+                        Touro utilizado na IATF:
+                      </label>
+                      <select
+                        name="bodyConditionScore"
+                        id="bodyConditionScore"
+                        className={`min-w-24 max-w-40 flex-1 border border-b border-b-primary bg-transparent outline-none ${dataAnimalMain.handlingType == "bullMating" && "bg-gray-400"}`}
+                        value={dataAnimalMain.bodyConditionScore}
+                        onChange={handleDataAnimalMain}
+                      >
+                        <option disabled value=""></option>
+                        <option value="bull10">Touro 10</option>
+                        <option value="bull120">Touro 120</option>
+                      </select>
                     </div>
                   </article>
                 </>
