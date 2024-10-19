@@ -17,12 +17,34 @@ interface InterfaceDataAnimalMain {
   bodyConditionScore: string;
 }
 
+interface Animal {
+  id: string;
+  manualId: number | null;
+  gender: string | null;
+  birthDate: Date | null;
+  weight: number | null;
+  breed: string | null;
+  category: string | null;
+  motherId: string | null;
+  fatherId: string | null;
+  reproductiveStatus: string | null;
+  handlingType: string | null;
+  bullId: string | null;
+  protocol: string | null;
+  andrological: string | null;
+  expectedDueDate: Date | null;
+  bullIatf: string | null;
+  bodyConditionScore: number | null;
+}
+
 interface InterfaceComponentFormReproductionProps {
   setStatusComponentAddKids: React.Dispatch<React.SetStateAction<boolean>>;
+  animals: Animal[];
 }
 
 const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
   setStatusComponentAddKids,
+  animals,
 }) => {
   const [dataAnimalMain, setDataAnimalMain] = useState<InterfaceDataAnimalMain>(
     {
@@ -159,8 +181,11 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                         onChange={handleDataAnimalMain}
                       >
                         <option disabled value=""></option>
-                        <option value="bull10">Touro 10</option>
-                        <option value="bull120">Touro 120</option>
+                        {animals.map((animal) => (
+                          <option key={animal.id} value={animal.manualId ?? ""}>
+                            Touro {animal.manualId}
+                          </option>
+                        ))}
                       </select>
                     </div>
 

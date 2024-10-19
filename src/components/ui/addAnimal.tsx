@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-// import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   SheetClose,
   SheetContent,
@@ -10,11 +9,34 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CardFormMain } from "./cardFormMain";
+import { CardFormReproduction } from "./cardFormReproduction";
 
-import CardFormMain from "./cardFormMain";
-import CardFormReproduction from "./cardFormReproduction";
+interface Animal {
+  id: string;
+  manualId: number | null;
+  gender: string | null;
+  birthDate: Date | null;
+  weight: number | null;
+  breed: string | null;
+  category: string | null;
+  motherId: string | null;
+  fatherId: string | null;
+  reproductiveStatus: string | null;
+  handlingType: string | null;
+  bullId: string | null;
+  protocol: string | null;
+  andrological: string | null;
+  expectedDueDate: Date | null;
+  bullIatf: string | null;
+  bodyConditionScore: number | null;
+}
 
-export default function AddAnimals() {
+interface AddAnimalProps {
+  animals: Animal[];
+}
+
+export const AddAnimal: React.FC<AddAnimalProps> = ({ animals }) => {
   return (
     <SheetContent side="bottom" className="mt-5 max-h-[500px] overflow-y-auto">
       <Tabs defaultValue="principais">
@@ -28,11 +50,11 @@ export default function AddAnimals() {
           </SheetTitle>
         </SheetHeader>
         <TabsContent value="principais">
-          <CardFormMain />
+          <CardFormMain animals={animals} />
         </TabsContent>
 
         <TabsContent value="reproducao">
-          <CardFormReproduction />
+          <CardFormReproduction animals={animals} />
         </TabsContent>
 
         <TabsContent value="sanitarias">
@@ -53,4 +75,4 @@ export default function AddAnimals() {
       </Tabs>
     </SheetContent>
   );
-}
+};

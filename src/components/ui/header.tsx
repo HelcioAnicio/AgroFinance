@@ -4,10 +4,33 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetTrigger } from "@/components/ui/sheet";
 import { ListFilter, CirclePlus } from "lucide-react";
+import { AddAnimal } from "./addAnimal";
 
-import AddAnimal from "./addAnimal";
+interface Animal {
+  id: string;
+  manualId: string;
+  gender: string;
+  birthDate: Date;
+  weight: number;
+  breed: string;
+  category: string;
+  motherId: string;
+  fatherId: string;
+  reproductiveStatus: string;
+  handlingType: string;
+  bullId: string;
+  protocol: string;
+  andrological: string;
+  expectedDueDate: Date;
+  bullIatf: string;
+  bodyConditionScore: number;
+}
 
-export const Header = () => {
+interface HeaderProps {
+  animals: Animal[];
+}
+
+export const Header: React.FC<HeaderProps> = ({ animals }) => {
   return (
     <Sheet>
       <header className="flex w-full items-end justify-between p-2">
@@ -32,7 +55,7 @@ export const Header = () => {
             </SheetTrigger>
           </div>
           <input
-            className="w-full max-w-60 rounded-xl border bg-transparent p-1 shadow-md outline-none"
+            className="w-full max-w-60 border border-b-gray-400 bg-transparent p-1 shadow-md outline-none"
             type="search"
             name="inputSearch"
             id="inputSearch"
@@ -40,7 +63,7 @@ export const Header = () => {
           />
         </nav>
       </header>
-      <AddAnimal />
+      <AddAnimal animals={animals} />
     </Sheet>
   );
 };

@@ -1,8 +1,34 @@
 import FormReproduction from "./formReproduction";
-import FormAddKids from "./formAddKids";
+import { FormAddKids } from "./formAddKids";
 import { useState, useRef, useEffect } from "react";
 
-export default function CardFormReproduction() {
+interface Animal {
+  id: string;
+  manualId: number | null;
+  gender: string | null;
+  birthDate: Date | null;
+  weight: number | null;
+  breed: string | null;
+  category: string | null;
+  motherId: string | null;
+  fatherId: string | null;
+  reproductiveStatus: string | null;
+  handlingType: string | null;
+  bullId: string | null;
+  protocol: string | null;
+  andrological: string | null;
+  expectedDueDate: Date | null;
+  bullIatf: string | null;
+  bodyConditionScore: number | null;
+}
+
+interface CardFormReproductionProps {
+  animals: Animal[];
+}
+
+export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
+  animals,
+}) => {
   const [statusComponentAddKids, setStatusComponentAddKids] =
     useState<boolean>(false);
   const formAddKidsRef = useRef<HTMLDivElement>(null);
@@ -18,12 +44,18 @@ export default function CardFormReproduction() {
 
   return (
     <>
-      <FormReproduction setStatusComponentAddKids={setStatusComponentAddKids} />
+      <FormReproduction
+        setStatusComponentAddKids={setStatusComponentAddKids}
+        animals={animals}
+      />
       {statusComponentAddKids && (
         <div ref={formAddKidsRef}>
-          <FormAddKids setStatusComponentAddKids={setStatusComponentAddKids} />
+          <FormAddKids
+            setStatusComponentAddKids={setStatusComponentAddKids}
+            animals={animals}
+          />
         </div>
       )}
     </>
   );
-}
+};

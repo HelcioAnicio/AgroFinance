@@ -2,8 +2,31 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+interface Animal {
+  id: string;
+  manualId: number | null;
+  gender: string | null;
+  birthDate: Date | null;
+  weight: number | null;
+  breed: string | null;
+  category: string | null;
+  motherId: string | null;
+  fatherId: string | null;
+  reproductiveStatus: string | null;
+  handlingType: string | null;
+  bullId: string | null;
+  protocol: string | null;
+  andrological: string | null;
+  expectedDueDate: Date | null;
+  bullIatf: string | null;
+  bodyConditionScore: number | null;
+}
 
-export default function CardFormMain() {
+interface CardFormMainProps {
+  animals: Animal[];
+}
+
+export const CardFormMain: React.FC<CardFormMainProps> = ({ animals }) => {
   return (
     <Card className="min-h-96">
       <CardHeader className="py-2">
@@ -121,4 +144,4 @@ export default function CardFormMain() {
       </CardContent>
     </Card>
   );
-}
+};

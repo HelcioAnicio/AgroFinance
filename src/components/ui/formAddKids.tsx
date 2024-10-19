@@ -14,12 +14,34 @@ interface InterfaceAddDataKids {
   bodyConditionScore: string;
 }
 
-interface InterfaceComponentFormReproductionProps {
-  setStatusComponentAddKids: React.Dispatch<React.SetStateAction<boolean>>;
+interface Animal {
+  id: string;
+  manualId: number | null;
+  gender: string | null;
+  birthDate: Date | null;
+  weight: number | null;
+  breed: string | null;
+  category: string | null;
+  motherId: string | null;
+  fatherId: string | null;
+  reproductiveStatus: string | null;
+  handlingType: string | null;
+  bullId: string | null;
+  protocol: string | null;
+  andrological: string | null;
+  expectedDueDate: Date | null;
+  bullIatf: string | null;
+  bodyConditionScore: number | null;
 }
 
-const FormAddKids: React.FC<InterfaceComponentFormReproductionProps> = ({
+interface InterfaceComponentFormReproductionProps {
+  setStatusComponentAddKids: React.Dispatch<React.SetStateAction<boolean>>;
+  animals: Animal[];
+}
+
+export const FormAddKids: React.FC<InterfaceComponentFormReproductionProps> = ({
   setStatusComponentAddKids,
+  animals,
 }) => {
   const [dataKids, setDataKids] = useState<InterfaceAddDataKids>({
     handlingType: "",
@@ -48,6 +70,7 @@ const FormAddKids: React.FC<InterfaceComponentFormReproductionProps> = ({
     setStatusComponentAddKids(false);
   };
 
+  console.log(animals);
   // function clickConsole() {
   //   console.log(dataKids);
   // }
@@ -95,8 +118,11 @@ const FormAddKids: React.FC<InterfaceComponentFormReproductionProps> = ({
                   onChange={handleDataKids}
                 >
                   <option disabled value=""></option>
-                  <option value="bull10">Touro 10</option>
-                  <option value="bull120">Touro 120</option>
+                  {animals.map((animal) => (
+                    <option key={animal.id} value={animal.manualId ?? ""}>
+                      Touro {animal.manualId}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -110,7 +136,7 @@ const FormAddKids: React.FC<InterfaceComponentFormReproductionProps> = ({
                   className={`flex[1_1_100px] w-full min-w-20 rounded-t-md border border-b border-b-primary bg-transparent outline-none ${dataKids.handlingType == "bullMating" && "bg-gray-300"}`}
                   value={dataKids.protocol}
                   onChange={handleDataKids}
-                  disabled={dataKids.handlingType === "bulMating"}
+                  disabled={dataKids.handlingType === "bullMating"}
                 >
                   <option disabled value=""></option>
                   <option value="protocol1">Inseminação artificial</option>
@@ -228,5 +254,3 @@ const FormAddKids: React.FC<InterfaceComponentFormReproductionProps> = ({
     </>
   );
 };
-
-export default FormAddKids;

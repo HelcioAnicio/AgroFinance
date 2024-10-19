@@ -1,61 +1,31 @@
 import { SquareArrowOutUpLeft } from "lucide-react";
 import Link from "next/link";
 
-interface Bovinos {
-  id: number;
-  raca: string;
-  sexo: string;
-  mae: string;
-  pai: string;
-  nascimento: string;
-  categoria: string;
-  peso: string;
+interface Animal {
+  id: string;
+  manualId: string;
+  gender: string;
+  birthDate: Date;
+  weight: number;
+  breed: string;
+  category: string;
+  motherId: string;
+  fatherId: string;
+  reproductiveStatus: string;
+  handlingType: string;
+  bullId: string;
+  protocol: string;
+  andrological: string;
+  expectedDueDate: Date;
+  bullIatf: string;
+  bodyConditionScore: number;
 }
 
-export const Table = () => {
-  const bovinos: Bovinos[] = [
-    {
-      id: 1,
-      raca: "Nelore",
-      sexo: "Fêmea",
-      mae: "Vaca 10",
-      pai: "Touro 5",
-      nascimento: "01/01/2010",
-      categoria: "Bovino",
-      peso: "40@",
-    },
-    {
-      id: 2,
-      raca: "Angus",
-      sexo: "Macho",
-      mae: "Vaca 12",
-      pai: "Touro 7",
-      nascimento: "01/01/2010",
-      categoria: "Bovino",
-      peso: "40@",
-    },
-    {
-      id: 3,
-      raca: "Hereford",
-      sexo: "Fêmea",
-      mae: "Vaca 15",
-      pai: "Touro 9",
-      nascimento: "01/01/2010",
-      categoria: "Bovino",
-      peso: "40@",
-    },
-    {
-      id: 4,
-      raca: "Brahman",
-      sexo: "Macho",
-      mae: "Vaca 11",
-      pai: "Touro 6",
-      nascimento: "01/01/2010",
-      categoria: "Bovino",
-      peso: "40@",
-    },
-  ];
+interface TableProps {
+  animals: Animal[];
+}
 
+export const Table: React.FC<TableProps> = ({ animals }) => {
   return (
     <main className="overflow-x-auto scroll-smooth pb-5">
       <table className="min-w-[700px] border-collapse text-left">
@@ -73,73 +43,73 @@ export const Table = () => {
           </tr>
         </thead>
         <tbody className="relative">
-          {bovinos.map((bovino, index) => (
+          {animals.map((animal, index) => (
             <tr
-              key={bovino.id}
+              key={animal.id}
               className={`${index % 2 === 0 ? "bg-muted" : ""}`}
             >
               <td className="px-1 py-3">
                 <Link
-                  href={`/bovinos/${bovino.id}`}
+                  href={`/bovinos/${animal.id}`}
                   className="block h-full w-full"
                 >
-                  {bovino.id}
+                  {animal.manualId}
                 </Link>
               </td>
               <td className="px-1 py-3">
                 <Link
-                  href={`/bovinos/${bovino.id}`}
+                  href={`/bovinos/${animal.id}`}
                   className="block h-full w-full"
                 >
-                  {bovino.raca}
+                  {animal.breed}
                 </Link>
               </td>
               <td className="px-1 py-3">
                 <Link
-                  href={`/bovinos/${bovino.id}`}
+                  href={`/bovinos/${animal.id}`}
                   className="block h-full w-full"
                 >
-                  {bovino.sexo}
+                  {animal.gender}
                 </Link>
               </td>
               <td className="px-1 py-3">
                 <Link
-                  href={`/bovinos/${bovino.id}`}
+                  href={`/bovinos/${animal.id}`}
                   className="block h-full w-full"
                 >
-                  {bovino.mae}
+                  {animal.motherId}
                 </Link>
               </td>
               <td className="px-1 py-3">
                 <Link
-                  href={`/bovinos/${bovino.id}`}
+                  href={`/bovinos/${animal.id}`}
                   className="block h-full w-full"
                 >
-                  {bovino.pai}
+                  {animal.fatherId}
                 </Link>
               </td>
               <td className="px-1 py-3">
                 <Link
-                  href={`/bovinos/${bovino.id}`}
+                  href={`/bovinos/${animal.id}`}
                   className="block h-full w-full"
                 >
-                  {bovino.nascimento}
+                  {new Date(animal.birthDate).toLocaleDateString()}
                 </Link>
               </td>
               <td className="px-1 py-3">
                 <Link
-                  href={`/bovinos/${bovino.id}`}
+                  href={`/bovinos/${animal.id}`}
                   className="block h-full w-full"
                 >
-                  {bovino.categoria}
+                  {animal.category}
                 </Link>
               </td>
               <td className="px-1 py-3">
                 <Link
-                  href={`/bovinos/${bovino.id}`}
+                  href={`/bovinos/${animal.id}`}
                   className="block h-full w-full"
                 >
-                  {bovino.peso}
+                  {animal.weight}
                 </Link>
               </td>
               <td
@@ -148,7 +118,7 @@ export const Table = () => {
                 }`}
               >
                 <Link
-                  href={`/bovinos/${bovino.id}`}
+                  href={`/bovinos/${animal.id}`}
                   className="block h-full w-full"
                 >
                   <SquareArrowOutUpLeft size={20} />
