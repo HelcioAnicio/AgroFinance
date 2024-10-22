@@ -181,6 +181,8 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                         onChange={handleDataAnimalMain}
                       >
                         <option disabled value=""></option>
+                        <option value="comercial">Comercial</option>
+
                         {animals.map((animal) => (
                           <option key={animal.id} value={animal.manualId ?? ""}>
                             Touro {animal.manualId}
@@ -295,12 +297,15 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                     </div>
 
                     <div className="flex w-full flex-col gap-1">
-                      <label className="text-secondary" htmlFor="bullIatf">
+                      <label
+                        className="text-secondary"
+                        htmlFor="bullIbodyConditionScoreatf"
+                      >
                         ECC (Escore de Condição Corporal):
                       </label>
                       <input
-                        name="bullIatf"
-                        id="bullIatf"
+                        name="bodyConditionScore"
+                        id="bullbodyConditionScoreIatf"
                         className={``}
                         type="range"
                         min="0"
@@ -312,23 +317,122 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                     </div>
 
                     <div className="flex w-full flex-col gap-1">
-                      <label
-                        className="text-secondary"
-                        htmlFor="bodyConditionScore"
-                      >
+                      <label className="text-secondary" htmlFor="bullIatf">
                         Touro utilizado na IATF:
                       </label>
                       <select
-                        name="bodyConditionScore"
-                        id="bodyConditionScore"
+                        name="bullIatf"
+                        id="bullIatf"
                         className={`min-w-24 max-w-40 flex-1 border border-b border-b-primary bg-transparent outline-none ${dataAnimalMain.handlingType == "bullMating" && "bg-gray-400"}`}
-                        value={dataAnimalMain.bodyConditionScore}
+                        value={dataAnimalMain.bullIatf}
                         onChange={handleDataAnimalMain}
                       >
                         <option disabled value=""></option>
-                        <option value="bull10">Touro 10</option>
-                        <option value="bull120">Touro 120</option>
+                        <option value="comercial">Comercial</option>
+
+                        {animals.map((animal) => (
+                          <option key={animal.id} value={animal.manualId ?? ""}>
+                            Touro {animal.manualId}
+                          </option>
+                        ))}
                       </select>
+                    </div>
+                  </article>
+                </>
+              )}
+
+              {dataAnimalMain.reproductiveStatus === "waiting" && (
+                <>
+                  <article className="flex flex-wrap gap-5">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-secondary" htmlFor="handlingType">
+                        Manejo utilizado:
+                      </label>
+                      <select
+                        name="handlingType"
+                        id="handlingType"
+                        className="w-44 border border-b border-b-primary bg-transparent outline-none"
+                        value={dataAnimalMain.handlingType}
+                        onChange={handleDataAnimalMain}
+                      >
+                        <option disabled value=""></option>
+                        <option value="bullMating">Touro</option>
+                        <option value="artificialInsemination">
+                          Inseminação Artifical
+                        </option>
+                        <option value="allMethods">Todos os metodos</option>
+                      </select>
+                    </div>
+                  </article>
+
+                  <article className="flex w-full justify-between gap-2">
+                    <div className="flex w-full flex-col gap-1">
+                      <label className="text-secondary" htmlFor="bullId">
+                        Touro utilizado:
+                      </label>
+                      <select
+                        name="bullId"
+                        id="bullId"
+                        className={`min-w-24 flex-1 border border-b border-b-primary bg-transparent outline-none ${dataAnimalMain.handlingType == "bullMating" && "bg-gray-300"}`}
+                        disabled={
+                          dataAnimalMain.handlingType ===
+                          "artificialInsemination"
+                        }
+                        value={dataAnimalMain.bullId}
+                        onChange={handleDataAnimalMain}
+                      >
+                        <option disabled value=""></option>
+                        <option value="comercial">Comercial</option>
+
+                        {animals.map((animal) => (
+                          <option key={animal.id} value={animal.manualId ?? ""}>
+                            Touro {animal.manualId}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="flex w-full flex-col gap-1">
+                      <label htmlFor="protocol" className="text-secondary">
+                        Protocolo usado:
+                      </label>
+                      <select
+                        name="protocol"
+                        id="protocol"
+                        className={`flex[1_1_100px] w-full min-w-20 rounded-t-md border border-b border-b-primary bg-transparent outline-none ${dataAnimalMain.handlingType === "bullMating" && "bg-gray-300"}`}
+                        value={dataAnimalMain.protocol}
+                        onChange={handleDataAnimalMain}
+                        disabled={dataAnimalMain.handlingType === "bullMating"}
+                      >
+                        <option disabled value=""></option>
+                        <option value="protocol1">
+                          Inseminação artificial
+                        </option>
+                        <option value="protocol2">Inseminação </option>
+                      </select>
+                    </div>
+                  </article>
+                </>
+              )}
+
+              {dataAnimalMain.reproductiveStatus === "pev" && (
+                <>
+                  <article className="flex flex-wrap gap-5">
+                    <div className="flex flex-col gap-1">
+                      <label
+                        className="text-secondary"
+                        htmlFor="expectedDueDate"
+                      >
+                        Manejo utilizado:
+                      </label>
+                      <input
+                        type="date"
+                        name="expectedDueDate"
+                        id="expectedDueDate"
+                        value={dataAnimalMain.expectedDueDate}
+                        onChange={handleDataAnimalMain}
+                        className="w-full max-w-40 border border-b border-b-primary bg-transparent outline-none"
+                      />
                     </div>
                   </article>
                 </>

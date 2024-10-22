@@ -43,89 +43,102 @@ export const Table: React.FC<TableProps> = ({ animals }) => {
           </tr>
         </thead>
         <tbody className="relative">
-          {animals.map((animal, index) => (
-            <tr
-              key={animal.id}
-              className={`${index % 2 === 0 ? "bg-muted" : ""}`}
-            >
-              <td className="px-1 py-3">
-                <Link
-                  href={`/bovinos/${animal.id}`}
-                  className="block h-full w-full"
-                >
-                  {animal.manualId}
-                </Link>
-              </td>
-              <td className="px-1 py-3">
-                <Link
-                  href={`/bovinos/${animal.id}`}
-                  className="block h-full w-full"
-                >
-                  {animal.breed}
-                </Link>
-              </td>
-              <td className="px-1 py-3">
-                <Link
-                  href={`/bovinos/${animal.id}`}
-                  className="block h-full w-full"
-                >
-                  {animal.gender}
-                </Link>
-              </td>
-              <td className="px-1 py-3">
-                <Link
-                  href={`/bovinos/${animal.id}`}
-                  className="block h-full w-full"
-                >
-                  {animal.motherId}
-                </Link>
-              </td>
-              <td className="px-1 py-3">
-                <Link
-                  href={`/bovinos/${animal.id}`}
-                  className="block h-full w-full"
-                >
-                  {animal.fatherId}
-                </Link>
-              </td>
-              <td className="px-1 py-3">
-                <Link
-                  href={`/bovinos/${animal.id}`}
-                  className="block h-full w-full"
-                >
-                  {new Date(animal.birthDate).toLocaleDateString()}
-                </Link>
-              </td>
-              <td className="px-1 py-3">
-                <Link
-                  href={`/bovinos/${animal.id}`}
-                  className="block h-full w-full"
-                >
-                  {animal.category}
-                </Link>
-              </td>
-              <td className="px-1 py-3">
-                <Link
-                  href={`/bovinos/${animal.id}`}
-                  className="block h-full w-full"
-                >
-                  {animal.weight}
-                </Link>
-              </td>
-              <td
-                className={`sticky right-0 px-1 py-3 ${
-                  index % 2 === 0 ? "bg-muted" : "bg-background"
-                }`}
+          {animals.map((animal, index) => {
+            const mother = animals.find((a) => a.id === animal.motherId);
+            const father = animals.find((a) => a.id === animal.fatherId);
+
+            return (
+              <tr
+                key={animal.id}
+                className={`${index % 2 === 0 ? "bg-muted" : ""}`}
               >
-                <Link
-                  href={`/bovinos/${animal.id}`}
-                  className="block h-full w-full"
+                <td className="px-1 py-3">
+                  <Link
+                    href={`/bovinos/${animal.id}`}
+                    className="block h-full w-full"
+                  >
+                    {animal.manualId}
+                  </Link>
+                </td>
+                <td className="px-1 py-3">
+                  <Link
+                    href={`/bovinos/${animal.id}`}
+                    className="block h-full w-full"
+                  >
+                    {animal.breed}
+                  </Link>
+                </td>
+                <td className="px-1 py-3">
+                  <Link
+                    href={`/bovinos/${animal.id}`}
+                    className="block h-full w-full"
+                  >
+                    {animal.gender}
+                  </Link>
+                </td>
+                <td className="px-1 py-3">
+                  <Link
+                    href={`/bovinos/${animal.id}`}
+                    className="block h-full w-full"
+                  >
+                    {animal.motherId === null
+                      ? "Comercial"
+                      : mother
+                        ? `Vaca ${mother.manualId}`
+                        : "Comercial"}
+                  </Link>
+                </td>
+                <td className="px-1 py-3">
+                  <Link
+                    href={`/bovinos/${animal.id}`}
+                    className="block h-full w-full"
+                  >
+                    {animal.motherId === null
+                      ? "Comercial"
+                      : father
+                        ? `Vaca ${father.manualId}`
+                        : "Comercial"}
+                  </Link>
+                </td>
+                <td className="px-1 py-3">
+                  <Link
+                    href={`/bovinos/${animal.id}`}
+                    className="block h-full w-full"
+                  >
+                    {new Date(animal.birthDate).toLocaleDateString()}
+                  </Link>
+                </td>
+                <td className="px-1 py-3">
+                  <Link
+                    href={`/bovinos/${animal.id}`}
+                    className="block h-full w-full"
+                  >
+                    {animal.category}
+                  </Link>
+                </td>
+                <td className="px-1 py-3">
+                  <Link
+                    href={`/bovinos/${animal.id}`}
+                    className="block h-full w-full"
+                  >
+                    {animal.weight}
+                  </Link>
+                </td>
+                <td
+                  className={`sticky right-0 px-1 py-3 ${
+                    index % 2 === 0 ? "bg-muted" : "bg-background"
+                  }`}
                 >
-                  <SquareArrowOutUpLeft size={20} />
-                </Link>
-              </td>
-            </tr>
-          ))}
+                  <Link
+                    href={`/bovinos/${animal.id}`}
+                    className="block h-full w-full"
+                  >
+                    <SquareArrowOutUpLeft size={20} />
+                  </Link>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </main>

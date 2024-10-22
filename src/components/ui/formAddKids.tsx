@@ -12,6 +12,7 @@ interface InterfaceAddDataKids {
   fetalGender: string;
   birthday: string;
   bodyConditionScore: string;
+  bullIatf: string;
 }
 
 interface Animal {
@@ -51,6 +52,7 @@ export const FormAddKids: React.FC<InterfaceComponentFormReproductionProps> = ({
     fetalGender: "",
     birthday: "",
     bodyConditionScore: "",
+    bullIatf: "",
   });
 
   function handleDataKids(
@@ -118,6 +120,7 @@ export const FormAddKids: React.FC<InterfaceComponentFormReproductionProps> = ({
                   onChange={handleDataKids}
                 >
                   <option disabled value=""></option>
+                  <option value="comercial">Comercial</option>
                   {animals.map((animal) => (
                     <option key={animal.id} value={animal.manualId ?? ""}>
                       Touro {animal.manualId}
@@ -219,19 +222,24 @@ export const FormAddKids: React.FC<InterfaceComponentFormReproductionProps> = ({
               </div>
 
               <div className="flex w-full flex-col gap-1">
-                <label className="text-secondary" htmlFor="bodyConditionScore">
+                <label className="text-secondary" htmlFor="bullIatf">
                   Touro utilizado na IATF:
                 </label>
                 <select
-                  name="bodyConditionScore"
-                  id="bodyConditionScore"
+                  name="bullIatf"
+                  id="bullIatf"
                   className={`min-w-24 max-w-40 flex-1 border border-b border-b-primary bg-transparent outline-none ${dataKids.handlingType == "bullMating" && "bg-gray-400"}`}
-                  value={dataKids.bodyConditionScore}
+                  value={dataKids.bullIatf}
                   onChange={handleDataKids}
                 >
                   <option disabled value=""></option>
-                  <option value="bull10">Touro 10</option>
-                  <option value="bull120">Touro 120</option>
+                  <option value="comercial">Comercial</option>
+
+                  {animals.map((animal) => (
+                    <option key={animal.id} value={animal.manualId ?? ""}>
+                      Touro {animal.manualId}
+                    </option>
+                  ))}
                 </select>
               </div>
             </article>

@@ -2,6 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState } from "react";
+
 interface Animal {
   id: string;
   manualId: number | null;
@@ -26,7 +28,36 @@ interface CardFormMainProps {
   animals: Animal[];
 }
 
+interface InterfaceDataFormMain {
+  manualId: string;
+  gender: string;
+  birthDate: string;
+  weight: number;
+  breed: string;
+  category: string;
+  motherId: string;
+  fatherId: string;
+}
+
 export const CardFormMain: React.FC<CardFormMainProps> = ({ animals }) => {
+  const [dataFormMain, setDataFormMain] = useState<InterfaceDataFormMain>(
+    {} as InterfaceDataFormMain,
+  );
+
+  const handleDataFormMain = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.target;
+
+    setDataFormMain((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
+
+  const sendForm = (event: React.FormEvent) => {
+    event.preventDefault();
+    console.log(dataFormMain);
+  };
+
   return (
     <Card className="min-h-96">
       <CardHeader className="py-2">
@@ -43,6 +74,8 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({ animals }) => {
                 type="text"
                 name="idAnimal"
                 id="idAnimal"
+                value={dataFormMain.manualId}
+                onChange={handleDataFormMain}
                 className="w-20 border border-b border-b-primary bg-transparent outline-none"
               />
             </div>
@@ -53,6 +86,8 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({ animals }) => {
                   type="radio"
                   name="gender"
                   id="female"
+                  value={dataFormMain.gender}
+                  onChange={handleDataFormMain}
                   className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
                 />
                 <label htmlFor="female">Fêmea</label>
@@ -62,6 +97,8 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({ animals }) => {
                   type="radio"
                   name="gender"
                   id="male"
+                  value={dataFormMain.gender}
+                  onChange={handleDataFormMain}
                   className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
                 />
                 <label htmlFor="male">Macho</label>
@@ -77,6 +114,8 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({ animals }) => {
                   type="date"
                   name="birthday"
                   id="birthday"
+                  value={dataFormMain.birthDate}
+                  onChange={handleDataFormMain}
                   className="w-full border border-b border-b-primary bg-transparent outline-none"
                 />
               </div>
@@ -88,6 +127,8 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({ animals }) => {
                   type="number"
                   name="weight"
                   id="weight"
+                  value={dataFormMain.weight}
+                  onChange={handleDataFormMain}
                   className="w-full border border-b border-b-primary bg-transparent outline-none"
                 />
               </div>
@@ -99,6 +140,8 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({ animals }) => {
                   type="text"
                   name="breed"
                   id="breed"
+                  value={dataFormMain.breed}
+                  onChange={handleDataFormMain}
                   className="w-full border border-b border-b-primary bg-transparent outline-none"
                 />
               </div>
@@ -110,6 +153,8 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({ animals }) => {
                   type="text"
                   name="category"
                   id="category"
+                  value={dataFormMain.category}
+                  onChange={handleDataFormMain}
                   className="w-full border border-b border-b-primary bg-transparent outline-none"
                 />
               </div>
@@ -121,6 +166,8 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({ animals }) => {
                   type="text"
                   name="mother"
                   id="mother"
+                  value={dataFormMain.motherId}
+                  onChange={handleDataFormMain}
                   className="w-full border border-b border-b-primary bg-transparent outline-none"
                 />
               </div>
@@ -132,11 +179,17 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({ animals }) => {
                   type="text"
                   name="father"
                   id="father"
+                  value={dataFormMain.fatherId}
+                  onChange={handleDataFormMain}
                   className="w-full border border-b border-b-primary bg-transparent outline-none"
                 />
               </div>
             </div>
-            <Button className="mt-auto flex justify-self-end" type="submit">
+            <Button
+              className="mt-auto flex justify-self-end"
+              type="submit"
+              onClick={sendForm}
+            >
               Próximo
             </Button>
           </section>
