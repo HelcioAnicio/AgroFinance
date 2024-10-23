@@ -1,72 +1,80 @@
 import { PrismaClient } from "@prisma/client";
-import { format, toDate } from "date-fns-tz";
+import { toDate, format } from "date-fns-tz";
 
 const prisma = new PrismaClient();
-const timeZone = "America/Sao_Paulo"; // Ajuste para o fuso horário desejado
+const timeZone = "America/Sao_Paulo";
 
 async function main() {
   try {
-    // Ajusta a data de criação para o fuso horário do usuário
     const now = new Date();
     const zonedDate = toDate(now, { timeZone });
     const createdAt = format(zonedDate, "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", {
       timeZone,
     });
 
-    // Cria o segundo usuário
-    const user2 = await prisma.user.create({
+    // Cria o usuário
+    const user = await prisma.user.create({
       data: {
-        name: "Anna Souza",
-        email: "anna.souze@dominio.com",
-        cnpj: "12.345.678/0001-34",
-        password: "senhaSegura456", // Lembre-se de hashear a senha em produção
+        name: "Elcio Souza",
+        email: "elcio.souza@dominio.com",
+        cnpj: "11.000.123/0001-10",
+        password: "senhaSegura456",
         createdAt: createdAt,
       },
     });
 
-    console.log("User created:", user2);
+    console.log("User created:", user);
 
-    // Cria animais associados ao segundo usuário
-    // //   const animals2 = await prisma.animal.createMany({
-    // //     data: [
-    // //       {
-    // //         manualId: "03",
-    // //         gender: "Female",
-    // //         birthDate: toZonedTime(new Date("2021-03-10"), timeZone),
-    // //         weight: 420.0,
-    // //         breed: "Hereford",
-    // //         category: "Corte",
-    // //         reproductiveStatus: "Pregnant",
-    // //         handlingType: "Artificial Insemination",
-    // //         bullId: null,
-    // //         protocol: null,
-    // //         andrological: "Positive",
-    // //         bodyConditionScore: 3.8,
-    // //         ownerId: user2.id, // Associa o animal ao usuário criado
-    // //         createdAt: createdAt,
-    // //       },
-    // //       {
-    // //         manualId: "04",
-    // //         gender: "Male",
-    // //         birthDate: toZonedTime(new Date("2020-11-05"), timeZone),
-    // //         weight: 480.0,
-    // //         breed: "Hereford",
-    // //         category: "Corte",
-    // //         reproductiveStatus: "Waiting",
-    // //         handlingType: "Bull Covering",
-    // //         bullId: null,
-    // //         protocol: null,
-    // //         andrological: "Negative",
-    // //         bodyConditionScore: 4.2,
-    // //         ownerId: user2.id, // Associa o animal ao usuário criado
-    // //         createdAt: createdAt,
-    // //       },
-    // //     ],
-    // //   });
+    const animalsData = [
+      {
+        manualId: 1,
+        gender: "Female",
+        birthDate: toDate(new Date("2020-10-22 08:13:45.015"), { timeZone }),
+        weight: 420.0, // Adicione a propriedade weight
+        breed: "Hereford",
+        category: "Corte",
+        reproductiveStatus: "Empty",
+        handlingType: "Artificial Insemination",
+        bullId: null,
+        protocol: null,
+        andrological: "Positive",
+        fetalGender: null,
+        bodyConditionScore: 3.8,
+        expectedDueDate: toDate(new Date("2022-10-22 08:13:45.015"), {
+          timeZone,
+        }),
+        bullIatf: null,
+        ownerId: user.id, // Associa o animal ao usuário criado
+        createdAt: createdAt,
+      },
+      {
+        manualId: 2,
+        gender: "male",
+        birthDate: toDate(new Date("2020-10-22 08:13:45.015"), { timeZone }),
+        weight: 420.0, // Adicione a propriedade weight
+        breed: "Hereford",
+        category: "Corte",
+        reproductiveStatus: "Empty",
+        handlingType: "Artificial Insemination",
+        bullId: null,
+        protocol: null,
+        andrological: "Positive",
+        fetalGender: null,
+        bodyConditionScore: 3.8,
+        ownerId: user.id, // Associa o animal ao usuário criado
+        createdAt: createdAt,
+      },
+      // Adicione outros animais conforme necessário
+    ];
 
-    // //   console.log("Animals created:", animals2);
+    // Cadastra os animais
+    for (const animalData of animalsData) {
+      await prisma.animal.create({
+        data: animalData,
+      });
+    }
   } catch (error) {
-    console.error("Error creating data:", error);
+    console.error("Error in main function:", error);
   } finally {
     await prisma.$disconnect();
   }

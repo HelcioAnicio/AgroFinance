@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["multiSchema"]
 }
 
@@ -22,7 +22,7 @@ model User {
 
 model Animal {
   id                  String      @id @default(uuid())
-  manualId            String
+  manualId            Int
   gender              String
   birthDate           DateTime
   weight              Float
@@ -31,23 +31,25 @@ model Animal {
   motherId            String?
   fatherId            String?
   reproductiveStatus  String
-  handlingType        String
+  handlingType        String?
   bullId              String?
   protocol            String?
   andrological        String
   expectedDueDate     DateTime?
+  fetalGender         String?
+  bullIatf            String?
   bodyConditionScore  Float
   observations        String?
   ownerId             String
   createdAt           DateTime    @default(now())
   updatedAt           DateTime    @updatedAt
-  owner               User        @relation(fields: [ownerId], references: [id]) // Certifique-se que a relação está aqui
   bull                Animal?     @relation("BullHandling", fields: [bullId], references: [id])
   offspringFromBull   Animal[]    @relation("BullHandling")
   father              Animal?     @relation("FatherOffspring", fields: [fatherId], references: [id])
   offspringFromFather Animal[]    @relation("FatherOffspring")
   mother              Animal?     @relation("MotherOffspring", fields: [motherId], references: [id])
   offspringFromMother Animal[]    @relation("MotherOffspring")
+  owner               User        @relation(fields: [ownerId], references: [id])
   dewormings          Deworming[] @relation("AnimalDewormings")
   diseases            Disease[]   @relation("AnimalDiseases")
   vaccines            Vaccine[]   @relation("AnimalVaccines")
