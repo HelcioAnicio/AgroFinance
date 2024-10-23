@@ -17,6 +17,7 @@ interface Animal {
   bullId: string | null;
   protocol: string | null;
   andrological: string | null;
+  fetalGender: string | null;
   expectedDueDate: Date | null;
   bullIatf: string | null;
   bodyConditionScore: number | null;
@@ -24,10 +25,16 @@ interface Animal {
 
 interface CardFormReproductionProps {
   animals: Animal[];
+  allDataForm: Animal;
+  handleInputValues: (
+    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => void;
 }
 
 export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
   animals,
+  allDataForm,
+  handleInputValues,
 }) => {
   const [statusComponentAddKids, setStatusComponentAddKids] =
     useState<boolean>(false);
@@ -47,6 +54,8 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
       <FormReproduction
         setStatusComponentAddKids={setStatusComponentAddKids}
         animals={animals}
+        allDataForm={allDataForm}
+        handleInputValues={handleInputValues}
       />
       {statusComponentAddKids && (
         <div ref={formAddKidsRef}>

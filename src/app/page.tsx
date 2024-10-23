@@ -20,6 +20,7 @@ interface Animal {
   bullId: string | null;
   protocol: string | null;
   andrological: string | null;
+  fetalGender: string | null;
   expectedDueDate: Date | null;
   bullIatf: string | null;
   bodyConditionScore: number | null;
@@ -27,6 +28,8 @@ interface Animal {
 
 const fetchAnimals = async (): Promise<Animal[]> => {
   const animals = await prisma.animal.findMany();
+  console.log(animals);
+
   return animals;
 };
 

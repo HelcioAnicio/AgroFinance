@@ -11,6 +11,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CardFormMain } from "./cardFormMain";
 import { CardFormReproduction } from "./cardFormReproduction";
+import React, { useState } from "react";
 
 interface Animal {
   id: string;
@@ -30,6 +31,7 @@ interface Animal {
   expectedDueDate: Date | null;
   bullIatf: string | null;
   bodyConditionScore: number | null;
+  fetalGender: string | null;
 }
 
 interface AddAnimalProps {
@@ -37,9 +39,23 @@ interface AddAnimalProps {
 }
 
 export const AddAnimal: React.FC<AddAnimalProps> = ({ animals }) => {
+  const [tabValue, setTabValue] = useState("principais");
+  const [allDataForm, setAllDataForm] = useState<Animal>({} as Animal);
+
+  const handleInputValues = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
+    const { name, value } = event.target;
+
+    setAllDataForm((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
+
   return (
     <SheetContent side="bottom" className="mt-5 max-h-[500px] overflow-y-auto">
-      <Tabs defaultValue="principais">
+      <Tabs defaultValue={tabValue}>
         <SheetHeader className="relative mt-5">
           <SheetTitle>
             <TabsList>
@@ -50,11 +66,19 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({ animals }) => {
           </SheetTitle>
         </SheetHeader>
         <TabsContent value="principais">
-          <CardFormMain animals={animals} />
+          <CardFormMain
+            animals={animals}
+            handleInputValues={handleInputValues}
+            allDataForm={allDataForm}
+          />
         </TabsContent>
 
         <TabsContent value="reproducao">
-          <CardFormReproduction animals={animals} />
+          <CardFormReproduction
+            animals={animals}
+            handleInputValues={handleInputValues}
+            allDataForm={allDataForm}
+          />
         </TabsContent>
 
         <TabsContent value="sanitarias">

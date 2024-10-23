@@ -3,19 +3,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CirclePlus } from "lucide-react";
-import { useState } from "react";
-
-interface InterfaceDataAnimalMain {
-  reproductiveStatus: string;
-  handlingType: string;
-  bullId: string;
-  protocol: string;
-  andrological: string;
-  fetalGender: string;
-  expectedDueDate: string;
-  bullIatf: string;
-  bodyConditionScore: string;
-}
 
 interface Animal {
   id: string;
@@ -32,6 +19,7 @@ interface Animal {
   bullId: string | null;
   protocol: string | null;
   andrological: string | null;
+  fetalGender: string | null;
   expectedDueDate: Date | null;
   bullIatf: string | null;
   bodyConditionScore: number | null;
@@ -40,37 +28,18 @@ interface Animal {
 interface InterfaceComponentFormReproductionProps {
   setStatusComponentAddKids: React.Dispatch<React.SetStateAction<boolean>>;
   animals: Animal[];
+  allDataForm: Animal;
+  handleInputValues: (
+    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => void;
 }
 
 const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
   setStatusComponentAddKids,
   animals,
+  allDataForm,
+  handleInputValues,
 }) => {
-  const [dataAnimalMain, setDataAnimalMain] = useState<InterfaceDataAnimalMain>(
-    {
-      reproductiveStatus: "",
-      handlingType: "",
-      bullId: "",
-      protocol: "",
-      andrological: "",
-      fetalGender: "",
-      expectedDueDate: "",
-      bullIatf: "",
-      bodyConditionScore: "",
-    },
-  );
-
-  function handleDataAnimalMain(
-    event: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>,
-  ) {
-    const { name, value } = event.target;
-
-    setDataAnimalMain((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
-  }
-
   const handleActiveComponent = (event: React.FormEvent) => {
     event.preventDefault();
     console.log("Componente de filhos ativado");
@@ -94,8 +63,8 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                   name="reproductiveStatus"
                   id="reproductiveStatus"
                   className="w-32 border border-b border-b-primary bg-transparent outline-none"
-                  value={dataAnimalMain.reproductiveStatus}
-                  onChange={handleDataAnimalMain}
+                  value={allDataForm.reproductiveStatus ?? ""}
+                  onChange={handleInputValues}
                 >
                   <option disabled value=""></option>
                   <option value="empty">Vazia</option>
@@ -104,7 +73,7 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                   <option value="pev">PEV</option>
                 </select>
               </article>
-              {dataAnimalMain.reproductiveStatus === "empty" && (
+              {allDataForm.reproductiveStatus === "empty" && (
                 <article className="flex flex-col gap-1">
                   <p className="text-secondary">Andrológico:</p>
                   <div className="flex items-center gap-1">
@@ -113,7 +82,7 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                       name="andrological"
                       id="positive"
                       className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
-                      value={dataAnimalMain.andrological}
+                      value={allDataForm.andrological ?? ""}
                     />
                     <label htmlFor="positive">Positivo</label>
                   </div>
@@ -123,7 +92,7 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                       name="andrological"
                       id="negative"
                       className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
-                      value={dataAnimalMain.andrological}
+                      value={allDataForm.andrological ?? ""}
                     />
                     <label htmlFor="negative">Negativo</label>
                   </div>
@@ -133,14 +102,14 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                       name="andrological"
                       id="notDone"
                       className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
-                      value={dataAnimalMain.andrological}
+                      value={allDataForm.andrological ?? ""}
                     />
                     <label htmlFor="notDone">Não realizado</label>
                   </div>
                 </article>
               )}
 
-              {dataAnimalMain.reproductiveStatus === "pregnant" && (
+              {allDataForm.reproductiveStatus === "pregnant" && (
                 <>
                   <article className="flex flex-wrap gap-5">
                     <div className="flex flex-col gap-1">
@@ -151,8 +120,8 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                         name="handlingType"
                         id="handlingType"
                         className="w-44 border border-b border-b-primary bg-transparent outline-none"
-                        value={dataAnimalMain.handlingType}
-                        onChange={handleDataAnimalMain}
+                        value={allDataForm.handlingType ?? ""}
+                        onChange={handleInputValues}
                       >
                         <option disabled value=""></option>
                         <option value="bullMating">Touro</option>
@@ -172,13 +141,12 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                       <select
                         name="bullId"
                         id="bullId"
-                        className={`min-w-24 flex-1 border border-b border-b-primary bg-transparent outline-none ${dataAnimalMain.handlingType == "bullMating" && "bg-gray-300"}`}
+                        className={`min-w-24 flex-1 border border-b border-b-primary bg-transparent outline-none ${allDataForm.handlingType == "bullMating" && "bg-gray-300"}`}
                         disabled={
-                          dataAnimalMain.handlingType ===
-                          "artificialInsemination"
+                          allDataForm.handlingType === "artificialInsemination"
                         }
-                        value={dataAnimalMain.bullId}
-                        onChange={handleDataAnimalMain}
+                        value={allDataForm.bullId ?? ""}
+                        onChange={handleInputValues}
                       >
                         <option disabled value=""></option>
                         <option value="comercial">Comercial</option>
@@ -198,10 +166,10 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                       <select
                         name="protocol"
                         id="protocol"
-                        className={`flex[1_1_100px] w-full min-w-20 rounded-t-md border border-b border-b-primary bg-transparent outline-none ${dataAnimalMain.handlingType === "bullMating" && "bg-gray-300"}`}
-                        value={dataAnimalMain.protocol}
-                        onChange={handleDataAnimalMain}
-                        disabled={dataAnimalMain.handlingType === "bullMating"}
+                        className={`flex[1_1_100px] w-full min-w-20 rounded-t-md border border-b border-b-primary bg-transparent outline-none ${allDataForm.handlingType === "bullMating" && "bg-gray-300"}`}
+                        value={allDataForm.protocol ?? ""}
+                        onChange={handleInputValues}
+                        disabled={allDataForm.handlingType === "bullMating"}
                       >
                         <option disabled value=""></option>
                         <option value="protocol1">
@@ -221,8 +189,8 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                           name="andrological"
                           id="positive"
                           className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
-                          value={dataAnimalMain.andrological}
-                          onChange={handleDataAnimalMain}
+                          value={allDataForm.andrological ?? ""}
+                          onChange={handleInputValues}
                         />
                         <label htmlFor="positive">Positivo</label>
                       </div>
@@ -231,7 +199,7 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                           type="radio"
                           name="andrological"
                           id="negative"
-                          value={dataAnimalMain.andrological}
+                          value={allDataForm.andrological ?? ""}
                           className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
                         />
                         <label htmlFor="negative">Negativo</label>
@@ -242,7 +210,7 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                           type="radio"
                           name="andrological"
                           id="notDone"
-                          value={dataAnimalMain.andrological}
+                          value={allDataForm.andrological ?? ""}
                           className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
                         />
                         <label htmlFor="notDone">Não realizado</label>
@@ -256,7 +224,7 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                           type="radio"
                           name="fetalGender"
                           id="female"
-                          value={dataAnimalMain.fetalGender}
+                          value={allDataForm.fetalGender ?? ""}
                           className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
                         />
                         <label htmlFor="female">Fêmea</label>
@@ -267,7 +235,7 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                           type="radio"
                           name="fetalGender"
                           id="male"
-                          value={dataAnimalMain.fetalGender}
+                          value={allDataForm.fetalGender ?? ""}
                           className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
                         />
                         <label htmlFor="male">Macho</label>
@@ -290,8 +258,14 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                         type="date"
                         name="expectedDueDate"
                         id="expectedDueDate"
-                        value={dataAnimalMain.expectedDueDate}
-                        onChange={handleDataAnimalMain}
+                        value={
+                          allDataForm.expectedDueDate
+                            ? allDataForm.expectedDueDate
+                                .toISOString()
+                                .split("T")[0]
+                            : ""
+                        }
+                        onChange={handleInputValues}
                         className="w-full max-w-40 border border-b border-b-primary bg-transparent outline-none"
                       />
                     </div>
@@ -311,8 +285,8 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                         min="0"
                         max="5"
                         step="0,25"
-                        value={dataAnimalMain.bodyConditionScore}
-                        onChange={handleDataAnimalMain}
+                        value={allDataForm.bodyConditionScore ?? ""}
+                        onChange={handleInputValues}
                       />
                     </div>
 
@@ -323,9 +297,9 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                       <select
                         name="bullIatf"
                         id="bullIatf"
-                        className={`min-w-24 max-w-40 flex-1 border border-b border-b-primary bg-transparent outline-none ${dataAnimalMain.handlingType == "bullMating" && "bg-gray-400"}`}
-                        value={dataAnimalMain.bullIatf}
-                        onChange={handleDataAnimalMain}
+                        className={`min-w-24 max-w-40 flex-1 border border-b border-b-primary bg-transparent outline-none ${allDataForm.handlingType == "bullMating" && "bg-gray-400"}`}
+                        value={allDataForm.bullIatf ?? ""}
+                        onChange={handleInputValues}
                       >
                         <option disabled value=""></option>
                         <option value="comercial">Comercial</option>
@@ -341,7 +315,7 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                 </>
               )}
 
-              {dataAnimalMain.reproductiveStatus === "waiting" && (
+              {allDataForm.reproductiveStatus === "waiting" && (
                 <>
                   <article className="flex flex-wrap gap-5">
                     <div className="flex flex-col gap-1">
@@ -352,8 +326,8 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                         name="handlingType"
                         id="handlingType"
                         className="w-44 border border-b border-b-primary bg-transparent outline-none"
-                        value={dataAnimalMain.handlingType}
-                        onChange={handleDataAnimalMain}
+                        value={allDataForm.handlingType ?? ""}
+                        onChange={handleInputValues}
                       >
                         <option disabled value=""></option>
                         <option value="bullMating">Touro</option>
@@ -373,13 +347,12 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                       <select
                         name="bullId"
                         id="bullId"
-                        className={`min-w-24 flex-1 border border-b border-b-primary bg-transparent outline-none ${dataAnimalMain.handlingType == "bullMating" && "bg-gray-300"}`}
+                        className={`min-w-24 flex-1 border border-b border-b-primary bg-transparent outline-none ${allDataForm.handlingType == "bullMating" && "bg-gray-300"}`}
                         disabled={
-                          dataAnimalMain.handlingType ===
-                          "artificialInsemination"
+                          allDataForm.handlingType === "artificialInsemination"
                         }
-                        value={dataAnimalMain.bullId}
-                        onChange={handleDataAnimalMain}
+                        value={allDataForm.bullId ?? ""}
+                        onChange={handleInputValues}
                       >
                         <option disabled value=""></option>
                         <option value="comercial">Comercial</option>
@@ -399,10 +372,10 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                       <select
                         name="protocol"
                         id="protocol"
-                        className={`flex[1_1_100px] w-full min-w-20 rounded-t-md border border-b border-b-primary bg-transparent outline-none ${dataAnimalMain.handlingType === "bullMating" && "bg-gray-300"}`}
-                        value={dataAnimalMain.protocol}
-                        onChange={handleDataAnimalMain}
-                        disabled={dataAnimalMain.handlingType === "bullMating"}
+                        className={`flex[1_1_100px] w-full min-w-20 rounded-t-md border border-b border-b-primary bg-transparent outline-none ${allDataForm.handlingType === "bullMating" && "bg-gray-300"}`}
+                        value={allDataForm.protocol ?? ""}
+                        onChange={handleInputValues}
+                        disabled={allDataForm.handlingType === "bullMating"}
                       >
                         <option disabled value=""></option>
                         <option value="protocol1">
@@ -415,7 +388,7 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                 </>
               )}
 
-              {dataAnimalMain.reproductiveStatus === "pev" && (
+              {allDataForm.reproductiveStatus === "pev" && (
                 <>
                   <article className="flex flex-wrap gap-5">
                     <div className="flex flex-col gap-1">
@@ -429,8 +402,14 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                         type="date"
                         name="expectedDueDate"
                         id="expectedDueDate"
-                        value={dataAnimalMain.expectedDueDate}
-                        onChange={handleDataAnimalMain}
+                        value={
+                          allDataForm.expectedDueDate
+                            ? allDataForm.expectedDueDate
+                                .toISOString()
+                                .split("T")[0]
+                            : ""
+                        }
+                        onChange={handleInputValues}
                         className="w-full max-w-40 border border-b border-b-primary bg-transparent outline-none"
                       />
                     </div>
