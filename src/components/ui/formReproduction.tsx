@@ -46,6 +46,10 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
     setStatusComponentAddKids(true);
   };
 
+  const sendForm = (event: React.FormEvent) => {
+    event.preventDefault();
+    console.log(allDataForm);
+  };
   return (
     <>
       <Card className="h-full">
@@ -260,7 +264,7 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                         id="expectedDueDate"
                         value={
                           allDataForm.expectedDueDate
-                            ? allDataForm.expectedDueDate
+                            ? new Date(allDataForm.expectedDueDate)
                                 .toISOString()
                                 .split("T")[0]
                             : ""
@@ -404,7 +408,7 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                         id="expectedDueDate"
                         value={
                           allDataForm.expectedDueDate
-                            ? allDataForm.expectedDueDate
+                            ? new Date(allDataForm.expectedDueDate)
                                 .toISOString()
                                 .split("T")[0]
                             : ""
@@ -425,7 +429,9 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                 >
                   Adicionar filhos <CirclePlus />
                 </Button>
-                <Button type="submit">Próximo</Button>
+                <Button type="submit" onClick={sendForm}>
+                  Próximo
+                </Button>
               </article>
             </section>
           </form>

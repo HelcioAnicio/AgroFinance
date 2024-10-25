@@ -28,7 +28,6 @@ interface Animal {
 
 const fetchAnimals = async (): Promise<Animal[]> => {
   const animals = await prisma.animal.findMany();
-  console.log(animals);
 
   return animals;
 };

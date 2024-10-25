@@ -94,11 +94,7 @@ export const Table: React.FC<TableProps> = ({ animals }) => {
                     href={`/bovinos/${animal.id}`}
                     className="block h-full w-full"
                   >
-                    {animal.motherId === null
-                      ? "Comercial"
-                      : father
-                        ? `Vaca ${father.manualId}`
-                        : "Comercial"}
+                    {father ? `Vaca ${father.manualId}` : "Comercial"}
                   </Link>
                 </td>
                 <td className="px-1 py-3">
