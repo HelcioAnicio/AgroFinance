@@ -27,18 +27,24 @@ interface Animal {
 
 interface CardFormMainProps {
   allDataForm: Animal;
-  handleInputValues: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  handleInputValues: (
+    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => void;
   animals: Animal[];
+  setTabValue: (value: string) => void;
 }
 
 export const CardFormMain: React.FC<CardFormMainProps> = ({
-  // animals,
+  animals,
   allDataForm,
   handleInputValues,
+  setTabValue,
 }) => {
   const sendForm = (event: React.FormEvent) => {
     event.preventDefault();
-    console.log(allDataForm);
+    console.log("Formulário enviado! Dados do formulário:", allDataForm); // Verifica se o formulário foi enviado
+    setTabValue("reproducao"); // Muda para a aba "Reprodução"
+    console.log("Tab alterada para 'reproducao'"); // Verifica se o `setTabValue` foi chamado
   };
 
   return (
@@ -47,21 +53,22 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
         <CardTitle>Informações principais</CardTitle>
       </CardHeader>
       <CardContent className="p-1">
-        <form action="" method="post">
+        <form action="" method="post" onSubmit={sendForm}>
           <section className="flex flex-col gap-4">
             <div className="flex items-end gap-1">
-              <label className="text-secondary" htmlFor="idAnimal">
+              <label className="text-secondary" htmlFor="manualId">
                 Id do animal:
               </label>
               <input
-                type="text"
-                name="idAnimal"
-                id="idAnimal"
+                type="number"
+                name="manualId"
+                id="manualId"
                 value={allDataForm.manualId ?? ""}
                 onChange={handleInputValues}
                 className="w-20 border border-b border-b-primary bg-transparent outline-none"
               />
             </div>
+
             <div className="flex gap-2">
               <span className="text-secondary">Sexo:</span>
               <div className="flex items-center gap-1">
@@ -69,7 +76,8 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                   type="radio"
                   name="gender"
                   id="female"
-                  value={allDataForm.gender ?? ""}
+                  value="female"
+                  checked={allDataForm.gender === "female"}
                   onChange={handleInputValues}
                   className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
                 />
@@ -80,7 +88,8 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                   type="radio"
                   name="gender"
                   id="male"
-                  value={allDataForm.gender ?? ""}
+                  value="male"
+                  checked={allDataForm.gender === "male"}
                   onChange={handleInputValues}
                   className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
                 />
@@ -90,22 +99,25 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-secondary" htmlFor="birthday">
+                <label className="text-secondary" htmlFor="birthDate">
                   Nascimento:
                 </label>
                 <input
                   type="date"
-                  name="birthday"
-                  id="birthday"
+                  name="birthDate"
+                  id="birthDate"
                   value={
                     allDataForm.birthDate
-                      ? allDataForm.birthDate.toISOString().split("T")[0]
+                      ? new Date(allDataForm.birthDate)
+                          .toISOString()
+                          .split("T")[0]
                       : ""
                   }
                   onChange={handleInputValues}
                   className="w-full border border-b border-b-primary bg-transparent outline-none"
                 />
               </div>
+
               <div>
                 <label className="text-secondary" htmlFor="weight">
                   Peso:
@@ -119,6 +131,7 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                   className="w-full border border-b border-b-primary bg-transparent outline-none"
                 />
               </div>
+
               <div>
                 <label className="text-secondary" htmlFor="breed">
                   Raça:
@@ -132,6 +145,7 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                   className="w-full border border-b border-b-primary bg-transparent outline-none"
                 />
               </div>
+
               <div>
                 <label className="text-secondary" htmlFor="category">
                   Categoria:
@@ -145,38 +159,54 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                   className="w-full border border-b border-b-primary bg-transparent outline-none"
                 />
               </div>
-              <div>
-                <label className="text-secondary" htmlFor="mother">
+
+              <div className="flex flex-col gap-1">
+                <label className="text-secondary" htmlFor="motherId">
                   Mãe:
                 </label>
-                <input
-                  type="text"
-                  name="mother"
-                  id="mother"
+                <select
+                  name="motherId"
+                  id="motherId"
                   value={allDataForm.motherId ?? ""}
                   onChange={handleInputValues}
-                  className="w-full border border-b border-b-primary bg-transparent outline-none"
-                />
+                  className="min-w-24 flex-1 border border-b border-b-primary bg-transparent outline-none"
+                >
+                  <option disabled value=""></option>
+                  <option value="comercial">Comercial</option>
+                  {animals
+                    .filter((animal) => animal.gender === "Female")
+                    .map((animal) => (
+                      <option key={animal.id} value={animal.id ?? ""}>
+                        Vaca {animal.manualId}
+                      </option>
+                    ))}
+                </select>
               </div>
-              <div>
-                <label className="text-secondary" htmlFor="father">
+
+              <div className="flex flex-col gap-1">
+                <label className="text-secondary" htmlFor="fatherId">
                   Pai:
                 </label>
-                <input
-                  type="text"
-                  name="father"
-                  id="father"
+                <select
+                  name="fatherId"
+                  id="fatherId"
                   value={allDataForm.fatherId ?? ""}
                   onChange={handleInputValues}
-                  className="w-full border border-b border-b-primary bg-transparent outline-none"
-                />
+                  className="min-w-24 flex-1 border border-b border-b-primary bg-transparent outline-none"
+                >
+                  <option value="" disabled></option>
+                  <option value="comercial">Comercial</option>
+                  {animals
+                    .filter((animal) => animal.gender === "male")
+                    .map((animal) => (
+                      <option key={animal.id} value={animal.id ?? ""}>
+                        Touro {animal.manualId}
+                      </option>
+                    ))}
+                </select>
               </div>
             </div>
-            <Button
-              className="mt-auto flex justify-self-end"
-              type="submit"
-              onClick={sendForm}
-            >
+            <Button className="mt-auto flex justify-self-end" type="submit">
               Próximo
             </Button>
           </section>

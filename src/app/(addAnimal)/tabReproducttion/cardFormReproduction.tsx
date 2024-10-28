@@ -1,5 +1,5 @@
-import FormReproduction from "./formReproduction";
-import { FormAddKids } from "./formAddKids";
+import FormReproduction from "./form/formReproduction";
+import { FormAddKids } from "../../../components/ui/formAddKids";
 import { useState, useRef, useEffect } from "react";
 
 interface Animal {
@@ -29,12 +29,14 @@ interface CardFormReproductionProps {
   handleInputValues: (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => void;
+  setTabValue: React.Dispatch<React.SetStateAction<string>>;
 }
 
 export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
   animals,
   allDataForm,
   handleInputValues,
+  setTabValue,
 }) => {
   const [statusComponentAddKids, setStatusComponentAddKids] =
     useState<boolean>(false);
@@ -56,6 +58,7 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
         animals={animals}
         allDataForm={allDataForm}
         handleInputValues={handleInputValues}
+        setTabValue={setTabValue}
       />
       {statusComponentAddKids && (
         <div ref={formAddKidsRef}>

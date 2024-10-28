@@ -32,6 +32,7 @@ interface InterfaceComponentFormReproductionProps {
   handleInputValues: (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => void;
+  setTabValue: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
@@ -39,6 +40,7 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
   animals,
   allDataForm,
   handleInputValues,
+  setTabValue,
 }) => {
   const handleActiveComponent = (event: React.FormEvent) => {
     event.preventDefault();
@@ -49,6 +51,7 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
   const sendForm = (event: React.FormEvent) => {
     event.preventDefault();
     console.log(allDataForm);
+    setTabValue("sanitarias");
   };
   return (
     <>
@@ -155,11 +158,13 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                         <option disabled value=""></option>
                         <option value="comercial">Comercial</option>
 
-                        {animals.map((animal) => (
-                          <option key={animal.id} value={animal.manualId ?? ""}>
-                            Touro {animal.manualId}
-                          </option>
-                        ))}
+                        {animals
+                          .filter((animal) => animal.gender === "male")
+                          .map((animal) => (
+                            <option key={animal.id} value={animal.id ?? ""}>
+                              Touro {animal.manualId}
+                            </option>
+                          ))}
                       </select>
                     </div>
 
@@ -193,7 +198,8 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                           name="andrological"
                           id="positive"
                           className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
-                          value={allDataForm.andrological ?? ""}
+                          value="positive"
+                          checked={allDataForm.andrological === "positive"}
                           onChange={handleInputValues}
                         />
                         <label htmlFor="positive">Positivo</label>
@@ -203,7 +209,9 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                           type="radio"
                           name="andrological"
                           id="negative"
-                          value={allDataForm.andrological ?? ""}
+                          value="negative"
+                          checked={allDataForm.andrological === "negative"}
+                          onChange={handleInputValues}
                           className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
                         />
                         <label htmlFor="negative">Negativo</label>
@@ -214,7 +222,9 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                           type="radio"
                           name="andrological"
                           id="notDone"
-                          value={allDataForm.andrological ?? ""}
+                          value="notDone"
+                          checked={allDataForm.andrological === "notDone"}
+                          onChange={handleInputValues}
                           className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
                         />
                         <label htmlFor="notDone">Não realizado</label>
@@ -222,13 +232,15 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                     </div>
 
                     <div className="flex flex-col gap-1">
-                      <p className="text-secondary">Sexo:</p>
+                      <p className="text-secondary">Sexo Fetal:</p>
                       <div className="flex items-center gap-1">
                         <input
                           type="radio"
                           name="fetalGender"
                           id="female"
-                          value={allDataForm.fetalGender ?? ""}
+                          value="female"
+                          checked={allDataForm.fetalGender === "female"}
+                          onChange={handleInputValues}
                           className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
                         />
                         <label htmlFor="female">Fêmea</label>
@@ -239,7 +251,9 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                           type="radio"
                           name="fetalGender"
                           id="male"
-                          value={allDataForm.fetalGender ?? ""}
+                          value="male"
+                          checked={allDataForm.fetalGender === "male"}
+                          onChange={handleInputValues}
                           className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
                         />
                         <label htmlFor="male">Macho</label>
@@ -307,12 +321,13 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                       >
                         <option disabled value=""></option>
                         <option value="comercial">Comercial</option>
-
-                        {animals.map((animal) => (
-                          <option key={animal.id} value={animal.manualId ?? ""}>
-                            Touro {animal.manualId}
-                          </option>
-                        ))}
+                        {animals
+                          .filter((animal) => animal.gender === "male")
+                          .map((animal) => (
+                            <option key={animal.id} value={animal.id ?? ""}>
+                              Touro {animal.manualId}
+                            </option>
+                          ))}{" "}
                       </select>
                     </div>
                   </article>

@@ -9,8 +9,8 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CardFormMain } from "./cardFormMain";
-import { CardFormReproduction } from "./cardFormReproduction";
+import { CardFormMain } from "./tabMain/cardFormMain";
+import { CardFormReproduction } from "./tabReproducttion/cardFormReproduction";
 import React, { useState } from "react";
 
 interface Animal {
@@ -56,7 +56,7 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({ animals }) => {
 
   return (
     <SheetContent side="bottom" className="mt-5 max-h-[500px] overflow-y-auto">
-      <Tabs defaultValue={tabValue}>
+      <Tabs key={tabValue} value={tabValue} onValueChange={setTabValue}>
         <SheetHeader className="relative mt-5">
           <SheetTitle>
             <TabsList>
@@ -71,6 +71,7 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({ animals }) => {
             animals={animals}
             handleInputValues={handleInputValues}
             allDataForm={allDataForm}
+            setTabValue={setTabValue}
           />
         </TabsContent>
 
@@ -79,6 +80,7 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({ animals }) => {
             animals={animals}
             handleInputValues={handleInputValues}
             allDataForm={allDataForm}
+            setTabValue={setTabValue}
           />
         </TabsContent>
 
