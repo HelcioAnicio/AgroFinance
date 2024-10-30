@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetTrigger } from "@/components/ui/sheet";
 import { ListFilter, CirclePlus } from "lucide-react";
-import { AddAnimal } from "../../app/(addAnimal)/addAnimal";
+import { AddAnimal } from "../../app/addAnimal/page";
 
 interface Animal {
   id: string;

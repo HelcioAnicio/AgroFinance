@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CardFormMain } from "./tabMain/cardFormMain";
 import { CardFormReproduction } from "./tabReproducttion/cardFormReproduction";
 import React, { useState } from "react";
+import axios from "axios";
 
 interface Animal {
   id: string;
@@ -46,12 +47,30 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({ animals }) => {
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value, type } = event.target;
-    const newValue = type === "number" ? parseInt(value) : value;
+    const newValue =
+      type === "number" || type === "range" ? parseInt(value) : value;
 
     setAllDataForm((prevData) => ({
       ...prevData,
       [name]: newValue,
     }));
+  };
+
+  const submitForm = async (allDataForm: Animal) => {
+    try {
+      const response = await axios.post(
+        "/api/addAnimals",
+        { allDataForm },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
+      console.log("Animal cadastrado com sucesso:", response.data);
+    } catch (error) {
+      console.log("Erro ao cadastrar animal:", error);
+    }
   };
 
   return (
@@ -95,7 +114,9 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({ animals }) => {
           </div>
           <SheetFooter>
             <SheetClose asChild>
-              <Button type="submit">Save changes</Button>
+              <Button type="submit" onClick={() => submitForm(allDataForm)}>
+                Save changes
+              </Button>
             </SheetClose>
           </SheetFooter>
         </TabsContent>

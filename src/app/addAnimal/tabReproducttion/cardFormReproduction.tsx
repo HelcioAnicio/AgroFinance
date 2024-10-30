@@ -23,6 +23,17 @@ interface Animal {
   bodyConditionScore: number | null;
 }
 
+interface InterfaceAddDataKids {
+  handlingType: string;
+  bullId: string;
+  protocol: string;
+  andrological: string;
+  gender: string;
+  birthday: string;
+  bodyConditionScore: string;
+  bullIatf: string;
+}
+
 interface CardFormReproductionProps {
   animals: Animal[];
   allDataForm: Animal;
@@ -38,9 +49,31 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
   handleInputValues,
   setTabValue,
 }) => {
+  const [dataKids, setDataKids] = useState<InterfaceAddDataKids>({
+    handlingType: "",
+    bullId: "",
+    protocol: "",
+    andrological: "",
+    gender: "",
+    birthday: "",
+    bodyConditionScore: "",
+    bullIatf: "",
+  });
   const [statusComponentAddKids, setStatusComponentAddKids] =
     useState<boolean>(false);
   const formAddKidsRef = useRef<HTMLDivElement>(null);
+
+  function handleDataKids(
+    event: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>,
+  ) {
+    const { name, value, type } = event.target;
+    const newValue = type === "number" ? parseInt(value) : value;
+
+    setDataKids((prevData) => ({
+      ...prevData,
+      [name]: newValue,
+    }));
+  }
 
   useEffect(() => {
     if (statusComponentAddKids && formAddKidsRef.current) {
@@ -65,6 +98,8 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
           <FormAddKids
             setStatusComponentAddKids={setStatusComponentAddKids}
             animals={animals}
+            handleDataKids={handleDataKids}
+            dataKids={dataKids}
           />
         </div>
       )}

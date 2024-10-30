@@ -42,9 +42,9 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
 }) => {
   const sendForm = (event: React.FormEvent) => {
     event.preventDefault();
-    console.log("Formulário enviado! Dados do formulário:", allDataForm); // Verifica se o formulário foi enviado
-    setTabValue("reproducao"); // Muda para a aba "Reprodução"
-    console.log("Tab alterada para 'reproducao'"); // Verifica se o `setTabValue` foi chamado
+    console.log("Formulário enviado! Dados do formulário:", allDataForm);
+    setTabValue("reproducao");
+    console.log("Tab alterada para 'reproducao'");
   };
 
   return (

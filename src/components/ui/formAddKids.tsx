@@ -2,14 +2,13 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useState } from "react";
 
 interface InterfaceAddDataKids {
   handlingType: string;
   bullId: string;
   protocol: string;
   andrological: string;
-  fetalGender: string;
+  gender: string;
   birthday: string;
   bodyConditionScore: string;
   bullIatf: string;
@@ -38,44 +37,24 @@ interface Animal {
 interface InterfaceComponentFormReproductionProps {
   setStatusComponentAddKids: React.Dispatch<React.SetStateAction<boolean>>;
   animals: Animal[];
+  handleDataKids: (
+    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => void;
+  dataKids: InterfaceAddDataKids;
 }
 
 export const FormAddKids: React.FC<InterfaceComponentFormReproductionProps> = ({
   setStatusComponentAddKids,
   animals,
+  handleDataKids,
+  dataKids,
 }) => {
-  const [dataKids, setDataKids] = useState<InterfaceAddDataKids>({
-    handlingType: "",
-    bullId: "",
-    protocol: "",
-    andrological: "",
-    fetalGender: "",
-    birthday: "",
-    bodyConditionScore: "",
-    bullIatf: "",
-  });
-
-  function handleDataKids(
-    event: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>,
-  ) {
-    const { name, value } = event.target;
-
-    setDataKids((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
-  }
-
   const handleActiveComponent = (event: React.FormEvent) => {
     event.preventDefault();
     console.log("Filhos cadastrado.");
     setStatusComponentAddKids(false);
   };
 
-  console.log(animals);
-  // function clickConsole() {
-  //   console.log(dataKids);
-  // }
   return (
     <>
       <Card className="mt-2">
@@ -116,16 +95,19 @@ export const FormAddKids: React.FC<InterfaceComponentFormReproductionProps> = ({
                   id="bullId"
                   className={`min-w-24 flex-1 border border-b border-b-primary bg-transparent outline-none ${dataKids.handlingType == "bullMating" && "bg-gray-300"}`}
                   disabled={dataKids.handlingType === "artificialInsemination"}
-                  value={dataKids.bullId}
+                  value={dataKids.bullId ?? ""}
                   onChange={handleDataKids}
                 >
                   <option disabled value=""></option>
                   <option value="comercial">Comercial</option>
-                  {animals.map((animal) => (
-                    <option key={animal.id} value={animal.manualId ?? ""}>
-                      Touro {animal.manualId}
-                    </option>
-                  ))}
+
+                  {animals
+                    .filter((animal) => animal.gender === "male")
+                    .map((animal) => (
+                      <option key={animal.id} value={animal.id ?? ""}>
+                        Touro {animal.manualId}
+                      </option>
+                    ))}
                 </select>
               </div>
 
@@ -157,7 +139,8 @@ export const FormAddKids: React.FC<InterfaceComponentFormReproductionProps> = ({
                     name="andrological"
                     id="positive"
                     className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
-                    value={dataKids.andrological}
+                    value="positive"
+                    checked={dataKids.andrological === "positive"}
                     onChange={handleDataKids}
                   />
                   <label htmlFor="positive">Positivo</label>
@@ -167,7 +150,9 @@ export const FormAddKids: React.FC<InterfaceComponentFormReproductionProps> = ({
                     type="radio"
                     name="andrological"
                     id="negative"
-                    value={dataKids.andrological}
+                    value="negative"
+                    checked={dataKids.andrological === "negative"}
+                    onChange={handleDataKids}
                     className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
                   />
                   <label htmlFor="negative">Negativo</label>
@@ -178,7 +163,9 @@ export const FormAddKids: React.FC<InterfaceComponentFormReproductionProps> = ({
                     type="radio"
                     name="andrological"
                     id="notDone"
-                    value={dataKids.andrological}
+                    value="notDone"
+                    checked={dataKids.andrological === "notDone"}
+                    onChange={handleDataKids}
                     className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
                   />
                   <label htmlFor="notDone">Não realizado</label>
@@ -186,13 +173,15 @@ export const FormAddKids: React.FC<InterfaceComponentFormReproductionProps> = ({
               </div>
 
               <div className="flex flex-col gap-1">
-                <p className="text-secondary">Sexo:</p>
+                <p className="text-secondary">Sexo Fetal:</p>
                 <div className="flex items-center gap-1">
                   <input
                     type="radio"
-                    name="fetalGender"
+                    name="gender"
                     id="female"
-                    value={dataKids.fetalGender}
+                    value="female"
+                    checked={dataKids.gender === "female"}
+                    onChange={handleDataKids}
                     className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
                   />
                   <label htmlFor="female">Fêmea</label>
@@ -201,9 +190,11 @@ export const FormAddKids: React.FC<InterfaceComponentFormReproductionProps> = ({
                 <div className="flex items-center gap-1">
                   <input
                     type="radio"
-                    name="fetalGender"
+                    name="gender"
                     id="male"
-                    value={dataKids.fetalGender}
+                    value="male"
+                    checked={dataKids.gender === "male"}
+                    onChange={handleDataKids}
                     className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
                   />
                   <label htmlFor="male">Macho</label>
@@ -216,8 +207,33 @@ export const FormAddKids: React.FC<InterfaceComponentFormReproductionProps> = ({
                   type="date"
                   name="birthday"
                   id="birthday"
+                  value={
+                    dataKids.birthday
+                      ? new Date(dataKids.birthday).toISOString().split("T")[0]
+                      : ""
+                  }
                   onChange={handleDataKids}
                   className="w-full border border-b border-b-primary bg-transparent outline-none"
+                />
+              </div>
+
+              <div className="flex w-full flex-col gap-1">
+                <label
+                  className="text-secondary"
+                  htmlFor="bullIbodyConditionScoreatf"
+                >
+                  ECC (Escore de Condição Corporal):
+                </label>
+                <input
+                  name="bodyConditionScore"
+                  id="bullbodyConditionScoreIatf"
+                  className={``}
+                  type="range"
+                  min="0"
+                  max="5"
+                  step="0,25"
+                  value={dataKids.bodyConditionScore ?? ""}
+                  onChange={handleDataKids}
                 />
               </div>
 
@@ -229,17 +245,18 @@ export const FormAddKids: React.FC<InterfaceComponentFormReproductionProps> = ({
                   name="bullIatf"
                   id="bullIatf"
                   className={`min-w-24 max-w-40 flex-1 border border-b border-b-primary bg-transparent outline-none ${dataKids.handlingType == "bullMating" && "bg-gray-400"}`}
-                  value={dataKids.bullIatf}
+                  value={dataKids.bullIatf ?? ""}
                   onChange={handleDataKids}
                 >
                   <option disabled value=""></option>
                   <option value="comercial">Comercial</option>
-
-                  {animals.map((animal) => (
-                    <option key={animal.id} value={animal.manualId ?? ""}>
-                      Touro {animal.manualId}
-                    </option>
-                  ))}
+                  {animals
+                    .filter((animal) => animal.gender === "male")
+                    .map((animal) => (
+                      <option key={animal.id} value={animal.id ?? ""}>
+                        Touro {animal.manualId}
+                      </option>
+                    ))}
                 </select>
               </div>
             </article>
