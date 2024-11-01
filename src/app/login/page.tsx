@@ -1,36 +1,27 @@
 "use client";
+import { signIn, signOut, useSession } from "next-auth/react";
 
-import { useState } from "react";
-import { signInWithEmail } from "../../lib/supabaseClient";
+export const Login = () => {
+  const { status, data } = useSession();
 
-export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const handleLoginClick = async () => {
+    await signIn();
+  };
 
-  const handleLogin = async () => {
-    const user = await signInWithEmail(email, password);
-    if (user) {
-      console.log("Login successful:", user);
-    } else {
-      console.error("Failed to login");
-    }
+  const handleLogoutClick = async () => {
+    await signOut();
   };
 
   return (
     <div>
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-      <button onClick={handleLogin}>Login</button>
+      {status === "unauthenticated" && (
+        <button onClick={async () => await handleLoginClick()}>Login</button>
+      )}
+      {status === "authenticated" && data?.user && (
+        <button onClick={async () => await handleLogoutClick()}>Logout</button>
+      )}
     </div>
   );
-}
+};
+
+export default Login;
