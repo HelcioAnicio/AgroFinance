@@ -29,7 +29,9 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "prisma/**/*.ts",
-    "src/**/*.ts"
+    "src/**/*.ts",
+    "src/app/api/route.ts",
+    "src/app/api/auth/[...nextauth]"
   ],
   "exclude": ["node_modules"]
 }
