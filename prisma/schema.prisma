@@ -14,8 +14,8 @@ model User {
   email         String   @unique
   emailVerified DateTime?
   image         String?
-  cnpj          String   @unique
-  password      String
+  cnpj          String?   @unique
+  password      String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   animals       Animal[]
