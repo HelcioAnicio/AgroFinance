@@ -23,6 +23,7 @@ interface Animal {
   expectedDueDate: Date | null;
   bullIatf: string | null;
   bodyConditionScore: number | null;
+  ownerId: string | null;
 }
 
 interface CardFormMainProps {

@@ -13,6 +13,7 @@ import { CardFormMain } from "./tabMain/cardFormMain";
 import { CardFormReproduction } from "./tabReproducttion/cardFormReproduction";
 import React, { useState } from "react";
 import axios from "axios";
+import { useSession } from "next-auth/react";
 
 interface Animal {
   id: string;
@@ -29,19 +30,57 @@ interface Animal {
   bullId: string | null;
   protocol: string | null;
   andrological: string | null;
+  fetalGender: string | null;
   expectedDueDate: Date | null;
   bullIatf: string | null;
   bodyConditionScore: number | null;
-  fetalGender: string | null;
+  ownerId: string;
+}
+
+interface User {
+  id: string | null;
+  name: string | null;
+  email: string | null;
+  image: string | null;
 }
 
 interface AddAnimalProps {
   animals: Animal[];
+  users: User[];
 }
 
-export const AddAnimal: React.FC<AddAnimalProps> = ({ animals }) => {
+export const AddAnimal: React.FC<AddAnimalProps> = ({ animals, users }) => {
   const [tabValue, setTabValue] = useState("principais");
   const [allDataForm, setAllDataForm] = useState<Animal>({} as Animal);
+  const { data: session } = useSession();
+  const [owner, setOwner] = useState<User>({} as User);
+
+  React.useEffect(() => {
+    const getUser = async () => {
+      const userEmail = users.find(
+        (user) => user.email === session?.user?.email,
+      );
+      return userEmail;
+    };
+
+    getUser().then((userEmail) => {
+      if (userEmail) {
+        setOwner(userEmail);
+        console.log("Funcionou o ownerID:", owner.id);
+      } else console.log("Ocorreu um erro");
+    });
+  }, [session, owner.id, users]);
+
+  const setOwnerId = React.useCallback(() => {
+    setAllDataForm((prevData) => ({
+      ...prevData,
+      ownerId: owner.id || "",
+    }));
+  }, [owner.id]);
+
+  React.useEffect(() => {
+    setOwnerId();
+  }, [owner.id, setOwnerId]);
 
   const handleInputValues = (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
