@@ -13,66 +13,60 @@ async function main() {
     });
 
     // Cria o usuário
-    const user = await prisma.user.create({
-      data: {
-        name: "Elcio Souza",
-        email: "elcio.souza@dominio.com",
-        cnpj: "11.000.123/0001-10",
-        password: "senhaSegura456",
-        createdAt: createdAt,
-      },
+    // const user = await prisma.user.create({
+    //   data: {
+    //     name: "Elcio Souza",
+    //     email: "elcio.souza@dominio.com",
+    //     cnpj: "11.000.123/0001-10",
+    //     password: "senhaSegura456",
+    //     createdAt: createdAt,
+    //   },
+    // });
+
+    // console.log("User created:", user);
+
+    const animals = await prisma.animal.createMany({
+      data: [
+        {
+          manualId: 1,
+          gender: "Female",
+          birthDate: toDate(new Date("2020-10-22 08:13:45.015"), { timeZone }),
+          weight: 420.0, // Adicione a propriedade weight
+          breed: "Hereford",
+          category: "Corte",
+          reproductiveStatus: "Empty",
+          handlingType: "Artificial Insemination",
+          bullId: null,
+          protocol: null,
+          andrological: "Positive",
+          fetalGender: null,
+          bodyConditionScore: 3.8,
+          expectedDueDate: new Date("2022-10-22"),
+          bullIatf: null,
+          ownerId: "cm2zg8ke90000a2l0tr0woar8", // Associa o animal ao usuário criado
+          createdAt: createdAt,
+        },
+        {
+          manualId: 2,
+          gender: "male",
+          birthDate: toDate(new Date("2020-10-22 08:13:45.015"), { timeZone }),
+          weight: 420.0, // Adicione a propriedade weight
+          breed: "Hereford",
+          category: "Corte",
+          reproductiveStatus: "Empty",
+          handlingType: "Artificial Insemination",
+          bullId: null,
+          protocol: null,
+          andrological: "Positive",
+          fetalGender: null,
+          bodyConditionScore: 3.8,
+          ownerId: "cm2zg8ke90000a2l0tr0woar8", // Associa o animal ao usuário criado
+          createdAt: createdAt,
+        },
+      ],
     });
 
-    console.log("User created:", user);
-
-    const animalsData = [
-      {
-        manualId: 1,
-        gender: "Female",
-        birthDate: toDate(new Date("2020-10-22 08:13:45.015"), { timeZone }),
-        weight: 420.0, // Adicione a propriedade weight
-        breed: "Hereford",
-        category: "Corte",
-        reproductiveStatus: "Empty",
-        handlingType: "Artificial Insemination",
-        bullId: null,
-        protocol: null,
-        andrological: "Positive",
-        fetalGender: null,
-        bodyConditionScore: 3.8,
-        expectedDueDate: toDate(new Date("2022-10-22 08:13:45.015"), {
-          timeZone,
-        }),
-        bullIatf: null,
-        ownerId: user.id, // Associa o animal ao usuário criado
-        createdAt: createdAt,
-      },
-      {
-        manualId: 2,
-        gender: "male",
-        birthDate: toDate(new Date("2020-10-22 08:13:45.015"), { timeZone }),
-        weight: 420.0, // Adicione a propriedade weight
-        breed: "Hereford",
-        category: "Corte",
-        reproductiveStatus: "Empty",
-        handlingType: "Artificial Insemination",
-        bullId: null,
-        protocol: null,
-        andrological: "Positive",
-        fetalGender: null,
-        bodyConditionScore: 3.8,
-        ownerId: user.id, // Associa o animal ao usuário criado
-        createdAt: createdAt,
-      },
-      // Adicione outros animais conforme necessário
-    ];
-
-    // Cadastra os animais
-    for (const animalData of animalsData) {
-      await prisma.animal.create({
-        data: animalData,
-      });
-    }
+    console.log("Animals created:", animals);
   } catch (error) {
     console.error("Error in main function:", error);
   } finally {
