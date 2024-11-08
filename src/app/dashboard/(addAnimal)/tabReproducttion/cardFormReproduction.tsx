@@ -1,28 +1,7 @@
 import FormReproduction from "./form/formReproduction";
-import { FormAddKids } from "../../../components/ui/formAddKids";
+import { FormAddKids } from "../../../../components/ui/formAddKids";
 import { useState, useRef, useEffect } from "react";
-
-interface Animal {
-  id: string;
-  manualId: number | null;
-  gender: string | null;
-  birthDate: Date | null;
-  weight: number | null;
-  breed: string | null;
-  category: string | null;
-  motherId: string | null;
-  fatherId: string | null;
-  reproductiveStatus: string | null;
-  handlingType: string | null;
-  bullId: string | null;
-  protocol: string | null;
-  andrological: string | null;
-  fetalGender: string | null;
-  expectedDueDate: Date | null;
-  bullIatf: string | null;
-  bodyConditionScore: number | null;
-  ownerId: string | null;
-}
+import { Animal } from "@/types/animal";
 
 interface InterfaceAddDataKids {
   handlingType: string;

@@ -14,35 +14,9 @@ import { CardFormReproduction } from "./tabReproducttion/cardFormReproduction";
 import React, { useState } from "react";
 import axios from "axios";
 import { useSession } from "next-auth/react";
-
-interface Animal {
-  id: string;
-  manualId: number | null;
-  gender: string | null;
-  birthDate: Date | null;
-  weight: number | null;
-  breed: string | null;
-  category: string | null;
-  motherId: string | null;
-  fatherId: string | null;
-  reproductiveStatus: string | null;
-  handlingType: string | null;
-  bullId: string | null;
-  protocol: string | null;
-  andrological: string | null;
-  fetalGender: string | null;
-  expectedDueDate: Date | null;
-  bullIatf: string | null;
-  bodyConditionScore: number | null;
-  ownerId: string;
-}
-
-interface User {
-  id: string | null;
-  name: string | null;
-  email: string | null;
-  image: string | null;
-}
+import { Animal } from "@/types/animal";
+import { User } from "@/types/user";
+import { v4 as uuidv4 } from "uuid";
 
 interface AddAnimalProps {
   animals: Animal[];
@@ -53,34 +27,22 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({ animals, users }) => {
   const [tabValue, setTabValue] = useState("principais");
   const [allDataForm, setAllDataForm] = useState<Animal>({} as Animal);
   const { data: session } = useSession();
-  const [owner, setOwner] = useState<User>({} as User);
+
+  const userEmail = users.find((user) => user.email === session?.user?.email);
 
   React.useEffect(() => {
-    const getUser = async () => {
-      const userEmail = users.find(
-        (user) => user.email === session?.user?.email,
-      );
-      return userEmail;
+    const setOwnerId = () => {
+      setAllDataForm((prevData) => ({
+        ...prevData,
+        ownerId: userEmail?.id || "",
+      }));
     };
 
-    getUser().then((userEmail) => {
-      if (userEmail) {
-        setOwner(userEmail);
-        console.log("Funcionou o ownerID:", owner.id);
-      } else console.log("Ocorreu um erro");
-    });
-  }, [session, owner.id, users]);
-
-  const setOwnerId = React.useCallback(() => {
-    setAllDataForm((prevData) => ({
-      ...prevData,
-      ownerId: owner.id || "",
-    }));
-  }, [owner.id]);
-
-  React.useEffect(() => {
-    setOwnerId();
-  }, [owner.id, setOwnerId]);
+    if (userEmail?.id) {
+      setOwnerId();
+      console.log("UserEmail", userEmail?.id);
+    }
+  }, [userEmail]);
 
   const handleInputValues = (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -96,10 +58,16 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({ animals, users }) => {
   };
 
   const submitForm = async (allDataForm: Animal) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // const { id, ...dataWithoutId } = allDataForm;
+    const dataWithId = { ...allDataForm, id: uuidv4() };
+    console.log("Dados enviados para o Supabase:", dataWithId);
+
+    console.log("Dados do id:", dataWithId.id);
     try {
       const response = await axios.post(
         "/api/addAnimals",
-        { allDataForm },
+        { allDataForm: dataWithId },
         {
           headers: {
             "Content-Type": "application/json",
@@ -109,6 +77,7 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({ animals, users }) => {
       console.log("Animal cadastrado com sucesso:", response.data);
     } catch (error) {
       console.log("Erro ao cadastrar animal:", error);
+      console.log("allDataForm to supabase: ", dataWithId);
     }
   };
 
