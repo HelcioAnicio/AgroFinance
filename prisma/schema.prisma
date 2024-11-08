@@ -47,7 +47,7 @@ model Animal {
   observations        String?
   ownerId             String
   createdAt           DateTime    @default(now())
-  updatedAt           DateTime    @updatedAt
+  updatedAt           DateTime    @default(now()) @updatedAt
   bull                Animal?     @relation("BullHandling", fields: [bullId], references: [id])
   offspringFromBull   Animal[]    @relation("BullHandling")
   father              Animal?     @relation("FatherOffspring", fields: [fatherId], references: [id])
