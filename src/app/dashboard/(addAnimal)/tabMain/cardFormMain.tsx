@@ -152,7 +152,7 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                   className="min-w-24 flex-1 border border-b border-b-primary bg-transparent outline-none"
                 >
                   <option disabled value=""></option>
-                  <option value="comercial">Comercial</option>
+                  <option value="Comercial">Comercial</option>
                   {animals
                     .filter((animal) => animal.gender === "Female")
                     .map((animal) => (
@@ -175,7 +175,7 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                   className="min-w-24 flex-1 border border-b border-b-primary bg-transparent outline-none"
                 >
                   <option value="" disabled></option>
-                  <option value="comercial">Comercial</option>
+                  <option value="Comercial">Comercial</option>
                   {animals
                     .filter((animal) => animal.gender === "male")
                     .map((animal) => (

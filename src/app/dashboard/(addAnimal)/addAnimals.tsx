@@ -58,12 +58,15 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({ animals, users }) => {
   };
 
   const submitForm = async (allDataForm: Animal) => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    // const { id, ...dataWithoutId } = allDataForm;
+    if (allDataForm.motherId === "Comercial") {
+      allDataForm.motherId = null;
+    }
+    if (allDataForm.fatherId === "Comercial") {
+      allDataForm.fatherId = null;
+    }
     const dataWithId = { ...allDataForm, id: uuidv4() };
     console.log("Dados enviados para o Supabase:", dataWithId);
 
-    console.log("Dados do id:", dataWithId.id);
     try {
       const response = await axios.post(
         "/api/addAnimals",
@@ -74,10 +77,10 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({ animals, users }) => {
           },
         },
       );
-      console.log("Animal cadastrado com sucesso:", response.data);
+      console.log("Animal cadastrado com sucesso:", response.data.dataWithId);
+      setAllDataForm({} as Animal);
     } catch (error) {
       console.log("Erro ao cadastrar animal:", error);
-      console.log("allDataForm to supabase: ", dataWithId);
     }
   };
 
