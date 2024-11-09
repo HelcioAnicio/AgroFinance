@@ -1,7 +1,7 @@
 "use client";
 import { signIn, signOut, useSession } from "next-auth/react";
 
-export const Login = () => {
+const LoginPage = () => {
   const { status, data } = useSession();
 
   const handleLoginClick = async () => {
@@ -15,13 +15,11 @@ export const Login = () => {
   return (
     <div>
       {status === "unauthenticated" && (
-        <button onClick={async () => await handleLoginClick()}>Login</button>
+        <button onClick={handleLoginClick}>Login</button>
       )}
       {status === "authenticated" && data?.user && (
         <>
-          <button onClick={async () => await handleLogoutClick()}>
-            Logout
-          </button>
+          <button onClick={handleLogoutClick}>Logout</button>
           <br />
           {data?.user?.name}
         </>
@@ -30,4 +28,4 @@ export const Login = () => {
   );
 };
 
-export default Login;
+export default LoginPage;
