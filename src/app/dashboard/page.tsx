@@ -1,19 +1,7 @@
 import { Header } from "@/components/ui/header";
 import { MenuNavegation } from "@/components/ui/menu";
 import { Table } from "@/components/ui/table";
-import prisma from "@/lib/useDataBase";
-import { Animal } from "@/types/animal";
-import { User } from "@/types/user";
-
-export const fetchAnimals = async (): Promise<Animal[]> => {
-  const animals = await prisma.animal.findMany();
-  return animals;
-};
-
-export const fetchUsers = async (): Promise<User[]> => {
-  const users = await prisma.user.findMany();
-  return users;
-};
+import { fetchAnimals, fetchUsers } from "@/lib/fetchData";
 
 const Dashboard = async () => {
   const animals = await fetchAnimals();
