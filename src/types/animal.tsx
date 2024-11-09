@@ -1,11 +1,11 @@
 export interface Animal {
   id: string;
-  manualId: number | null;
-  gender: string | null;
-  birthDate: Date | null;
-  weight: number | null;
-  breed: string | null;
-  category: string | null;
+  manualId: number;
+  gender: string;
+  birthDate: Date;
+  weight: number;
+  breed: string;
+  category: string;
   motherId: string | null;
   fatherId: string | null;
   reproductiveStatus: string | null;
