@@ -33,17 +33,17 @@ model Animal {
   weight              Float
   breed               String
   category            String
-  motherId            String?
-  fatherId            String?
-  reproductiveStatus  String
+  motherId            String
+  fatherId            String
+  reproductiveStatus  String?
   handlingType        String?
   bullId              String?
   protocol            String?
-  andrological        String
+  andrological        String?
   expectedDueDate     DateTime?
   fetalGender         String?
   bullIatf            String?
-  bodyConditionScore  Float
+  bodyConditionScore  Float?
   observations        String?
   ownerId             String
   createdAt           DateTime    @default(now())
