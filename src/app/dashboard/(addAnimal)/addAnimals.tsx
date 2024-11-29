@@ -17,6 +17,7 @@ import { useSession } from "next-auth/react";
 import { Animal } from "@/types/animal";
 import { User } from "@/types/user";
 import { v4 as uuidv4 } from "uuid";
+import { toast } from "sonner";
 
 interface AddAnimalProps {
   animals: Animal[];
@@ -27,7 +28,6 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({ animals, users }) => {
   const [tabValue, setTabValue] = useState("principais");
   const [allDataForm, setAllDataForm] = useState<Animal>({} as Animal);
   const { data: session } = useSession();
-
   const userEmail = users.find((user) => user.email === session?.user?.email);
 
   React.useEffect(() => {
@@ -58,19 +58,21 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({ animals, users }) => {
   };
 
   const submitForm = async (allDataForm: Animal) => {
-    if (allDataForm.motherId === "Comercial") {
-      allDataForm.motherId = null;
-    }
-    if (allDataForm.fatherId === "Comercial") {
-      allDataForm.fatherId = null;
-    }
-    const dataWithId = { ...allDataForm, id: uuidv4() };
-    console.log("Dados enviados para o Supabase:", dataWithId);
+    const dataToSubmit = {
+      ...allDataForm,
+      id: uuidv4(),
+      motherId:
+        allDataForm.motherId === "Comercial" ? null : allDataForm.motherId,
+      fatherId:
+        allDataForm.fatherId === "Comercial" ? null : allDataForm.fatherId,
+    };
+
+    console.log("Dados enviados para o Supabase:", dataToSubmit);
 
     try {
       const response = await axios.post(
         "/api/addAnimals",
-        { allDataForm: dataWithId },
+        { allDataForm: dataToSubmit },
         {
           headers: {
             "Content-Type": "application/json",
@@ -79,8 +81,10 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({ animals, users }) => {
       );
       console.log("Animal cadastrado com sucesso:", response.data.dataWithId);
       setAllDataForm({} as Animal);
+      toast.success("Animal cadastrado com sucesso!");
     } catch (error) {
       console.log("Erro ao cadastrar animal:", error);
+      toast.error("Ocorreu um erro ao cadastrar o animal.");
     }
   };
 

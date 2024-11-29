@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { AuthProvider } from "@/providers/auth";
+import { Toaster } from "@/components/ui/sonner";
+
 // import Login from "./login/page";
 // import { Providers } from "./providers";
 
@@ -29,9 +31,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
+        cz-shortcut-listen="true"
         className={`${geistSans.variable} ${geistMono.variable} m-auto h-full w-full max-w-screen-xl text-sm antialiased`}
       >
         <AuthProvider>{children}</AuthProvider>
+        <Toaster richColors />
       </body>
     </html>
   );

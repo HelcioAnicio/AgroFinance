@@ -154,7 +154,7 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                   <option disabled value=""></option>
                   <option value="Comercial">Comercial</option>
                   {animals
-                    .filter((animal) => animal.gender === "Female")
+                    .filter((animal) => animal.gender === "female")
                     .map((animal) => (
                       <option key={animal.id} value={animal.id ?? ""}>
                         Vaca {animal.manualId}
