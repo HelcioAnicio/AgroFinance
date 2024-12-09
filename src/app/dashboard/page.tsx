@@ -9,7 +9,7 @@ const Dashboard = async () => {
 
   return (
     <div className="h-full overflow-hidden text-xs">
-      <Header animals={animals} users={users} />
+      <Header />
       <Table animals={animals} users={users} />
       <MenuNavegation />
     </div>
