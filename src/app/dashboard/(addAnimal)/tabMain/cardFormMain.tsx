@@ -27,6 +27,31 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
     console.log("Tab alterada para 'reproducao'");
   };
 
+  const breedArray = [
+    "Nelore",
+    "Angus",
+    "Hereford",
+    "Brangus",
+    "Brahman",
+    "Tabapuã",
+    "Charolês",
+    "Senepol",
+    "Simental",
+    "Guzerá",
+    "Holandesa",
+    "Jersey",
+    "Girolando",
+    "Gir Leiteiro",
+    "Pardo-Suíço",
+    "Ayrshire",
+    "Guernsey",
+    "Simbrasil",
+    "Sindi",
+    "Indubrasil",
+    "Canchim",
+    "Red Poll",
+  ];
+
   return (
     <Card className="min-h-96">
       <CardHeader className="py-2">
@@ -112,21 +137,27 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                 />
               </div>
 
-              <div>
+              <div className="flex flex-col gap-1">
                 <label className="text-secondary" htmlFor="breed">
                   Raça:
                 </label>
-                <input
-                  type="text"
+                <select
                   name="breed"
                   id="breed"
                   value={allDataForm.breed ?? ""}
                   onChange={handleInputValues}
-                  className="w-full border border-b border-b-primary bg-transparent outline-none"
-                />
+                  className="min-w-24 flex-1 overflow-y-auto scroll-smooth border border-b border-b-primary bg-transparent outline-none"
+                >
+                  <option value="" disabled></option>
+                  {breedArray.map((breed, id) => (
+                    <option value={breed} key={id}>
+                      {breed}
+                    </option>
+                  ))}
+                </select>
               </div>
 
-              <div>
+              <div className="flex flex-col gap-1">
                 <label className="text-secondary" htmlFor="category">
                   Categoria:
                 </label>
@@ -149,7 +180,7 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                   id="motherId"
                   value={allDataForm.motherId ?? ""}
                   onChange={handleInputValues}
-                  className="min-w-24 flex-1 border border-b border-b-primary bg-transparent outline-none"
+                  className="h-20 min-w-24 flex-1 overflow-y-auto scroll-smooth border border-b border-b-primary bg-transparent outline-none"
                 >
                   <option disabled value=""></option>
                   <option value="Comercial">Comercial</option>

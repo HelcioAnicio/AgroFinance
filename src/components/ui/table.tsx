@@ -9,6 +9,7 @@ import { Sheet, SheetTrigger } from "@/components/ui/sheet";
 import { ListFilter, CirclePlus } from "lucide-react";
 import { AddAnimal } from "../../app/dashboard/(addAnimal)/addAnimals";
 import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
 
 interface TableProps {
   animals: Animal[];
@@ -19,17 +20,30 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
   const { data: session } = useSession();
   const userEmail = users.find((user) => user.email === session?.user?.email);
   const userId = userEmail?.id;
+  const [listAnimals, setListAnimals] = useState<Animal[]>([]);
 
-  const sortedAnimals = animals
-    .filter((animal) => animal.ownerId === userId)
-    .sort((a, b) => (a.manualId ?? 0) - (b.manualId ?? 0));
+  useEffect(() => {
+    const sorted = animals
+      .filter((animal) => animal.ownerId === userId)
+      .sort((a, b) => (a.manualId ?? 0) - (b.manualId ?? 0));
+    setListAnimals(sorted);
+  }, [animals, userId]);
+
+  const handleAnimalAdded = (newAnimal: Animal) => {
+    setListAnimals((prev) => {
+      const updatedListAnimals = [...prev, newAnimal];
+      return updatedListAnimals.sort(
+        (a, b) => (a.manualId ?? 0) - (b.manualId ?? 0),
+      );
+    });
+  };
 
   return (
     <main className="overflow-x-auto scroll-smooth pb-5">
       <Sheet>
-        <div className="flex gap-2">
+        <div className="flex w-full justify-end gap-10">
           <input
-            className="w-full max-w-60 border border-b-gray-400 bg-transparent p-1 shadow-md outline-none"
+            className="w-full max-w-60 border border-b-gray-400 bg-input p-1 shadow-sm outline-none"
             type="search"
             name="inputSearch"
             id="inputSearch"
@@ -46,10 +60,15 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
               </Button>
             </SheetTrigger>
           </div>
-          <AddAnimal animals={animals} users={users} />
+          <AddAnimal
+            animals={animals}
+            users={users}
+            onAnimalAdded={handleAnimalAdded}
+          />
         </div>
       </Sheet>
-      <table className="min-w-[700px] border-collapse text-left">
+      <br />
+      <table className="m-auto min-w-[700px] border-collapse text-left">
         <thead className="border-collapse bg-primary text-background">
           <tr>
             <th className="px-1 py-2">ID</th>
@@ -64,9 +83,13 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
           </tr>
         </thead>
         <tbody className="relative">
-          {sortedAnimals.map((animal, index) => {
-            const mother = animals.find((a) => a.id === animal.motherId);
-            const father = animals.find((a) => a.id === animal.fatherId);
+          {listAnimals.map((animal: Animal, index: number) => {
+            const mother: Animal | undefined = animals.find(
+              (a) => a.id === animal.motherId,
+            );
+            const father: Animal | undefined = animals.find(
+              (a) => a.id === animal.fatherId,
+            );
 
             return (
               <tr

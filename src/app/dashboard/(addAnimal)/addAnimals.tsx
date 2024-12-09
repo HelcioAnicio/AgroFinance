@@ -22,9 +22,14 @@ import { toast } from "sonner";
 interface AddAnimalProps {
   animals: Animal[];
   users: User[];
+  onAnimalAdded: (animal: Animal) => void;
 }
 
-export const AddAnimal: React.FC<AddAnimalProps> = ({ animals, users }) => {
+export const AddAnimal: React.FC<AddAnimalProps> = ({
+  animals,
+  users,
+  onAnimalAdded,
+}) => {
   const [tabValue, setTabValue] = useState("principais");
   const [allDataForm, setAllDataForm] = useState<Animal>({} as Animal);
   const { data: session } = useSession();
@@ -82,6 +87,7 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({ animals, users }) => {
       console.log("Animal cadastrado com sucesso:", response.data.dataWithId);
       setAllDataForm({} as Animal);
       toast.success("Animal cadastrado com sucesso!");
+      onAnimalAdded(dataToSubmit);
     } catch (error) {
       console.log("Erro ao cadastrar animal:", error);
       toast.error("Ocorreu um erro ao cadastrar o animal.");
