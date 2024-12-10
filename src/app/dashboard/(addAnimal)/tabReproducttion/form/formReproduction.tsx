@@ -22,6 +22,10 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
   handleInputValues,
   setTabValue,
 }) => {
+  const scores = [
+    1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 2.75, 3, 3.25, 3.5, 3.75, 4, 5,
+  ];
+
   const handleActiveComponent = (event: React.FormEvent) => {
     event.preventDefault();
     console.log("Componente de filhos ativado");
@@ -172,7 +176,7 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                           <select
                             name="protocol"
                             id="protocol"
-                            className={`flex[1_1_100px] w-full min-w-20 rounded-t-md border border-b border-b-primary bg-transparent outline-none ${allDataForm.handlingType === "bullMating" && "bg-gray-300"}`}
+                            className={`flex[1_1_100px] w-full min-w-20 rounded-t-md border border-b border-b-primary outline-none ${allDataForm.handlingType == "bullMating" ? "rounded-t-md bg-gray-300" : "bg-transparent"}`}
                             value={allDataForm.protocol ?? ""}
                             onChange={handleInputValues}
                             disabled={allDataForm.handlingType === "bullMating"}
@@ -218,9 +222,6 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                       </article>
 
                       <article className="flex flex-wrap gap-5">
-                        {/* <h2 className="mb-3 text-xl text-primary">
-                      Diagnóstico de gestação
-                    </h2> */}
                         <div className="flex flex-col gap-1">
                           <label
                             className="text-secondary"
@@ -251,17 +252,25 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                           >
                             ECC (Escore de Condição Corporal):
                           </label>
-                          <input
+
+                          <select
                             name="bodyConditionScore"
                             id="bullbodyConditionScoreIatf"
-                            className={``}
-                            type="range"
-                            min="0"
-                            max="5"
-                            step="0,25"
+                            className={`min-w-24 max-w-40 flex-1 overflow-y-scroll scroll-smooth border border-b-primary outline-none`}
                             value={allDataForm.bodyConditionScore ?? ""}
                             onChange={handleInputValues}
-                          />
+                            style={{
+                              overflowY: "scroll",
+                              maxHeight: "100px",
+                            }}
+                          >
+                            <option disabled value=""></option>
+                            {scores.map((score, index) => (
+                              <option key={index} value={score}>
+                                ECC - {score}
+                              </option>
+                            ))}
+                          </select>
                         </div>
 
                         <div className="flex w-full flex-col gap-1">
@@ -271,7 +280,8 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                           <select
                             name="bullIatf"
                             id="bullIatf"
-                            className={`min-w-24 max-w-40 flex-1 border border-b border-b-primary bg-transparent outline-none ${allDataForm.handlingType == "bullMating" && "bg-gray-400"}`}
+                            className={`min-w-24 max-w-40 flex-1 border border-b border-b-primary outline-none ${allDataForm.handlingType == "bullMating" ? "rounded-t-md bg-gray-400" : "bg-transparent"}`}
+                            disabled={allDataForm.handlingType === "bullMating"}
                             value={allDataForm.bullIatf ?? ""}
                             onChange={handleInputValues}
                           >
