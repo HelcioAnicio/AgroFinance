@@ -21,16 +21,16 @@ export const Header = () => {
           alt="Logo - Imagem de um touro e uma ovelha"
           width={100}
           height={100}
-          className="size-24"
+          className="size-16"
         />
       </div>
 
       <nav className="flex w-full flex-col items-end gap-4">
         <div>
           {status === "authenticated" && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               {data?.user?.name}
-              <Avatar>
+              <Avatar className="size-8">
                 <AvatarImage
                   src={data?.user?.image ?? undefined}
                   alt="Image from google profile"
@@ -40,7 +40,7 @@ export const Header = () => {
                 </AvatarFallback>
               </Avatar>
               <Button
-                className="bg-secondary p-1 text-foreground"
+                className="scale-75 bg-secondary p-1 text-accent"
                 onClick={handleLogoutClick}
               >
                 Logout
