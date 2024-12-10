@@ -6,7 +6,7 @@ import { CgProfile } from "react-icons/cg";
 
 export const MenuNavegation = () => {
   return (
-    <footer className="fixed bottom-0 z-30 h-24 w-full rounded-t-3xl bg-primary lg:hidden">
+    <footer className="fixed bottom-0 z-30 h-16 w-full rounded-t-3xl bg-primary lg:hidden">
       <section className="relative z-20 mx-auto mt-2 flex max-w-xs justify-between px-5 text-primary-foreground">
         <Link href="/">
           <div className="relative -mt-4 flex size-16 scale-125 flex-col items-center gap-1 rounded-full bg-primary text-black">
