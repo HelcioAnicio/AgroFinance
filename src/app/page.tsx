@@ -1,18 +1,12 @@
-"use client";
-
 import React from "react";
-// import { useSession } from "next-auth/react";
-// import Link from "next/link";
-// import { Button } from "@/components/ui/button";
 import { Header } from "@/components/ui/header";
+import ClientAuth from "@/components/ui/clientAuth";
 
 const Home = () => {
-  // const { status } = useSession();
-
   return (
-    <>
+    <ClientAuth>
       <Header />
-    </>
+    </ClientAuth>
   );
 };
 export default Home;
