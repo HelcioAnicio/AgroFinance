@@ -9,7 +9,7 @@ import { Sheet, SheetTrigger } from "@/components/ui/sheet";
 import { ListFilter, CirclePlus } from "lucide-react";
 import { AddAnimal } from "../../app/dashboard/(addAnimal)/addAnimals";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 interface TableProps {
   animals: Animal[];
@@ -17,10 +17,12 @@ interface TableProps {
 }
 
 export const Table: React.FC<TableProps> = ({ animals, users }) => {
+  console.log("animals: ", animals);
   const { data: session } = useSession();
   const userEmail = users.find((user) => user.email === session?.user?.email);
   const userId = userEmail?.id;
   const [listAnimals, setListAnimals] = useState<Animal[]>([]);
+  const [inputValue, setInputValue] = useState<number | undefined>(undefined);
 
   useEffect(() => {
     const sorted = animals
@@ -28,6 +30,19 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
       .sort((a, b) => (a.manualId ?? 0) - (b.manualId ?? 0));
     setListAnimals(sorted);
   }, [animals, userId]);
+
+  useEffect(() => {
+    if (inputValue === undefined) {
+      setListAnimals((prevAnimals) =>
+        prevAnimals.sort((a, b) => (a.manualId ?? 0) - (b.manualId ?? 0)),
+      );
+    } else {
+      const filtered = listAnimals
+        .filter((animal) => animal.manualId == inputValue)
+        .sort((a, b) => (a.manualId ?? 0) - (b.manualId ?? 0));
+      setListAnimals(filtered);
+    }
+  }, [inputValue, animals, userId]);
 
   const handleAnimalAdded = (newAnimal: Animal) => {
     setListAnimals((prev) => {
@@ -38,25 +53,32 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
     });
   };
 
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(
+      event.target.value ? parseInt(event.target.value) : undefined,
+    );
+  };
+
   return (
     <main className="overflow-x-auto scroll-smooth pb-5">
       <Sheet>
-        <div className="flex w-full justify-end gap-10">
+        <div className="sticky top-0 flex w-full justify-between gap-10 px-1 sm:justify-end">
           <input
-            className="w-full max-w-60 border border-b-gray-400 bg-input p-1 shadow-sm outline-none"
+            className="w-full max-w-40 border border-b-gray-400 bg-input p-1 shadow-sm outline-none"
             type="search"
             name="inputSearch"
             id="inputSearch"
             placeholder="Pesquisar ID"
+            onChange={handleInputChange}
           />
 
-          <div className="flex gap-3">
-            <Button className="flex gap-2 p-1">
-              Filtros <ListFilter />
+          <div className="flex gap-1">
+            <Button className="flex gap-1 p-1">
+              Filtros <ListFilter className="size-4" />
             </Button>
             <SheetTrigger asChild>
               <Button className="flex gap-2 p-1">
-                Adicionar <CirclePlus />
+                Adicionar <CirclePlus className="size-4" />
               </Button>
             </SheetTrigger>
           </div>
@@ -82,7 +104,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
             <th className="sticky right-0 bg-primary px-1 py-2 text-background"></th>
           </tr>
         </thead>
-        <tbody className="relative">
+        <tbody className="h-[calc(100%-200px)] overflow-y-auto scroll-smooth">
           {listAnimals.map((animal: Animal, index: number) => {
             const mother: Animal | undefined = animals.find(
               (a) => a.id === animal.motherId,
@@ -117,7 +139,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                     href={`/bovinos/${animal.id}`}
                     className="block h-full w-full"
                   >
-                    {animal.gender}
+                    {animal.gender === "male" ? "Macho" : "Fêmea"}
                   </Link>
                 </td>
                 <td className="px-1 py-3">
@@ -150,20 +172,22 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                       : "N/A"}
                   </Link>
                 </td>
+
                 <td className="px-1 py-3">
                   <Link
                     href={`/bovinos/${animal.id}`}
                     className="block h-full w-full"
                   >
-                    {animal.category}
+                    {`${animal.category[0].toUpperCase()}${animal.category.substring(1)}`}
                   </Link>
                 </td>
+
                 <td className="px-1 py-3">
                   <Link
                     href={`/bovinos/${animal.id}`}
                     className="block h-full w-full"
                   >
-                    {animal.weight}
+                    {animal.weight} Kg
                   </Link>
                 </td>
                 <td
