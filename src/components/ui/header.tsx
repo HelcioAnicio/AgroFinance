@@ -52,18 +52,15 @@ export const Header = () => {
           <div className="flex items-center gap-1">
             <Skeleton className="h-4 w-16" />
             <Skeleton className="size-8 rounded-full" />
-            <Skeleton className="w-10 h-7" />
+            <Skeleton className="h-7 w-10" />
           </div>
         )}
 
         {status === "unauthenticated" && (
-          <div className="m-auto flex w-full max-w-screen-lg justify-between py-4">
-            <h1>
-              Olá, se deseja logar e acessar o nosso dashboard{" "}
-              <Button>
-                <Link href="/login">click aqui</Link>{" "}
-              </Button>
-            </h1>
+          <div className="m-auto flex w-full max-w-screen-lg justify-end py-4">
+            <Button>
+              <Link href="/login">Login</Link>{" "}
+            </Button>
           </div>
         )}
       </nav>
