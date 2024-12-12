@@ -109,6 +109,7 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
         <TabsContent value="principais">
           <CardFormMain
             animals={animals}
+            users={users}
             handleInputValues={handleInputValues}
             allDataForm={allDataForm}
             setTabValue={setTabValue}

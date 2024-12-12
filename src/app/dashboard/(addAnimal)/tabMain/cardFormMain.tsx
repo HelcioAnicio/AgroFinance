@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import React from "react";
 import { Animal } from "@/types/animal";
+import { User } from "@/types/user";
+import { useSession } from "next-auth/react";
 
 interface CardFormMainProps {
   allDataForm: Animal;
@@ -11,11 +13,14 @@ interface CardFormMainProps {
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => void;
   animals: Animal[];
+  users: User[];
+
   setTabValue: (value: string) => void;
 }
 
 export const CardFormMain: React.FC<CardFormMainProps> = ({
   animals,
+  users,
   allDataForm,
   handleInputValues,
   setTabValue,
@@ -51,6 +56,11 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
     "Canchim",
     "Red Poll",
   ];
+
+  const { data: session } = useSession();
+
+  const userEmail = users.find((user) => user.email === session?.user?.email);
+  const userId = userEmail?.id;
 
   return (
     <Card className="min-h-96">
@@ -185,7 +195,11 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                   <option disabled value=""></option>
                   <option value="Comercial">Comercial</option>
                   {animals
-                    .filter((animal) => animal.gender === "female")
+                    .filter(
+                      (animal) =>
+                        animal.ownerId === userId && animal.gender === "female",
+                    )
+                    .sort((a, b) => (a.manualId ?? 0) - (b.manualId ?? 0))
                     .map((animal) => (
                       <option key={animal.id} value={animal.id ?? ""}>
                         Vaca {animal.manualId}
@@ -208,7 +222,11 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                   <option value="" disabled></option>
                   <option value="Comercial">Comercial</option>
                   {animals
-                    .filter((animal) => animal.gender === "male")
+                    .filter(
+                      (animal) =>
+                        animal.ownerId === userId && animal.gender === "male",
+                    )
+                    .sort((a, b) => (a.manualId ?? 0) - (b.manualId ?? 0))
                     .map((animal) => (
                       <option key={animal.id} value={animal.id ?? ""}>
                         Touro {animal.manualId}
