@@ -17,35 +17,40 @@ interface TableProps {
 }
 
 export const Table: React.FC<TableProps> = ({ animals, users }) => {
-  console.log("animals: ", animals);
   const { data: session } = useSession();
   const userEmail = users.find((user) => user.email === session?.user?.email);
   const userId = userEmail?.id;
   const [listAnimals, setListAnimals] = useState<Animal[]>([]);
+  const [originalAnimals, setOriginalAnimals] = useState<Animal[]>([]);
   const [inputValue, setInputValue] = useState<number | undefined>(undefined);
 
   useEffect(() => {
     const sorted = animals
       .filter((animal) => animal.ownerId === userId)
       .sort((a, b) => (a.manualId ?? 0) - (b.manualId ?? 0));
+    setOriginalAnimals(sorted);
     setListAnimals(sorted);
   }, [animals, userId]);
 
   useEffect(() => {
     if (inputValue === undefined) {
-      setListAnimals((prevAnimals) =>
-        prevAnimals.sort((a, b) => (a.manualId ?? 0) - (b.manualId ?? 0)),
-      );
+      setListAnimals(originalAnimals);
     } else {
       const filtered = listAnimals
         .filter((animal) => animal.manualId == inputValue)
         .sort((a, b) => (a.manualId ?? 0) - (b.manualId ?? 0));
       setListAnimals(filtered);
     }
-  }, [inputValue, animals, userId]);
+  }, [inputValue, originalAnimals]);
 
   const handleAnimalAdded = (newAnimal: Animal) => {
     setListAnimals((prev) => {
+      const updatedListAnimals = [...prev, newAnimal];
+      return updatedListAnimals.sort(
+        (a, b) => (a.manualId ?? 0) - (b.manualId ?? 0),
+      );
+    });
+    setOriginalAnimals((prev) => {
       const updatedListAnimals = [...prev, newAnimal];
       return updatedListAnimals.sort(
         (a, b) => (a.manualId ?? 0) - (b.manualId ?? 0),
@@ -61,34 +66,36 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
 
   return (
     <main className="overflow-x-auto scroll-smooth pb-5">
-      <Sheet>
-        <div className="sticky top-0 flex w-full justify-between gap-10 px-1 sm:justify-end">
-          <input
-            className="w-full max-w-40 border border-b-gray-400 bg-input p-1 shadow-sm outline-none"
-            type="search"
-            name="inputSearch"
-            id="inputSearch"
-            placeholder="Pesquisar ID"
-            onChange={handleInputChange}
-          />
+      <div className="sticky right-0 top-0 z-50 w-full">
+        <Sheet>
+          <div className="flex w-full justify-between gap-10 px-1 sm:justify-end">
+            <input
+              className="w-full max-w-40 border border-b-gray-400 bg-input p-1 shadow-sm outline-none"
+              type="search"
+              name="inputSearch"
+              id="inputSearch"
+              placeholder="Pesquisar ID"
+              onChange={handleInputChange}
+            />
 
-          <div className="flex gap-1">
-            <Button className="flex gap-1 p-1">
-              Filtros <ListFilter className="size-4" />
-            </Button>
-            <SheetTrigger asChild>
-              <Button className="flex gap-2 p-1">
-                Adicionar <CirclePlus className="size-4" />
+            <div className="flex gap-1">
+              <Button className="flex gap-1 p-1">
+                Filtros <ListFilter className="size-4" />
               </Button>
-            </SheetTrigger>
+              <SheetTrigger asChild>
+                <Button className="flex gap-2 p-1">
+                  Adicionar <CirclePlus className="size-4" />
+                </Button>
+              </SheetTrigger>
+            </div>
+            <AddAnimal
+              animals={animals}
+              users={users}
+              onAnimalAdded={handleAnimalAdded}
+            />
           </div>
-          <AddAnimal
-            animals={animals}
-            users={users}
-            onAnimalAdded={handleAnimalAdded}
-          />
-        </div>
-      </Sheet>
+        </Sheet>
+      </div>
       <br />
       <table className="m-auto min-w-[700px] border-collapse text-left">
         <thead className="border-collapse bg-primary text-background">
@@ -120,7 +127,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
               >
                 <td className="px-1 py-3">
                   <Link
-                    href={`/bovinos/${animal.id}`}
+                    href={`dashboard/${animal.id}`}
                     className="block h-full w-full"
                   >
                     {animal.manualId}
@@ -128,7 +135,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                 </td>
                 <td className="px-1 py-3">
                   <Link
-                    href={`/bovinos/${animal.id}`}
+                    href={`dashboard/${animal.id}`}
                     className="block h-full w-full"
                   >
                     {animal.breed}
@@ -136,7 +143,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                 </td>
                 <td className="px-1 py-3">
                   <Link
-                    href={`/bovinos/${animal.id}`}
+                    href={`dashboard/${animal.id}`}
                     className="block h-full w-full"
                   >
                     {animal.gender === "male" ? "Macho" : "Fêmea"}
@@ -144,7 +151,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                 </td>
                 <td className="px-1 py-3">
                   <Link
-                    href={`/bovinos/${animal.id}`}
+                    href={`dashboard/${animal.id}`}
                     className="block h-full w-full"
                   >
                     {animal.motherId === null
@@ -156,7 +163,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                 </td>
                 <td className="px-1 py-3">
                   <Link
-                    href={`/bovinos/${animal.id}`}
+                    href={`dashboard/${animal.id}`}
                     className="block h-full w-full"
                   >
                     {father ? `Vaca ${father.manualId}` : "Comercial"}
@@ -164,7 +171,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                 </td>
                 <td className="px-1 py-3">
                   <Link
-                    href={`/bovinos/${animal.id}`}
+                    href={`dashboard/${animal.id}`}
                     className="block h-full w-full"
                   >
                     {animal.birthDate
@@ -175,7 +182,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
 
                 <td className="px-1 py-3">
                   <Link
-                    href={`/bovinos/${animal.id}`}
+                    href={`dashboard/${animal.id}`}
                     className="block h-full w-full"
                   >
                     {`${animal.category[0].toUpperCase()}${animal.category.substring(1)}`}
@@ -184,7 +191,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
 
                 <td className="px-1 py-3">
                   <Link
-                    href={`/bovinos/${animal.id}`}
+                    href={`dashboard/${animal.id}`}
                     className="block h-full w-full"
                   >
                     {animal.weight} Kg
@@ -196,7 +203,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                   }`}
                 >
                   <Link
-                    href={`/bovinos/${animal.id}`}
+                    href={`dashboard/${animal.id}`}
                     className="block h-full w-full"
                   >
                     <SquareArrowOutUpLeft size={20} />
