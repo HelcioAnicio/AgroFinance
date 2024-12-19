@@ -26,6 +26,7 @@ model User {
 
 model Animal {
   id                  String      @id @default(dbgenerated("gen_random_uuid()"))
+  status              String      @default("active  ")
   manualId            Int
   gender              String
   birthDate           DateTime
@@ -45,6 +46,12 @@ model Animal {
   bodyConditionScore  Float?
   observations        String?
   ownerId             String
+  vaccineName         String?     
+  vaccineDate         DateTime?   
+  vaccineExpiry       DateTime?      
+  dewormingName       String?  
+  dewormingDate       DateTime?
+  dewormingExpiry     DateTime?   
   createdAt           DateTime    @default(now())
   updatedAt           DateTime    @default(now()) @updatedAt
   bull                Animal?     @relation("BullHandling", fields: [bullId], references: [id])
