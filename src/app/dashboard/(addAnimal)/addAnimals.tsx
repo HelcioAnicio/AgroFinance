@@ -45,7 +45,6 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
 
     if (userEmail?.id) {
       setOwnerId();
-      console.log("UserEmail", userEmail?.id);
     }
   }, [userEmail]);
 
