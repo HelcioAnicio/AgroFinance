@@ -1,8 +1,8 @@
 import { User } from "./user";
 
 export interface Animal {
-  status: string;
   id: string;
+  status: string;
   manualId: number;
   gender: string;
   birthDate: Date;
@@ -21,9 +21,13 @@ export interface Animal {
   bullIatf: string | null;
   bodyConditionScore: number | null;
   observations: string | null;
-  createdAt: Date;
-  updatedAt: Date;
   ownerId: string;
+  vaccineName: string | null;
+  vaccineDate: Date | null;
+  vaccineExpiry: Date | null;
+  dewormingName: string | null;
+  dewormingDate: Date | null;
+  dewormingExpiry: Date | null;
   bull?: Animal;
   offspringFromBull?: Animal[];
   father?: Animal;
