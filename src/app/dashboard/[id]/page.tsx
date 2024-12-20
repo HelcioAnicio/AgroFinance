@@ -12,8 +12,8 @@ interface AnimalDetailsProps {
   params: { id: string };
 }
 
-const DetailAnimalId: React.FC<AnimalDetailsProps> = async ({ params }) => {
-  const { id } = await params;
+export const DetailAnimalId = async ({ params }: AnimalDetailsProps) => {
+  const { id } = params;
   const animal = await prisma.animal.findUnique({
     where: { id },
     include: {
@@ -33,16 +33,23 @@ const DetailAnimalId: React.FC<AnimalDetailsProps> = async ({ params }) => {
   return (
     <>
       <Header />
-      <CardInformation animal={animal as Animal} />
+      <div>
+        <h1 className="text-center text-xl">
+          Detalhes do animal {animal?.manualId}
+        </h1>
+        <Separator className="bg-foreground" />
+      </div>
 
-      <CardReproduction animal={animal as Animal} />
+      <section className="flex flex-col gap-3 p-3">
+        <CardInformation animal={animal as Animal} />
 
-      <section className="w-full max-w-lg p-2">
-        <Card className="flex items-center gap-3 px-5 py-2">
+        <CardReproduction animal={animal as Animal} />
+
+        <Card className="flex w-full max-w-lg items-center gap-3 p-2 px-5 py-2">
           <strong className="">Filhos: </strong>
           <div className="flex flex-wrap items-center gap-2">
             {animal?.offspringFromMother?.map((offspring) => (
-              <Link href={`/${offspring.id}`}>
+              <Link href={`/${offspring.id}`} key={offspring.id}>
                 <div className="w-max pt-3">
                   <span>Id: {offspring.manualId}</span> {" - "}
                   <span>
@@ -58,5 +65,3 @@ const DetailAnimalId: React.FC<AnimalDetailsProps> = async ({ params }) => {
     </>
   );
 };
-
-export default DetailAnimalId;
