@@ -63,7 +63,7 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
   const userId = userEmail?.id;
 
   return (
-    <Card className="min-h-96">
+    <Card className="min-h-80">
       <CardHeader className="py-2">
         <CardTitle>Informações principais</CardTitle>
       </CardHeader>
