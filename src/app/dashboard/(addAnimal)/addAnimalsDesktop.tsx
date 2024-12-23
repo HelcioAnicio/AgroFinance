@@ -1,13 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-  SheetClose,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CardFormMain } from "./tabMain/cardFormMain";
 import { CardFormReproduction } from "./tabReproducttion/cardFormReproduction";
@@ -18,7 +11,14 @@ import { Animal } from "@/types/animal";
 import { User } from "@/types/user";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "sonner";
-import { Card } from "@/components/ui/card";
+import {
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { AlertDialogAction } from "@radix-ui/react-alert-dialog";
 
 interface AddAnimalProps {
   animals: Animal[];
@@ -26,7 +26,7 @@ interface AddAnimalProps {
   onAnimalAdded: (animal: Animal) => void;
 }
 
-export const AddAnimal: React.FC<AddAnimalProps> = ({
+export const AddAnimalDesktop: React.FC<AddAnimalProps> = ({
   animals,
   users,
   onAnimalAdded,
@@ -95,20 +95,17 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
   };
 
   return (
-    <SheetContent
-      side="bottom"
-      className="mt-5 max-h-[500px] overflow-y-auto sm:hidden"
-    >
+    <AlertDialogContent>
       <Tabs key={tabValue} value={tabValue} onValueChange={setTabValue}>
-        <SheetHeader className="relative mt-5">
-          <SheetTitle>
+        <AlertDialogHeader className="mt-5 border">
+          <AlertDialogTitle className="flex justify-center">
             <TabsList>
               <TabsTrigger value="principais">Principais</TabsTrigger>
               <TabsTrigger value="reproducao">Reprodução</TabsTrigger>
               <TabsTrigger value="sanitarias">Sanitárias</TabsTrigger>
             </TabsList>
-          </SheetTitle>
-        </SheetHeader>
+          </AlertDialogTitle>
+        </AlertDialogHeader>
         <TabsContent value="principais">
           <CardFormMain
             animals={animals}
@@ -137,15 +134,16 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
               <p className="text-right">Username</p>
             </div>
           </div>
-          <SheetFooter>
-            <SheetClose asChild>
+          <AlertDialogFooter className="flex justify-between">
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction>
               <Button type="submit" onClick={() => submitForm(allDataForm)}>
-                Save changes
+                Adicionar animal
               </Button>
-            </SheetClose>
-          </SheetFooter>
+            </AlertDialogAction>
+          </AlertDialogFooter>
         </TabsContent>
       </Tabs>
-    </SheetContent>
+    </AlertDialogContent>
   );
 };

@@ -10,6 +10,8 @@ import { ListFilter, CirclePlus } from "lucide-react";
 import { AddAnimal } from "../../app/dashboard/(addAnimal)/addAnimals";
 import { Button } from "@/components/ui/button";
 import React, { useEffect, useState } from "react";
+import { AlertDialog, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { AddAnimalDesktop } from "@/app/dashboard/(addAnimal)/addAnimalsDesktop";
 
 interface TableProps {
   animals: Animal[];
@@ -67,34 +69,46 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
   return (
     <main className="overflow-x-auto scroll-smooth pb-5">
       <div className="sticky right-0 top-0 z-50 w-full">
-        <Sheet>
-          <div className="flex w-full justify-between gap-10 px-1 sm:justify-end">
-            <input
-              className="w-full max-w-40 border border-b-gray-400 bg-input p-1 shadow-sm outline-none"
-              type="search"
-              name="inputSearch"
-              id="inputSearch"
-              placeholder="Pesquisar ID"
-              onChange={handleInputChange}
-            />
+        <div className="flex w-full justify-between gap-10 px-1 sm:justify-end">
+          <input
+            className="w-full max-w-40 border border-b-gray-400 bg-input p-1 shadow-sm outline-none"
+            type="search"
+            name="inputSearch"
+            id="inputSearch"
+            placeholder="Pesquisar ID"
+            onChange={handleInputChange}
+          />
 
-            <div className="flex gap-1">
-              <Button className="flex gap-1 p-1">
-                Filtros <ListFilter className="size-4" />
-              </Button>
+          <div className="flex gap-1">
+            <Button className="flex gap-1 p-1">
+              Filtros <ListFilter className="size-4" />
+            </Button>
+            <Sheet>
               <SheetTrigger asChild>
-                <Button className="flex gap-2 p-1">
+                <Button className="flex gap-2 p-1 sm:hidden">
                   Adicionar <CirclePlus className="size-4" />
                 </Button>
               </SheetTrigger>
-            </div>
-            <AddAnimal
-              animals={animals}
-              users={users}
-              onAnimalAdded={handleAnimalAdded}
-            />
+              <AddAnimal
+                animals={animals}
+                users={users}
+                onAnimalAdded={handleAnimalAdded}
+              />
+            </Sheet>
+            <AlertDialog>
+              <AlertDialogTrigger>
+                <Button className="hidden gap-2 p-1 sm:flex">
+                  Adicionar <CirclePlus className="size-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AddAnimalDesktop
+                animals={animals}
+                users={users}
+                onAnimalAdded={handleAnimalAdded}
+              />
+            </AlertDialog>
           </div>
-        </Sheet>
+        </div>
       </div>
       <br />
       <table className="m-auto min-w-[700px] border-collapse text-left">
