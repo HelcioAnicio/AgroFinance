@@ -51,7 +51,6 @@ export const FormAddKids: React.FC<InterfaceComponentFormReproductionProps> = ({
 }) => {
   const handleActiveComponent = (event: React.FormEvent) => {
     event.preventDefault();
-    console.log("Filhos cadastrado.");
     setStatusComponentAddKids(false);
   };
 
@@ -98,13 +97,23 @@ export const FormAddKids: React.FC<InterfaceComponentFormReproductionProps> = ({
                   value={dataKids.bullId ?? ""}
                   onChange={handleDataKids}
                 >
-                  <option disabled value=""></option>
-                  <option value="comercial">Comercial</option>
+                  <option
+                    disabled
+                    value=""
+                    className="bg-primary text-accent"
+                  ></option>
+                  <option value="comercial" className="bg-primary text-accent">
+                    Comercial
+                  </option>
 
                   {animals
                     .filter((animal) => animal.gender === "male")
                     .map((animal) => (
-                      <option key={animal.id} value={animal.id ?? ""}>
+                      <option
+                        key={animal.id}
+                        value={animal.id ?? ""}
+                        className="border border-primary bg-primary text-accent"
+                      >
                         Touro {animal.manualId}
                       </option>
                     ))}

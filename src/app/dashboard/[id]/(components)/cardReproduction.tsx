@@ -1,7 +1,6 @@
 import React from "react";
 import { Animal } from "@/types/animal";
 import { Card } from "@/components/ui/card";
-import { empty } from "@prisma/client/runtime/library";
 
 interface ReproductionProps {
   animal: Animal | null;
@@ -22,7 +21,7 @@ export const CardReproduction: React.FC<ReproductionProps> = ({ animal }) => {
                     ? "Positivo"
                     : animal?.andrological === "negativo"
                       ? "Negativo"
-                      : "Não foi feito"}
+                      : "Não realizado"}
                 </span>
               </Card>
             </section>
