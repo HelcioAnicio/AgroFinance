@@ -18,7 +18,6 @@ import { Animal } from "@/types/animal";
 import { User } from "@/types/user";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "sonner";
-import { Card } from "@/components/ui/card";
 
 interface AddAnimalProps {
   animals: Animal[];
@@ -72,8 +71,6 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
         allDataForm.fatherId === "Comercial" ? null : allDataForm.fatherId,
     };
 
-    console.log("Dados enviados para o Supabase:", dataToSubmit);
-
     try {
       const response = await axios.post(
         "/api/addAnimals",
@@ -84,12 +81,10 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
           },
         },
       );
-      console.log("Animal cadastrado com sucesso:", response.data.dataWithId);
       setAllDataForm({} as Animal);
       toast.success("Animal cadastrado com sucesso!");
       onAnimalAdded(dataToSubmit);
     } catch (error) {
-      console.log("Erro ao cadastrar animal:", error);
       toast.error("Ocorreu um erro ao cadastrar o animal.");
     }
   };

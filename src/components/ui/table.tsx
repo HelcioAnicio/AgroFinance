@@ -96,10 +96,8 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
               />
             </Sheet>
             <AlertDialog>
-              <AlertDialogTrigger>
-                <Button className="hidden gap-2 p-1 sm:flex">
+              <AlertDialogTrigger className="hidden bg-primary text-background gap-2 p-1 rounded-md sm:flex items-center justify-center">
                   Adicionar <CirclePlus className="size-4" />
-                </Button>
               </AlertDialogTrigger>
               <AddAnimalDesktop
                 animals={animals}
