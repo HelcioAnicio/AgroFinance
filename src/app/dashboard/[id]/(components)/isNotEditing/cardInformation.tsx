@@ -1,5 +1,4 @@
 import React from "react";
-import { Separator } from "@/components/ui/separator";
 import { Card } from "@/components/ui/card";
 import { Animal } from "@/types/animal";
 import { Circle } from "lucide-react";
