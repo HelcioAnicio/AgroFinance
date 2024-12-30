@@ -81,10 +81,11 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
           },
         },
       );
+      console.log('AnimalCadastrado: ', response.data);
       setAllDataForm({} as Animal);
       toast.success("Animal cadastrado com sucesso!");
       onAnimalAdded(dataToSubmit);
-    } catch (error) {
+    } catch {
       toast.error("Ocorreu um erro ao cadastrar o animal.");
     }
   };
