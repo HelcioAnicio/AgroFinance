@@ -96,13 +96,13 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     fatherId: allDataForm.fatherId === "Comercial" ? null : allDataForm.fatherId,
   };
 
-  const fieldsToRemove = [
-    'bull', 'offspringFromBull', 'father', 'offspringFromFather', 
-    'mother', 'offspringFromMother', 'owner', 'dewormings', 
-    'diseases', 'vaccines'
-  ];
-  fieldsToRemove.forEach(field => delete dataToSubmit[field]);
-  
+  delete dataToSubmit.bull;
+  delete dataToSubmit.offspringFromBull;
+  delete dataToSubmit.father;
+  delete dataToSubmit.offspringFromFather;
+  delete dataToSubmit.mother;
+  delete dataToSubmit.offspringFromMother;
+  delete dataToSubmit.owner;
   console.log('dataToSubmit: ', dataToSubmit);
 
   try {
