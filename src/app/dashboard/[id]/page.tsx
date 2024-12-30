@@ -2,7 +2,6 @@ import { Header } from "@/components/ui/header";
 import { prisma } from "@/lib/useDataBase";
 import { Animal } from "@/types/animal";
 import EditableAnimalDetails from "./(components)/editableAnimalDetails";
-import { fetchData } from 'next-auth/client/_utils';
 import { fetchAnimals } from '@/lib/fetchData';
 
 interface AnimalDetailsProps {
@@ -22,9 +21,6 @@ const DetailAnimalId = async ({ params }: AnimalDetailsProps) => {
       mother: true,
       offspringFromMother: true,
       owner: true,
-      dewormings: true,
-      diseases: true,
-      vaccines: true,
     },
   });
 
