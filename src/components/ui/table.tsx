@@ -59,6 +59,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
       );
     });
   };
+  console.log(listAnimals.map((animal) => animal.motherId && animal.mother?.id));
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(
@@ -126,6 +127,12 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
         </thead>
         <tbody className="h-[calc(100%-200px)] overflow-y-auto scroll-smooth">
           {listAnimals.map((animal: Animal, index: number) => {
+            const mother: Animal | undefined = animals.find(
+              (a) => a.id === animal.motherId,
+            );
+            const father: Animal | undefined = animals.find(
+              (a) => a.id === animal.fatherId,
+            );
 
             return (
               <tr
@@ -179,7 +186,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                     href={`dashboard/${animal.motherId}`}
                     className="block h-full w-full"
                   >
-                    {animal.motherId ? `Vaca ${animal.mother?.id}` : "Comercial"}
+                    {mother ? `Vaca ${mother.manualId}` : "Comercial"}
                   </Link>
                 </td>
                 <td className="px-1 py-3">
@@ -187,7 +194,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                     href={`dashboard/${animal.fatherId}`}
                     className="block h-full w-full"
                   >
-                    {animal.fatherId ? `Touro ${animal.father?.manualId}` : "Comercial"}
+                    {father ? `Touro ${father.manualId}` : "Comercial"}
                   </Link>
                 </td>
                 <td className="px-1 py-3">
