@@ -10,7 +10,7 @@ interface AnimalDetailsProps {
 
 const DetailAnimalId = async ({ params }: AnimalDetailsProps) => {
   const animals = await fetchAnimals()
-  const {id} = params;
+  const { id } = await params;
   const animal = await prisma.animal.findUnique({
     where: { id },
     include: {
