@@ -4,15 +4,12 @@ import { Animal } from "@/types/animal";
 import EditableAnimalDetails from "./(components)/editableAnimalDetails";
 import { fetchAnimals } from '@/lib/fetchData';
 
-interface AnimalDetailsProps {
-  params: { id: string };
-}
 
-const DetailAnimalId = async ({ params }: AnimalDetailsProps) => {
-  const animals = await fetchAnimals()
+const DetailAnimalId = async ({ params }: { params: Promise<{ id: string }> }) => {
+  const animals = await fetchAnimals();
   // const users = await fetchUsers();
 
-  const { id } = params;
+  const id = (await params).id;
   const animal = await prisma.animal.findUnique({
     where: { id },
     include: {
