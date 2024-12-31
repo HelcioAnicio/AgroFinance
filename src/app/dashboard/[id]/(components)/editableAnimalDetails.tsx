@@ -178,7 +178,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
 
             <div className="flex flex-wrap items-center gap-2">
               {animal?.offspringFromMother?.map((offspring) => (
-                <Link href={`/${offspring.id}`} key={offspring.id}>
+                <Link href={`/dashboard/${offspring.id}`} key={offspring.id}>
                   <div className="w-max pt-3">
                     <span>Id: {offspring.manualId}</span> {" - "}
                     <span>
