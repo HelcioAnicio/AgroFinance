@@ -4,10 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CirclePlus } from "lucide-react";
 import { Animal } from "@/types/animal";
+import { useSession } from 'next-auth/react';
+import { User } from '@/types/user';
 
 interface InterfaceComponentFormReproductionProps {
   setStatusComponentAddKids: React.Dispatch<React.SetStateAction<boolean>>;
   animals: Animal[];
+  users: User[];
   allDataForm: Animal;
   handleInputValues: (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -18,10 +21,17 @@ interface InterfaceComponentFormReproductionProps {
 const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
   setStatusComponentAddKids,
   animals,
+  users,
   allDataForm,
   handleInputValues,
   setTabValue,
 }) => {
+
+  const { data: session } = useSession();
+
+  const userEmail = users.find((user) => user.email === session?.user?.email);
+  const userId = userEmail?.id;
+  
   const scores = [
     1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 2.75, 3, 3.25, 3.5, 3.75, 4, 5,
   ];
@@ -158,14 +168,17 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                           >
                             <option disabled value=""></option>
                             <option value="comercial">Comercial</option>
-
                             {animals
-                              .filter((animal) => animal.gender === "male")
+                              .filter(
+                                (animal) =>
+                                  animal.ownerId === userId && animal.gender === "male",
+                              )
+                              .sort((a, b) => (a.manualId ?? 0) - (b.manualId ?? 0))
                               .map((animal) => (
                                 <option key={animal.id} value={animal.id ?? ""}>
                                   Touro {animal.manualId}
                                 </option>
-                              ))}
+                            ))}   
                           </select>
                         </div>
 
@@ -288,12 +301,16 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                             <option disabled value=""></option>
                             <option value="comercial">Comercial</option>
                             {animals
-                              .filter((animal) => animal.gender === "male")
+                              .filter(
+                                (animal) =>
+                                  animal.ownerId === userId && animal.gender === "male",
+                              )
+                              .sort((a, b) => (a.manualId ?? 0) - (b.manualId ?? 0))
                               .map((animal) => (
                                 <option key={animal.id} value={animal.id ?? ""}>
                                   Touro {animal.manualId}
                                 </option>
-                              ))}{" "}
+                            ))}
                           </select>
                         </div>
                       </article>

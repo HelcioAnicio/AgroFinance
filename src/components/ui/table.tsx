@@ -83,8 +83,8 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
             <Button className="flex gap-1 p-1">
               Filtros <ListFilter className="size-4" />
             </Button>
-            <Sheet>
-              <SheetTrigger asChild>
+            <Sheet  >
+              <SheetTrigger asChild className="sm:hidden">
                 <Button className="flex gap-2 p-1 sm:hidden">
                   Adicionar <CirclePlus className="size-4" />
                 </Button>
