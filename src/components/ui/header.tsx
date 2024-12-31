@@ -17,13 +17,16 @@ export const Header = () => {
   return (
     <header className="flex w-full items-center justify-between p-2">
       <div className="w-1/3">
+      <Link href={'/dashboard'}>
         <Image
+          priority={true}
           src="/logo"
           alt="Logo - Imagem de um touro e uma ovelha"
           width={100}
           height={100}
           className="size-16"
         />
+      </Link>
       </div>
 
       <nav className="flex w-full flex-col items-end gap-4">
