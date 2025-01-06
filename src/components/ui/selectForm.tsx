@@ -1,4 +1,6 @@
 interface SelectFormProps {
+  classNameDiv?: string;
+  classNameInput?: string;
   htmlFor: string;
   label: string;
   name: string;
@@ -7,6 +9,7 @@ interface SelectFormProps {
   onChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
   options: { label?: string; value?: string }[];
   defaultOption?: string;
+  disabled?: boolean;
 }
 
 export const SelectForm: React.FC<SelectFormProps> = ({
@@ -18,9 +21,11 @@ export const SelectForm: React.FC<SelectFormProps> = ({
   onChange,
   options,
   defaultOption = 'Selecione uma opção',
+  classNameDiv,
+  classNameInput,
 }) => {
   return (
-    <div className="flex flex-col gap-1">
+    <div className={`flex flex-col gap-1 ${classNameDiv}`}>
       <label className="text-secondary" htmlFor={htmlFor}>
         {label}
       </label>
@@ -29,7 +34,7 @@ export const SelectForm: React.FC<SelectFormProps> = ({
         id={id}
         value={value}
         onChange={onChange}
-        className="min-w-24 flex-1 border border-b border-b-primary bg-transparent outline-none"
+        className={`min-w-24 flex-1 border border-b border-b-primary bg-transparent outline-none ${classNameInput}`}
       >
         <option value="" disabled>
           {defaultOption}

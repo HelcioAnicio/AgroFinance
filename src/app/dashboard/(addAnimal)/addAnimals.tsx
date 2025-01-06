@@ -163,7 +163,7 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
           <SheetFooter>
             <SheetClose asChild>
               <Button type="submit" onClick={() => submitForm(allDataForm)}>
-                Save changes
+                Adicionar Animal
               </Button>
             </SheetClose>
           </SheetFooter>
