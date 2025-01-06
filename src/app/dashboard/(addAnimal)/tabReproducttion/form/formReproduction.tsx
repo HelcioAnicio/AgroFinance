@@ -1,11 +1,14 @@
-"use client";
+'use client';
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CirclePlus } from "lucide-react";
-import { Animal } from "@/types/animal";
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CirclePlus } from 'lucide-react';
+import { Animal } from '@/types/animal';
 import { useSession } from 'next-auth/react';
 import { User } from '@/types/user';
+import { InputForm } from '@/components/ui/inputForm';
+import { RadioForm } from '@/components/ui/radioForm';
+import { SelectForm } from '@/components/ui/selectForm';
 
 interface InterfaceComponentFormReproductionProps {
   setStatusComponentAddKids: React.Dispatch<React.SetStateAction<boolean>>;
@@ -26,26 +29,25 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
   handleInputValues,
   setTabValue,
 }) => {
-
   const { data: session } = useSession();
 
   const userEmail = users.find((user) => user.email === session?.user?.email);
   const userId = userEmail?.id;
-  
+
   const scores = [
     1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 2.75, 3, 3.25, 3.5, 3.75, 4, 5,
   ];
 
   const handleActiveComponent = (event: React.FormEvent) => {
     event.preventDefault();
-    console.log("Componente de filhos ativado");
+    console.log('Componente de filhos ativado');
     setStatusComponentAddKids(true);
   };
 
   const sendForm = (event: React.FormEvent) => {
     event.preventDefault();
     console.log(allDataForm);
-    setTabValue("sanitarias");
+    setTabValue('sanitarias');
   };
   return (
     <>
@@ -56,131 +58,109 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
         <CardContent className="flex h-full flex-col p-1">
           <form action="" method="post" className="flex h-full flex-col">
             <section className="flex flex-grow flex-col gap-4">
-              {allDataForm.gender === "male" ? (
+              {allDataForm.gender === 'male' ? (
                 <article className="flex flex-col gap-1">
-                  <div className="flex flex-col gap-1">
-                    <p className="text-secondary">Andrológico:</p>
-                    <div className="flex items-center gap-1">
-                      <input
-                        type="radio"
-                        name="andrological"
-                        id="positive"
-                        className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
-                        value="positive"
-                        checked={allDataForm.andrological === "positive"}
-                        onChange={handleInputValues}
-                      />
-                      <label htmlFor="positive">Positivo</label>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <input
-                        type="radio"
-                        name="andrological"
-                        id="negative"
-                        value="negative"
-                        checked={allDataForm.andrological === "negative"}
-                        onChange={handleInputValues}
-                        className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
-                      />
-                      <label htmlFor="negative">Negativo</label>
-                    </div>
-
-                    <div className="flex items-center gap-1">
-                      <input
-                        type="radio"
-                        name="andrological"
-                        id="notDone"
-                        value="notDone"
-                        checked={allDataForm.andrological === "notDone"}
-                        onChange={handleInputValues}
-                        className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
-                      />
-                      <label htmlFor="notDone">Não realizado</label>
-                    </div>
-                  </div>
+                  <p className="text-secondary">Andrológico:</p>
+                  <RadioForm
+                    htmlFor="positive"
+                    label="Positivo"
+                    type="radio"
+                    name="andrological"
+                    id="andrological"
+                    value={allDataForm.andrological?.toString() ?? ''}
+                    onChange={handleInputValues}
+                    checked={false}
+                  />
+                  <RadioForm
+                    htmlFor="negative"
+                    label="Negativo"
+                    type="radio"
+                    name="andrological"
+                    id="andrological"
+                    value={allDataForm.andrological?.toString() ?? ''}
+                    onChange={handleInputValues}
+                    checked={false}
+                  />
+                  <RadioForm
+                    htmlFor="notDone"
+                    label="Não realizado"
+                    type="radio"
+                    name="andrological"
+                    id="andrological"
+                    value={allDataForm.andrological?.toString() ?? ''}
+                    onChange={handleInputValues}
+                    checked={false}
+                  />
                 </article>
               ) : (
                 <>
                   <article className="flex flex-col gap-1">
-                    <label
-                      className="text-secondary"
+                    <SelectForm
                       htmlFor="reproductiveStatus"
-                    >
-                      Status reprodutivo:
-                    </label>
-                    <select
+                      label="Status Reprodutivo"
                       name="reproductiveStatus"
                       id="reproductiveStatus"
-                      className="w-32 border border-b border-b-primary bg-transparent outline-none"
-                      value={allDataForm.reproductiveStatus ?? ""}
+                      value={allDataForm.reproductiveStatus ?? ''}
+                      defaultOption="Status do animal"
+                      options={[
+                        { label: 'Vazia', value: 'empty' },
+                        { label: 'Prenha', value: 'pregnant' },
+                        { label: 'Em espera', value: 'waiting' },
+
+                        { label: 'PEV', value: 'pev' },
+                      ]}
                       onChange={handleInputValues}
-                    >
-                      <option disabled value=""></option>
-                      <option value="empty">Vazia</option>
-                      <option value="pregnant">Prenha</option>
-                      <option value="waiting">Em espera</option>
-                      <option value="pev">PEV</option>
-                    </select>
+                    />
                   </article>
 
-                  {allDataForm.reproductiveStatus === "pregnant" && (
+                  {allDataForm.reproductiveStatus === 'pregnant' && (
                     <>
                       <article className="flex flex-wrap gap-5">
-                        <div className="flex flex-col gap-1">
-                          <label
-                            className="text-secondary"
-                            htmlFor="handlingType"
-                          >
-                            Manejo utilizado:
-                          </label>
-                          <select
-                            name="handlingType"
-                            id="handlingType"
-                            className="w-44 border border-b border-b-primary bg-transparent outline-none"
-                            value={allDataForm.handlingType ?? ""}
-                            onChange={handleInputValues}
-                          >
-                            <option value=""></option>
-                            <option value="bullMating">Touro</option>
-                            <option value="artificialInsemination">
-                              Inseminação Artifical
-                            </option>
-                            <option value="allMethods">Todos os metodos</option>
-                          </select>
-                        </div>
+                        <SelectForm
+                          htmlFor="handlingType"
+                          label="Manejo utilizado"
+                          name="handlingType"
+                          id="handlingType"
+                          value={allDataForm.handlingType ?? ''}
+                          defaultOption="Escolha o manejo"
+                          options={[
+                            { label: 'Touro', value: 'bullMating' },
+                            {
+                              label: 'Inseminação Artificisal',
+                              value: 'artificialInsemination',
+                            },
+                            { label: 'Todos os Métodos', value: 'allMethods' },
+                          ]}
+                          onChange={handleInputValues}
+                        />
                       </article>
 
                       <article className="flex w-full justify-between gap-2">
-                        <div className="flex w-full flex-col gap-1">
-                          <label className="text-secondary" htmlFor="bullId">
-                            Touro utilizado:
-                          </label>
-                          <select
-                            name="bullId"
-                            id="bullId"
-                            className={`min-w-24 flex-1 border border-b border-b-primary bg-transparent outline-none ${allDataForm.handlingType == "bullMating" && "bg-gray-300"}`}
-                            disabled={
-                              allDataForm.handlingType ===
-                              "artificialInsemination"
-                            }
-                            value={allDataForm.bullId ?? ""}
-                            onChange={handleInputValues}
-                          >
-                            <option disabled value=""></option>
-                            <option value="comercial">Comercial</option>
-                            {animals
+                        <SelectForm
+                          htmlFor="bullId"
+                          label="Touro utilizado"
+                          name="bullId"
+                          id="bullId"
+                          value={allDataForm.bullId ?? ''}
+                          defaultOption="Escolha o touro"
+                          options={[
+                            { label: 'Comercial', value: 'Comercial' },
+                            ...animals
                               .filter(
                                 (animal) =>
-                                  animal.ownerId === userId && animal.gender === "male",
+                                  animal.ownerId === userId &&
+                                  animal.gender === 'male',
                               )
-                              .sort((a, b) => (a.manualId ?? 0) - (b.manualId ?? 0))
-                              .map((animal) => (
-                                <option key={animal.id} value={animal.id ?? ""}>
-                                  Touro {animal.manualId}
-                                </option>
-                            ))}   
-                          </select>
-                        </div>
+                              .sort(
+                                (a, b) => (a.manualId ?? 0) - (b.manualId ?? 0),
+                              )
+                              .map((animal) => ({
+                                label: `Touro ${animal.manualId}`,
+                                value: animal.id,
+                              })),
+                          ]}
+                          onChange={handleInputValues}
+                        />
 
                         <div className="flex w-full flex-col gap-1">
                           <label htmlFor="protocol" className="text-secondary">
@@ -189,10 +169,10 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                           <select
                             name="protocol"
                             id="protocol"
-                            className={`flex[1_1_100px] w-full min-w-20 rounded-t-md border border-b border-b-primary outline-none ${allDataForm.handlingType == "bullMating" ? "rounded-t-md bg-gray-300" : "bg-transparent"}`}
-                            value={allDataForm.protocol ?? ""}
+                            className={`flex[1_1_100px] w-full min-w-20 rounded-t-md border border-b border-b-primary outline-none ${allDataForm.handlingType == 'bullMating' ? 'rounded-t-md bg-gray-300' : 'bg-transparent'}`}
+                            value={allDataForm.protocol ?? ''}
                             onChange={handleInputValues}
-                            disabled={allDataForm.handlingType === "bullMating"}
+                            disabled={allDataForm.handlingType === 'bullMating'}
                           >
                             <option disabled value=""></option>
                             <option value="protocol1">
@@ -212,7 +192,7 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                               name="fetalGender"
                               id="female"
                               value="female"
-                              checked={allDataForm.fetalGender === "female"}
+                              checked={allDataForm.fetalGender === 'female'}
                               onChange={handleInputValues}
                               className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
                             />
@@ -225,7 +205,7 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                               name="fetalGender"
                               id="male"
                               value="male"
-                              checked={allDataForm.fetalGender === "male"}
+                              checked={allDataForm.fetalGender === 'male'}
                               onChange={handleInputValues}
                               className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
                             />
@@ -250,8 +230,8 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                               allDataForm.expectedDueDate
                                 ? new Date(allDataForm.expectedDueDate)
                                     .toISOString()
-                                    .split("T")[0]
-                                : ""
+                                    .split('T')[0]
+                                : ''
                             }
                             onChange={handleInputValues}
                             className="w-full max-w-40 border border-b border-b-primary bg-transparent outline-none"
@@ -270,11 +250,11 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                             name="bodyConditionScore"
                             id="bullbodyConditionScoreIatf"
                             className={`min-w-24 max-w-40 flex-1 overflow-y-scroll scroll-smooth border border-b-primary outline-none`}
-                            value={allDataForm.bodyConditionScore ?? ""}
+                            value={allDataForm.bodyConditionScore ?? ''}
                             onChange={handleInputValues}
                             style={{
-                              overflowY: "scroll",
-                              maxHeight: "100px",
+                              overflowY: 'scroll',
+                              maxHeight: '100px',
                             }}
                           >
                             <option disabled value=""></option>
@@ -293,9 +273,9 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                           <select
                             name="bullIatf"
                             id="bullIatf"
-                            className={`min-w-24 max-w-40 flex-1 border border-b border-b-primary outline-none ${allDataForm.handlingType == "bullMating" ? "rounded-t-md bg-gray-400" : "bg-transparent"}`}
-                            disabled={allDataForm.handlingType === "bullMating"}
-                            value={allDataForm.bullIatf ?? ""}
+                            className={`min-w-24 max-w-40 flex-1 border border-b border-b-primary outline-none ${allDataForm.handlingType == 'bullMating' ? 'rounded-t-md bg-gray-400' : 'bg-transparent'}`}
+                            disabled={allDataForm.handlingType === 'bullMating'}
+                            value={allDataForm.bullIatf ?? ''}
                             onChange={handleInputValues}
                           >
                             <option disabled value=""></option>
@@ -303,21 +283,24 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                             {animals
                               .filter(
                                 (animal) =>
-                                  animal.ownerId === userId && animal.gender === "male",
+                                  animal.ownerId === userId &&
+                                  animal.gender === 'male',
                               )
-                              .sort((a, b) => (a.manualId ?? 0) - (b.manualId ?? 0))
+                              .sort(
+                                (a, b) => (a.manualId ?? 0) - (b.manualId ?? 0),
+                              )
                               .map((animal) => (
-                                <option key={animal.id} value={animal.id ?? ""}>
+                                <option key={animal.id} value={animal.id ?? ''}>
                                   Touro {animal.manualId}
                                 </option>
-                            ))}
+                              ))}
                           </select>
                         </div>
                       </article>
                     </>
                   )}
 
-                  {allDataForm.reproductiveStatus === "waiting" && (
+                  {allDataForm.reproductiveStatus === 'waiting' && (
                     <>
                       <article className="flex flex-wrap gap-5">
                         <div className="flex flex-col gap-1">
@@ -331,7 +314,7 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                             name="handlingType"
                             id="handlingType"
                             className="w-44 border border-b border-b-primary bg-transparent outline-none"
-                            value={allDataForm.handlingType ?? ""}
+                            value={allDataForm.handlingType ?? ''}
                             onChange={handleInputValues}
                           >
                             <option disabled value=""></option>
@@ -352,12 +335,12 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                           <select
                             name="bullId"
                             id="bullId"
-                            className={`min-w-24 flex-1 border border-b border-b-primary bg-transparent outline-none ${allDataForm.handlingType == "bullMating" && "bg-gray-300"}`}
+                            className={`min-w-24 flex-1 border border-b border-b-primary bg-transparent outline-none ${allDataForm.handlingType == 'bullMating' && 'bg-gray-300'}`}
                             disabled={
                               allDataForm.handlingType ===
-                              "artificialInsemination"
+                              'artificialInsemination'
                             }
-                            value={allDataForm.bullId ?? ""}
+                            value={allDataForm.bullId ?? ''}
                             onChange={handleInputValues}
                           >
                             <option disabled value=""></option>
@@ -366,7 +349,7 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                             {animals.map((animal) => (
                               <option
                                 key={animal.id}
-                                value={animal.manualId ?? ""}
+                                value={animal.manualId ?? ''}
                               >
                                 Touro {animal.manualId}
                               </option>
@@ -381,10 +364,10 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                           <select
                             name="protocol"
                             id="protocol"
-                            className={`flex[1_1_100px] w-full min-w-20 rounded-t-md border border-b border-b-primary bg-transparent outline-none ${allDataForm.handlingType === "bullMating" && "bg-gray-300"}`}
-                            value={allDataForm.protocol ?? ""}
+                            className={`flex[1_1_100px] w-full min-w-20 rounded-t-md border border-b border-b-primary bg-transparent outline-none ${allDataForm.handlingType === 'bullMating' && 'bg-gray-300'}`}
+                            value={allDataForm.protocol ?? ''}
                             onChange={handleInputValues}
-                            disabled={allDataForm.handlingType === "bullMating"}
+                            disabled={allDataForm.handlingType === 'bullMating'}
                           >
                             <option disabled value=""></option>
                             <option value="protocol1">
@@ -397,7 +380,7 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                     </>
                   )}
 
-                  {allDataForm.reproductiveStatus === "pev" && (
+                  {allDataForm.reproductiveStatus === 'pev' && (
                     <>
                       <article className="flex flex-wrap gap-5">
                         <div className="flex flex-col gap-1">
@@ -415,8 +398,8 @@ const FormMain: React.FC<InterfaceComponentFormReproductionProps> = ({
                               allDataForm.expectedDueDate
                                 ? new Date(allDataForm.expectedDueDate)
                                     .toISOString()
-                                    .split("T")[0]
-                                : ""
+                                    .split('T')[0]
+                                : ''
                             }
                             onChange={handleInputValues}
                             className="w-full max-w-40 border border-b border-b-primary bg-transparent outline-none"
