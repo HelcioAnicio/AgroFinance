@@ -1,7 +1,7 @@
-import { Header } from "@/components/ui/header";
-import { MenuNavegation } from "@/components/ui/menu";
-import { Table } from "@/components/ui/table";
-import { fetchAnimals, fetchUsers } from "@/lib/fetchData";
+import { Header } from '@/components/ui/header';
+import { MenuNavegation } from '@/components/ui/menu';
+import { Table } from '@/components/ui/table';
+import { fetchAnimals, fetchUsers } from '@/lib/fetchData';
 
 const Dashboard = async () => {
   const animals = await fetchAnimals();

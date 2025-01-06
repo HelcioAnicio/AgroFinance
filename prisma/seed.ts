@@ -1,8 +1,8 @@
-import { PrismaClient } from "@prisma/client";
-import { toDate, format } from "date-fns-tz";
+import { PrismaClient } from '@prisma/client';
+import { toDate, format } from 'date-fns-tz';
 
 const prisma = new PrismaClient();
-const timeZone = "America/Sao_Paulo";
+const timeZone = 'America/Sao_Paulo';
 
 async function main() {
   try {
@@ -29,48 +29,48 @@ async function main() {
       data: [
         {
           manualId: 1,
-          gender: "Female",
-          birthDate: toDate(new Date("2020-10-22 08:13:45.015"), { timeZone }),
+          gender: 'Female',
+          birthDate: toDate(new Date('2020-10-22 08:13:45.015'), { timeZone }),
           weight: 200.0,
-          breed: "Hereford",
-          category: "Corte",
-          reproductiveStatus: "Empty",
+          breed: 'Hereford',
+          category: 'Corte',
+          reproductiveStatus: 'Empty',
           handlingType: null,
           bullId: null,
           protocol: null,
-          andrological: "Positive",
+          andrological: 'Positive',
           fetalGender: null,
           bodyConditionScore: 3.8,
-          expectedDueDate: new Date("2022-10-22"),
+          expectedDueDate: new Date('2022-10-22'),
           bullIatf: null,
-          ownerId: "cm2zg8ke90000a2l0tr0woar8",
+          ownerId: 'cm2zg8ke90000a2l0tr0woar8',
           createdAt: createdAt,
         },
         {
           manualId: 2,
-          gender: "male",
-          birthDate: toDate(new Date("2020-10-22 08:13:45.015"), { timeZone }),
+          gender: 'male',
+          birthDate: toDate(new Date('2020-10-22 08:13:45.015'), { timeZone }),
           weight: 420.0,
-          breed: "Hereford",
-          category: "Corte",
+          breed: 'Hereford',
+          category: 'Corte',
           reproductiveStatus: null,
           handlingType: null,
           bullId: null,
           protocol: null,
-          andrological: "Positive",
+          andrological: 'Positive',
           fetalGender: null,
           bodyConditionScore: 2.8,
-          expectedDueDate: new Date("2022-10-22"),
+          expectedDueDate: new Date('2022-10-22'),
           bullIatf: null,
-          ownerId: "cm2zg8ke90000a2l0tr0woar8",
+          ownerId: 'cm2zg8ke90000a2l0tr0woar8',
           createdAt: createdAt,
         },
       ],
     });
 
-    console.log("Animals created:", animals);
+    console.log('Animals created:', animals);
   } catch (error) {
-    console.error("Error in main function:", error);
+    console.error('Error in main function:', error);
   } finally {
     await prisma.$disconnect();
   }
@@ -78,7 +78,7 @@ async function main() {
 
 main()
   .then(() => {
-    console.log("Seed data added successfully!");
+    console.log('Seed data added successfully!');
   })
   .catch((e) => {
     console.error(e);

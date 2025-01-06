@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface InterfaceAddDataKids {
   handlingType: string;
@@ -92,9 +92,9 @@ export const FormAddKids: React.FC<InterfaceComponentFormReproductionProps> = ({
                 <select
                   name="bullId"
                   id="bullId"
-                  className={`min-w-24 flex-1 border border-b border-b-primary bg-transparent outline-none ${dataKids.handlingType == "bullMating" && "bg-gray-300"}`}
-                  disabled={dataKids.handlingType === "artificialInsemination"}
-                  value={dataKids.bullId ?? ""}
+                  className={`min-w-24 flex-1 border border-b border-b-primary bg-transparent outline-none ${dataKids.handlingType == 'bullMating' && 'bg-gray-300'}`}
+                  disabled={dataKids.handlingType === 'artificialInsemination'}
+                  value={dataKids.bullId ?? ''}
                   onChange={handleDataKids}
                 >
                   <option
@@ -107,11 +107,11 @@ export const FormAddKids: React.FC<InterfaceComponentFormReproductionProps> = ({
                   </option>
 
                   {animals
-                    .filter((animal) => animal.gender === "male")
+                    .filter((animal) => animal.gender === 'male')
                     .map((animal) => (
                       <option
                         key={animal.id}
-                        value={animal.id ?? ""}
+                        value={animal.id ?? ''}
                         className="border border-primary bg-primary text-accent"
                       >
                         Touro {animal.manualId}
@@ -127,10 +127,10 @@ export const FormAddKids: React.FC<InterfaceComponentFormReproductionProps> = ({
                 <select
                   name="protocol"
                   id="protocol"
-                  className={`flex[1_1_100px] w-full min-w-20 rounded-t-md border border-b border-b-primary bg-transparent outline-none ${dataKids.handlingType == "bullMating" && "bg-gray-300"}`}
+                  className={`flex[1_1_100px] w-full min-w-20 rounded-t-md border border-b border-b-primary bg-transparent outline-none ${dataKids.handlingType == 'bullMating' && 'bg-gray-300'}`}
                   value={dataKids.protocol}
                   onChange={handleDataKids}
-                  disabled={dataKids.handlingType === "bullMating"}
+                  disabled={dataKids.handlingType === 'bullMating'}
                 >
                   <option disabled value=""></option>
                   <option value="protocol1">Inseminação artificial</option>
@@ -149,7 +149,7 @@ export const FormAddKids: React.FC<InterfaceComponentFormReproductionProps> = ({
                     id="positive"
                     className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
                     value="positive"
-                    checked={dataKids.andrological === "positive"}
+                    checked={dataKids.andrological === 'positive'}
                     onChange={handleDataKids}
                   />
                   <label htmlFor="positive">Positivo</label>
@@ -160,7 +160,7 @@ export const FormAddKids: React.FC<InterfaceComponentFormReproductionProps> = ({
                     name="andrological"
                     id="negative"
                     value="negative"
-                    checked={dataKids.andrological === "negative"}
+                    checked={dataKids.andrological === 'negative'}
                     onChange={handleDataKids}
                     className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
                   />
@@ -173,7 +173,7 @@ export const FormAddKids: React.FC<InterfaceComponentFormReproductionProps> = ({
                     name="andrological"
                     id="notDone"
                     value="notDone"
-                    checked={dataKids.andrological === "notDone"}
+                    checked={dataKids.andrological === 'notDone'}
                     onChange={handleDataKids}
                     className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
                   />
@@ -189,7 +189,7 @@ export const FormAddKids: React.FC<InterfaceComponentFormReproductionProps> = ({
                     name="gender"
                     id="female"
                     value="female"
-                    checked={dataKids.gender === "female"}
+                    checked={dataKids.gender === 'female'}
                     onChange={handleDataKids}
                     className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
                   />
@@ -202,7 +202,7 @@ export const FormAddKids: React.FC<InterfaceComponentFormReproductionProps> = ({
                     name="gender"
                     id="male"
                     value="male"
-                    checked={dataKids.gender === "male"}
+                    checked={dataKids.gender === 'male'}
                     onChange={handleDataKids}
                     className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
                   />
@@ -218,8 +218,8 @@ export const FormAddKids: React.FC<InterfaceComponentFormReproductionProps> = ({
                   id="birthday"
                   value={
                     dataKids.birthday
-                      ? new Date(dataKids.birthday).toISOString().split("T")[0]
-                      : ""
+                      ? new Date(dataKids.birthday).toISOString().split('T')[0]
+                      : ''
                   }
                   onChange={handleDataKids}
                   className="w-full border border-b border-b-primary bg-transparent outline-none"
@@ -241,7 +241,7 @@ export const FormAddKids: React.FC<InterfaceComponentFormReproductionProps> = ({
                   min="0"
                   max="5"
                   step="0,25"
-                  value={dataKids.bodyConditionScore ?? ""}
+                  value={dataKids.bodyConditionScore ?? ''}
                   onChange={handleDataKids}
                 />
               </div>
@@ -253,16 +253,16 @@ export const FormAddKids: React.FC<InterfaceComponentFormReproductionProps> = ({
                 <select
                   name="bullIatf"
                   id="bullIatf"
-                  className={`min-w-24 max-w-40 flex-1 border border-b border-b-primary bg-transparent outline-none ${dataKids.handlingType == "bullMating" && "bg-gray-400"}`}
-                  value={dataKids.bullIatf ?? ""}
+                  className={`min-w-24 max-w-40 flex-1 border border-b border-b-primary bg-transparent outline-none ${dataKids.handlingType == 'bullMating' && 'bg-gray-400'}`}
+                  value={dataKids.bullIatf ?? ''}
                   onChange={handleDataKids}
                 >
                   <option disabled value=""></option>
                   <option value="comercial">Comercial</option>
                   {animals
-                    .filter((animal) => animal.gender === "male")
+                    .filter((animal) => animal.gender === 'male')
                     .map((animal) => (
-                      <option key={animal.id} value={animal.id ?? ""}>
+                      <option key={animal.id} value={animal.id ?? ''}>
                         Touro {animal.manualId}
                       </option>
                     ))}

@@ -1,17 +1,17 @@
-"use client";
+'use client';
 
-import { Circle, SquareArrowOutUpLeft } from "lucide-react";
-import Link from "next/link";
-import { Animal } from "@/types/animal";
-import { User } from "@/types/user";
-import { useSession } from "next-auth/react";
-import { Sheet, SheetTrigger } from "@/components/ui/sheet";
-import { ListFilter, CirclePlus } from "lucide-react";
-import { AddAnimal } from "../../app/dashboard/(addAnimal)/addAnimals";
-import { Button } from "@/components/ui/button";
-import React, { useEffect, useState } from "react";
-import { AlertDialog, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { AddAnimalDesktop } from "@/app/dashboard/(addAnimal)/addAnimalsDesktop";
+import { Circle, SquareArrowOutUpLeft } from 'lucide-react';
+import Link from 'next/link';
+import { Animal } from '@/types/animal';
+import { User } from '@/types/user';
+import { useSession } from 'next-auth/react';
+import { Sheet, SheetTrigger } from '@/components/ui/sheet';
+import { ListFilter, CirclePlus } from 'lucide-react';
+import { AddAnimal } from '../../app/dashboard/(addAnimal)/addAnimals';
+import { Button } from '@/components/ui/button';
+import React, { useEffect, useState } from 'react';
+import { AlertDialog, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { AddAnimalDesktop } from '@/app/dashboard/(addAnimal)/addAnimalsDesktop';
 
 interface TableProps {
   animals: Animal[];
@@ -59,7 +59,6 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
       );
     });
   };
-  console.log(listAnimals.map((animal) => animal.motherId && animal.mother?.id));
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(
@@ -68,7 +67,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
   };
 
   return (
-    <main className="overflow-x-auto scroll-smooth pb-5 max-w-[750px] m-auto">
+    <main className="m-auto max-w-[750px] overflow-x-auto scroll-smooth pb-5">
       <div className="sticky right-0 top-0 z-50 w-full">
         <div className="flex w-full justify-between gap-10 px-1 sm:justify-end">
           <input
@@ -84,7 +83,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
             <Button className="flex gap-1 p-1">
               Filtros <ListFilter className="size-4" />
             </Button>
-            <Sheet  >
+            <Sheet>
               <SheetTrigger asChild className="sm:hidden">
                 <Button className="flex gap-2 p-1 sm:hidden">
                   Adicionar <CirclePlus className="size-4" />
@@ -97,8 +96,8 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
               />
             </Sheet>
             <AlertDialog>
-              <AlertDialogTrigger className="hidden bg-primary text-background gap-2 p-1 rounded-md sm:flex items-center justify-center">
-                  Adicionar <CirclePlus className="size-4" />
+              <AlertDialogTrigger className="hidden items-center justify-center gap-2 rounded-md bg-primary p-1 text-background sm:flex">
+                Adicionar <CirclePlus className="size-4" />
               </AlertDialogTrigger>
               <AddAnimalDesktop
                 animals={animals}
@@ -137,22 +136,22 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
             return (
               <tr
                 key={animal.id}
-                className={`${index % 2 === 0 ? "bg-muted" : ""}`}
+                className={`${index % 2 === 0 ? 'bg-muted' : ''}`}
               >
                 <td className="px-1 py-3">
                   <Link
                     href={`dashboard/${animal.id}`}
                     className="block h-full w-full"
                   >
-                    {animal?.status === "active" ? (
+                    {animal?.status === 'active' ? (
                       <>
-                        <Circle className="inline-block size-3 rounded-full bg-green-400 text-green-400" />
-                        {" "}Ativo
+                        <Circle className="inline-block size-3 rounded-full bg-green-400 text-green-400" />{' '}
+                        Ativo
                       </>
                     ) : (
                       <>
-                        <Circle className="text-graybg-gray-500 inline-block size-3 rounded-full bg-gray-500" />
-                        {" "}Inativo
+                        <Circle className="text-graybg-gray-500 inline-block size-3 rounded-full bg-gray-500" />{' '}
+                        Inativo
                       </>
                     )}
                   </Link>
@@ -178,7 +177,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                     href={`dashboard/${animal.id}`}
                     className="block h-full w-full"
                   >
-                    {animal.gender === "male" ? "Macho" : "Fêmea"}
+                    {animal.gender === 'male' ? 'Macho' : 'Fêmea'}
                   </Link>
                 </td>
                 <td className="px-1 py-3">
@@ -186,7 +185,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                     href={`dashboard/${animal.motherId}`}
                     className="block h-full w-full"
                   >
-                    {mother ? `Vaca ${mother.manualId}` : "Comercial"}
+                    {mother ? `Vaca ${mother.manualId}` : 'Comercial'}
                   </Link>
                 </td>
                 <td className="px-1 py-3">
@@ -194,7 +193,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                     href={`dashboard/${animal.fatherId}`}
                     className="block h-full w-full"
                   >
-                    {father ? `Touro ${father.manualId}` : "Comercial"}
+                    {father ? `Touro ${father.manualId}` : 'Comercial'}
                   </Link>
                 </td>
                 <td className="px-1 py-3">
@@ -204,7 +203,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                   >
                     {animal.birthDate
                       ? new Date(animal.birthDate).toLocaleDateString()
-                      : "N/A"}
+                      : 'N/A'}
                   </Link>
                 </td>
 
@@ -227,7 +226,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                 </td>
                 <td
                   className={`sticky right-0 px-1 py-3 ${
-                    index % 2 === 0 ? "bg-muted" : "bg-background"
+                    index % 2 === 0 ? 'bg-muted' : 'bg-background'
                   }`}
                 >
                   <Link

@@ -1,10 +1,10 @@
-"use client";
-import { Button } from "@/components/ui/button";
-import { signIn, useSession } from "next-auth/react";
-import { FcGoogle } from "react-icons/fc";
-import Image from "next/image";
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+'use client';
+import { Button } from '@/components/ui/button';
+import { signIn, useSession } from 'next-auth/react';
+import { FcGoogle } from 'react-icons/fc';
+import Image from 'next/image';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 const LoginPage = () => {
   const { status } = useSession();
@@ -12,8 +12,8 @@ const LoginPage = () => {
   const router = useRouter();
 
   useEffect(() => {
-    if (status === "authenticated") {
-      router.push("/dashboard");
+    if (status === 'authenticated') {
+      router.push('/dashboard');
     }
   }, [status, router]);
 
@@ -23,7 +23,7 @@ const LoginPage = () => {
 
   return (
     <div className="w-lwv">
-      {status === "unauthenticated" && (
+      {status === 'unauthenticated' && (
         <>
           <header className="flex items-center justify-center py-5">
             <figure className="flex flex-col items-center">
@@ -80,7 +80,7 @@ const LoginPage = () => {
                 </button>
               </div>
               <p>
-                Ainda não tem conta?{" "}
+                Ainda não tem conta?{' '}
                 <span className="underline">Cadastre-se</span>
               </p>
             </section>

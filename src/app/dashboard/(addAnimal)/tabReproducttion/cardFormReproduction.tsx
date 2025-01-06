@@ -1,7 +1,7 @@
-import FormReproduction from "./form/formReproduction";
-import { FormAddKids } from "../../../../components/ui/formAddKids";
-import { useState, useRef, useEffect } from "react";
-import { Animal } from "@/types/animal";
+import FormReproduction from './form/formReproduction';
+import { FormAddKids } from '../../../../components/ui/formAddKids';
+import { useState, useRef, useEffect } from 'react';
+import { Animal } from '@/types/animal';
 import { User } from '@/types/user';
 
 interface InterfaceAddDataKids {
@@ -33,14 +33,14 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
   setTabValue,
 }) => {
   const [dataKids, setDataKids] = useState<InterfaceAddDataKids>({
-    handlingType: "",
-    bullId: "",
-    protocol: "",
-    andrological: "",
-    gender: "",
-    birthday: "",
-    bodyConditionScore: "",
-    bullIatf: "",
+    handlingType: '',
+    bullId: '',
+    protocol: '',
+    andrological: '',
+    gender: '',
+    birthday: '',
+    bodyConditionScore: '',
+    bullIatf: '',
   });
   const [statusComponentAddKids, setStatusComponentAddKids] =
     useState<boolean>(false);
@@ -50,7 +50,7 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
     event: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>,
   ) {
     const { name, value, type } = event.target;
-    const newValue = type === "number" ? parseInt(value) : value;
+    const newValue = type === 'number' ? parseInt(value) : value;
 
     setDataKids((prevData) => ({
       ...prevData,
@@ -61,8 +61,8 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
   useEffect(() => {
     if (statusComponentAddKids && formAddKidsRef.current) {
       formAddKidsRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
+        behavior: 'smooth',
+        block: 'start',
       });
     }
   }, [statusComponentAddKids]);

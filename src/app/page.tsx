@@ -1,6 +1,6 @@
-import React from "react";
-import { Header } from "@/components/ui/header";
-import ClientAuth from "@/components/ui/clientAuth";
+import React from 'react';
+import { Header } from '@/components/ui/header';
+import ClientAuth from '@/components/ui/clientAuth';
 
 const Home = () => {
   return (

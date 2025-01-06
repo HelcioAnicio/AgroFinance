@@ -1,7 +1,7 @@
-import React from "react";
-import { Card } from "@/components/ui/card";
-import { Animal } from "@/types/animal";
-import { Circle } from "lucide-react";
+import React from 'react';
+import { Card } from '@/components/ui/card';
+import { Animal } from '@/types/animal';
+import { Circle } from 'lucide-react';
 
 interface InformationProps {
   animal: Animal | null;
@@ -20,14 +20,14 @@ export const CardInformation: React.FC<InformationProps> = ({ animal }) => {
         <Card className="w-max px-3 py-1">
           <strong>Status: </strong>
           <span>
-            {animal?.status === "active" ? (
+            {animal?.status === 'active' ? (
               <>
-                Ativo{" "}
+                Ativo{' '}
                 <Circle className="inline-block size-3 rounded-full bg-green-400 text-green-400" />
               </>
             ) : (
               <>
-                Inativo{" "}
+                Inativo{' '}
                 <Circle className="text-graybg-gray-500 inline-block size-3 rounded-full bg-gray-500" />
               </>
             )}
@@ -35,7 +35,7 @@ export const CardInformation: React.FC<InformationProps> = ({ animal }) => {
         </Card>
         <Card className="w-max px-3 py-1">
           <strong>Sexo: </strong>
-          <span>{animal?.gender === "male" ? "Macho" : "Fêmea"}</span>
+          <span>{animal?.gender === 'male' ? 'Macho' : 'Fêmea'}</span>
         </Card>
       </section>
       <section className="flex w-full max-w-sm flex-wrap gap-2 p-2">
@@ -44,7 +44,7 @@ export const CardInformation: React.FC<InformationProps> = ({ animal }) => {
           <span>
             {animal?.birthDate
               ? new Date(animal.birthDate).toLocaleDateString()
-              : "N/A"}
+              : 'N/A'}
           </span>
         </Card>
         <Card className="w-max px-3 py-1">
@@ -65,11 +65,11 @@ export const CardInformation: React.FC<InformationProps> = ({ animal }) => {
       <section className="flex w-full max-w-sm flex-wrap gap-2 p-2">
         <Card className="w-max px-3 py-1">
           <strong>Id Mãe: </strong>
-          <span>{animal?.mother?.manualId || "Comercial"}</span>
+          <span>{animal?.mother?.manualId || 'Comercial'}</span>
         </Card>
         <Card className="w-max px-3 py-1">
           <strong>Id Pai: </strong>
-          <span>{animal?.father?.manualId || "Comercial"}</span>
+          <span>{animal?.father?.manualId || 'Comercial'}</span>
         </Card>
       </section>
     </Card>

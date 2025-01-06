@@ -1,8 +1,8 @@
-import Link from "next/link";
-import { GiCow } from "react-icons/gi";
-import { IoMaleFemaleSharp } from "react-icons/io5";
-import { FaRegMoneyBillAlt } from "react-icons/fa";
-import { CgProfile } from "react-icons/cg";
+import Link from 'next/link';
+import { GiCow } from 'react-icons/gi';
+import { IoMaleFemaleSharp } from 'react-icons/io5';
+import { FaRegMoneyBillAlt } from 'react-icons/fa';
+import { CgProfile } from 'react-icons/cg';
 
 export const MenuNavegation = () => {
   return (

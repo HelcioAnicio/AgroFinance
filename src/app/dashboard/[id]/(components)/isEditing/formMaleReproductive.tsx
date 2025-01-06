@@ -2,13 +2,17 @@ import { Animal } from '@/types/animal';
 
 interface FormMaleReproductiveProps {
   allDataForm: Animal;
-  handleInputValues: (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
+  handleInputValues: (
+    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => void;
   animal: Animal | null;
 }
 
-
-export const FormMaleReproductive: React.FC<FormMaleReproductiveProps> = ({allDataForm, handleInputValues}) => {
-  return ( 
+export const FormMaleReproductive: React.FC<FormMaleReproductiveProps> = ({
+  allDataForm,
+  handleInputValues,
+}) => {
+  return (
     <>
       <article className="flex flex-col gap-1">
         <div className="flex flex-col gap-1">
@@ -20,7 +24,7 @@ export const FormMaleReproductive: React.FC<FormMaleReproductiveProps> = ({allDa
               id="positive"
               className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
               value="positive"
-              checked={allDataForm.andrological === "positive"}
+              checked={allDataForm.andrological === 'positive'}
               onChange={handleInputValues}
             />
             <label htmlFor="positive">Positivo</label>
@@ -31,7 +35,7 @@ export const FormMaleReproductive: React.FC<FormMaleReproductiveProps> = ({allDa
               name="andrological"
               id="negative"
               value="negative"
-              checked={allDataForm.andrological === "negative"}
+              checked={allDataForm.andrological === 'negative'}
               onChange={handleInputValues}
               className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
             />
@@ -44,7 +48,7 @@ export const FormMaleReproductive: React.FC<FormMaleReproductiveProps> = ({allDa
               name="andrological"
               id="notDone"
               value="notDone"
-              checked={allDataForm.andrological === "notDone"}
+              checked={allDataForm.andrological === 'notDone'}
               onChange={handleInputValues}
               className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
             />
@@ -54,5 +58,4 @@ export const FormMaleReproductive: React.FC<FormMaleReproductiveProps> = ({allDa
       </article>
     </>
   );
-}
- 
+};

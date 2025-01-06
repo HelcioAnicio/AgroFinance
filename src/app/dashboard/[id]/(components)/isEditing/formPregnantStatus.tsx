@@ -2,29 +2,32 @@ import { Animal } from '@/types/animal';
 
 interface FormPregnantStatusProps {
   allDataForm: Animal;
-  handleInputValues: (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
+  handleInputValues: (
+    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => void;
   animals: Animal[];
   animal: Animal | null;
   scores: number[];
 }
 
-
-export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({allDataForm, handleInputValues, animals, scores}) => {
-  return ( 
+export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
+  allDataForm,
+  handleInputValues,
+  animals,
+  scores,
+}) => {
+  return (
     <>
       <article className="flex flex-wrap gap-5">
         <div className="flex flex-col gap-1">
-          <label
-            className="text-secondary"
-            htmlFor="handlingType"
-          >
+          <label className="text-secondary" htmlFor="handlingType">
             Manejo utilizado:
           </label>
           <select
             name="handlingType"
             id="handlingType"
             className="w-44 border border-b border-b-primary bg-transparent outline-none"
-            value={allDataForm.handlingType ?? ""}
+            value={allDataForm.handlingType ?? ''}
             onChange={handleInputValues}
           >
             <option value=""></option>
@@ -45,23 +48,19 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({allDataFo
           <select
             name="bullId"
             id="bullId"
-            className={`min-w-24 flex-1 border border-b border-b-primary bg-transparent outline-none ${allDataForm.handlingType == "bullMating" && "bg-gray-300"}`}
-            disabled={
-              allDataForm.handlingType ===
-              "artificialInsemination"
-            }
-            value={allDataForm.bullId ?? ""}
+            className={`min-w-24 flex-1 border border-b border-b-primary bg-transparent outline-none ${allDataForm.handlingType == 'bullMating' && 'bg-gray-300'}`}
+            disabled={allDataForm.handlingType === 'artificialInsemination'}
+            value={allDataForm.bullId ?? ''}
             onChange={handleInputValues}
           >
             <option disabled value=""></option>
             <option value="comercial">Comercial</option>
 
             {animals
-              .filter((animal) => animal.gender === "male")
-              .sort(
-                (a, b) => (a.manualId ?? 0) - (b.manualId ?? 0),
-              ).map((animal) => (
-                <option key={animal.id} value={animal.id ?? ""}>
+              .filter((animal) => animal.gender === 'male')
+              .sort((a, b) => (a.manualId ?? 0) - (b.manualId ?? 0))
+              .map((animal) => (
+                <option key={animal.id} value={animal.id ?? ''}>
                   Touro {animal.manualId}
                 </option>
               ))}
@@ -75,15 +74,13 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({allDataFo
           <select
             name="protocol"
             id="protocol"
-            className={`flex[1_1_100px] w-full min-w-20 rounded-t-md border border-b border-b-primary outline-none ${allDataForm.handlingType == "bullMating" ? "rounded-t-md bg-gray-300" : "bg-transparent"}`}
-            value={allDataForm.protocol ?? ""}
+            className={`flex[1_1_100px] w-full min-w-20 rounded-t-md border border-b border-b-primary outline-none ${allDataForm.handlingType == 'bullMating' ? 'rounded-t-md bg-gray-300' : 'bg-transparent'}`}
+            value={allDataForm.protocol ?? ''}
             onChange={handleInputValues}
-            disabled={allDataForm.handlingType === "bullMating"}
+            disabled={allDataForm.handlingType === 'bullMating'}
           >
             <option disabled value=""></option>
-            <option value="protocol1">
-              Inseminação artificial
-            </option>
+            <option value="protocol1">Inseminação artificial</option>
             <option value="protocol2">Inseminação </option>
           </select>
         </div>
@@ -98,7 +95,7 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({allDataFo
               name="fetalGender"
               id="female"
               value="female"
-              checked={allDataForm.fetalGender === "female"}
+              checked={allDataForm.fetalGender === 'female'}
               onChange={handleInputValues}
               className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
             />
@@ -111,7 +108,7 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({allDataFo
               name="fetalGender"
               id="male"
               value="male"
-              checked={allDataForm.fetalGender === "male"}
+              checked={allDataForm.fetalGender === 'male'}
               onChange={handleInputValues}
               className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
             />
@@ -122,10 +119,7 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({allDataFo
 
       <article className="flex flex-wrap gap-5">
         <div className="flex flex-col gap-1">
-          <label
-            className="text-secondary"
-            htmlFor="expectedDueDate"
-          >
+          <label className="text-secondary" htmlFor="expectedDueDate">
             Data prevista para o parto:
           </label>
           <input
@@ -136,8 +130,8 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({allDataFo
               allDataForm.expectedDueDate
                 ? new Date(allDataForm.expectedDueDate)
                     .toISOString()
-                    .split("T")[0]
-                : ""
+                    .split('T')[0]
+                : ''
             }
             onChange={handleInputValues}
             className="w-full max-w-40 border border-b border-b-primary bg-transparent outline-none"
@@ -156,11 +150,11 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({allDataFo
             name="bodyConditionScore"
             id="bullbodyConditionScoreIatf"
             className={`min-w-24 max-w-40 flex-1 overflow-y-scroll scroll-smooth border border-b-primary outline-none`}
-            value={allDataForm.bodyConditionScore ?? ""}
+            value={allDataForm.bodyConditionScore ?? ''}
             onChange={handleInputValues}
             style={{
-              overflowY: "scroll",
-              maxHeight: "100px",
+              overflowY: 'scroll',
+              maxHeight: '100px',
             }}
           >
             <option disabled value=""></option>
@@ -179,24 +173,23 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({allDataFo
           <select
             name="bullIatf"
             id="bullIatf"
-            className={`min-w-24 max-w-40 flex-1 border border-b border-b-primary outline-none ${allDataForm.handlingType == "bullMating" ? "rounded-t-md bg-gray-400" : "bg-transparent"}`}
-            disabled={allDataForm.handlingType === "bullMating"}
-            value={allDataForm.bullIatf ?? ""}
+            className={`min-w-24 max-w-40 flex-1 border border-b border-b-primary outline-none ${allDataForm.handlingType == 'bullMating' ? 'rounded-t-md bg-gray-400' : 'bg-transparent'}`}
+            disabled={allDataForm.handlingType === 'bullMating'}
+            value={allDataForm.bullIatf ?? ''}
             onChange={handleInputValues}
           >
             <option disabled value=""></option>
             <option value="comercial">Comercial</option>
             {animals
-              .filter((animal) => animal.gender === "male")
+              .filter((animal) => animal.gender === 'male')
               .map((animal) => (
-                <option key={animal.id} value={animal.id ?? ""}>
+                <option key={animal.id} value={animal.id ?? ''}>
                   Touro {animal.manualId}
                 </option>
-              ))}{" "}
+              ))}{' '}
           </select>
         </div>
       </article>
     </>
   );
-}
- 
+};
