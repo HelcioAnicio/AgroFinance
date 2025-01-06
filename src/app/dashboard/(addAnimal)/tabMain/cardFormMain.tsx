@@ -26,7 +26,6 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
   users,
   allDataForm,
   handleInputValues,
-  breedArray,
   setTabValue,
 }) => {
   const sendForm = (event: React.FormEvent) => {
@@ -40,6 +39,31 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
 
   const userEmail = users.find((user) => user.email === session?.user?.email);
   const userId = userEmail?.id;
+
+  const breedArray = [
+    'Nelore',
+    'Angus',
+    'Hereford',
+    'Brangus',
+    'Brahman',
+    'Tabapuã',
+    'Charolês',
+    'Senepol',
+    'Simental',
+    'Guzerá',
+    'Holandesa',
+    'Jersey',
+    'Girolando',
+    'Gir Leiteiro',
+    'Pardo-Suíço',
+    'Ayrshire',
+    'Guernsey',
+    'Simbrasil',
+    'Sindi',
+    'Indubrasil',
+    'Canchim',
+    'Red Poll',
+  ];
 
   return (
     <Card className="min-h-80">
