@@ -4,7 +4,7 @@ import { Animal } from '@/types/animal';
 interface FormWaitingStatusProps {
   allDataForm: Animal;
   handleInputValues: (
-    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
   animals: Animal[];
 }
@@ -67,7 +67,7 @@ export const FormWaitingStatus: React.FC<FormWaitingStatusProps> = ({
           defaultOption="Protocolo"
           onChange={handleInputValues}
           disabled={allDataForm.handlingType === 'bullMating'}
-          classNameInput={`max-w-32`}
+          classNameInput={'max-w-32'}
         />
       </article>
     </>

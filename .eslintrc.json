@@ -1,8 +1,17 @@
 {
   "extends": [
     "next/core-web-vitals",
+    "eslint:recommended",
     "plugin:prettier/recommended",
-    "next/typescript"
+    "next/typescript",
+    "prettier"
   ],
-  "plugins": ["prettier"]
+  "plugins": ["prettier"],
+  "rules": {
+    "prettier/prettier": [
+      "error",
+      { "singleQuote": true, "endOfLine": "auto" }
+    ],
+    "quotes": ["error", "single"]
+  }
 }

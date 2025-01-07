@@ -73,7 +73,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   };
 
   const handleInputValues = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value, type } = event.target;
     const newValue =
@@ -111,7 +111,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
           headers: {
             'Content-Type': 'application/json',
           },
-        },
+        }
       );
       console.log('Animal atualizado com sucesso:', response.data);
       toast.success('Animal atualizado com sucesso!');

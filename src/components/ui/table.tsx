@@ -49,20 +49,20 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
     setListAnimals((prev) => {
       const updatedListAnimals = [...prev, newAnimal];
       return updatedListAnimals.sort(
-        (a, b) => (a.manualId ?? 0) - (b.manualId ?? 0),
+        (a, b) => (a.manualId ?? 0) - (b.manualId ?? 0)
       );
     });
     setOriginalAnimals((prev) => {
       const updatedListAnimals = [...prev, newAnimal];
       return updatedListAnimals.sort(
-        (a, b) => (a.manualId ?? 0) - (b.manualId ?? 0),
+        (a, b) => (a.manualId ?? 0) - (b.manualId ?? 0)
       );
     });
   };
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(
-      event.target.value ? parseFloat(event.target.value) : undefined,
+      event.target.value ? parseFloat(event.target.value) : undefined
     );
   };
 
@@ -127,10 +127,10 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
         <tbody className="h-[calc(100%-200px)] overflow-y-auto scroll-smooth">
           {listAnimals.map((animal: Animal, index: number) => {
             const mother: Animal | undefined = animals.find(
-              (a) => a.id === animal.motherId,
+              (a) => a.id === animal.motherId
             );
             const father: Animal | undefined = animals.find(
-              (a) => a.id === animal.fatherId,
+              (a) => a.id === animal.fatherId
             );
 
             return (

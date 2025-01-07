@@ -4,7 +4,7 @@ import { Animal } from '@/types/animal';
 interface FormBasicInformationProps {
   allDataForm: Animal;
   handleInputValues: (
-    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
   breedArray: string[];
   animal: Animal | null;

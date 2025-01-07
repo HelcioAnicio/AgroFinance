@@ -3,7 +3,7 @@ import { Animal } from '@/types/animal';
 interface FormPevStatusProps {
   allDataForm: Animal;
   handleInputValues: (
-    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
   animals: Animal[];
 }

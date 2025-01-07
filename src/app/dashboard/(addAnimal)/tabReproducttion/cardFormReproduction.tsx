@@ -16,7 +16,7 @@ interface CardFormReproductionProps {
   users: User[];
   allDataForm: Animal;
   handleInputValues: (
-    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
   setTabValue: React.Dispatch<React.SetStateAction<string>>;
 }
@@ -73,7 +73,7 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
                         { label: 'PEV', value: 'pev' },
                       ]}
                       onChange={handleInputValues}
-                      classNameInput={`max-w-32`}
+                      classNameInput={'max-w-32'}
                     />
                   </article>
 

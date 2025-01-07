@@ -3,7 +3,7 @@ import { Animal } from '@/types/animal';
 interface FormPregnantStatusProps {
   allDataForm: Animal;
   handleInputValues: (
-    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
   animals: Animal[];
   animal: Animal | null;
@@ -149,7 +149,9 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
           <select
             name="bodyConditionScore"
             id="bullbodyConditionScoreIatf"
-            className={`min-w-24 max-w-40 flex-1 overflow-y-scroll scroll-smooth border border-b-primary outline-none`}
+            className={
+              'min-w-24 max-w-40 flex-1 overflow-y-scroll scroll-smooth border border-b-primary outline-none'
+            }
             value={allDataForm.bodyConditionScore ?? ''}
             onChange={handleInputValues}
             style={{

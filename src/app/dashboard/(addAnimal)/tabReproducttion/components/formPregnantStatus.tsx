@@ -6,7 +6,7 @@ import { Animal } from '@/types/animal';
 interface FormPregnantStatusProps {
   allDataForm: Animal;
   handleInputValues: (
-    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
   animals: Animal[];
   scores: number[];
@@ -55,7 +55,7 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
             ...animals
               .filter(
                 (animal) =>
-                  animal.ownerId === userId && animal.gender === 'male',
+                  animal.ownerId === userId && animal.gender === 'male'
               )
               .sort((a, b) => (a.manualId ?? 0) - (b.manualId ?? 0))
               .map((animal) => ({
@@ -79,7 +79,7 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
           defaultOption="Protocolo"
           onChange={handleInputValues}
           disabled={allDataForm.handlingType === 'bullMating'}
-          classNameInput={`max-w-32`}
+          classNameInput={'max-w-32'}
         />
       </article>
 
@@ -139,7 +139,7 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
             value: score.toString(),
           }))}
           onChange={handleInputValues}
-          classNameInput={`max-w-40`}
+          classNameInput={'max-w-40'}
         />
 
         <SelectForm
@@ -153,7 +153,7 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
             ...animals
               .filter(
                 (animal) =>
-                  animal.ownerId === userId && animal.gender === 'male',
+                  animal.ownerId === userId && animal.gender === 'male'
               )
               .sort((a, b) => (a.manualId ?? 0) - (b.manualId ?? 0))
               .map((animal) => ({

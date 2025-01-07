@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
       console.error('Erro do Supabase:', error);
       return NextResponse.json(
         { message: 'Erro ao cadastrar animal', error },
-        { status: 500 },
+        { status: 500 }
       );
     }
 
@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     console.error('Erro ao cadastrar animal:', error);
     return NextResponse.json(
       { message: 'Erro ao cadastrar animal', error },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

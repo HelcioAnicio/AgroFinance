@@ -38,7 +38,7 @@ interface InterfaceComponentFormReproductionProps {
   setStatusComponentAddKids: React.Dispatch<React.SetStateAction<boolean>>;
   animals: Animal[];
   handleDataKids: (
-    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
   dataKids: InterfaceAddDataKids;
 }
@@ -236,7 +236,7 @@ export const FormAddKids: React.FC<InterfaceComponentFormReproductionProps> = ({
                 <input
                   name="bodyConditionScore"
                   id="bullbodyConditionScoreIatf"
-                  className={``}
+                  className={''}
                   type="range"
                   min="0"
                   max="5"
