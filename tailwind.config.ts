@@ -10,6 +10,13 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      keyframes: {
+        round: {
+          from: { transform: 'rotate(0deg)' },
+          to: { transform: 'rotate(360deg)' },
+        },
+      },
+
       colors: {
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
