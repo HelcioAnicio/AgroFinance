@@ -10,7 +10,7 @@ export async function PUT(req: Request) {
     if (!id) {
       return NextResponse.json(
         { message: 'ID não fornecido' },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -38,7 +38,7 @@ export async function PUT(req: Request) {
       console.error('Erro do Supabase:', error);
       return NextResponse.json(
         { message: 'Erro ao atualizar animal', error },
-        { status: 500 },
+        { status: 500 }
       );
     }
 
@@ -50,7 +50,7 @@ export async function PUT(req: Request) {
     console.error('Erro no handler:', error);
     return NextResponse.json(
       { message: 'Erro interno no servidor', error },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

@@ -1,3 +1,4 @@
+import React from 'react';
 import { Header } from '@/components/ui/header';
 import { prisma } from '@/lib/useDataBase';
 import { Animal } from '@/types/animal';
@@ -9,10 +10,8 @@ const DetailAnimalId = async ({
 }: {
   params: Promise<{ id: string }>;
 }) => {
-  const animals = await fetchAnimals();
-  // const users = await fetchUsers();
-
   const id = (await params).id;
+  const animals = await fetchAnimals();
   const animal = await prisma.animal.findUnique({
     where: { id },
     include: {

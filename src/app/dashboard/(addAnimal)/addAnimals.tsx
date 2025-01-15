@@ -74,7 +74,7 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
   }, [userEmail]);
 
   const handleInputValues = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value, type } = event.target;
     const newValue =
@@ -104,7 +104,7 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
           headers: {
             'Content-Type': 'application/json',
           },
-        },
+        }
       );
       console.log('AnimalCadastrado: ', response.data);
       setAllDataForm({} as Animal);
@@ -163,7 +163,7 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
           <SheetFooter>
             <SheetClose asChild>
               <Button type="submit" onClick={() => submitForm(allDataForm)}>
-                Save changes
+                Adicionar Animal
               </Button>
             </SheetClose>
           </SheetFooter>

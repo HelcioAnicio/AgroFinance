@@ -50,7 +50,7 @@ export const AddAnimalDesktop: React.FC<AddAnimalProps> = ({
   }, [userEmail]);
 
   const handleInputValues = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value, type } = event.target;
     const newValue =
@@ -82,7 +82,7 @@ export const AddAnimalDesktop: React.FC<AddAnimalProps> = ({
           headers: {
             'Content-Type': 'application/json',
           },
-        },
+        }
       );
       console.log('Animal cadastrado com sucesso:', response.data.dataWithId);
       setAllDataForm({} as Animal);

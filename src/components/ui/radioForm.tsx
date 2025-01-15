@@ -7,7 +7,7 @@ interface RadioFormProps {
   value: string;
   checked: boolean;
   onChange: (
-    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
 }
 

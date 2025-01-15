@@ -13,11 +13,11 @@ import { SelectForm } from '@/components/ui/selectForm';
 interface CardFormMainProps {
   allDataForm: Animal;
   handleInputValues: (
-    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
   animals: Animal[];
   users: User[];
-  breedArray: string[];
+  breedArray?: string[];
   setTabValue: (value: string) => void;
 }
 
@@ -26,20 +26,44 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
   users,
   allDataForm,
   handleInputValues,
-  breedArray,
   setTabValue,
 }) => {
   const sendForm = (event: React.FormEvent) => {
     event.preventDefault();
     console.log('Formulário enviado! Dados do formulário:', allDataForm);
     setTabValue('reproducao');
-    console.log("Tab alterada para 'reproducao'");
+    console.log('Tab alterada para "reproducao"');
   };
 
   const { data: session } = useSession();
 
   const userEmail = users.find((user) => user.email === session?.user?.email);
   const userId = userEmail?.id;
+
+  const breedArray = [
+    'Nelore',
+    'Angus',
+    'Hereford',
+    'Brangus',
+    'Brahman',
+    'Tabapuã',
+    'Charolês',
+    'Senepol',
+    'Simental',
+    'Guzerá',
+    'Holandesa',
+    'Jersey',
+    'Girolando',
+    'Gir Leiteiro',
+    'Pardo-Suíço',
+    'Ayrshire',
+    'Guernsey',
+    'Simbrasil',
+    'Sindi',
+    'Indubrasil',
+    'Canchim',
+    'Red Poll',
+  ];
 
   return (
     <Card className="min-h-80">
@@ -152,7 +176,7 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                   ...animals
                     .filter(
                       (animal) =>
-                        animal.ownerId === userId && animal.gender === 'female',
+                        animal.ownerId === userId && animal.gender === 'female'
                     )
                     .sort((a, b) => (a.manualId ?? 0) - (b.manualId ?? 0))
                     .map((animal) => ({
@@ -175,7 +199,7 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                   ...animals
                     .filter(
                       (animal) =>
-                        animal.ownerId === userId && animal.gender === 'male',
+                        animal.ownerId === userId && animal.gender === 'male'
                     )
                     .sort((a, b) => (a.manualId ?? 0) - (b.manualId ?? 0))
                     .map((animal) => ({

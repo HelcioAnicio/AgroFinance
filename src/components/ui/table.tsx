@@ -1,7 +1,8 @@
 'use client';
 
 import { Circle, SquareArrowOutUpLeft } from 'lucide-react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+
 import { Animal } from '@/types/animal';
 import { User } from '@/types/user';
 import { useSession } from 'next-auth/react';
@@ -45,24 +46,30 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
     }
   }, [inputValue, originalAnimals]);
 
+  const router = useRouter();
+
+  const handleNavigation = (id: string | null) => {
+    router.push(`dashboard/${id}`);
+  };
+
   const handleAnimalAdded = (newAnimal: Animal) => {
     setListAnimals((prev) => {
       const updatedListAnimals = [...prev, newAnimal];
       return updatedListAnimals.sort(
-        (a, b) => (a.manualId ?? 0) - (b.manualId ?? 0),
+        (a, b) => (a.manualId ?? 0) - (b.manualId ?? 0)
       );
     });
     setOriginalAnimals((prev) => {
       const updatedListAnimals = [...prev, newAnimal];
       return updatedListAnimals.sort(
-        (a, b) => (a.manualId ?? 0) - (b.manualId ?? 0),
+        (a, b) => (a.manualId ?? 0) - (b.manualId ?? 0)
       );
     });
   };
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(
-      event.target.value ? parseFloat(event.target.value) : undefined,
+      event.target.value ? parseFloat(event.target.value) : undefined
     );
   };
 
@@ -127,114 +134,73 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
         <tbody className="h-[calc(100%-200px)] overflow-y-auto scroll-smooth">
           {listAnimals.map((animal: Animal, index: number) => {
             const mother: Animal | undefined = animals.find(
-              (a) => a.id === animal.motherId,
+              (a) => a.id === animal.motherId
             );
             const father: Animal | undefined = animals.find(
-              (a) => a.id === animal.fatherId,
+              (a) => a.id === animal.fatherId
             );
 
             return (
               <tr
                 key={animal.id}
-                className={`${index % 2 === 0 ? 'bg-muted' : ''}`}
+                className={
+                  `${index % 2 === 0 ? 'bg-muted' : ''}` + ' cursor-pointer'
+                }
+                onClick={() => handleNavigation(animal.id)}
               >
                 <td className="px-1 py-3">
-                  <Link
-                    href={`dashboard/${animal.id}`}
-                    className="block h-full w-full"
-                  >
-                    {animal?.status === 'active' ? (
-                      <>
-                        <Circle className="inline-block size-3 rounded-full bg-green-400 text-green-400" />{' '}
-                        Ativo
-                      </>
-                    ) : (
-                      <>
-                        <Circle className="text-graybg-gray-500 inline-block size-3 rounded-full bg-gray-500" />{' '}
-                        Inativo
-                      </>
-                    )}
-                  </Link>
+                  {animal?.status === 'active' ? (
+                    <>
+                      <Circle className="inline-block size-3 rounded-full bg-green-400 text-green-400" />{' '}
+                      Ativo
+                    </>
+                  ) : (
+                    <>
+                      <Circle className="text-graybg-gray-500 inline-block size-3 rounded-full bg-gray-500" />{' '}
+                      Inativo
+                    </>
+                  )}
+                </td>
+                <td className="px-1 py-3">{animal.manualId}</td>
+                <td className="px-1 py-3">{animal.breed}</td>
+                <td className="px-1 py-3">
+                  {animal.gender === 'male' ? 'Macho' : 'Fêmea'}
+                </td>
+                <td
+                  className="px-1 py-3 transition duration-300 ease-in-out hover:opacity-50"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    handleNavigation(animal.motherId);
+                  }}
+                >
+                  {mother ? `Vaca ${mother.manualId}` : 'Comercial'}
+                </td>
+                <td
+                  className="px-1 py-3 transition duration-300 ease-in-out hover:opacity-50"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    handleNavigation(animal.fatherId);
+                  }}
+                >
+                  {father ? `Touro ${father.manualId}` : 'Comercial'}
                 </td>
                 <td className="px-1 py-3">
-                  <Link
-                    href={`dashboard/${animal.id}`}
-                    className="block h-full w-full"
-                  >
-                    {animal.manualId}
-                  </Link>
-                </td>
-                <td className="px-1 py-3">
-                  <Link
-                    href={`dashboard/${animal.id}`}
-                    className="block h-full w-full"
-                  >
-                    {animal.breed}
-                  </Link>
-                </td>
-                <td className="px-1 py-3">
-                  <Link
-                    href={`dashboard/${animal.id}`}
-                    className="block h-full w-full"
-                  >
-                    {animal.gender === 'male' ? 'Macho' : 'Fêmea'}
-                  </Link>
-                </td>
-                <td className="px-1 py-3">
-                  <Link
-                    href={`dashboard/${animal.motherId}`}
-                    className="block h-full w-full"
-                  >
-                    {mother ? `Vaca ${mother.manualId}` : 'Comercial'}
-                  </Link>
-                </td>
-                <td className="px-1 py-3">
-                  <Link
-                    href={`dashboard/${animal.fatherId}`}
-                    className="block h-full w-full"
-                  >
-                    {father ? `Touro ${father.manualId}` : 'Comercial'}
-                  </Link>
-                </td>
-                <td className="px-1 py-3">
-                  <Link
-                    href={`dashboard/${animal.id}`}
-                    className="block h-full w-full"
-                  >
-                    {animal.birthDate
-                      ? new Date(animal.birthDate).toLocaleDateString()
-                      : 'N/A'}
-                  </Link>
+                  {animal.birthDate
+                    ? new Date(animal.birthDate).toLocaleDateString()
+                    : 'N/A'}
                 </td>
 
                 <td className="px-1 py-3">
-                  <Link
-                    href={`dashboard/${animal.id}`}
-                    className="block h-full w-full"
-                  >
-                    {`${animal.category[0].toUpperCase()}${animal.category.substring(1)}`}
-                  </Link>
+                  {`${animal.category[0].toUpperCase()}${animal.category.substring(1)}`}
                 </td>
 
-                <td className="px-1 py-3">
-                  <Link
-                    href={`dashboard/${animal.id}`}
-                    className="block h-full w-full"
-                  >
-                    {animal.weight} Kg
-                  </Link>
-                </td>
+                <td className="px-1 py-3">{animal.weight} Kg</td>
                 <td
                   className={`sticky right-0 px-1 py-3 ${
                     index % 2 === 0 ? 'bg-muted' : 'bg-background'
                   }`}
                 >
-                  <Link
-                    href={`dashboard/${animal.id}`}
-                    className="block h-full w-full"
-                  >
-                    <SquareArrowOutUpLeft size={20} />
-                  </Link>
+                  <SquareArrowOutUpLeft size={20} />
                 </td>
               </tr>
             );

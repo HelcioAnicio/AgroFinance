@@ -8,7 +8,7 @@ interface InputFormProps {
   id: string;
   value: string;
   onChange: (
-    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
 }
 
