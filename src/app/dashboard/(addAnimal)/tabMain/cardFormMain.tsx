@@ -32,7 +32,7 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
     event.preventDefault();
     console.log('Formulário enviado! Dados do formulário:', allDataForm);
     setTabValue('reproducao');
-    console.log("Tab alterada para 'reproducao'");
+    console.log('Tab alterada para "reproducao"');
   };
 
   const { data: session } = useSession();
