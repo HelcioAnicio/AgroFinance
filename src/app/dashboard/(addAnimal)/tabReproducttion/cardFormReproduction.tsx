@@ -92,6 +92,7 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
                       allDataForm={allDataForm}
                       handleInputValues={handleInputValues}
                       animals={animals}
+                      userId={userId}
                     />
                   )}
 
