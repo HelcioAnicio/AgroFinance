@@ -7,12 +7,14 @@ interface FormWaitingStatusProps {
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
   animals: Animal[];
+  userId: string | undefined | null;
 }
 
 export const FormWaitingStatus: React.FC<FormWaitingStatusProps> = ({
   allDataForm,
   handleInputValues,
   animals,
+  userId,
 }) => {
   return (
     <>
@@ -23,36 +25,16 @@ export const FormWaitingStatus: React.FC<FormWaitingStatusProps> = ({
           name="handlingType"
           id="handlingType"
           value={allDataForm.handlingType ?? ''}
-          defaultOption="Selecione o manejo"
           options={[
-            { label: 'Touro', value: 'bullMating' },
+            { label: 'Montada com touro', value: 'bullMating' },
             {
               label: 'Inseminação Artificial',
               value: 'artificialInsemination',
             },
             { label: 'Todos os métodos', value: 'allMethods' },
           ]}
+          defaultOption="Selecione o manejo"
           onChange={handleInputValues}
-        />
-      </article>
-
-      <article className="flex w-full justify-between gap-2">
-        <SelectForm
-          htmlFor="bullId"
-          label="Touro utilizado:"
-          name="bullId"
-          id="bullId"
-          value={allDataForm.bullId ?? ''}
-          defaultOption="Selecione o touro"
-          options={[
-            { label: 'Comercial', value: 'comercial' },
-            ...animals.map((animal) => ({
-              label: `Touro ${animal.manualId}`,
-              value: animal.id ?? '',
-            })),
-          ]}
-          onChange={handleInputValues}
-          disabled={allDataForm.handlingType === 'artificialInsemination'}
         />
         <SelectForm
           htmlFor="protocol"
@@ -68,6 +50,53 @@ export const FormWaitingStatus: React.FC<FormWaitingStatusProps> = ({
           onChange={handleInputValues}
           disabled={allDataForm.handlingType === 'bullMating'}
           classNameInput={'max-w-32'}
+        />
+      </article>
+
+      <article className="flex flex-wrap gap-5">
+        <SelectForm
+          htmlFor="bullId"
+          label="Touro utilizado:"
+          name="bullId"
+          id="bullId"
+          value={allDataForm.bullId ?? ''}
+          defaultOption="Escolha o touro"
+          options={[
+            { label: 'Comercial', value: 'Comercial' },
+            ...animals
+              .filter(
+                (animal) =>
+                  animal.ownerId === userId && animal.gender === 'male'
+              )
+              .sort((a, b) => (a.manualId ?? 0) - (b.manualId ?? 0))
+              .map((animal) => ({
+                label: `Touro ${animal.manualId}`,
+                value: animal.id,
+              })),
+          ]}
+          onChange={handleInputValues}
+        />
+        <SelectForm
+          htmlFor="bullIatf"
+          label="Touro utilizado na IATF:"
+          name="bullIatf"
+          id="bullIatf"
+          value={allDataForm.bullIatf ?? ''}
+          options={[
+            { label: 'Comercial', value: 'comercial' },
+            ...animals
+              .filter(
+                (animal) =>
+                  animal.ownerId === userId && animal.gender === 'male'
+              )
+              .sort((a, b) => (a.manualId ?? 0) - (b.manualId ?? 0))
+              .map((animal) => ({
+                label: `Touro ${animal.manualId}`,
+                value: animal.id,
+              })),
+          ]}
+          onChange={handleInputValues}
+          disabled={allDataForm.handlingType === 'bullMating'}
         />
       </article>
     </>

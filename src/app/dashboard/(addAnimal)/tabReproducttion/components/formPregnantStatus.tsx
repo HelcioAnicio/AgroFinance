@@ -42,7 +42,7 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
         />
       </article>
 
-      <article className="flex w-full justify-between gap-2">
+      <article className="flex flex-wrap justify-between gap-2">
         <SelectForm
           htmlFor="bullId"
           label="Touro utilizado:"
@@ -79,7 +79,7 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
           defaultOption="Protocolo"
           onChange={handleInputValues}
           disabled={allDataForm.handlingType === 'bullMating'}
-          classNameInput={'max-w-32'}
+          // classNameInput={'max-w-32'}
         />
       </article>
 

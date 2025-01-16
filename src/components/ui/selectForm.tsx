@@ -21,6 +21,7 @@ export const SelectForm: React.FC<SelectFormProps> = ({
   onChange,
   options,
   defaultOption = 'Selecione uma opção',
+  disabled,
   classNameDiv,
   classNameInput,
 }) => {
@@ -34,7 +35,8 @@ export const SelectForm: React.FC<SelectFormProps> = ({
         id={id}
         value={value}
         onChange={onChange}
-        className={`min-w-24 flex-1 border border-b border-b-primary bg-transparent outline-none ${classNameInput}`}
+        disabled={disabled}
+        className={`min-w-max flex-1 border border-b border-b-primary bg-transparent outline-none ${classNameInput}`}
       >
         <option value="" disabled>
           {defaultOption}
