@@ -20,7 +20,7 @@ export const Header = () => {
         <Link href={'/dashboard'}>
           <Image
             priority={true}
-            src="/logo"
+            src="/logo.png"
             alt="Logo - Imagem de um touro e uma ovelha"
             width={100}
             height={100}
