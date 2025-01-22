@@ -26,13 +26,12 @@ model User {
 
 model Animal {
   id                  String      @id @default(dbgenerated("gen_random_uuid()"))
-  status              String      @default("active")
   manualId            Int
   gender              String
   birthDate           DateTime
   weight              Float
   breed               String
-  category            String
+  category            String   @map("category") @default("") @db.Text  
   motherId            String?
   fatherId            String?
   reproductiveStatus  String?
@@ -46,14 +45,15 @@ model Animal {
   bodyConditionScore  Float?
   observations        String?
   ownerId             String
-  vaccineName         String?     
-  vaccineDate         DateTime?   
-  vaccineExpiry       DateTime?      
-  dewormingName       String?  
-  dewormingDate       DateTime?
-  dewormingExpiry     DateTime?   
   createdAt           DateTime    @default(now())
   updatedAt           DateTime    @default(now()) @updatedAt
+  dewormingDate       DateTime?
+  dewormingExpiry     DateTime?
+  dewormingName       String?
+  status              String      @default("active")
+  vaccineDate         DateTime?
+  vaccineExpiry       DateTime?
+  vaccineName         String?
   bull                Animal?     @relation("BullHandling", fields: [bullId], references: [id])
   offspringFromBull   Animal[]    @relation("BullHandling")
   father              Animal?     @relation("FatherOffspring", fields: [fatherId], references: [id])

@@ -100,3 +100,57 @@ input[type='url'] {
     @apply bg-background text-foreground;
   }
 }
+
+input[type='checkbox'] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #fff;
+  cursor: pointer;
+  transition:
+    background-color 0.3s,
+    border-color 0.3s;
+  position: relative;
+}
+
+input[type='checkbox']:checked {
+  border-color: transparent;
+  background-color: #7f9d7b;
+}
+
+input[type='checkbox']:checked::after {
+  content: '✔';
+  font-size: 14px;
+  color: white;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+input[type='radio'] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 1px solid #ccc;
+  border-radius: 100%;
+  background-color: #fff;
+  cursor: pointer;
+  transition:
+    background-color 0.3s,
+    border-color 0.3s;
+  position: relative;
+}
+
+input[type='radio']:checked {
+  border-color: transparent; /* Cor da borda quando marcado */
+  background-color: #7f9d7b; /* Fundo verde quando marcado */
+}
+
+label {
+  cursor: pointer;
+}
