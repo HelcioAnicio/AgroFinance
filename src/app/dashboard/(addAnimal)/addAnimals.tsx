@@ -78,7 +78,11 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
   ) => {
     const { name, value, type } = event.target;
     const newValue =
-      type === 'number' || type === 'range' ? parseInt(value) : value;
+      type === 'number' || type === 'range'
+        ? parseInt(value)
+        : name === 'bodyConditionScore'
+          ? parseFloat(value)
+          : value;
 
     setAllDataForm((prevData) => ({
       ...prevData,

@@ -28,7 +28,7 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
           label="Manejo utilizado:"
           name="handlingType"
           id="handlingType"
-          value={allDataForm.handlingType ?? ''}
+          value={allDataForm.handlingType || ''}
           defaultOption="Escolha o manejo"
           options={[
             { label: 'Touro', value: 'bullMating' },
@@ -48,7 +48,7 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
           label="Touro utilizado:"
           name="bullId"
           id="bullId"
-          value={allDataForm.bullId ?? ''}
+          value={allDataForm.bullId || ''}
           defaultOption="Escolha o touro"
           options={[
             { label: 'Comercial', value: 'Comercial' },
@@ -71,7 +71,7 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
           label="Protocolo usado:"
           name="protocol"
           id="protocol"
-          value={allDataForm.protocol ?? ''}
+          value={allDataForm.protocol || ''}
           options={[
             { label: 'Inseminação artificial', value: 'protocol1' },
             { label: 'Inseminação', value: 'protocol2' },
@@ -84,28 +84,30 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
       </article>
 
       <article className="flex flex-wrap gap-5">
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col">
           <p className="text-secondary">Sexo Fetal:</p>
-          <RadioForm
-            htmlFor="female"
-            label="Fêmea"
-            type="radio"
-            name="fetalGender"
-            id="female"
-            value="female"
-            checked={allDataForm.fetalGender === 'female'}
-            onChange={handleInputValues}
-          />
-          <RadioForm
-            htmlFor="male"
-            label="Macho"
-            type="radio"
-            name="fetalGender"
-            id="male"
-            value="male"
-            checked={allDataForm.fetalGender === 'male'}
-            onChange={handleInputValues}
-          />
+          <div className="flex items-center gap-4">
+            <RadioForm
+              htmlFor="female"
+              label="Fêmea"
+              type="radio"
+              name="fetalGender"
+              id="female"
+              value="female"
+              checked={allDataForm.fetalGender === 'female'}
+              onChange={handleInputValues}
+            />
+            <RadioForm
+              htmlFor="male"
+              label="Macho"
+              type="radio"
+              name="fetalGender"
+              id="male"
+              value="male"
+              checked={allDataForm.fetalGender === 'male'}
+              onChange={handleInputValues}
+            />
+          </div>
         </div>
       </article>
 
@@ -133,10 +135,10 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
           label="ECC (Escore de Condição Corporal):"
           name="bodyConditionScore"
           id="bodyConditionScore"
-          value={allDataForm.bodyConditionScore?.toFixed() ?? ''}
+          value={allDataForm.bodyConditionScore || ''}
           options={scores.map((score) => ({
             label: `ECC - ${score}`,
-            value: score.toString(),
+            value: score,
           }))}
           onChange={handleInputValues}
           classNameInput={'max-w-40'}
@@ -147,7 +149,7 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
           label="Touro utilizado na IATF:"
           name="bullIatf"
           id="bullIatf"
-          value={allDataForm.bullIatf ?? ''}
+          value={allDataForm.bullIatf || ''}
           options={[
             { label: 'Comercial', value: 'comercial' },
             ...animals

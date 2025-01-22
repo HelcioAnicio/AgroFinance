@@ -83,14 +83,20 @@ export const Filters: React.FC<FiltersProps> = ({
     breed: '',
   });
 
-  const handleInputs = (
+  const updateListAndInput = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    setListAnimals(originalAnimals);
+    handleInputsValues(event);
+  };
+
+  const handleInputsValues = (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value, type, checked } = event.target as HTMLInputElement;
     const inputValue = type === 'checkbox' ? checked : value;
 
     setTypeFilters((prevFilters) => {
-      setListAnimals(originalAnimals);
       const [filterType, filterName] = name.split('.') as [
         keyof typeof typeFilters,
         string,
@@ -157,7 +163,7 @@ export const Filters: React.FC<FiltersProps> = ({
         (typeFilters.weight['500kg'] &&
           animal.weight >= 301 &&
           animal.weight <= 499) ||
-        (typeFilters.weight['500kg+'] && animal.weight <= 500);
+        (typeFilters.weight['500kg+'] && animal.weight >= 500);
 
       const matchesDate =
         (!typeFilters.date.finalDate && !typeFilters.date.initialDate) ||
@@ -254,7 +260,7 @@ export const Filters: React.FC<FiltersProps> = ({
               type="checkbox"
               value="active"
               checked={typeFilters.status.active}
-              onChange={handleInputs}
+              onChange={updateListAndInput}
             />
             <RadioForm
               label="Inativos"
@@ -264,7 +270,7 @@ export const Filters: React.FC<FiltersProps> = ({
               type="checkbox"
               value="inactive"
               checked={typeFilters.status.inactive}
-              onChange={handleInputs}
+              onChange={updateListAndInput}
             />
             <RadioForm
               label="Mortos"
@@ -274,7 +280,7 @@ export const Filters: React.FC<FiltersProps> = ({
               type="checkbox"
               value="dead"
               checked={typeFilters.status.dead}
-              onChange={handleInputs}
+              onChange={updateListAndInput}
             />
             <RadioForm
               label="Vendidos"
@@ -284,7 +290,7 @@ export const Filters: React.FC<FiltersProps> = ({
               type="checkbox"
               value="sold"
               checked={typeFilters.status.sold}
-              onChange={handleInputs}
+              onChange={updateListAndInput}
             />
           </div>
         </div>
@@ -299,7 +305,7 @@ export const Filters: React.FC<FiltersProps> = ({
               type="checkbox"
               value="male"
               checked={typeFilters.gender.male}
-              onChange={handleInputs}
+              onChange={updateListAndInput}
             />
             <RadioForm
               label="Fêmea"
@@ -309,7 +315,7 @@ export const Filters: React.FC<FiltersProps> = ({
               type="checkbox"
               value="female"
               checked={typeFilters.gender.female}
-              onChange={handleInputs}
+              onChange={updateListAndInput}
             />
           </div>
         </div>
@@ -325,7 +331,7 @@ export const Filters: React.FC<FiltersProps> = ({
               type="checkbox"
               value="calf"
               checked={typeFilters.category.calf}
-              onChange={handleInputs}
+              onChange={updateListAndInput}
             />
             <RadioForm
               label="12m - 24m"
@@ -335,7 +341,7 @@ export const Filters: React.FC<FiltersProps> = ({
               type="checkbox"
               value="steer"
               checked={typeFilters.category.steer}
-              onChange={handleInputs}
+              onChange={updateListAndInput}
             />
             <RadioForm
               label="24m - 36m"
@@ -345,7 +351,7 @@ export const Filters: React.FC<FiltersProps> = ({
               type="checkbox"
               value="adult"
               checked={typeFilters.category.adult}
-              onChange={handleInputs}
+              onChange={updateListAndInput}
             />
             <RadioForm
               label="+ 36m"
@@ -355,7 +361,7 @@ export const Filters: React.FC<FiltersProps> = ({
               type="checkbox"
               value="senior"
               checked={typeFilters.category.senior}
-              onChange={handleInputs}
+              onChange={updateListAndInput}
             />
           </div>
         </div>
@@ -371,7 +377,7 @@ export const Filters: React.FC<FiltersProps> = ({
               type="checkbox"
               value="300kg"
               checked={typeFilters.weight['300kg']}
-              onChange={handleInputs}
+              onChange={updateListAndInput}
             />
             <RadioForm
               label="Entre 300kg e 500kg"
@@ -381,7 +387,7 @@ export const Filters: React.FC<FiltersProps> = ({
               type="checkbox"
               value="500kg"
               checked={typeFilters.weight['500kg']}
-              onChange={handleInputs}
+              onChange={updateListAndInput}
             />
             <RadioForm
               label="+ 500kg"
@@ -391,7 +397,7 @@ export const Filters: React.FC<FiltersProps> = ({
               type="checkbox"
               value="500kg+"
               checked={typeFilters.weight['500kg+']}
-              onChange={handleInputs}
+              onChange={updateListAndInput}
             />
           </div>
         </div>
@@ -406,7 +412,7 @@ export const Filters: React.FC<FiltersProps> = ({
               name="date.initialDate"
               type="month"
               value={typeFilters.date.initialDate}
-              onChange={handleInputs}
+              onChange={updateListAndInput}
             />
             <InputForm
               label="Data final: "
@@ -415,7 +421,7 @@ export const Filters: React.FC<FiltersProps> = ({
               name="date.finalDate"
               type="month"
               value={typeFilters.date.finalDate}
-              onChange={handleInputs}
+              onChange={updateListAndInput}
             />
           </div>
         </div>
@@ -436,7 +442,7 @@ export const Filters: React.FC<FiltersProps> = ({
                     ]
                 ) || ''
               }
-              onChange={handleInputs}
+              onChange={updateListAndInput}
               defaultOption="Status do animal"
               options={[
                 { label: 'Todas os status', value: '' },
@@ -457,13 +463,8 @@ export const Filters: React.FC<FiltersProps> = ({
               label=""
               name="breed"
               id="breed"
-              value={
-                Object.keys(typeFilters.breed).find(
-                  (key) =>
-                    typeFilters.breed[key as keyof typeof typeFilters.breed]
-                ) || ''
-              }
-              onChange={handleInputs}
+              value={typeFilters.breed}
+              onChange={updateListAndInput}
               options={[
                 { label: 'Todas as raças', value: '' },
                 ...breedArray.map((breed) => ({
