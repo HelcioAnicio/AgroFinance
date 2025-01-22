@@ -50,6 +50,8 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
                 >
                   <option value="active">Ativo</option>
                   <option value="inactive">Inativo</option>
+                  <option value="dead">Morto</option>
+                  <option value="sold">Vendido</option>
                 </select>
               </div>
             </div>
