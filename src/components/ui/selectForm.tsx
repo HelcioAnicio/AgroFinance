@@ -5,9 +5,9 @@ interface SelectFormProps {
   label: string;
   name: string;
   id: string;
-  value: string;
+  value: string | number;
   onChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
-  options: { label?: string; value?: string }[];
+  options: { label?: string; value?: string | number }[];
   defaultOption?: string;
   disabled?: boolean;
 }

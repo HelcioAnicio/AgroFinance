@@ -80,7 +80,7 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
               type="number"
               name="manualId"
               id="manualId"
-              value={allDataForm.manualId?.toString()}
+              value={allDataForm.manualId ?? ''}
               onChange={handleInputValues}
             />
 

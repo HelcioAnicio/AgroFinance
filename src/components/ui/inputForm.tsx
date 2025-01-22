@@ -6,7 +6,7 @@ interface InputFormProps {
   type: string;
   name: string;
   id: string;
-  value: string;
+  value: string | number;
   onChange: (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
@@ -34,7 +34,7 @@ export const InputForm: React.FC<InputFormProps> = ({
           type={type}
           name={name}
           id={id}
-          value={value}
+          value={value ?? ''}
           onChange={onChange}
         />
       </div>

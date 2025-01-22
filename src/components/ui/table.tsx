@@ -1,8 +1,7 @@
 'use client';
 
-import { Circle, SquareArrowOutUpLeft } from 'lucide-react';
+import { SquareArrowOutUpLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-
 import { Animal } from '@/types/animal';
 import { User } from '@/types/user';
 import { useSession } from 'next-auth/react';
@@ -11,10 +10,15 @@ import { ListFilter, CirclePlus } from 'lucide-react';
 import { AddAnimal } from '../../app/dashboard/(addAnimal)/addAnimals';
 import { Button } from '@/components/ui/button';
 import React, { useEffect, useState } from 'react';
-import { AlertDialog, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { AddAnimalDesktop } from '@/app/dashboard/(addAnimal)/addAnimalsDesktop';
 import { Filters } from './modalFilters';
 import { Loading } from './loading';
+import { FaCheckCircle } from 'react-icons/fa';
+import { IoSkull } from 'react-icons/io5';
+import { LiaExternalLinkAltSolid } from 'react-icons/lia';
+import { TbMoneybag } from 'react-icons/tb';
+import { MdHighlightOff } from 'react-icons/md';
+import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 
 interface TableProps {
   animals: Animal[];
@@ -54,7 +58,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
 
   const handleNavigation = (id: string | null) => {
     setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 1500);
+    setTimeout(() => setIsLoading(false), 2000);
 
     router.push(`dashboard/${id}`);
   };
@@ -122,16 +126,16 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                     onAnimalAdded={handleAnimalAdded}
                   />
                 </Sheet>
-                <AlertDialog>
-                  <AlertDialogTrigger className="hidden items-center justify-center gap-2 rounded-md bg-primary p-1 text-background sm:flex">
+                <Dialog>
+                  <DialogTrigger className="hidden items-center justify-center gap-2 rounded-md bg-primary p-1 text-background sm:flex">
                     Adicionar <CirclePlus className="size-4" />
-                  </AlertDialogTrigger>
+                  </DialogTrigger>
                   <AddAnimalDesktop
                     animals={animals}
                     users={users}
                     onAnimalAdded={handleAnimalAdded}
                   />
-                </AlertDialog>
+                </Dialog>
               </div>
             </div>
           </div>
@@ -139,7 +143,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
           <table className="m-auto min-w-[750px] border-collapse text-left xl:text-sm">
             <thead className="border-collapse bg-primary text-background">
               <tr>
-                <th className="px-1 py-2">Status</th>
+                <th className="w-20 px-1 py-2">Status</th>
                 <th className="px-1 py-2">ID</th>
                 <th className="px-1 py-2">Raça</th>
                 <th className="px-1 py-2">Sexo</th>
@@ -166,16 +170,26 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                     className={`${index % 2 === 0 ? 'bg-muted' : ''} cursor-pointer`}
                     onClick={() => handleNavigation(animal.id)}
                   >
-                    <td className="px-1 py-3">
+                    <td className="max-w-max px-1 py-3">
                       {animal?.status === 'active' ? (
                         <>
-                          <Circle className="inline-block size-3 rounded-full bg-green-400 text-green-400" />{' '}
+                          <FaCheckCircle className="inline-block size-3 text-green-400" />{' '}
                           Ativo
+                        </>
+                      ) : animal?.status === 'inactive' ? (
+                        <>
+                          <MdHighlightOff className="inline-block size-3 text-gray-500" />{' '}
+                          Inativo
+                        </>
+                      ) : animal?.status === 'dead' ? (
+                        <>
+                          <IoSkull className="inline-block size-3 text-black" />{' '}
+                          Morto
                         </>
                       ) : (
                         <>
-                          <Circle className="text-graybg-gray-500 inline-block size-3 rounded-full bg-gray-500" />{' '}
-                          Inativo
+                          <TbMoneybag className="inline-block size-3 text-yellow-600" />{' '}
+                          Vendido
                         </>
                       )}
                     </td>
@@ -191,7 +205,14 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                         handleNavigation(animal.motherId);
                       }}
                     >
-                      {mother ? `Vaca ${mother.manualId}` : 'Comercial'}
+                      {mother ? (
+                        <span className="flex w-max items-center gap-1 border-b border-foreground">
+                          {`Vaca ${mother.manualId}`}
+                          <LiaExternalLinkAltSolid className="inline-block size-4" />
+                        </span>
+                      ) : (
+                        'Comercial'
+                      )}
                     </td>
                     <td
                       className="px-1 py-3 transition duration-300 ease-in-out hover:opacity-50"
@@ -200,7 +221,14 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                         handleNavigation(animal.fatherId);
                       }}
                     >
-                      {father ? `Touro ${father.manualId}` : 'Comercial'}
+                      {father ? (
+                        <span className="flex w-max items-center gap-1 border-b border-foreground">
+                          {`Touro ${father.manualId}`}
+                          <LiaExternalLinkAltSolid className="inline-block size-4" />
+                        </span>
+                      ) : (
+                        'Comercial'
+                      )}
                     </td>
                     <td className="px-1 py-3">
                       {animal.birthDate
@@ -217,7 +245,9 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                             ? 'Adulto'
                             : animal.category === 'senior'
                               ? 'Idoso'
-                              : `${animal.category[0].toUpperCase()}${animal.category.substring(1)}`}
+                              : animal.category
+                                ? `${animal.category[0].toUpperCase()}${animal.category.substring(1)}`
+                                : 'N/A'}
                     </td>
 
                     <td className="px-1 py-3">{animal.weight} Kg</td>

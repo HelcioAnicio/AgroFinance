@@ -12,13 +12,12 @@ import { User } from '@/types/user';
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'sonner';
 import {
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { AlertDialogAction } from '@radix-ui/react-alert-dialog';
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 interface AddAnimalProps {
   animals: Animal[];
@@ -95,17 +94,17 @@ export const AddAnimalDesktop: React.FC<AddAnimalProps> = ({
   };
 
   return (
-    <AlertDialogContent>
+    <DialogContent>
       <Tabs key={tabValue} value={tabValue} onValueChange={setTabValue}>
-        <AlertDialogHeader className="mt-5 border">
-          <AlertDialogTitle className="flex justify-center">
+        <DialogHeader className="mt-5 border">
+          <DialogTitle className="flex justify-center">
             <TabsList>
               <TabsTrigger value="principais">Principais</TabsTrigger>
               <TabsTrigger value="reproducao">Reprodução</TabsTrigger>
               <TabsTrigger value="sanitarias">Sanitárias</TabsTrigger>
             </TabsList>
-          </AlertDialogTitle>
-        </AlertDialogHeader>
+          </DialogTitle>
+        </DialogHeader>
         <TabsContent value="principais">
           <CardFormMain
             animals={animals}
@@ -135,16 +134,20 @@ export const AddAnimalDesktop: React.FC<AddAnimalProps> = ({
               <p className="text-right">Username</p>
             </div>
           </div>
-          <AlertDialogFooter className="flex justify-between">
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction>
-              <Button type="submit" onClick={() => submitForm(allDataForm)}>
-                Adicionar animal
-              </Button>
-            </AlertDialogAction>
-          </AlertDialogFooter>
+          <DialogFooter className="flex justify-between">
+            <DialogClose className="rounded-md border px-2 shadow-md hover:bg-primary-foreground">
+              Cancelar
+            </DialogClose>
+            <Button
+              className="shadow-md"
+              type="submit"
+              onClick={() => submitForm(allDataForm)}
+            >
+              Adicionar animal
+            </Button>
+          </DialogFooter>
         </TabsContent>
       </Tabs>
-    </AlertDialogContent>
+    </DialogContent>
   );
 };
