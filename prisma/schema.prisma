@@ -31,7 +31,7 @@ model Animal {
   birthDate           DateTime
   weight              Float
   breed               String
-  category            String?     @db.VarChar(255)
+  category            String   @map("category") @default("") @db.Text  
   motherId            String?
   fatherId            String?
   reproductiveStatus  String?
