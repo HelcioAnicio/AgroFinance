@@ -13,6 +13,8 @@ import { Button } from '@/components/ui/button';
 import React, { useEffect, useState } from 'react';
 import { AlertDialog, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { AddAnimalDesktop } from '@/app/dashboard/(addAnimal)/addAnimalsDesktop';
+import { Filters } from './modalFilters';
+import { Loading } from './loading';
 
 interface TableProps {
   animals: Animal[];
@@ -25,6 +27,8 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
   const userId = userEmail?.id;
   const [listAnimals, setListAnimals] = useState<Animal[]>([]);
   const [originalAnimals, setOriginalAnimals] = useState<Animal[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
   const [inputValue, setInputValue] = useState<number | undefined>(undefined);
 
   useEffect(() => {
@@ -49,6 +53,9 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
   const router = useRouter();
 
   const handleNavigation = (id: string | null) => {
+    setIsLoading(true);
+    setTimeout(() => setIsLoading(false), 1500);
+
     router.push(`dashboard/${id}`);
   };
 
@@ -75,138 +82,152 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
 
   return (
     <main className="m-auto max-w-[750px] overflow-x-auto scroll-smooth pb-5">
-      <div className="sticky right-0 top-0 z-50 w-full">
-        <div className="flex w-full justify-between gap-10 px-1 sm:justify-end">
-          <input
-            className="w-full max-w-40 border border-b-gray-400 bg-input p-1 shadow-sm outline-none"
-            type="search"
-            name="inputSearch"
-            id="inputSearch"
-            placeholder="Pesquisar ID"
-            onChange={handleInputChange}
-          />
+      {isLoading ? (
+        <Loading />
+      ) : (
+        <>
+          <div className="sticky right-0 top-0 z-50 w-full">
+            <div className="flex w-full justify-between gap-10 px-1 sm:justify-end">
+              <input
+                className="w-full max-w-40 border border-b-gray-400 bg-input p-1 shadow-sm outline-none"
+                type="search"
+                name="inputSearch"
+                id="inputSearch"
+                placeholder="Pesquisar ID"
+                onChange={handleInputChange}
+              />
 
-          <div className="flex gap-1">
-            <Button className="flex gap-1 p-1">
-              Filtros <ListFilter className="size-4" />
-            </Button>
-            <Sheet>
-              <SheetTrigger asChild className="sm:hidden">
-                <Button className="flex gap-2 p-1 sm:hidden">
-                  Adicionar <CirclePlus className="size-4" />
-                </Button>
-              </SheetTrigger>
-              <AddAnimal
-                animals={animals}
-                users={users}
-                onAnimalAdded={handleAnimalAdded}
-              />
-            </Sheet>
-            <AlertDialog>
-              <AlertDialogTrigger className="hidden items-center justify-center gap-2 rounded-md bg-primary p-1 text-background sm:flex">
-                Adicionar <CirclePlus className="size-4" />
-              </AlertDialogTrigger>
-              <AddAnimalDesktop
-                animals={animals}
-                users={users}
-                onAnimalAdded={handleAnimalAdded}
-              />
-            </AlertDialog>
+              <div className="flex gap-1">
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <Button className="flex gap-1 p-1">
+                      Filtros <ListFilter className="size-4" />
+                    </Button>
+                  </SheetTrigger>
+                  <Filters
+                    listAnimals={listAnimals}
+                    setListAnimals={setListAnimals}
+                    originalAnimals={originalAnimals}
+                  />
+                </Sheet>
+                <Sheet>
+                  <SheetTrigger asChild className="sm:hidden">
+                    <Button className="flex gap-2 p-1 sm:hidden">
+                      Adicionar <CirclePlus className="size-4" />
+                    </Button>
+                  </SheetTrigger>
+                  <AddAnimal
+                    animals={animals}
+                    users={users}
+                    onAnimalAdded={handleAnimalAdded}
+                  />
+                </Sheet>
+                <AlertDialog>
+                  <AlertDialogTrigger className="hidden items-center justify-center gap-2 rounded-md bg-primary p-1 text-background sm:flex">
+                    Adicionar <CirclePlus className="size-4" />
+                  </AlertDialogTrigger>
+                  <AddAnimalDesktop
+                    animals={animals}
+                    users={users}
+                    onAnimalAdded={handleAnimalAdded}
+                  />
+                </AlertDialog>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-      <br />
-      <table className="m-auto min-w-[750px] border-collapse text-left xl:text-sm">
-        <thead className="border-collapse bg-primary text-background">
-          <tr>
-            <th className="px-1 py-2">Status</th>
-            <th className="px-1 py-2">ID</th>
-            <th className="px-1 py-2">Raça</th>
-            <th className="px-1 py-2">Sexo</th>
-            <th className="px-1 py-2">Mãe</th>
-            <th className="px-1 py-2">Pai</th>
-            <th className="px-1 py-2">Nascimento</th>
-            <th className="px-1 py-2">Categoria</th>
-            <th className="px-1 py-2">Peso</th>
-            <th className="sticky right-0 bg-primary px-1 py-2 text-background"></th>
-          </tr>
-        </thead>
-        <tbody className="h-[calc(100%-200px)] overflow-y-auto scroll-smooth">
-          {listAnimals.map((animal: Animal, index: number) => {
-            const mother: Animal | undefined = animals.find(
-              (a) => a.id === animal.motherId
-            );
-            const father: Animal | undefined = animals.find(
-              (a) => a.id === animal.fatherId
-            );
-
-            return (
-              <tr
-                key={animal.id}
-                className={
-                  `${index % 2 === 0 ? 'bg-muted' : ''}` + ' cursor-pointer'
-                }
-                onClick={() => handleNavigation(animal.id)}
-              >
-                <td className="px-1 py-3">
-                  {animal?.status === 'active' ? (
-                    <>
-                      <Circle className="inline-block size-3 rounded-full bg-green-400 text-green-400" />{' '}
-                      Ativo
-                    </>
-                  ) : (
-                    <>
-                      <Circle className="text-graybg-gray-500 inline-block size-3 rounded-full bg-gray-500" />{' '}
-                      Inativo
-                    </>
-                  )}
-                </td>
-                <td className="px-1 py-3">{animal.manualId}</td>
-                <td className="px-1 py-3">{animal.breed}</td>
-                <td className="px-1 py-3">
-                  {animal.gender === 'male' ? 'Macho' : 'Fêmea'}
-                </td>
-                <td
-                  className="px-1 py-3 transition duration-300 ease-in-out hover:opacity-50"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    handleNavigation(animal.motherId);
-                  }}
-                >
-                  {mother ? `Vaca ${mother.manualId}` : 'Comercial'}
-                </td>
-                <td
-                  className="px-1 py-3 transition duration-300 ease-in-out hover:opacity-50"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    handleNavigation(animal.fatherId);
-                  }}
-                >
-                  {father ? `Touro ${father.manualId}` : 'Comercial'}
-                </td>
-                <td className="px-1 py-3">
-                  {animal.birthDate
-                    ? new Date(animal.birthDate).toLocaleDateString()
-                    : 'N/A'}
-                </td>
-
-                <td className="px-1 py-3">
-                  {`${animal.category[0].toUpperCase()}${animal.category.substring(1)}`}
-                </td>
-
-                <td className="px-1 py-3">{animal.weight} Kg</td>
-                <td
-                  className={`sticky right-0 px-1 py-3 ${
-                    index % 2 === 0 ? 'bg-muted' : 'bg-background'
-                  }`}
-                >
-                  <SquareArrowOutUpLeft size={20} />
-                </td>
+          <br />
+          <table className="m-auto min-w-[750px] border-collapse text-left xl:text-sm">
+            <thead className="border-collapse bg-primary text-background">
+              <tr>
+                <th className="px-1 py-2">Status</th>
+                <th className="px-1 py-2">ID</th>
+                <th className="px-1 py-2">Raça</th>
+                <th className="px-1 py-2">Sexo</th>
+                <th className="px-1 py-2">Mãe</th>
+                <th className="px-1 py-2">Pai</th>
+                <th className="px-1 py-2">Nascimento</th>
+                <th className="px-1 py-2">Categoria</th>
+                <th className="px-1 py-2">Peso</th>
+                <th className="sticky right-0 bg-primary px-1 py-2 text-background"></th>
               </tr>
-            );
-          })}
-        </tbody>
-      </table>
+            </thead>
+            <tbody className="h-[calc(100%-200px)] overflow-y-auto scroll-smooth">
+              {listAnimals.map((animal: Animal, index: number) => {
+                const mother: Animal | undefined = animals.find(
+                  (a) => a.id === animal.motherId
+                );
+                const father: Animal | undefined = animals.find(
+                  (a) => a.id === animal.fatherId
+                );
+
+                return (
+                  <tr
+                    key={animal.id}
+                    className={`${index % 2 === 0 ? 'bg-muted' : ''} cursor-pointer`}
+                    onClick={() => handleNavigation(animal.id)}
+                  >
+                    <td className="px-1 py-3">
+                      {animal?.status === 'active' ? (
+                        <>
+                          <Circle className="inline-block size-3 rounded-full bg-green-400 text-green-400" />{' '}
+                          Ativo
+                        </>
+                      ) : (
+                        <>
+                          <Circle className="text-graybg-gray-500 inline-block size-3 rounded-full bg-gray-500" />{' '}
+                          Inativo
+                        </>
+                      )}
+                    </td>
+                    <td className="px-1 py-3">{animal.manualId}</td>
+                    <td className="px-1 py-3">{animal.breed}</td>
+                    <td className="px-1 py-3">
+                      {animal.gender === 'male' ? 'Macho' : 'Fêmea'}
+                    </td>
+                    <td
+                      className="px-1 py-3 transition duration-300 ease-in-out hover:opacity-50"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        handleNavigation(animal.motherId);
+                      }}
+                    >
+                      {mother ? `Vaca ${mother.manualId}` : 'Comercial'}
+                    </td>
+                    <td
+                      className="px-1 py-3 transition duration-300 ease-in-out hover:opacity-50"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        handleNavigation(animal.fatherId);
+                      }}
+                    >
+                      {father ? `Touro ${father.manualId}` : 'Comercial'}
+                    </td>
+                    <td className="px-1 py-3">
+                      {animal.birthDate
+                        ? new Date(animal.birthDate).toLocaleDateString()
+                        : 'N/A'}
+                    </td>
+
+                    <td className="px-1 py-3">
+                      {animal.category ? `${animal.category}` : 'nada'}
+                      {/* {`${animal.category[0].toUpperCase()}${animal.category.substring(1)}`} */}
+                    </td>
+
+                    <td className="px-1 py-3">{animal.weight} Kg</td>
+                    <td
+                      className={`sticky right-0 px-1 py-3 ${
+                        index % 2 === 0 ? 'bg-muted' : 'bg-background'
+                      }`}
+                    >
+                      <SquareArrowOutUpLeft size={20} />
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </>
+      )}
     </main>
   );
 };

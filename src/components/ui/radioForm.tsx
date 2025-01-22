@@ -31,9 +31,10 @@ export const RadioForm: React.FC<RadioFormProps> = ({
           value={value}
           checked={checked}
           onChange={onChange}
-          className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
         />
-        <label htmlFor={htmlFor}>{label}</label>
+        <label htmlFor={htmlFor} className="py-2">
+          {label}
+        </label>
       </div>
     </>
   );
