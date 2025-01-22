@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { toDate, format } from 'date-fns-tz';
+import { toDate } from 'date-fns-tz';
 
 const prisma = new PrismaClient();
 const timeZone = 'America/Sao_Paulo';
@@ -7,10 +7,10 @@ const timeZone = 'America/Sao_Paulo';
 async function main() {
   try {
     const now = new Date();
-    const zonedDate = toDate(now, { timeZone });
-    const createdAt = format(zonedDate, "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", {
-      timeZone,
-    });
+    // const zonedDate = toDate(now, { timeZone });
+    // const createdAt = format(zonedDate, 'yyyy-MM-dd"T"HH:mm:ss.SSSXXX', {
+    //   timeZone,
+    // });
 
     // Cria o usuário
     // const user = await prisma.user.create({
@@ -30,10 +30,10 @@ async function main() {
         {
           manualId: 1,
           gender: 'Female',
-          birthDate: toDate(new Date('2020-10-22 08:13:45.015'), { timeZone }),
+          birthDate: toDate(new Date('2020-10-22 '), { timeZone }),
           weight: 200.0,
           breed: 'Hereford',
-          category: 'Corte',
+          category: '',
           reproductiveStatus: 'Empty',
           handlingType: null,
           bullId: null,
@@ -43,8 +43,8 @@ async function main() {
           bodyConditionScore: 3.8,
           expectedDueDate: new Date('2022-10-22'),
           bullIatf: null,
-          ownerId: 'cm2zg8ke90000a2l0tr0woar8',
-          createdAt: createdAt,
+          ownerId: '8832f4f1-4486-41d5-b62b-47d8fba25ee7',
+          createdAt: now,
         },
         {
           manualId: 2,
@@ -62,8 +62,8 @@ async function main() {
           bodyConditionScore: 2.8,
           expectedDueDate: new Date('2022-10-22'),
           bullIatf: null,
-          ownerId: 'cm2zg8ke90000a2l0tr0woar8',
-          createdAt: createdAt,
+          ownerId: '8832f4f1-4486-41d5-b62b-47d8fba25ee7',
+          createdAt: now,
         },
       ],
     });

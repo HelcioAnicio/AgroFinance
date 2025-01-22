@@ -152,17 +152,25 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                 defaultOption="Escolha a raça"
               />
 
-              <InputForm
-                classNameDiv="flex flex-col"
-                classNameInput="max-w-28"
-                htmlFor="category"
-                label="Categoria:"
-                type="text"
-                name="category"
-                id="category"
-                value={allDataForm.category ?? ''}
-                onChange={handleInputValues}
-              />
+              <div className="flex flex-col gap-1">
+                <span className="text-secondary">Categoria:</span>
+                <p>
+                  {allDataForm.birthDate
+                    ? (() => {
+                        const birthDate = new Date(allDataForm.birthDate);
+                        const ageInMonths =
+                          (new Date().getFullYear() - birthDate.getFullYear()) *
+                            12 +
+                          new Date().getMonth() -
+                          birthDate.getMonth();
+                        if (ageInMonths <= 12) return 'Bezerro';
+                        if (ageInMonths <= 24) return 'Novilho';
+                        if (ageInMonths <= 36) return 'Adulto';
+                        return 'Idoso';
+                      })()
+                    : ''}
+                </p>
+              </div>
 
               <SelectForm
                 htmlFor="motherId"

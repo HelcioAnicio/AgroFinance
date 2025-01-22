@@ -21,30 +21,30 @@ export const FormMaleReproductive: React.FC<FormMaleReproductiveProps> = ({
           label="Positivo"
           type="radio"
           name="andrological"
-          id="andrological"
-          value={allDataForm.andrological?.toString() ?? ''}
+          id="positive"
+          value="positive"
+          checked={allDataForm.andrological === 'positive'}
           onChange={handleInputValues}
-          checked={false}
         />
         <RadioForm
           htmlFor="negative"
           label="Negativo"
           type="radio"
           name="andrological"
-          id="andrological"
-          value={allDataForm.andrological?.toString() ?? ''}
+          id="negative"
+          value="negative"
+          checked={allDataForm.andrological === 'negative'}
           onChange={handleInputValues}
-          checked={false}
         />
         <RadioForm
           htmlFor="notDone"
           label="Não realizado"
           type="radio"
           name="andrological"
-          id="andrological"
-          value={allDataForm.andrological?.toString() ?? ''}
+          id="notDone"
+          value="notDone"
+          checked={allDataForm.andrological === 'notDone'}
           onChange={handleInputValues}
-          checked={false}
         />
       </article>
     </>

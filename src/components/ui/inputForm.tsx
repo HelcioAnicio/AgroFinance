@@ -30,7 +30,7 @@ export const InputForm: React.FC<InputFormProps> = ({
           {label}
         </label>
         <input
-          className={`${classNameInput} w-full max-w-20 border border-b border-b-primary bg-transparent outline-none`}
+          className={`${classNameInput} w-full max-w-32 border border-b border-b-primary bg-transparent outline-none`}
           type={type}
           name={name}
           id={id}
