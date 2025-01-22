@@ -1,7 +1,10 @@
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Animal } from '@/types/animal';
-import { Circle } from 'lucide-react';
+import { MdHighlightOff } from 'react-icons/md';
+import { FaCheckCircle } from 'react-icons/fa';
+import { IoSkull } from 'react-icons/io5';
+import { TbMoneybag } from 'react-icons/tb';
 
 interface InformationProps {
   animal: Animal | null;
@@ -22,13 +25,22 @@ export const CardInformation: React.FC<InformationProps> = ({ animal }) => {
           <span>
             {animal?.status === 'active' ? (
               <>
-                Ativo{' '}
-                <Circle className="inline-block size-3 rounded-full bg-green-400 text-green-400" />
+                <FaCheckCircle className="inline-block size-3 text-green-400" />{' '}
+                Ativo
+              </>
+            ) : animal?.status === 'inactive' ? (
+              <>
+                <MdHighlightOff className="inline-block size-3 text-gray-500" />{' '}
+                Inativo
+              </>
+            ) : animal?.status === 'dead' ? (
+              <>
+                <IoSkull className="inline-block size-3 text-black" /> Morto
               </>
             ) : (
               <>
-                Inativo{' '}
-                <Circle className="text-graybg-gray-500 inline-block size-3 rounded-full bg-gray-500" />
+                <TbMoneybag className="inline-block size-3 text-yellow-600" />{' '}
+                Vendido
               </>
             )}
           </span>

@@ -34,7 +34,7 @@ export const InputForm: React.FC<InputFormProps> = ({
           type={type}
           name={name}
           id={id}
-          value={value}
+          value={value ?? ''}
           onChange={onChange}
         />
       </div>
