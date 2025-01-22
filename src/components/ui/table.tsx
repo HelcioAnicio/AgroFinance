@@ -209,8 +209,15 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                     </td>
 
                     <td className="px-1 py-3">
-                      {animal.category ? `${animal.category}` : 'nada'}
-                      {/* {`${animal.category[0].toUpperCase()}${animal.category.substring(1)}`} */}
+                      {animal.category === 'calf'
+                        ? 'Bezerro'
+                        : animal.category === 'steer'
+                          ? 'Novilho'
+                          : animal.category === 'adult'
+                            ? 'Adulto'
+                            : animal.category === 'senior'
+                              ? 'Idoso'
+                              : `${animal.category[0].toUpperCase()}${animal.category.substring(1)}`}
                     </td>
 
                     <td className="px-1 py-3">{animal.weight} Kg</td>
