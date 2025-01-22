@@ -6,7 +6,7 @@ interface InputFormProps {
   type: string;
   name: string;
   id: string;
-  value: string;
+  value: string | number;
   onChange: (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
