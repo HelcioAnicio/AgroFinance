@@ -28,7 +28,7 @@ async function main() {
     const animals = await prisma.animal.createMany({
       data: [
         {
-          manualId: 1,
+          manualId: '1',
           gender: 'Female',
           birthDate: toDate(new Date('2020-10-22 '), { timeZone }),
           weight: 200.0,
@@ -47,7 +47,7 @@ async function main() {
           createdAt: now,
         },
         {
-          manualId: 2,
+          manualId: '2',
           gender: 'male',
           birthDate: toDate(new Date('2020-10-22 08:13:45.015'), { timeZone }),
           weight: 420.0,

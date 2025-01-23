@@ -60,19 +60,6 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
     'Red Poll',
   ];
 
-  React.useEffect(() => {
-    const setOwnerId = () => {
-      setAllDataForm((prevData) => ({
-        ...prevData,
-        ownerId: userEmail?.id || '',
-      }));
-    };
-
-    if (userEmail?.id) {
-      setOwnerId();
-    }
-  }, [userEmail]);
-
   const handleInputValues = (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -94,6 +81,8 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
     const dataToSubmit = {
       ...allDataForm,
       id: uuidv4(),
+      ownerId: userEmail?.id || '',
+      updatedAt: new Date(),
       motherId:
         allDataForm.motherId === 'Comercial' ? null : allDataForm.motherId,
       fatherId:
@@ -137,7 +126,6 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
         <TabsContent value="principais">
           <CardFormMain
             animals={animals}
-            users={users}
             handleInputValues={handleInputValues}
             allDataForm={allDataForm}
             setTabValue={setTabValue}
@@ -148,7 +136,6 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
         <TabsContent value="reproducao">
           <CardFormReproduction
             animals={animals}
-            users={users}
             handleInputValues={handleInputValues}
             allDataForm={allDataForm}
             setTabValue={setTabValue}

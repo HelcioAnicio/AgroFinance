@@ -3,8 +3,6 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Animal } from '@/types/animal';
-import { useSession } from 'next-auth/react';
-import { User } from '@/types/user';
 import { SelectForm } from '@/components/ui/selectForm';
 import { FormMaleReproductive } from './components/formMaleReproductive';
 import { FormPregnantStatus } from './components/formPregnantStatus';
@@ -13,7 +11,6 @@ import { InputForm } from '@/components/ui/inputForm';
 
 interface CardFormReproductionProps {
   animals: Animal[];
-  users: User[];
   allDataForm: Animal;
   handleInputValues: (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -23,16 +20,10 @@ interface CardFormReproductionProps {
 
 export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
   animals,
-  users,
   allDataForm,
   handleInputValues,
   setTabValue,
 }) => {
-  const { data: session } = useSession();
-
-  const userEmail = users.find((user) => user.email === session?.user?.email);
-  const userId = userEmail?.id;
-
   const scores = [
     1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 2.75, 3, 3.25, 3.5, 3.75, 4, 5,
   ];
@@ -80,7 +71,6 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
                   {allDataForm.reproductiveStatus === 'pregnant' && (
                     <FormPregnantStatus
                       animals={animals}
-                      userId={userId}
                       scores={scores}
                       allDataForm={allDataForm}
                       handleInputValues={handleInputValues}
@@ -92,7 +82,6 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
                       allDataForm={allDataForm}
                       handleInputValues={handleInputValues}
                       animals={animals}
-                      userId={userId}
                     />
                   )}
 
@@ -106,7 +95,7 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
                         id="expectedDueDate"
                         value={
                           allDataForm.birthDate
-                            ? new Date(allDataForm.birthDate)
+                            ? new Date(allDataForm.expectedDueDate || '')
                                 .toISOString()
                                 .split('T')[0]
                             : ''
