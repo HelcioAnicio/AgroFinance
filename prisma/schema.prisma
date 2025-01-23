@@ -26,7 +26,7 @@ model User {
 
 model Animal {
   id                  String      @id @default(dbgenerated("gen_random_uuid()"))
-  manualId            Int
+  manualId            String
   gender              String
   birthDate           DateTime
   weight              Float
@@ -46,7 +46,7 @@ model Animal {
   observations        String?
   ownerId             String
   createdAt           DateTime    @default(now())
-  updatedAt           DateTime    @default(now()) @updatedAt
+  updatedAt           DateTime?   @updatedAt
   dewormingDate       DateTime?
   dewormingExpiry     DateTime?
   dewormingName       String?
@@ -64,6 +64,8 @@ model Animal {
   dewormings          Deworming[] @relation("AnimalDewormings")
   diseases            Disease[]   @relation("AnimalDiseases")
   vaccines            Vaccine[]   @relation("AnimalVaccines")
+
+  @@unique([manualId,ownerId])
 }
 
 model Disease {

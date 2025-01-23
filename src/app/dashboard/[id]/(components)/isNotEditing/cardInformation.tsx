@@ -16,11 +16,11 @@ export const CardInformation: React.FC<InformationProps> = ({ animal }) => {
       <h2 className="pl-2 text-xl">Dados básicos</h2>
 
       <section className="flex w-full max-w-sm flex-wrap gap-2 p-2">
-        <Card className="w-max px-3 py-1">
+        <Card className="w-max rounded-sm px-3 py-1">
           <strong>Id: </strong>
           <span>{animal?.manualId}</span>
         </Card>
-        <Card className="w-max px-3 py-1">
+        <Card className="w-max rounded-sm px-3 py-1">
           <strong>Status: </strong>
           <span>
             {animal?.status === 'active' ? (
@@ -45,13 +45,13 @@ export const CardInformation: React.FC<InformationProps> = ({ animal }) => {
             )}
           </span>
         </Card>
-        <Card className="w-max px-3 py-1">
+        <Card className="w-max rounded-sm px-3 py-1">
           <strong>Sexo: </strong>
           <span>{animal?.gender === 'male' ? 'Macho' : 'Fêmea'}</span>
         </Card>
       </section>
       <section className="flex w-full max-w-sm flex-wrap gap-2 p-2">
-        <Card className="w-max px-3 py-1">
+        <Card className="w-max rounded-sm px-3 py-1">
           <strong>Nascimento: </strong>
           <span>
             {animal?.birthDate
@@ -59,27 +59,27 @@ export const CardInformation: React.FC<InformationProps> = ({ animal }) => {
               : 'N/A'}
           </span>
         </Card>
-        <Card className="w-max px-3 py-1">
+        <Card className="w-max rounded-sm px-3 py-1">
           <strong>Peso: </strong>
           <span>{animal?.weight} kg</span>
         </Card>
       </section>
       <section className="flex w-full max-w-sm flex-wrap gap-2 p-2">
-        <Card className="w-max px-3 py-1">
+        <Card className="w-max rounded-sm px-3 py-1">
           <strong>Raça: </strong>
           <span>{animal?.breed}</span>
         </Card>
-        <Card className="w-max px-3 py-1">
+        <Card className="w-max rounded-sm px-3 py-1">
           <strong>Categoria: </strong>
           <span>{animal?.category}</span>
         </Card>
       </section>
       <section className="flex w-full max-w-sm flex-wrap gap-2 p-2">
-        <Card className="w-max px-3 py-1">
+        <Card className="w-max rounded-sm px-3 py-1">
           <strong>Id Mãe: </strong>
           <span>{animal?.mother?.manualId || 'Comercial'}</span>
         </Card>
-        <Card className="w-max px-3 py-1">
+        <Card className="w-max rounded-sm px-3 py-1">
           <strong>Id Pai: </strong>
           <span>{animal?.father?.manualId || 'Comercial'}</span>
         </Card>

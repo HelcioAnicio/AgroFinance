@@ -29,7 +29,7 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
                   Id do animal:
                 </label>
                 <input
-                  type="number"
+                  type="text"
                   name="manualId"
                   id="manualId"
                   value={allDataForm.manualId ?? ''}

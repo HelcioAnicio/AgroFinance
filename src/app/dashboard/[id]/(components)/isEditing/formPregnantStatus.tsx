@@ -58,7 +58,6 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
 
             {animals
               .filter((animal) => animal.gender === 'male')
-              .sort((a, b) => (a.manualId ?? 0) - (b.manualId ?? 0))
               .map((animal) => (
                 <option key={animal.id} value={animal.id ?? ''}>
                   Touro {animal.manualId}
