@@ -3,7 +3,7 @@ import { User } from './user';
 export interface Animal {
   id: string;
   status: string;
-  manualId: number;
+  manualId: string;
   gender: string;
   birthDate: Date;
   weight: number;

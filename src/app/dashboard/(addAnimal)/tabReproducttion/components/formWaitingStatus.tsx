@@ -7,14 +7,12 @@ interface FormWaitingStatusProps {
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
   animals: Animal[];
-  userId: string | undefined | null;
 }
 
 export const FormWaitingStatus: React.FC<FormWaitingStatusProps> = ({
   allDataForm,
   handleInputValues,
   animals,
-  userId,
 }) => {
   return (
     <>
@@ -64,11 +62,7 @@ export const FormWaitingStatus: React.FC<FormWaitingStatusProps> = ({
           options={[
             { label: 'Comercial', value: 'Comercial' },
             ...animals
-              .filter(
-                (animal) =>
-                  animal.ownerId === userId && animal.gender === 'male'
-              )
-              .sort((a, b) => (a.manualId ?? 0) - (b.manualId ?? 0))
+              .filter((animal) => animal.gender === 'male')
               .map((animal) => ({
                 label: `Touro ${animal.manualId}`,
                 value: animal.id,
@@ -85,11 +79,7 @@ export const FormWaitingStatus: React.FC<FormWaitingStatusProps> = ({
           options={[
             { label: 'Comercial', value: 'comercial' },
             ...animals
-              .filter(
-                (animal) =>
-                  animal.ownerId === userId && animal.gender === 'male'
-              )
-              .sort((a, b) => (a.manualId ?? 0) - (b.manualId ?? 0))
+              .filter((animal) => animal.gender === 'male')
               .map((animal) => ({
                 label: `Touro ${animal.manualId}`,
                 value: animal.id,

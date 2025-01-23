@@ -4,7 +4,6 @@ import { SquareArrowOutUpLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Animal } from '@/types/animal';
 import { User } from '@/types/user';
-import { useSession } from 'next-auth/react';
 import { Sheet, SheetTrigger } from '@/components/ui/sheet';
 import { ListFilter, CirclePlus } from 'lucide-react';
 import { AddAnimal } from '../../app/dashboard/(addAnimal)/addAnimals';
@@ -26,30 +25,37 @@ interface TableProps {
 }
 
 export const Table: React.FC<TableProps> = ({ animals, users }) => {
-  const { data: session } = useSession();
-  const userEmail = users.find((user) => user.email === session?.user?.email);
-  const userId = userEmail?.id;
   const [listAnimals, setListAnimals] = useState<Animal[]>([]);
   const [originalAnimals, setOriginalAnimals] = useState<Animal[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const [inputValue, setInputValue] = useState<number | undefined>(undefined);
+  const [inputValue, setInputValue] = useState<string | null>('');
 
   useEffect(() => {
-    const sorted = animals
-      .filter((animal) => animal.ownerId === userId)
-      .sort((a, b) => (a.manualId ?? 0) - (b.manualId ?? 0));
-    setOriginalAnimals(sorted);
-    setListAnimals(sorted);
-  }, [animals, userId]);
+    const sortedAnimals = animals.sort((a, b) => {
+      const aIsNumber = !isNaN(Number(a.manualId));
+      const bIsNumber = !isNaN(Number(b.manualId));
+
+      if (!aIsNumber && !bIsNumber) {
+        return String(a.manualId).localeCompare(String(b.manualId));
+      } else if (aIsNumber && bIsNumber) {
+        return Number(a.manualId) - Number(b.manualId);
+      } else {
+        return aIsNumber ? 1 : -1;
+      }
+    });
+
+    setOriginalAnimals(sortedAnimals);
+    setListAnimals(sortedAnimals);
+  }, [animals]);
 
   useEffect(() => {
-    if (inputValue === undefined) {
+    if (inputValue === '') {
       setListAnimals(originalAnimals);
     } else {
-      const filtered = originalAnimals
-        .filter((animal) => animal.manualId == inputValue)
-        .sort((a, b) => (a.manualId ?? 0) - (b.manualId ?? 0));
+      const filtered = originalAnimals.filter(
+        (animal) => animal.manualId == inputValue
+      );
       setListAnimals(filtered);
     }
   }, [inputValue, originalAnimals]);
@@ -66,22 +72,38 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
   const handleAnimalAdded = (newAnimal: Animal) => {
     setListAnimals((prev) => {
       const updatedListAnimals = [...prev, newAnimal];
-      return updatedListAnimals.sort(
-        (a, b) => (a.manualId ?? 0) - (b.manualId ?? 0)
-      );
+      return updatedListAnimals.sort((a, b) => {
+        const aIsNumber = !isNaN(Number(a.manualId));
+        const bIsNumber = !isNaN(Number(b.manualId));
+
+        if (!aIsNumber && !bIsNumber) {
+          return String(a.manualId).localeCompare(String(b.manualId)); // Comparação alfabética
+        } else if (aIsNumber && bIsNumber) {
+          return Number(a.manualId) - Number(b.manualId); // Comparação numérica
+        } else {
+          return aIsNumber ? 1 : -1; // Strings antes de números
+        }
+      });
     });
     setOriginalAnimals((prev) => {
       const updatedListAnimals = [...prev, newAnimal];
-      return updatedListAnimals.sort(
-        (a, b) => (a.manualId ?? 0) - (b.manualId ?? 0)
-      );
+      return updatedListAnimals.sort((a, b) => {
+        const aIsNumber = !isNaN(Number(a.manualId));
+        const bIsNumber = !isNaN(Number(b.manualId));
+
+        if (!aIsNumber && !bIsNumber) {
+          return String(a.manualId).localeCompare(String(b.manualId)); // Comparação alfabética
+        } else if (aIsNumber && bIsNumber) {
+          return Number(a.manualId) - Number(b.manualId); // Comparação numérica
+        } else {
+          return aIsNumber ? 1 : -1; // Strings antes de números
+        }
+      });
     });
   };
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(
-      event.target.value ? parseFloat(event.target.value) : undefined
-    );
+    setInputValue(event.target.value);
   };
 
   return (

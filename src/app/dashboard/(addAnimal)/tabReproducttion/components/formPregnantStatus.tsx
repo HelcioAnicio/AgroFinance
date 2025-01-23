@@ -10,7 +10,6 @@ interface FormPregnantStatusProps {
   ) => void;
   animals: Animal[];
   scores: number[];
-  userId: string | undefined | null;
 }
 
 export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
@@ -18,7 +17,6 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
   handleInputValues,
   animals,
   scores,
-  userId,
 }) => {
   return (
     <>
@@ -53,11 +51,7 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
           options={[
             { label: 'Comercial', value: 'Comercial' },
             ...animals
-              .filter(
-                (animal) =>
-                  animal.ownerId === userId && animal.gender === 'male'
-              )
-              .sort((a, b) => (a.manualId ?? 0) - (b.manualId ?? 0))
+              .filter((animal) => animal.gender === 'male')
               .map((animal) => ({
                 label: `Touro ${animal.manualId}`,
                 value: animal.id,
@@ -153,11 +147,7 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
           options={[
             { label: 'Comercial', value: 'comercial' },
             ...animals
-              .filter(
-                (animal) =>
-                  animal.ownerId === userId && animal.gender === 'male'
-              )
-              .sort((a, b) => (a.manualId ?? 0) - (b.manualId ?? 0))
+              .filter((animal) => animal.gender === 'male')
               .map((animal) => ({
                 label: `Touro ${animal.manualId}`,
                 value: animal.id,

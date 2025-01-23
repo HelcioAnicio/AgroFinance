@@ -4,8 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import React from 'react';
 import { Animal } from '@/types/animal';
-import { User } from '@/types/user';
-import { useSession } from 'next-auth/react';
 import { InputForm } from '@/components/ui/inputForm';
 import { RadioForm } from '@/components/ui/radioForm';
 import { SelectForm } from '@/components/ui/selectForm';
@@ -16,14 +14,12 @@ interface CardFormMainProps {
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
   animals: Animal[];
-  users: User[];
   breedArray?: string[];
   setTabValue: (value: string) => void;
 }
 
 export const CardFormMain: React.FC<CardFormMainProps> = ({
   animals,
-  users,
   allDataForm,
   handleInputValues,
   setTabValue,
@@ -34,11 +30,6 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
     setTabValue('reproducao');
     console.log('Tab alterada para "reproducao"');
   };
-
-  const { data: session } = useSession();
-
-  const userEmail = users.find((user) => user.email === session?.user?.email);
-  const userId = userEmail?.id;
 
   const breedArray = [
     'Nelore',
@@ -77,7 +68,7 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
               classNameDiv="flex items-end gap-1"
               htmlFor="manualId"
               label="Id do animal:"
-              type="number"
+              type="text"
               name="manualId"
               id="manualId"
               value={allDataForm.manualId ?? ''}
@@ -182,11 +173,7 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                 options={[
                   { label: 'Comercial', value: 'Comercial' },
                   ...animals
-                    .filter(
-                      (animal) =>
-                        animal.ownerId === userId && animal.gender === 'female'
-                    )
-                    .sort((a, b) => (a.manualId ?? 0) - (b.manualId ?? 0))
+                    .filter((animal) => animal.gender === 'female')
                     .map((animal) => ({
                       label: `Vaca ${animal.manualId}`,
                       value: animal.id,
@@ -205,11 +192,7 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                 options={[
                   { label: 'Comercial', value: 'Comercial' },
                   ...animals
-                    .filter(
-                      (animal) =>
-                        animal.ownerId === userId && animal.gender === 'male'
-                    )
-                    .sort((a, b) => (a.manualId ?? 0) - (b.manualId ?? 0))
+                    .filter((animal) => animal.gender === 'male')
                     .map((animal) => ({
                       label: `Touro ${animal.manualId}`,
                       value: animal.id,

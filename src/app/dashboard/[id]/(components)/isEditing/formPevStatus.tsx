@@ -17,7 +17,7 @@ export const FormPevStatus: React.FC<FormPevStatusProps> = ({
       <article className="flex flex-wrap gap-5">
         <div className="flex flex-col gap-1">
           <label className="text-secondary" htmlFor="expectedDueDate">
-            Manejo utilizado:
+            Data de expctativa de parto:
           </label>
           <input
             type="date"
