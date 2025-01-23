@@ -81,6 +81,7 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
     const dataToSubmit = {
       ...allDataForm,
       id: uuidv4(),
+      manualId: allDataForm.manualId.toLowerCase(),
       ownerId: userEmail?.id || '',
       updatedAt: new Date(),
       motherId:
