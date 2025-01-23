@@ -53,9 +53,11 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
     if (inputValue === '') {
       setListAnimals(originalAnimals);
     } else {
-      const filtered = originalAnimals.filter(
-        (animal) => animal.manualId == inputValue
-      );
+      const filtered = originalAnimals.filter((animal) => {
+        const manualId = String(animal.manualId);
+        const input = String(inputValue?.toLowerCase());
+        return manualId.includes(input);
+      });
       setListAnimals(filtered);
     }
   }, [inputValue, originalAnimals]);
@@ -77,11 +79,11 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
         const bIsNumber = !isNaN(Number(b.manualId));
 
         if (!aIsNumber && !bIsNumber) {
-          return String(a.manualId).localeCompare(String(b.manualId)); // Comparação alfabética
+          return String(a.manualId).localeCompare(String(b.manualId));
         } else if (aIsNumber && bIsNumber) {
-          return Number(a.manualId) - Number(b.manualId); // Comparação numérica
+          return Number(a.manualId) - Number(b.manualId);
         } else {
-          return aIsNumber ? 1 : -1; // Strings antes de números
+          return aIsNumber ? 1 : -1;
         }
       });
     });
@@ -92,11 +94,11 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
         const bIsNumber = !isNaN(Number(b.manualId));
 
         if (!aIsNumber && !bIsNumber) {
-          return String(a.manualId).localeCompare(String(b.manualId)); // Comparação alfabética
+          return String(a.manualId).localeCompare(String(b.manualId));
         } else if (aIsNumber && bIsNumber) {
-          return Number(a.manualId) - Number(b.manualId); // Comparação numérica
+          return Number(a.manualId) - Number(b.manualId);
         } else {
-          return aIsNumber ? 1 : -1; // Strings antes de números
+          return aIsNumber ? 1 : -1;
         }
       });
     });
@@ -215,7 +217,10 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                         </>
                       )}
                     </td>
-                    <td className="px-1 py-3">{animal.manualId}</td>
+                    <td className="px-1 py-3">
+                      {animal.manualId.charAt(0).toLocaleUpperCase() +
+                        animal.manualId.slice(1)}
+                    </td>
                     <td className="px-1 py-3">{animal.breed}</td>
                     <td className="px-1 py-3">
                       {animal.gender === 'male' ? 'Macho' : 'Fêmea'}

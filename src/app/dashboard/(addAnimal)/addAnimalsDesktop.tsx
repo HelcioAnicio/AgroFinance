@@ -1,6 +1,5 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CardFormMain } from './tabMain/cardFormMain';
 import { CardFormReproduction } from './tabReproducttion/cardFormReproduction';
@@ -122,16 +121,16 @@ export const AddAnimalDesktop: React.FC<AddAnimalProps> = ({
             </div>
           </div>
           <DialogFooter className="flex justify-between">
-            <DialogClose className="rounded-md border px-2 shadow-md hover:bg-primary-foreground">
+            <DialogClose className="rounded-md border p-2 shadow-md hover:bg-primary-foreground">
               Cancelar
             </DialogClose>
-            <Button
-              className="shadow-md"
+            <DialogClose
+              className="rounded-md border bg-foreground px-2 py-2 text-background shadow-md hover:bg-primary-foreground"
               type="submit"
               onClick={() => submitForm(allDataForm)}
             >
               Adicionar animal
-            </Button>
+            </DialogClose>
           </DialogFooter>
         </TabsContent>
       </Tabs>
