@@ -8,6 +8,7 @@ import { FormMaleReproductive } from './components/formMaleReproductive';
 import { FormPregnantStatus } from './components/formPregnantStatus';
 import { FormWaitingStatus } from './components/formWaitingStatus';
 import { InputForm } from '@/components/ui/inputForm';
+import { SheetFooter, SheetClose } from '@/components/ui/sheet';
 
 interface CardFormReproductionProps {
   animals: Animal[];
@@ -15,24 +16,19 @@ interface CardFormReproductionProps {
   handleInputValues: (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
-  setTabValue: React.Dispatch<React.SetStateAction<string>>;
+  submitForm: (allDataForm: Animal) => Promise<void>;
 }
 
 export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
   animals,
   allDataForm,
   handleInputValues,
-  setTabValue,
+  submitForm,
 }) => {
   const scores = [
     1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 2.75, 3, 3.25, 3.5, 3.75, 4, 5,
   ];
 
-  const sendForm = (event: React.FormEvent) => {
-    event.preventDefault();
-    console.log(allDataForm);
-    setTabValue('sanitarias');
-  };
   return (
     <>
       <Card className="h-full">
@@ -110,9 +106,21 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
               )}
 
               <article className="flex w-full justify-end">
-                <Button type="submit" onClick={sendForm}>
-                  Próximo
-                </Button>
+                <SheetFooter>
+                  <SheetClose asChild>
+                    <Button className="bg-card text-card-foreground hover:bg-primary-foreground">
+                      Cancelar
+                    </Button>
+                  </SheetClose>
+                  <SheetClose asChild>
+                    <Button
+                      type="submit"
+                      onClick={() => submitForm(allDataForm)}
+                    >
+                      Adicionar Animal
+                    </Button>
+                  </SheetClose>
+                </SheetFooter>
               </article>
             </section>
           </form>
