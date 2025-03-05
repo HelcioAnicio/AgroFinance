@@ -17,7 +17,7 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
 }) => {
   return (
     <>
-      <Card className="max-w-xs p-1">
+      <Card className="w-full max-w-lg px-2 py-7">
         <CardHeader className="py-2">
           <CardTitle className="text-base">Informações principais</CardTitle>
         </CardHeader>

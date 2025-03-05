@@ -139,10 +139,12 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
           <button onClick={handleBack}>
             <ArrowLeft />
           </button>
-          <h1 className="flex-1 text-center text-xl">
-            Detalhes do <br /> animal {animal?.manualId}
+          <h1 className="w-full max-w-32 text-center text-xl sm:max-w-none">
+            Detalhes do animal{' '}
+            {animal?.manualId.charAt(0).toUpperCase() +
+              animal?.manualId.slice(1)}
           </h1>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 lg:gap-10">
             {isEditing === false ? (
               <>
                 <button onClick={handleDelete}>
@@ -159,19 +161,24 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
       </section>
 
       {isEditing === false ? (
-        <div className="flex flex-col gap-5 p-4">
+        <div className="m-auto flex w-full max-w-lg flex-wrap gap-10 pb-10 pt-5">
           <CardInformation animal={animal as Animal} />
           <CardReproduction animal={animal as Animal} />
-          <Card className="flex w-full max-w-lg items-center gap-3 p-2 px-5 py-2">
+          <Card className="flex w-full max-w-lg flex-col gap-3 px-2 py-5">
             <CardHeader>
-              <CardTitle>Filhos:</CardTitle>
+              <CardTitle className="text-base">Filhos</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-1">
               <div className="flex flex-wrap items-center gap-2">
                 {animal?.offspringFromMother?.map((offspring) => (
                   <Link href={`/dashboard/${offspring.id}`} key={offspring.id}>
-                    <div className="w-max pt-3">
-                      <span>Id: {offspring.manualId}</span> {' - '}
+                    <div className="w-max">
+                      <span>
+                        Id:{' '}
+                        {offspring.manualId.charAt(0).toUpperCase() +
+                          offspring.manualId.slice(1)}
+                      </span>{' '}
+                      {' - '}
                       <span>
                         Sexo: {offspring.gender === 'male' ? 'Macho' : 'Fêmea'}
                       </span>
@@ -185,7 +192,11 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
         </div>
       ) : (
         <>
-          <form action="" method="post" className="flex flex-col gap-5 p-3">
+          <form
+            action=""
+            method="post"
+            className="m-auto flex max-w-lg flex-col gap-5 p-3"
+          >
             <FormBasicInformation
               allDataForm={allDataForm}
               handleInputValues={handleInputValues}
@@ -193,7 +204,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
               breedArray={breedArray}
             />
 
-            <Card className="h-full">
+            <Card className="h-full px-2 py-7">
               <CardHeader className="py-2">
                 <CardTitle className="text-base">
                   Informações reprodutivas
@@ -263,16 +274,21 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
               </CardContent>
             </Card>
 
-            <Card className="flex w-full max-w-lg items-center gap-3 p-2 px-5 py-2">
-              <CardHeader>
-                <CardTitle>Filhos:</CardTitle>
+            <Card className="flex w-full max-w-lg flex-col gap-3 px-2 py-7">
+              <CardHeader className="py-2">
+                <CardTitle className="text-base">Filhos</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap items-center gap-2">
+              <CardContent className="px-1 py-2">
+                <div className="flex flex-col gap-2">
                   {animal?.offspringFromMother?.map((offspring) => (
                     <Link href={`/${offspring.id}`} key={offspring.id}>
-                      <div className="w-max pt-3">
-                        <span>Id: {offspring.manualId}</span> {' - '}
+                      <div className="w-max">
+                        <span>
+                          Id:{' '}
+                          {offspring.manualId.charAt(0).toUpperCase() +
+                            offspring.manualId.slice(1)}
+                        </span>{' '}
+                        {' - '}
                         <span>
                           Sexo:{' '}
                           {offspring.gender === 'male' ? 'Macho' : 'Fêmea'}

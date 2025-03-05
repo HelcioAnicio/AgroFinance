@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { Animal } from '@/types/animal';
 import { MdHighlightOff } from 'react-icons/md';
 import { FaCheckCircle } from 'react-icons/fa';
@@ -12,8 +12,10 @@ interface InformationProps {
 
 export const CardInformation: React.FC<InformationProps> = ({ animal }) => {
   return (
-    <Card className="flex w-full max-w-sm flex-col gap-2 p-2 sm:flex-row sm:flex-wrap sm:gap-4">
-      <h2 className="pl-2 text-xl">Dados básicos</h2>
+    <Card className="flex w-full max-w-lg flex-col gap-2 px-2 py-7 sm:flex-row sm:flex-wrap sm:gap-4">
+      <CardHeader className="py-2">
+        <CardTitle className="text-base">Dados básicos</CardTitle>
+      </CardHeader>
 
       <section className="flex w-full max-w-sm flex-wrap gap-2 p-2">
         <Card className="w-max rounded-sm px-3 py-1">

@@ -31,7 +31,7 @@ model Animal {
   birthDate           DateTime
   weight              Float
   breed               String
-  category            String   @map("category") @default("") @db.Text  
+  category            String      @default("") @map("category")
   motherId            String?
   fatherId            String?
   reproductiveStatus  String?
@@ -46,7 +46,7 @@ model Animal {
   observations        String?
   ownerId             String
   createdAt           DateTime    @default(now())
-  updatedAt           DateTime?   @updatedAt
+  updatedAt           DateTime    @updatedAt
   dewormingDate       DateTime?
   dewormingExpiry     DateTime?
   dewormingName       String?
@@ -65,7 +65,7 @@ model Animal {
   diseases            Disease[]   @relation("AnimalDiseases")
   vaccines            Vaccine[]   @relation("AnimalVaccines")
 
-  @@unique([manualId,ownerId])
+  @@unique([manualId, ownerId])
 }
 
 model Disease {
@@ -84,6 +84,7 @@ model Vaccine {
   name        String
   description String?
   date        DateTime
+  expiryDate  DateTime
   animalId    String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

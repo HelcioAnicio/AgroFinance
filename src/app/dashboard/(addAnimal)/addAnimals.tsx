@@ -1,13 +1,6 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import {
-  SheetClose,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
+import { SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CardFormMain } from './tabMain/cardFormMain';
 import { CardFormReproduction } from './tabReproducttion/cardFormReproduction';
@@ -18,6 +11,7 @@ import { Animal } from '@/types/animal';
 import { User } from '@/types/user';
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'sonner';
+// import { CardFormVacines } from './tabVacines/cardFormVacines';
 
 interface AddAnimalProps {
   animals: Animal[];
@@ -120,7 +114,6 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
             <TabsList>
               <TabsTrigger value="principais">Principais</TabsTrigger>
               <TabsTrigger value="reproducao">Reprodução</TabsTrigger>
-              <TabsTrigger value="sanitarias">Sanitárias</TabsTrigger>
             </TabsList>
           </SheetTitle>
         </SheetHeader>
@@ -139,26 +132,8 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
             animals={animals}
             handleInputValues={handleInputValues}
             allDataForm={allDataForm}
-            setTabValue={setTabValue}
+            submitForm={submitForm}
           />
-        </TabsContent>
-
-        <TabsContent value="sanitarias">
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <p className="text-right">Name</p>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <p className="text-right">Username</p>
-            </div>
-          </div>
-          <SheetFooter>
-            <SheetClose asChild>
-              <Button type="submit" onClick={() => submitForm(allDataForm)}>
-                Adicionar Animal
-              </Button>
-            </SheetClose>
-          </SheetFooter>
         </TabsContent>
       </Tabs>
     </SheetContent>
