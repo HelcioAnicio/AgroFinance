@@ -11,9 +11,7 @@ import { User } from '@/types/user';
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'sonner';
 import {
-  DialogClose,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -75,8 +73,7 @@ export const AddAnimalDesktop: React.FC<AddAnimalProps> = ({
       setAllDataForm({} as Animal);
       toast.success('Animal cadastrado com sucesso!');
       onAnimalAdded(dataToSubmit);
-    } catch (error) {
-      console.log('Erro ao cadastrar animal:', error);
+    } catch {
       toast.error('Ocorreu um erro ao cadastrar o animal.');
     }
   };
@@ -89,7 +86,6 @@ export const AddAnimalDesktop: React.FC<AddAnimalProps> = ({
             <TabsList>
               <TabsTrigger value="principais">Principais</TabsTrigger>
               <TabsTrigger value="reproducao">Reprodução</TabsTrigger>
-              <TabsTrigger value="sanitarias">Sanitárias</TabsTrigger>
             </TabsList>
           </DialogTitle>
         </DialogHeader>
@@ -107,31 +103,8 @@ export const AddAnimalDesktop: React.FC<AddAnimalProps> = ({
             animals={animals}
             handleInputValues={handleInputValues}
             allDataForm={allDataForm}
-            setTabValue={setTabValue}
+            submitForm={submitForm}
           />
-        </TabsContent>
-
-        <TabsContent value="sanitarias">
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <p className="text-right">Name</p>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <p className="text-right">Username</p>
-            </div>
-          </div>
-          <DialogFooter className="flex justify-between">
-            <DialogClose className="rounded-md border p-2 shadow-md hover:bg-primary-foreground">
-              Cancelar
-            </DialogClose>
-            <DialogClose
-              className="rounded-md border bg-foreground px-2 py-2 text-background shadow-md hover:bg-primary-foreground"
-              type="submit"
-              onClick={() => submitForm(allDataForm)}
-            >
-              Adicionar animal
-            </DialogClose>
-          </DialogFooter>
         </TabsContent>
       </Tabs>
     </DialogContent>

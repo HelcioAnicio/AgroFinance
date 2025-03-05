@@ -225,38 +225,46 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                     <td className="px-1 py-3">
                       {animal.gender === 'male' ? 'Macho' : 'Fêmea'}
                     </td>
-                    <td
-                      className="px-1 py-3 transition duration-300 ease-in-out hover:opacity-50"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        handleNavigation(animal.motherId);
-                      }}
-                    >
-                      {mother ? (
+                    {animal.motherId === null ? (
+                      <td className="cursor-default px-1 py-3">
+                        <span className="flex w-max items-center gap-1">
+                          Comercial
+                        </span>
+                      </td>
+                    ) : (
+                      <td
+                        className="px-1 py-3 transition duration-300 ease-in-out hover:opacity-50"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleNavigation(animal.motherId);
+                        }}
+                      >
                         <span className="flex w-max items-center gap-1 border-b border-foreground">
-                          {`Vaca ${mother.manualId}`}
+                          {`Vaca ${mother?.manualId}`}
                           <LiaExternalLinkAltSolid className="inline-block size-4" />
                         </span>
-                      ) : (
-                        'Comercial'
-                      )}
-                    </td>
-                    <td
-                      className="px-1 py-3 transition duration-300 ease-in-out hover:opacity-50"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        handleNavigation(animal.fatherId);
-                      }}
-                    >
-                      {father ? (
+                      </td>
+                    )}
+                    {animal.fatherId === null ? (
+                      <td className="cursor-default px-1 py-3">
+                        <span className="flex w-max items-center gap-1">
+                          Comercial
+                        </span>
+                      </td>
+                    ) : (
+                      <td
+                        className="px-1 py-3 transition duration-300 ease-in-out hover:opacity-50"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleNavigation(animal.fatherId);
+                        }}
+                      >
                         <span className="flex w-max items-center gap-1 border-b border-foreground">
-                          {`Touro ${father.manualId}`}
+                          {`Touro ${father?.manualId}`}
                           <LiaExternalLinkAltSolid className="inline-block size-4" />
                         </span>
-                      ) : (
-                        'Comercial'
-                      )}
-                    </td>
+                      </td>
+                    )}
                     <td className="px-1 py-3">
                       {animal.birthDate
                         ? new Date(animal.birthDate).toLocaleDateString()
