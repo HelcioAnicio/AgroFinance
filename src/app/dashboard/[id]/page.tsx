@@ -3,7 +3,7 @@ import { Header } from '@/components/ui/header';
 import { prisma } from '@/lib/useDataBase';
 import { Animal } from '@/types/animal';
 import EditableAnimalDetails from './(components)/editableAnimalDetails';
-import { fetchAnimals } from '@/lib/fetchData';
+import { fetchAnimals, fetchVaccines } from '@/lib/fetchData';
 
 const DetailAnimalId = async ({
   params,
@@ -24,11 +24,16 @@ const DetailAnimalId = async ({
       owner: true,
     },
   });
+  const vaccines = await fetchVaccines();
 
   return (
     <>
       <Header />
-      <EditableAnimalDetails animal={animal as Animal} animals={animals} />
+      <EditableAnimalDetails
+        animal={animal as Animal}
+        animals={animals}
+        vaccine={vaccines}
+      />
     </>
   );
 };

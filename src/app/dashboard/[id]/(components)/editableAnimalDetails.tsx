@@ -17,19 +17,25 @@ import { FormPevStatus } from './isEditing/formPevStatus';
 import { FormPregnantStatus } from './isEditing/formPregnantStatus';
 import { FormWaitingStatus } from './isEditing/formWaitingStatus';
 import { useState } from 'react';
+import { Vaccine } from '@/types/vaccine';
 
 interface EditableAnimalDetailsProps {
   animal: Animal;
   animals: Animal[];
+  vaccine: Vaccine[];
 }
 
 const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   animal,
   animals,
+  vaccine,
 }) => {
   const [allDataForm, setAllDataForm] = useState<Animal>(animal);
+  // const [dataOfVaccine, setDataOfVaccine] = useState<Vaccine[]>(vaccine);
   const [isEditing, setIsEditing] = useState(false);
+  const [addVaccine, setAddVaccine] = useState(false);
   const router = useRouter();
+  console.log('vaccine: ', vaccine);
 
   const breedArray = [
     'Nelore',
@@ -191,119 +197,171 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
           </Card>
         </div>
       ) : (
-        <>
-          <form
-            action=""
-            method="post"
-            className="m-auto flex max-w-lg flex-col gap-5 p-3"
-          >
-            <FormBasicInformation
-              allDataForm={allDataForm}
-              handleInputValues={handleInputValues}
-              animal={animal as Animal}
-              breedArray={breedArray}
-            />
+        <form
+          action=""
+          method="post"
+          className="m-auto flex max-w-lg flex-col gap-5 p-3"
+        >
+          <FormBasicInformation
+            allDataForm={allDataForm}
+            handleInputValues={handleInputValues}
+            animal={animal as Animal}
+            breedArray={breedArray}
+          />
 
-            <Card className="h-full px-2 py-7">
-              <CardHeader className="py-2">
-                <CardTitle className="text-base">
-                  Informações reprodutivas
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="flex h-full flex-col p-1">
-                <section className="flex w-full max-w-sm flex-col gap-4">
-                  {allDataForm.gender === 'male' ? (
-                    <FormMaleReproductive
-                      allDataForm={allDataForm}
-                      handleInputValues={handleInputValues}
-                      animal={animal as Animal}
-                    />
-                  ) : (
-                    <>
-                      <article className="flex flex-col gap-1">
-                        <label
-                          className="text-secondary"
-                          htmlFor="reproductiveStatus"
-                        >
-                          Status reprodutivo:
-                        </label>
-                        <select
-                          name="reproductiveStatus"
-                          id="reproductiveStatus"
-                          className="w-32 border border-b border-b-primary bg-transparent outline-none"
-                          value={allDataForm.reproductiveStatus ?? ''}
-                          onChange={handleInputValues}
-                        >
-                          <option disabled value=""></option>
-                          <option value="empty">Vazia</option>
-                          <option value="pregnant">Prenha</option>
-                          <option value="waiting">Em espera</option>
-                          <option value="pev">PEV</option>
-                        </select>
-                      </article>
+          <Card className="h-full px-2 py-7">
+            <CardHeader className="py-2">
+              <CardTitle className="text-base">
+                Informações reprodutivas
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex h-full flex-col p-1">
+              <section className="flex w-full max-w-sm flex-col gap-4">
+                {allDataForm.gender === 'male' ? (
+                  <FormMaleReproductive
+                    allDataForm={allDataForm}
+                    handleInputValues={handleInputValues}
+                    animal={animal as Animal}
+                  />
+                ) : (
+                  <>
+                    <article className="flex flex-col gap-1">
+                      <label
+                        className="text-secondary"
+                        htmlFor="reproductiveStatus"
+                      >
+                        Status reprodutivo:
+                      </label>
+                      <select
+                        name="reproductiveStatus"
+                        id="reproductiveStatus"
+                        className="w-32 border border-b border-b-primary bg-transparent outline-none"
+                        value={allDataForm.reproductiveStatus ?? ''}
+                        onChange={handleInputValues}
+                      >
+                        <option disabled value=""></option>
+                        <option value="empty">Vazia</option>
+                        <option value="pregnant">Prenha</option>
+                        <option value="waiting">Em espera</option>
+                        <option value="pev">PEV</option>
+                      </select>
+                    </article>
 
-                      {allDataForm.reproductiveStatus === 'pregnant' && (
-                        <FormPregnantStatus
-                          allDataForm={allDataForm}
-                          handleInputValues={handleInputValues}
-                          animal={animal as Animal}
-                          animals={animals}
-                          scores={scores}
-                        />
-                      )}
+                    {allDataForm.reproductiveStatus === 'pregnant' && (
+                      <FormPregnantStatus
+                        allDataForm={allDataForm}
+                        handleInputValues={handleInputValues}
+                        animal={animal as Animal}
+                        animals={animals}
+                        scores={scores}
+                      />
+                    )}
 
-                      {allDataForm.reproductiveStatus === 'waiting' && (
-                        <FormWaitingStatus
-                          allDataForm={allDataForm}
-                          handleInputValues={handleInputValues}
-                          animal={animal as Animal}
-                          animals={animals}
-                        />
-                      )}
+                    {allDataForm.reproductiveStatus === 'waiting' && (
+                      <FormWaitingStatus
+                        allDataForm={allDataForm}
+                        handleInputValues={handleInputValues}
+                        animal={animal as Animal}
+                        animals={animals}
+                      />
+                    )}
 
-                      {allDataForm.reproductiveStatus === 'pev' && (
-                        <FormPevStatus
-                          allDataForm={allDataForm}
-                          handleInputValues={handleInputValues}
-                          animals={animals}
-                        />
-                      )}
-                    </>
-                  )}
-                </section>
-              </CardContent>
-            </Card>
+                    {allDataForm.reproductiveStatus === 'pev' && (
+                      <FormPevStatus
+                        allDataForm={allDataForm}
+                        handleInputValues={handleInputValues}
+                        animals={animals}
+                      />
+                    )}
+                  </>
+                )}
+              </section>
+            </CardContent>
+          </Card>
 
-            <Card className="flex w-full max-w-lg flex-col gap-3 px-2 py-7">
-              <CardHeader className="py-2">
-                <CardTitle className="text-base">Filhos</CardTitle>
-              </CardHeader>
-              <CardContent className="px-1 py-2">
-                <div className="flex flex-col gap-2">
-                  {animal?.offspringFromMother?.map((offspring) => (
-                    <Link href={`/${offspring.id}`} key={offspring.id}>
-                      <div className="w-max">
-                        <span>
-                          Id:{' '}
-                          {offspring.manualId.charAt(0).toUpperCase() +
-                            offspring.manualId.slice(1)}
-                        </span>{' '}
-                        {' - '}
-                        <span>
-                          Sexo:{' '}
-                          {offspring.gender === 'male' ? 'Macho' : 'Fêmea'}
-                        </span>
-                        <Separator className="bg-foreground" />
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+          <Card className="flex w-full max-w-lg flex-col gap-3 px-2 py-7">
+            <CardHeader className="py-2">
+              <CardTitle className="text-base">Filhos</CardTitle>
+            </CardHeader>
+            <CardContent className="px-1 py-2">
+              <div className="flex flex-col gap-2">
+                {animal?.offspringFromMother?.map((offspring) => (
+                  <Link href={`/${offspring.id}`} key={offspring.id}>
+                    <div className="w-max">
+                      <span>
+                        Id:{' '}
+                        {offspring.manualId.charAt(0).toUpperCase() +
+                          offspring.manualId.slice(1)}
+                      </span>{' '}
+                      {' - '}
+                      <span>
+                        Sexo: {offspring.gender === 'male' ? 'Macho' : 'Fêmea'}
+                      </span>
+                      <Separator className="bg-foreground" />
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
 
-            <Button onClick={() => submitForm(allDataForm)}>Salvar</Button>
-          </form>
-        </>
+          <Button onClick={() => submitForm(allDataForm)}>Salvar</Button>
+        </form>
+      )}
+      {addVaccine ? (
+        <form action="" method="post">
+          <Card className="m-auto flex w-full max-w-lg flex-col gap-3 px-2 py-7">
+            <CardHeader className="py-2">
+              <CardTitle className="flex items-center justify-between text-base">
+                Vacinas
+                {addVaccine === true && (
+                  <Button
+                    className="bg-transparent text-foreground hover:bg-muted"
+                    onClick={() => setAddVaccine(false)}
+                  >
+                    Cancelar
+                  </Button>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-1 py-2"></CardContent>
+          </Card>{' '}
+        </form>
+      ) : (
+        <Card className="m-auto flex w-full max-w-lg flex-col gap-3 px-2 py-7">
+          <CardHeader className="py-2">
+            <CardTitle className="flex justify-between text-base">
+              Vacinas{' '}
+              {addVaccine === false && (
+                <Button onClick={() => setAddVaccine(true)}>
+                  Adicionar Vacinas
+                </Button>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-5 px-1 py-2">
+            {vaccine.map((vaccineItem, index) => (
+              <div key={index} className="flex flex-col gap-2">
+                <Card className="w-full max-w-max rounded-sm px-3 py-1">
+                  <strong>Name: </strong>
+                  <span>{vaccineItem.name}</span>
+                </Card>
+                <Card className="w-full max-w-max rounded-sm px-3 py-1">
+                  <strong>Descrição: </strong>
+                  <span className="">{vaccineItem.description}</span>
+                </Card>
+                <Card className="w-full max-w-max rounded-sm px-3 py-1">
+                  <strong>Data de aplicação: </strong>
+                  <span>{vaccineItem.date?.toLocaleDateString()}</span>
+                </Card>
+                <Card className="w-full max-w-max rounded-sm px-3 py-1">
+                  <strong>Data de expiração: </strong>
+                  <span>{vaccineItem.expiryDate?.toLocaleDateString()}</span>
+                </Card>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
       )}
     </>
   );
