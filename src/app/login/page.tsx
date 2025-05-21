@@ -28,7 +28,7 @@ const LoginPage = () => {
           <header className="flex items-center justify-center py-5">
             <figure className="flex flex-col items-center">
               <Image
-                src="/logo"
+                src="/logo.png"
                 alt="Logo - Imagem de um touro e uma ovelha"
                 width={200}
                 height={200}
