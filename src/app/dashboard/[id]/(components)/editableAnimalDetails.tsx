@@ -1,41 +1,50 @@
 'use client';
 
 import { Animal } from '@/types/animal';
+import { Vaccine } from '@/types/vaccine';
+import { useState } from 'react';
 import Link from 'next/link';
+import axios from 'axios';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { Separator } from '@/components/ui/separator';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { CardInformation } from './isNotEditing/cardInformation';
 import { CardReproduction } from './isNotEditing/cardReproduction';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Trash2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import axios from 'axios';
-import { toast } from 'sonner';
 import { FormBasicInformation } from './isEditing/formBasicInformation';
 import { FormMaleReproductive } from './isEditing/formMaleReproductive';
 import { FormPevStatus } from './isEditing/formPevStatus';
 import { FormPregnantStatus } from './isEditing/formPregnantStatus';
 import { FormWaitingStatus } from './isEditing/formWaitingStatus';
-import { useState } from 'react';
-import { Vaccine } from '@/types/vaccine';
+import { InputForm } from '@/components/ui/inputForm';
 
 interface EditableAnimalDetailsProps {
   animal: Animal;
   animals: Animal[];
-  vaccine: Vaccine[];
+  vaccines: Vaccine[];
+  vaccine: Vaccine;
 }
 
 const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   animal,
   animals,
-  vaccine,
+  vaccines,
 }) => {
   const [allDataForm, setAllDataForm] = useState<Animal>(animal);
-  // const [dataOfVaccine, setDataOfVaccine] = useState<Vaccine[]>(vaccine);
+  const [dataOfVaccine, setDataOfVaccine] = useState<Vaccine>({} as Vaccine);
   const [isEditing, setIsEditing] = useState(false);
   const [addVaccine, setAddVaccine] = useState(false);
   const router = useRouter();
-  console.log('vaccine: ', vaccine);
+  console.log('vaccines: ', vaccines);
+  console.log('dataOfVaccine: ', dataOfVaccine);
 
   const breedArray = [
     'Nelore',
@@ -88,6 +97,23 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     }));
   };
 
+  const handleInputValuesVaccine = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value, type } = event.target;
+    const newValue =
+      type === 'number' || type === 'range'
+        ? value === ''
+          ? ''
+          : Number(value)
+        : value;
+
+    setDataOfVaccine((prevData) => ({
+      ...prevData,
+      [name]: newValue,
+    }));
+  };
+
   const submitForm = async (allDataForm: Animal) => {
     const dataToSubmit = {
       ...allDataForm,
@@ -125,6 +151,27 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
       toast.error('Ocorreu um erro ao atualizar o animal.');
     }
   };
+
+  // const submitFormVaccine = async (dataOfVaccine: Vaccine) => {
+  //   try {
+  //     const response = await axios.put(
+  //       `/api/updateAnimals?id=${dataOfVaccine.id}`,
+  //       dataOfVaccine,
+  //       {
+  //         headers: {
+  //           'Content-Type': 'application/json',
+  //         },
+  //       }
+  //     );
+  //     console.log('Vacina atualizado com sucesso:', response.data);
+  //     setTimeout(() => {
+  //       toast.success('Vacina atualizado com sucesso!');
+  //     }, 2000);
+  //   } catch (error) {
+  //     console.log('Erro ao atualizar vacina', error);
+  //     toast.error('Ocorreu um erro ao atualizar o vacina.');
+  //   }
+  // };
 
   const handleDelete = async () => {
     if (window.confirm('Tem certeza que deseja excluir este animal?')) {
@@ -314,17 +361,31 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
             <CardHeader className="py-2">
               <CardTitle className="flex items-center justify-between text-base">
                 Vacinas
-                {addVaccine === true && (
-                  <Button
-                    className="bg-transparent text-foreground hover:bg-muted"
-                    onClick={() => setAddVaccine(false)}
-                  >
-                    Cancelar
-                  </Button>
-                )}
               </CardTitle>
             </CardHeader>
-            <CardContent className="px-1 py-2"></CardContent>
+            <CardContent className="px-1 py-2">
+              <InputForm
+                classNameDiv={'flex flex-col gap-1'}
+                htmlFor={'name'}
+                label={'Nome da vacina: '}
+                type={'text'}
+                name={'name'}
+                id={'name'}
+                value={dataOfVaccine.name ?? ''}
+                onChange={handleInputValuesVaccine}
+              />
+            </CardContent>
+            <CardFooter className="flex justify-end gap-2">
+              <Button
+                className="bg-transparent text-foreground hover:bg-muted"
+                onClick={() => setAddVaccine(false)}
+              >
+                Cancelar
+              </Button>
+              <Button onClick={() => setAddVaccine(false)}>
+                Adicionar Vacinas
+              </Button>
+            </CardFooter>
           </Card>{' '}
         </form>
       ) : (
@@ -339,9 +400,10 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
               )}
             </CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col gap-5 px-1 py-2">
-            {vaccine.map((vaccineItem, index) => (
+          <CardContent className="flex flex-col gap-10 px-1 py-2">
+            {vaccines.map((vaccineItem, index) => (
               <div key={index} className="flex flex-col gap-2">
+                <h2 className="font-bold">Vacina: {index + 1}</h2>
                 <Card className="w-full max-w-max rounded-sm px-3 py-1">
                   <strong>Name: </strong>
                   <span>{vaccineItem.name}</span>
@@ -358,6 +420,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                   <strong>Data de expiração: </strong>
                   <span>{vaccineItem.expiryDate?.toLocaleDateString()}</span>
                 </Card>
+                <Separator className="mt-2 border border-secondary" />
               </div>
             ))}
           </CardContent>
