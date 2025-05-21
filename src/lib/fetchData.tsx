@@ -34,15 +34,22 @@ export const fetchUsers = async (): Promise<User[]> => {
   return await prisma.user.findMany();
 };
 
-export const fetchVaccines = async (): Promise<Vaccine[]> => {
-  const vaccines = await prisma.vaccine.findMany();
-  const vaccinesWithAnimal = await Promise.all(
-    vaccines.map(async (vaccine) => ({
-      ...vaccine,
-      animalId: await prisma.animal.findUnique({
-        where: { id: vaccine.animalId },
-      }),
-    }))
-  );
-  return vaccinesWithAnimal as Vaccine[];
+export const fetchVaccines = async (animalId: string): Promise<Vaccine[]> => {
+  if (!animalId) {
+    throw new Error('animalId is required');
+  }
+
+  const vaccines = await prisma.vaccine.findMany({
+    where: {
+      animalId,
+    },
+    orderBy: {
+      date: 'desc',
+    },
+  });
+
+  return vaccines.map((vaccine) => ({
+    ...vaccine,
+    animalId: { id: vaccine.animalId } as Animal,
+  }));
 };
