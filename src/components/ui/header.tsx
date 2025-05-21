@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import logo from '@/public/logo.png';
 import { Button } from '@/components/ui/button';
 import { signOut, useSession } from 'next-auth/react';
 import Link from 'next/link';
@@ -20,7 +21,7 @@ export const Header = () => {
         <Link href={'/dashboard'}>
           <Image
             priority={true}
-            src="/logo.png"
+            src={logo}
             alt="Logo - Imagem de um touro e uma ovelha"
             width={100}
             height={100}
