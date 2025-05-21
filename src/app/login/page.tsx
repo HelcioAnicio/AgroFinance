@@ -3,8 +3,6 @@ import { Button } from '@/components/ui/button';
 import { signIn, useSession } from 'next-auth/react';
 import { FcGoogle } from 'react-icons/fc';
 import Image from 'next/image';
-import logo from '@/public/logo.png';
-
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -30,7 +28,7 @@ const LoginPage = () => {
           <header className="flex items-center justify-center py-5">
             <figure className="flex flex-col items-center">
               <Image
-                src={logo}
+                src="/logo.png"
                 alt="Logo - Imagem de um touro e uma ovelha"
                 width={200}
                 height={200}
