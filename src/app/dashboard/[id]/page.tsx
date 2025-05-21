@@ -4,6 +4,7 @@ import { prisma } from '@/lib/useDataBase';
 import { Animal } from '@/types/animal';
 import EditableAnimalDetails from './(components)/editableAnimalDetails';
 import { fetchAnimals, fetchVaccines } from '@/lib/fetchData';
+import { Vaccine } from '@/types/vaccine';
 
 const DetailAnimalId = async ({
   params,
@@ -24,15 +25,16 @@ const DetailAnimalId = async ({
       owner: true,
     },
   });
-  const vaccines = await fetchVaccines();
-
+  const vaccines = await fetchVaccines(animal?.id as string);
+  const vaccine = vaccines;
   return (
     <>
       <Header />
       <EditableAnimalDetails
         animal={animal as Animal}
         animals={animals}
-        vaccine={vaccines}
+        vaccines={vaccines}
+        vaccine={vaccine as unknown as Vaccine}
       />
     </>
   );
