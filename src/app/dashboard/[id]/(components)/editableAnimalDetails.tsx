@@ -142,7 +142,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
           },
         }
       );
-      console.log('Animal atualizado com sucesso:', response.data);
+      console.log('Animal adicionada com sucesso:', response.data);
       setTimeout(() => {
         toast.success('Animal atualizado com sucesso!');
       }, 2000);
@@ -152,26 +152,27 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     }
   };
 
-  // const submitFormVaccine = async (dataOfVaccine: Vaccine) => {
-  //   try {
-  //     const response = await axios.put(
-  //       `/api/updateAnimals?id=${dataOfVaccine.id}`,
-  //       dataOfVaccine,
-  //       {
-  //         headers: {
-  //           'Content-Type': 'application/json',
-  //         },
-  //       }
-  //     );
-  //     console.log('Vacina atualizado com sucesso:', response.data);
-  //     setTimeout(() => {
-  //       toast.success('Vacina atualizado com sucesso!');
-  //     }, 2000);
-  //   } catch (error) {
-  //     console.log('Erro ao atualizar vacina', error);
-  //     toast.error('Ocorreu um erro ao atualizar o vacina.');
-  //   }
-  // };
+  const submitFormVaccine = async (dataOfVaccine: Vaccine) => {
+    try {
+      const vaccineToSend = { ...dataOfVaccine, id: animal.id };
+      const response = await axios.post(
+        `/api/addVaccine?id=${vaccineToSend.id}`,
+        vaccineToSend,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      console.log('Vacina adicionada com sucesso:', response.data);
+      setTimeout(() => {
+        toast.success('Vacina adicionada com sucesso!');
+      }, 2000);
+    } catch (error) {
+      console.log('Erro ao adicionar vacina', error);
+      toast.error('Ocorreu um erro ao adicionar o vacina.');
+    }
+  };
 
   const handleDelete = async () => {
     if (window.confirm('Tem certeza que deseja excluir este animal?')) {
@@ -385,6 +386,19 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                 onChange={handleInputValuesVaccine}
               />
               <InputForm
+                htmlFor={'date'}
+                label={'Aplicado dia: '}
+                type={'date'}
+                name={'date'}
+                id={'date'}
+                value={
+                  dataOfVaccine.date
+                    ? new Date(dataOfVaccine.date).toISOString().split('T')[0]
+                    : ''
+                }
+                onChange={handleInputValuesVaccine}
+              />
+              <InputForm
                 htmlFor={'expiryDate'}
                 label={'Data de expiração: '}
                 type={'date'}
@@ -408,7 +422,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
             >
               Cancelar
             </Button>
-            <Button onClick={() => setAddVaccine(false)} disabled>
+            <Button onClick={() => submitFormVaccine(dataOfVaccine)}>
               Salvar
             </Button>
           </CardFooter>
@@ -423,7 +437,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
           <CardContent className="flex flex-col gap-10">
             {vaccines.map((vaccineItem, index) => (
               <div key={index} className="flex flex-col gap-5">
-                {/* <h2 className="font-bold">Vacina: {index + 1}</h2>  */}
+                {/* <h2 className="font-bold">Vacina: {index + 1}</h2> */}
                 <Card className="w-full max-w-max rounded-sm px-3 py-1">
                   <strong>Name: </strong>
                   <span>{vaccineItem.name}</span>
@@ -440,7 +454,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                   <strong>Data de expiração: </strong>
                   <span>{vaccineItem.expiryDate?.toLocaleDateString()}</span>
                 </Card>
-                {/* <Separator className="mt-2 border border-secondary" /> */}
+                <Separator className="mt-2 border border-secondary" />
               </div>
             ))}
           </CardContent>
