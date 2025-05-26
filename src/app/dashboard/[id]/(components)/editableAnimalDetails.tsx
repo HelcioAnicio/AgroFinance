@@ -186,7 +186,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   };
 
   return (
-    <>
+    <div className="pb-14">
       <section className="sticky top-0 bg-background">
         <div className="flex items-center justify-between px-2 py-3">
           <button onClick={handleBack}>
@@ -330,7 +330,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
             <CardHeader className="py-2">
               <CardTitle className="text-base">Filhos</CardTitle>
             </CardHeader>
-            <CardContent className="px-1 py-2">
+            <CardContent className="">
               <div className="flex flex-col gap-2">
                 {animal?.offspringFromMother?.map((offspring) => (
                   <Link href={`/${offspring.id}`} key={offspring.id}>
@@ -356,16 +356,15 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
         </form>
       )}
       {addVaccine ? (
-        <form action="" method="post">
-          <Card className="m-auto flex w-full max-w-lg flex-col gap-3 px-2 py-7">
-            <CardHeader className="py-2">
-              <CardTitle className="flex items-center justify-between text-base">
-                Vacinas
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="px-1 py-2">
+        <Card className="m-auto flex w-full max-w-lg flex-col gap-10 px-2 py-7">
+          <CardHeader className="py-2">
+            <CardTitle className="flex items-center justify-between text-base">
+              Vacinas
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-1 py-2">
+            <form action="" method="post" className="flex flex-col gap-4">
               <InputForm
-                classNameDiv={'flex flex-col gap-1'}
                 htmlFor={'name'}
                 label={'Nome da vacina: '}
                 type={'text'}
@@ -374,36 +373,57 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                 value={dataOfVaccine.name ?? ''}
                 onChange={handleInputValuesVaccine}
               />
-            </CardContent>
-            <CardFooter className="flex justify-end gap-2">
-              <Button
-                className="bg-transparent text-foreground hover:bg-muted"
-                onClick={() => setAddVaccine(false)}
-              >
-                Cancelar
-              </Button>
-              <Button onClick={() => setAddVaccine(false)}>
-                Adicionar Vacinas
-              </Button>
-            </CardFooter>
-          </Card>{' '}
-        </form>
+              <InputForm
+                classNameInput="w-full max-w-80"
+                classNameDiv="flex w-full "
+                htmlFor={'description'}
+                label={'Descrição: '}
+                type={'text'}
+                name={'description'}
+                id={'description'}
+                value={dataOfVaccine.description ?? ''}
+                onChange={handleInputValuesVaccine}
+              />
+              <InputForm
+                htmlFor={'expiryDate'}
+                label={'Data de expiração: '}
+                type={'date'}
+                name={'expiryDate'}
+                id={'expiryDate'}
+                value={
+                  dataOfVaccine.expiryDate
+                    ? new Date(dataOfVaccine.expiryDate)
+                        .toISOString()
+                        .split('T')[0]
+                    : ''
+                }
+                onChange={handleInputValuesVaccine}
+              />
+            </form>
+          </CardContent>
+          <CardFooter className="flex justify-end gap-2">
+            <Button
+              className="bg-transparent text-foreground hover:bg-muted"
+              onClick={() => setAddVaccine(false)}
+            >
+              Cancelar
+            </Button>
+            <Button onClick={() => setAddVaccine(false)} disabled>
+              Salvar
+            </Button>
+          </CardFooter>
+        </Card>
       ) : (
-        <Card className="m-auto flex w-full max-w-lg flex-col gap-3 px-2 py-7">
+        <Card className="m-auto flex w-full max-w-lg flex-col gap-6 px-2 py-7">
           <CardHeader className="py-2">
             <CardTitle className="flex justify-between text-base">
-              Vacinas{' '}
-              {addVaccine === false && (
-                <Button onClick={() => setAddVaccine(true)}>
-                  Adicionar Vacinas
-                </Button>
-              )}
+              Vacinas
             </CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col gap-10 px-1 py-2">
+          <CardContent className="flex flex-col gap-10">
             {vaccines.map((vaccineItem, index) => (
-              <div key={index} className="flex flex-col gap-2">
-                <h2 className="font-bold">Vacina: {index + 1}</h2>
+              <div key={index} className="flex flex-col gap-5">
+                {/* <h2 className="font-bold">Vacina: {index + 1}</h2>  */}
                 <Card className="w-full max-w-max rounded-sm px-3 py-1">
                   <strong>Name: </strong>
                   <span>{vaccineItem.name}</span>
@@ -413,20 +433,27 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                   <span className="">{vaccineItem.description}</span>
                 </Card>
                 <Card className="w-full max-w-max rounded-sm px-3 py-1">
-                  <strong>Data de aplicação: </strong>
+                  <strong>Data aplicado: </strong>
                   <span>{vaccineItem.date?.toLocaleDateString()}</span>
                 </Card>
                 <Card className="w-full max-w-max rounded-sm px-3 py-1">
                   <strong>Data de expiração: </strong>
                   <span>{vaccineItem.expiryDate?.toLocaleDateString()}</span>
                 </Card>
-                <Separator className="mt-2 border border-secondary" />
+                {/* <Separator className="mt-2 border border-secondary" /> */}
               </div>
             ))}
           </CardContent>
+          <CardFooter className="flex justify-end gap-2">
+            {addVaccine === false && (
+              <Button onClick={() => setAddVaccine(true)}>
+                Adicionar Vacinas
+              </Button>
+            )}
+          </CardFooter>
         </Card>
       )}
-    </>
+    </div>
   );
 };
 
