@@ -42,9 +42,8 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   const [dataOfVaccine, setDataOfVaccine] = useState<Vaccine>({} as Vaccine);
   const [isEditing, setIsEditing] = useState(false);
   const [addVaccine, setAddVaccine] = useState(false);
+  const [listVaccines, setListVaccines] = useState<Vaccine[]>(vaccines);
   const router = useRouter();
-  console.log('vaccines: ', vaccines);
-  console.log('dataOfVaccine: ', dataOfVaccine);
 
   const breedArray = [
     'Nelore',
@@ -130,7 +129,6 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     delete dataToSubmit.mother;
     delete dataToSubmit.offspringFromMother;
     delete dataToSubmit.owner;
-    console.log('dataToSubmit: ', dataToSubmit);
 
     try {
       const response = await axios.put(
@@ -153,24 +151,34 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   };
 
   const submitFormVaccine = async (dataOfVaccine: Vaccine) => {
+    const vaccineToSend = {
+      ...dataOfVaccine,
+      animalId: animal.id,
+      updatedAt: new Date(),
+    };
     try {
-      const vaccineToSend = { ...dataOfVaccine, id: animal.id };
       const response = await axios.post(
-        `/api/addVaccine?id=${vaccineToSend.id}`,
-        vaccineToSend,
+        '/api/addVaccine',
+        { dataOfVaccine: vaccineToSend },
         {
           headers: {
             'Content-Type': 'application/json',
           },
         }
       );
+      console.log(vaccineToSend);
+      updatedListVaccines();
+      setAddVaccine(false);
+      setDataOfVaccine({} as Vaccine);
       console.log('Vacina adicionada com sucesso:', response.data);
       setTimeout(() => {
         toast.success('Vacina adicionada com sucesso!');
       }, 2000);
     } catch (error) {
+      console.log(vaccineToSend);
+
       console.log('Erro ao adicionar vacina', error);
-      toast.error('Ocorreu um erro ao adicionar o vacina.');
+      toast.error('Ocorreu um erro ao adicionar a vacina.');
     }
   };
 
@@ -184,6 +192,10 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
         toast.error('Erro ao excluir o animal.');
       }
     }
+  };
+
+  const updatedListVaccines = () => {
+    setListVaccines((prevVaccines) => [...prevVaccines, dataOfVaccine]);
   };
 
   return (
@@ -435,7 +447,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-10">
-            {vaccines.map((vaccineItem, index) => (
+            {listVaccines.map((vaccineItem, index) => (
               <div key={index} className="flex flex-col gap-5">
                 {/* <h2 className="font-bold">Vacina: {index + 1}</h2> */}
                 <Card className="w-full max-w-max rounded-sm px-3 py-1">
@@ -448,11 +460,19 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                 </Card>
                 <Card className="w-full max-w-max rounded-sm px-3 py-1">
                   <strong>Data aplicado: </strong>
-                  <span>{vaccineItem.date?.toLocaleDateString()}</span>
+                  <span>
+                    {vaccineItem.date
+                      ? new Date(vaccineItem.date).toLocaleDateString()
+                      : 'N/'}
+                  </span>
                 </Card>
                 <Card className="w-full max-w-max rounded-sm px-3 py-1">
                   <strong>Data de expiração: </strong>
-                  <span>{vaccineItem.expiryDate?.toLocaleDateString()}</span>
+                  <span>
+                    {vaccineItem.expiryDate
+                      ? new Date(vaccineItem.expiryDate).toLocaleDateString()
+                      : 'N/'}
+                  </span>
                 </Card>
                 <Separator className="mt-2 border border-secondary" />
               </div>
