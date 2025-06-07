@@ -339,7 +339,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
             </CardContent>
           </Card>
 
-          <Card className="flex w-full max-w-lg flex-col gap-3 px-2 py-7">
+          <Card className="m-auto flex w-full max-w-lg flex-col gap-3 px-2 py-7">
             <CardHeader className="py-2">
               <CardTitle className="text-base">Filhos</CardTitle>
             </CardHeader>
@@ -440,16 +440,23 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
           </CardFooter>
         </Card>
       ) : (
-        <Card className="m-auto flex w-full max-w-lg flex-col gap-6 px-2 py-7">
+        <Card className="m-auto flex w-full max-w-lg flex-col gap-6 px-2">
           <CardHeader className="py-2">
             <CardTitle className="flex justify-between text-base">
-              Vacinas
+              {listVaccines && listVaccines.length > 0 ? (
+                <CardHeader className="py-2">
+                  <CardTitle className="flex justify-between text-base">
+                    Vacinas
+                  </CardTitle>
+                </CardHeader>
+              ) : (
+                ''
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-10">
             {listVaccines.map((vaccineItem, index) => (
               <div key={index} className="flex flex-col gap-5">
-                {/* <h2 className="font-bold">Vacina: {index + 1}</h2> */}
                 <Card className="w-full max-w-max rounded-sm px-3 py-1">
                   <strong>Name: </strong>
                   <span>{vaccineItem.name}</span>
@@ -479,11 +486,9 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
             ))}
           </CardContent>
           <CardFooter className="flex justify-end gap-2">
-            {addVaccine === false && (
-              <Button onClick={() => setAddVaccine(true)}>
-                Adicionar Vacinas
-              </Button>
-            )}
+            <Button onClick={() => setAddVaccine(true)}>
+              Adicionar Vacinas
+            </Button>
           </CardFooter>
         </Card>
       )}
