@@ -5,6 +5,7 @@ import { FcGoogle } from 'react-icons/fc';
 import Image from 'next/image';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 const LoginPage = () => {
   const { status } = useSession();
@@ -28,7 +29,7 @@ const LoginPage = () => {
           <header className="flex items-center justify-center py-5">
             <figure className="flex flex-col items-center">
               <Image
-                src="/logo"
+                src="/logo.png"
                 alt="Logo - Imagem de um touro e uma ovelha"
                 width={200}
                 height={200}
@@ -68,9 +69,9 @@ const LoginPage = () => {
             </section>
 
             <div className="flex items-center gap-5 px-5">
-              <hr className="black flex-1" />
+              <hr className="flex-1 bg-black" />
               <span>ou</span>
-              <hr className="black flex-1" />
+              <hr className="flex-1 bg-black" />
             </div>
 
             <section className="flex flex-col items-center">
@@ -81,7 +82,9 @@ const LoginPage = () => {
               </div>
               <p>
                 Ainda não tem conta?{' '}
-                <span className="underline">Cadastre-se</span>
+                <Link href="/register" className="underline">
+                  Cadastre-se
+                </Link>
               </p>
             </section>
           </main>
