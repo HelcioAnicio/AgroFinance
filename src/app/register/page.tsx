@@ -2,10 +2,20 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { CgProfile } from 'react-icons/cg';
+import { MdOutlineMail } from 'react-icons/md';
+import { FaRegBuilding } from 'react-icons/fa';
+import { IoLockClosedOutline } from 'react-icons/io5';
+import { FaRegEye } from 'react-icons/fa6';
+import { FaRegEyeSlash } from 'react-icons/fa6';
 
 const Register = () => {
+  const [showPassword, setShowPassword] = React.useState(false);
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
   return (
-    <div className="flex h-dvh min-h-max flex-col items-center justify-center gap-10">
+    <div className="flex h-dvh min-h-max flex-col items-center justify-center gap-10 pb-10">
       <div>
         <Image
           src="/logo.png"
@@ -15,46 +25,85 @@ const Register = () => {
           height={300}
         />
       </div>
-      <section className="min-h-3/4 flex max-h-max w-full max-w-2xl flex-col items-center justify-between gap-10 rounded-t-3xl bg-secondary px-2 py-6 sm:rounded-3xl">
-        <h1 className="text-3xl">Crie sua conta</h1>
+      <section className="min-h-3/4 flex max-h-max w-full max-w-2xl flex-col items-center justify-center gap-10 rounded-3xl bg-secondary px-2 py-6">
+        <h1 className="text-3xl font-bold text-background">Crie sua conta</h1>
         <form
           action=""
           className="flex w-full flex-col items-center justify-between gap-7"
         >
-          <input
-            className="w-4/5 max-w-sm rounded-lg px-3 py-2 pl-8"
-            type="text"
-            placeholder="Nome"
-          />
-          <input
-            className="w-4/5 max-w-sm rounded-lg px-3 py-2 pl-8"
-            type="email"
-            placeholder="E-mail"
-          />
-          <input
-            className="w-4/5 max-w-sm rounded-lg px-3 py-2 pl-8"
-            type="text"
-            name=""
-            id=""
-            placeholder="CNPJ/CPF"
-          />
-          <input
-            className="w-4/5 max-w-sm rounded-lg px-3 py-2 pl-8"
-            type="password"
-            name=""
-            id=""
-            placeholder="Crie sua senha"
-          />
-          <input
-            className="w-4/5 max-w-sm rounded-lg px-3 py-2 pl-8"
-            type="password"
-            name=""
-            id=""
-            placeholder="Digite sua senha novamente"
-          />
+          <div className="relative w-4/5 max-w-sm">
+            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xl text-gray-400">
+              <CgProfile className="text-foreground" />
+            </span>
+            <input
+              className="w-full rounded-2xl px-3 py-2 pl-10"
+              type="text"
+              placeholder="Nome"
+            />
+          </div>
+          <div className="relative w-4/5 max-w-sm">
+            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xl text-gray-400">
+              <MdOutlineMail />
+            </span>
+            <input
+              className="w-full rounded-2xl px-3 py-2 pl-10"
+              type="email"
+              placeholder="E-mail"
+            />
+          </div>
+          <div className="relative w-4/5 max-w-sm">
+            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xl text-gray-400">
+              <FaRegBuilding />
+            </span>
+            <input
+              className="w-full rounded-2xl px-3 py-2 pl-10"
+              type="text"
+              placeholder="CNPJ/CPF"
+            />
+          </div>
+          <div className="relative w-4/5 max-w-sm">
+            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xl text-gray-400">
+              <IoLockClosedOutline />
+            </span>
+            <input
+              className="w-full rounded-2xl px-3 py-2 pl-10"
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Crie sua senha"
+            />
+            <button
+              type="button"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-xl text-gray-400"
+            >
+              {showPassword ? (
+                <FaRegEyeSlash onClick={togglePasswordVisibility} />
+              ) : (
+                <FaRegEye onClick={togglePasswordVisibility} />
+              )}
+            </button>
+          </div>
+          <div className="relative w-4/5 max-w-sm">
+            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xl text-gray-400">
+              <IoLockClosedOutline />
+            </span>
+            <input
+              className="w-full rounded-2xl px-3 py-2 pl-10"
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Digite sua senha novamente"
+            />
+            <button
+              type="button"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-xl text-gray-400"
+            >
+              {showPassword ? (
+                <FaRegEyeSlash onClick={togglePasswordVisibility} />
+              ) : (
+                <FaRegEye onClick={togglePasswordVisibility} />
+              )}{' '}
+            </button>
+          </div>
 
           <button
-            type="button"
+            type="submit"
             className="rounded-md bg-foreground px-6 py-1 text-lg text-popover"
           >
             Cadastrar
