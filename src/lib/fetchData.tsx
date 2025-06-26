@@ -14,12 +14,12 @@ export const fetchAnimals = async (ownerId?: string): Promise<Animal[]> => {
       const aIsNumber = !isNaN(Number(a.manualId));
       const bIsNumber = !isNaN(Number(b.manualId));
 
-      if (!aIsNumber && !bIsNumber) {
-        return String(a.manualId).localeCompare(String(b.manualId));
-      } else if (aIsNumber && bIsNumber) {
+      if (aIsNumber && bIsNumber) {
         return Number(a.manualId) - Number(b.manualId);
+      } else if (!aIsNumber && !bIsNumber) {
+        return String(a.manualId).localeCompare(String(b.manualId));
       } else {
-        return aIsNumber ? 1 : -1;
+        return aIsNumber ? -1 : 1;
       }
     });
 
