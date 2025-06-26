@@ -17,7 +17,6 @@ input[type='url'] {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
-  border-radius: 0; /* Remove bordas arredondadas */
 }
 
 @layer utilities {
