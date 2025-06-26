@@ -11,9 +11,18 @@ import { FaRegEyeSlash } from 'react-icons/fa6';
 
 const Register = () => {
   const [showPassword, setShowPassword] = React.useState(false);
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
+  const [confirmPassword, setConfirmPassword] = React.useState(false);
+
+  const togglePasswordVisibility = (input: string) => {
+    if (input === 'password') {
+      setShowPassword(!showPassword);
+      return;
+    } else if (input === 'passwordAgain') {
+      setConfirmPassword(!confirmPassword);
+      return;
+    }
   };
+
   return (
     <div className="flex h-dvh min-h-max flex-col items-center justify-center gap-10 pb-10">
       <div>
@@ -75,9 +84,13 @@ const Register = () => {
               className="absolute right-2 top-1/2 -translate-y-1/2 text-xl text-gray-400"
             >
               {showPassword ? (
-                <FaRegEyeSlash onClick={togglePasswordVisibility} />
+                <FaRegEyeSlash
+                  onClick={() => togglePasswordVisibility('password')}
+                />
               ) : (
-                <FaRegEye onClick={togglePasswordVisibility} />
+                <FaRegEye
+                  onClick={() => togglePasswordVisibility('password')}
+                />
               )}
             </button>
           </div>
@@ -87,17 +100,21 @@ const Register = () => {
             </span>
             <input
               className="w-full rounded-2xl px-3 py-2 pl-10"
-              type={showPassword ? 'text' : 'password'}
+              type={confirmPassword ? 'text' : 'password'}
               placeholder="Digite sua senha novamente"
             />
             <button
               type="button"
               className="absolute right-2 top-1/2 -translate-y-1/2 text-xl text-gray-400"
             >
-              {showPassword ? (
-                <FaRegEyeSlash onClick={togglePasswordVisibility} />
+              {confirmPassword ? (
+                <FaRegEyeSlash
+                  onClick={() => togglePasswordVisibility('passwordAgain')}
+                />
               ) : (
-                <FaRegEye onClick={togglePasswordVisibility} />
+                <FaRegEye
+                  onClick={() => togglePasswordVisibility('passwordAgain')}
+                />
               )}{' '}
             </button>
           </div>
