@@ -70,7 +70,7 @@ const Register = () => {
               <CgProfile className="text-foreground" />
             </span>
             <input
-              className="w-full rounded-md px-3 py-2 pl-8"
+              className="w-full rounded-sm px-3 py-2 pl-8"
               type="text"
               name="name"
               placeholder="Nome"
@@ -83,7 +83,7 @@ const Register = () => {
               <MdOutlineMail />
             </span>
             <input
-              className="w-full rounded-md px-3 py-2 pl-8"
+              className="w-full rounded-sm px-3 py-2 pl-8"
               type="email"
               name="email"
               placeholder="E-mail"
@@ -96,7 +96,7 @@ const Register = () => {
               <FaRegBuilding />
             </span>
             <input
-              className="w-full rounded-md px-3 py-2 pl-8"
+              className="w-full rounded-sm px-3 py-2 pl-8"
               type="text"
               name="cnpj"
               placeholder="CNPJ/CPF"
@@ -109,7 +109,7 @@ const Register = () => {
               <IoLockClosedOutline />
             </span>
             <input
-              className="w-full rounded-md px-3 py-2 pl-8"
+              className="w-full rounded-sm px-3 py-2 pl-8"
               type={showPassword ? 'text' : 'password'}
               name="password"
               placeholder="Crie sua senha"
@@ -136,7 +136,7 @@ const Register = () => {
               <IoLockClosedOutline />
             </span>
             <input
-              className="w-full rounded-md px-3 py-2 pl-8"
+              className="w-full rounded-sm px-3 py-2 pl-8"
               type={confirmPassword ? 'text' : 'password'}
               name="secondPassword"
               placeholder="Digite sua senha novamente"
@@ -161,7 +161,7 @@ const Register = () => {
 
           <button
             type="submit"
-            className="rounded-md bg-foreground px-6 py-1 text-lg text-primary-foreground"
+            className="rounded-sm bg-foreground px-6 py-1 text-lg text-primary-foreground"
             onClick={sendFormRegister}
           >
             Cadastrar
