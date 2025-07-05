@@ -14,9 +14,9 @@ const ClientAuth: React.FC<ClientAuthProps> = ({ children }) => {
 
   useEffect(() => {
     if (status === 'unauthenticated') {
-      router.push('/');
+      router.replace('/');
     } else if (status === 'authenticated') {
-      router.push('/dashboard');
+      router.replace('/dashboard');
     }
   }, [status, router]);
 

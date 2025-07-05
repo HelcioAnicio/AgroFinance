@@ -151,7 +151,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                   />
                 </Sheet>
                 <Dialog>
-                  <DialogTrigger className="hidden items-center justify-center gap-2 rounded-md bg-primary p-1 text-background sm:flex">
+                  <DialogTrigger className="hidden items-center justify-center gap-2 rounded-sm bg-primary p-1 text-background sm:flex">
                     Adicionar <CirclePlus className="size-4" />
                   </DialogTrigger>
                   <AddAnimalDesktop
