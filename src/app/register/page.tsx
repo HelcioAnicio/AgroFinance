@@ -8,13 +8,17 @@ import { FaRegBuilding } from 'react-icons/fa';
 import { IoLockClosedOutline } from 'react-icons/io5';
 import { FaRegEye } from 'react-icons/fa6';
 import { FaRegEyeSlash } from 'react-icons/fa6';
+import { Button } from '@/components/ui/button';
+import { v4 as uuidv4 } from 'uuid';
+import { toast } from 'sonner';
+import axios from 'axios';
 
 interface DataUserState {
   name: string;
   email: string;
   cnpj: number;
   password: string;
-  secondPassword: string;
+  secondPassword?: string;
 }
 
 const Register = () => {
@@ -42,9 +46,35 @@ const Register = () => {
     }));
   };
 
-  const sendFormRegister = (event: React.FormEvent) => {
+  const sendFormRegister = async (event: React.FormEvent) => {
     event.preventDefault();
     console.log(userRegister);
+    const updateUser = {
+      ...userRegister,
+      id: uuidv4(),
+      updatedAt: new Date(),
+    };
+
+    delete updateUser.secondPassword;
+
+    console.log(updateUser);
+
+    try {
+      const response = await axios.post(
+        '/api/registerUser',
+        { userRegister: updateUser },
+        {
+          headers: {
+            'Content-Type': 'aplication/json',
+          },
+        }
+      );
+      console.log('Registrado:', response.data);
+      toast.success('Registrado com sucesso');
+    } catch (error) {
+      console.log(error);
+      toast.error('Erro, verifique os dados preenchidos e tente novamente.');
+    }
   };
 
   return (
@@ -62,7 +92,7 @@ const Register = () => {
       <section className="min-h-3/4 flex max-h-max w-full max-w-2xl flex-col items-center justify-center gap-5 rounded-3xl bg-secondary px-2 py-6">
         <h1 className="text-2xl font-bold text-background">Crie sua conta</h1>
         <form
-          action=""
+          action="Post"
           className="flex w-full flex-col items-center justify-between gap-7"
         >
           <div className="relative w-4/5 max-w-72">
@@ -159,13 +189,13 @@ const Register = () => {
             </button>
           </div>
 
-          <button
+          <Button
             type="submit"
             className="rounded-sm bg-foreground px-6 py-1 text-lg text-primary-foreground"
             onClick={sendFormRegister}
           >
             Cadastrar
-          </button>
+          </Button>
         </form>
 
         <div className="flex w-full items-center gap-5 px-5">
