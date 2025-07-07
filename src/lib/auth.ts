@@ -29,14 +29,16 @@ export const authOptions: NextAuthOptions = {
         const user = await prisma.user.findUnique({
           where: { email: credentials?.email },
         });
+        const loginUrl =
+          process.env.NODE_ENV === 'development'
+            ? 'http://localhost:3000/login'
+            : 'https://agro-finance-real.vercel.app/login';
+
         const response = await axios.post(
-          'http://localhost:3000/login',
+          loginUrl,
           {
-            body: JSON.stringify({
-              // id: credentials?.id,
-              email: credentials?.email,
-              password: credentials?.password,
-            }),
+            email: credentials?.email,
+            password: credentials?.password,
           },
           {
             headers: {
