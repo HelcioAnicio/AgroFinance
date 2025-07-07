@@ -5,7 +5,7 @@ const LoginPage = async () => {
   const fetchedUsers = await fetchUsers();
 
   return (
-    <div className="w-lwv">
+    <div className="m-auto flex h-dvh w-full max-w-2xl flex-col items-center justify-evenly">
       <FormLogin fetchedUsers={fetchedUsers} />
     </div>
   );
