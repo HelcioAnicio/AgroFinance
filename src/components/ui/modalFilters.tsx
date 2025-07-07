@@ -479,14 +479,14 @@ export const Filters: React.FC<FiltersProps> = ({
       </div>
       <SheetFooter className="flex w-full flex-row items-center justify-between sm:space-x-5">
         <SheetClose
-          className="rounded-md border p-2 shadow-md"
+          className="rounded-sm border p-2 shadow-md"
           onClick={clearFilters}
         >
           Limpar filtros
         </SheetClose>
         <SheetClose
           onClick={filterTable}
-          className="ml-auto w-max rounded-md bg-foreground p-2 text-background shadow-md"
+          className="ml-auto w-max rounded-sm bg-foreground p-2 text-background shadow-md"
         >
           Filtrar tabela
         </SheetClose>
