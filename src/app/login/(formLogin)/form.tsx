@@ -1,15 +1,18 @@
 'use client';
-import { Button } from '@/components/ui/button';
+import Image from 'next/image';
+import Link from 'next/link';
 import { signIn, useSession } from 'next-auth/react';
 import { FcGoogle } from 'react-icons/fc';
-import Image from 'next/image';
-import React, { SyntheticEvent, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { IoLogoApple } from 'react-icons/io5';
+import { FaFacebook } from 'react-icons/fa';
 import { MdOutlineMail } from 'react-icons/md';
 import { IoLockClosedOutline } from 'react-icons/io5';
 import { FaRegEyeSlash, FaRegEye } from 'react-icons/fa';
+import { Button } from '@/components/ui/button';
+import React, { SyntheticEvent, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { User } from '@/types/user';
+import { toast } from 'sonner';
 
 interface LoginUser {
   email: string;
@@ -34,6 +37,7 @@ export const FormLogin: React.FC<FormLoginProps> = ({ fetchedUsers }) => {
   }, [fetchedUsers, dataLoginUser.email]);
 
   console.log(userEmail);
+
   const togglePasswordVisibility = () => {
     setStatusPassword(!statusPassword);
   };
@@ -45,27 +49,31 @@ export const FormLogin: React.FC<FormLoginProps> = ({ fetchedUsers }) => {
       [name]: value,
     }));
   };
-
   const handleLoginCredentials = async (event: SyntheticEvent) => {
     event.preventDefault();
-    const result = (await signIn('credentials', {
-      // id: dataLoginUser.
-      email: dataLoginUser.email,
-      password: dataLoginUser.password,
-      redirect: false,
-    })) as { error?: string } | undefined;
-
-    if (result?.error) {
-      console.error('Login error:', result?.error);
+    let result;
+    if (dataLoginUser.email === userEmail?.email) {
+      result = (await signIn('credentials', {
+        email: dataLoginUser.email,
+        password: dataLoginUser.password,
+        redirect: false,
+      })) as { error?: string } | undefined;
+      console.log(result);
+      toast.success('Sucesso no login, aguarde o carregamento...');
+      return;
+    } else {
+      toast.error(
+        'Erro ao fazer login. Verifique o email digitado se está correto.'
+      );
       return;
     }
-
-    console.log('deu certo!!', status);
   };
 
   useEffect(() => {
     if (status === 'authenticated') {
-      router.replace('/dashboard');
+      setTimeout(() => {
+        router.replace('/dashboard');
+      }, 5000);
     }
   }, [status, router]);
 
@@ -77,21 +85,21 @@ export const FormLogin: React.FC<FormLoginProps> = ({ fetchedUsers }) => {
     <>
       {status === 'unauthenticated' && (
         <>
-          <header className="flex items-center justify-center py-5">
+          <header className="flex flex-col items-center justify-center py-5">
             <figure className="flex flex-col items-center">
               <Image
                 src="/logo.png"
                 alt="Logo - Imagem de um touro e uma ovelha"
                 width={200}
                 height={200}
-                className="size-40"
+                className="size-40 xl:size-56"
               />
 
               <figcaption>Seu agronegócio descomplicado</figcaption>
             </figure>
           </header>
 
-          <main className="rounded-t-3xl bg-secondary px-2 py-6">
+          <main className="h-max w-full rounded-3xl bg-secondary px-2 py-6">
             <section>
               <form
                 className="m-auto flex max-w-64 flex-col items-center gap-4 py-5"
@@ -120,7 +128,7 @@ export const FormLogin: React.FC<FormLoginProps> = ({ fetchedUsers }) => {
                       className="w-full rounded-sm px-3 py-2 pl-8"
                       type={statusPassword ? 'text' : 'password'}
                       name="password"
-                      placeholder="Crie sua senha"
+                      placeholder="Senha"
                       value={dataLoginUser.password}
                       onChange={handleInputValues}
                     />
@@ -138,9 +146,9 @@ export const FormLogin: React.FC<FormLoginProps> = ({ fetchedUsers }) => {
                       )}
                     </button>
                   </div>
-                  <p className="mt-4 text-xs text-primary-foreground underline">
+                  {/* <p className="mt-4 text-xs text-primary-foreground underline">
                     Esqueci minha senha
-                  </p>
+                  </p> */}
                 </div>
                 <Button
                   className="m-auto mt-5 w-40 bg-foreground text-lg"
@@ -160,7 +168,13 @@ export const FormLogin: React.FC<FormLoginProps> = ({ fetchedUsers }) => {
             <section className="flex flex-col items-center">
               <div className="flex justify-center gap-3 py-8">
                 <button type="button" onClick={handleLoginClick}>
-                  <FcGoogle className="text-3xl text-background" />
+                  <FcGoogle className="text-3xl text-background drop-shadow-lg" />
+                </button>
+                <button type="button" onClick={handleLoginClick}>
+                  <IoLogoApple className="text-3xl text-background drop-shadow-lg" />
+                </button>
+                <button type="button" onClick={handleLoginClick}>
+                  <FaFacebook className="text-3xl text-[#1777F6] drop-shadow-lg" />
                 </button>
               </div>
               <p>
