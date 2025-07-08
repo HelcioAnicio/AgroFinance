@@ -13,6 +13,7 @@ import React, { SyntheticEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { User } from '@/types/user';
 import { toast } from 'sonner';
+import { Loading } from '@/components/ui/loading';
 
 interface LoginUser {
   email: string;
@@ -26,7 +27,8 @@ interface FormLoginProps {
 export const FormLogin: React.FC<FormLoginProps> = ({ fetchedUsers }) => {
   const { status } = useSession();
   const router = useRouter();
-
+  const [error, setError] = useState(false);
+  const [screenLoading, setScreenLoading] = useState(false);
   const [statusPassword, setStatusPassword] = useState(false);
   const [dataLoginUser, setDataLoginUser] = useState<LoginUser>(
     {} as LoginUser
@@ -36,7 +38,7 @@ export const FormLogin: React.FC<FormLoginProps> = ({ fetchedUsers }) => {
     return fetchedUsers.find((user) => user.email === dataLoginUser.email);
   }, [fetchedUsers, dataLoginUser.email]);
 
-  console.log(userEmail);
+  // console.log(userEmail);
 
   const togglePasswordVisibility = () => {
     setStatusPassword(!statusPassword);
@@ -49,25 +51,36 @@ export const FormLogin: React.FC<FormLoginProps> = ({ fetchedUsers }) => {
       [name]: value,
     }));
   };
+
+  const executeTimeout = (time: number) => {
+    return setTimeout(() => {
+      setScreenLoading(!screenLoading);
+    }, time);
+  };
+
   const handleLoginCredentials = async (event: SyntheticEvent) => {
     event.preventDefault();
-    let result;
+
     if (dataLoginUser.email === userEmail?.email) {
-      result = (await signIn('credentials', {
+      (await signIn('credentials', {
         email: dataLoginUser.email,
         password: dataLoginUser.password,
         redirect: false,
-      })) as { error?: string } | undefined;
-      console.log(result);
+      })) as { error?: string };
+
+      executeTimeout(1);
+      executeTimeout(7000);
       toast.success('Sucesso no login, aguarde o carregamento...');
       return;
     } else {
-      toast.error(
-        'Erro ao fazer login. Verifique o email digitado se está correto.'
-      );
-      return;
+      setError(!error);
+      toast.error('Verifique o E-mail digitado.');
     }
   };
+
+  setTimeout(() => {
+    setError(false);
+  }, 3000);
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -83,6 +96,7 @@ export const FormLogin: React.FC<FormLoginProps> = ({ fetchedUsers }) => {
 
   return (
     <>
+      {screenLoading && <Loading />}
       {status === 'unauthenticated' && (
         <>
           <header className="flex flex-col items-center justify-center py-5">
@@ -108,14 +122,17 @@ export const FormLogin: React.FC<FormLoginProps> = ({ fetchedUsers }) => {
               >
                 <div className="relative w-4/5 max-w-72">
                   <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xl text-gray-400">
-                    <MdOutlineMail />
+                    <MdOutlineMail
+                      className={`${error === true && 'text-destructive'}`}
+                    />
                   </span>
                   <input
-                    className="w-full rounded-sm px-3 py-2 pl-8"
+                    className={`w-full rounded-sm ${error === false && 'border-none outline-none'} px-3 py-2 pl-8 ${error === true && 'border border-destructive'}`}
                     type="email"
                     name="email"
                     placeholder="E-mail"
                     value={dataLoginUser.email}
+                    required
                     onChange={handleInputValues}
                   />
                 </div>
@@ -125,10 +142,11 @@ export const FormLogin: React.FC<FormLoginProps> = ({ fetchedUsers }) => {
                       <IoLockClosedOutline />
                     </span>
                     <input
-                      className="w-full rounded-sm px-3 py-2 pl-8"
+                      className="w-full rounded-sm border-none px-3 py-2 pl-8 outline-none"
                       type={statusPassword ? 'text' : 'password'}
                       name="password"
                       placeholder="Senha"
+                      required
                       value={dataLoginUser.password}
                       onChange={handleInputValues}
                     />
