@@ -4,7 +4,6 @@ import prisma from '@/lib/useDataBase';
 import GoogleProvider from 'next-auth/providers/google';
 // import EmailProvider from 'next-auth/providers/email';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import axios from 'axios';
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -29,25 +28,6 @@ export const authOptions: NextAuthOptions = {
         const user = await prisma.user.findUnique({
           where: { email: credentials?.email },
         });
-        const loginUrl =
-          process.env.NODE_ENV === 'development'
-            ? 'http://localhost:3000/login'
-            : 'https://agro-finance-real.vercel.app/login';
-
-        const response = await axios.post(
-          loginUrl,
-          {
-            email: credentials?.email,
-            password: credentials?.password,
-          },
-          {
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          }
-        );
-
-        console.log('Response', response.data);
 
         if (user && credentials?.password === user.password) {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
