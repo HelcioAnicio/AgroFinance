@@ -68,6 +68,7 @@ export const FormLogin: React.FC<FormLoginProps> = ({ fetchedUsers }) => {
       email: dataLoginUser.email,
       password: dataLoginUser.password,
       redirect: false,
+      callbackUrl: '/',
     });
 
     if (result?.error && userEmail?.email !== dataLoginUser.email) {
@@ -102,8 +103,8 @@ export const FormLogin: React.FC<FormLoginProps> = ({ fetchedUsers }) => {
     }
   }, [status, router]);
 
-  const handleLoginClick = async () => {
-    await signIn();
+  const handleLoginClick = async (provider: string) => {
+    await signIn(provider);
   };
 
   return (
@@ -183,8 +184,9 @@ export const FormLogin: React.FC<FormLoginProps> = ({ fetchedUsers }) => {
                   </p> */}
                 </div>
                 <Button
-                  className="m-auto w-40 bg-foreground text-lg"
+                  className="bg-foreground text-lg hover:bg-foreground/80"
                   type="submit"
+                  size={'lg'}
                 >
                   Entrar
                 </Button>
@@ -199,19 +201,25 @@ export const FormLogin: React.FC<FormLoginProps> = ({ fetchedUsers }) => {
 
             <section className="flex flex-col items-center">
               <div className="flex justify-center gap-3 py-8">
-                <button type="button" onClick={handleLoginClick}>
+                <button
+                  type="button"
+                  onClick={() => handleLoginClick('google')}
+                >
                   <FcGoogle className="text-3xl text-background drop-shadow-lg" />
                 </button>
-                <button type="button" onClick={handleLoginClick}>
+                <button type="button">
                   <IoLogoApple className="text-3xl text-background drop-shadow-lg" />
                 </button>
-                <button type="button" onClick={handleLoginClick}>
+                <button type="button">
                   <FaFacebook className="text-3xl text-[#1777F6] drop-shadow-lg" />
                 </button>
               </div>
               <p>
                 Ainda não tem conta?{' '}
-                <Link href="/register" className="underline">
+                <Link
+                  href="/register"
+                  className="relative inline-block font-bold after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:origin-left after:scale-x-0 after:bg-current after:transition-transform after:duration-300 after:hover:scale-x-100"
+                >
                   Cadastre-se
                 </Link>
               </p>
