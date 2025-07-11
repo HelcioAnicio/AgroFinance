@@ -183,8 +183,9 @@ export const FormLogin: React.FC<FormLoginProps> = ({ fetchedUsers }) => {
                   </p> */}
                 </div>
                 <Button
-                  className="m-auto w-40 bg-foreground text-lg"
+                  className="bg-foreground text-lg hover:bg-foreground/80"
                   type="submit"
+                  size={'lg'}
                 >
                   Entrar
                 </Button>
@@ -211,7 +212,10 @@ export const FormLogin: React.FC<FormLoginProps> = ({ fetchedUsers }) => {
               </div>
               <p>
                 Ainda não tem conta?{' '}
-                <Link href="/register" className="underline">
+                <Link
+                  href="/register"
+                  className="relative inline-block font-bold after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:origin-left after:scale-x-0 after:bg-current after:transition-transform after:duration-300 after:hover:scale-x-100"
+                >
                   Cadastre-se
                 </Link>
               </p>
