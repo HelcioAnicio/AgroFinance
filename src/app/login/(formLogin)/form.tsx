@@ -68,6 +68,7 @@ export const FormLogin: React.FC<FormLoginProps> = ({ fetchedUsers }) => {
       email: dataLoginUser.email,
       password: dataLoginUser.password,
       redirect: false,
+      callbackUrl: '/',
     });
 
     if (result?.error && userEmail?.email !== dataLoginUser.email) {
@@ -102,8 +103,8 @@ export const FormLogin: React.FC<FormLoginProps> = ({ fetchedUsers }) => {
     }
   }, [status, router]);
 
-  const handleLoginClick = async () => {
-    await signIn();
+  const handleLoginClick = async (provider: string) => {
+    await signIn(provider);
   };
 
   return (
@@ -200,13 +201,16 @@ export const FormLogin: React.FC<FormLoginProps> = ({ fetchedUsers }) => {
 
             <section className="flex flex-col items-center">
               <div className="flex justify-center gap-3 py-8">
-                <button type="button" onClick={handleLoginClick}>
+                <button
+                  type="button"
+                  onClick={() => handleLoginClick('google')}
+                >
                   <FcGoogle className="text-3xl text-background drop-shadow-lg" />
                 </button>
-                <button type="button" onClick={handleLoginClick}>
+                <button type="button">
                   <IoLogoApple className="text-3xl text-background drop-shadow-lg" />
                 </button>
-                <button type="button" onClick={handleLoginClick}>
+                <button type="button">
                   <FaFacebook className="text-3xl text-[#1777F6] drop-shadow-lg" />
                 </button>
               </div>
