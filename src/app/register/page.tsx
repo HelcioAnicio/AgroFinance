@@ -263,7 +263,8 @@ const Register = () => {
 
           <Button
             type="submit"
-            className="rounded-sm bg-foreground px-6 py-1 text-lg text-primary-foreground"
+            size={'lg'}
+            className="rounded-sm bg-foreground text-lg transition-all duration-500 hover:bg-foreground/80"
             onClick={sendFormRegister}
           >
             Cadastrar
@@ -279,7 +280,10 @@ const Register = () => {
         <article className="flex flex-col items-center">
           <p>
             Já tem uma conta?{' '}
-            <Link href="/login" className="font-bold underline">
+            <Link
+              href="/login"
+              className="relative inline-block font-bold after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:origin-left after:scale-x-0 after:bg-current after:transition-transform after:duration-300 hover:after:scale-x-100"
+            >
               Fazer login
             </Link>
           </p>
