@@ -12,27 +12,34 @@ import { Button } from '@/components/ui/button';
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'sonner';
 import axios from 'axios';
+import { useRouter } from 'next/navigation';
 
 interface DataUserState {
   name: string;
   email: string;
-  cnpj: number;
+  cnpj: string;
   password: string;
   secondPassword?: string;
 }
 
 const Register = () => {
+  const router = useRouter();
+  const [inputsError, setInputsError] = useState({
+    name: false,
+    email: false,
+    cnpj: false,
+    password: false,
+    secondPassword: false,
+  });
   const [showPassword, setShowPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState(false);
-  const [userRegister, setUserRegister] = useState<DataUserState>(
-    {} as DataUserState
-  );
+  const [userRegister, setUserRegister] = useState({} as DataUserState);
 
   const togglePasswordVisibility = (input: string) => {
     if (input === 'password') {
       setShowPassword(!showPassword);
       return;
-    } else if (input === 'passwordAgain') {
+    } else {
       setConfirmPassword(!confirmPassword);
       return;
     }
@@ -48,7 +55,59 @@ const Register = () => {
 
   const sendFormRegister = async (event: React.FormEvent) => {
     event.preventDefault();
-    console.log(userRegister);
+
+    const requiredFields = [
+      'name',
+      'email',
+      'cnpj',
+      'password',
+      'secondPassword',
+    ] as const;
+
+    const resetErrors = requiredFields.reduce(
+      (acc, field) => {
+        acc[field] = false;
+        return acc;
+      },
+      {} as Record<(typeof requiredFields)[number], boolean>
+    );
+
+    const newErrors = requiredFields.reduce(
+      (acc, field) => {
+        const value = userRegister[field]?.toString().trim();
+        acc[field] = !value;
+        return acc;
+      },
+      {} as Record<(typeof requiredFields)[number], boolean>
+    );
+
+    const hasAnyError = Object.values(newErrors).some((value) => value);
+    console.log('hasAnyError: ', hasAnyError);
+    setInputsError(newErrors);
+
+    if (hasAnyError) {
+      setTimeout(() => {
+        setInputsError(resetErrors);
+      }, 5000);
+      toast.error('Por favor, preencha todos os campos obrigatórios');
+      return;
+    }
+
+    if (userRegister.password !== userRegister.secondPassword) {
+      setInputsError({
+        name: false,
+        email: false,
+        cnpj: false,
+        password: true,
+        secondPassword: true,
+      });
+      toast.error('A senha está diferente, favor verificar');
+      setTimeout(() => {
+        setInputsError(resetErrors);
+      }, 5000);
+      return;
+    }
+
     const updateUser = {
       ...userRegister,
       id: uuidv4(),
@@ -57,10 +116,8 @@ const Register = () => {
 
     delete updateUser.secondPassword;
 
-    console.log(updateUser);
-
     try {
-      const response = await axios.post(
+      await axios.post(
         '/api/registerUser',
         { userRegister: updateUser },
         {
@@ -69,16 +126,16 @@ const Register = () => {
           },
         }
       );
-      console.log('Registrado:', response.data);
-      toast.success('Registrado com sucesso');
-    } catch (error) {
-      console.log(error);
+      setUserRegister({} as DataUserState);
+      toast.success('Registrado com sucesso, redirecionando...');
+      router.replace('/login');
+    } catch {
       toast.error('Erro, verifique os dados preenchidos e tente novamente.');
     }
   };
 
   return (
-    <div className="flex h-dvh min-h-max flex-col items-center justify-start gap-10 pb-10">
+    <div className="flex h-dvh min-h-max flex-col items-center justify-start gap-5">
       <figure>
         <Image
           src="/logo.png"
@@ -87,62 +144,74 @@ const Register = () => {
           width={300}
           height={300}
         />
-        <figcaption>Seu agronegocio descomplicado</figcaption>
+        <figcaption className="-mt-4">Seu agronegocio descomplicado</figcaption>
       </figure>
-      <section className="min-h-3/4 flex max-h-max w-full max-w-2xl flex-col items-center justify-center gap-5 rounded-3xl bg-secondary px-2 py-6">
-        <h1 className="text-2xl font-bold text-background">Crie sua conta</h1>
+      <section className="min-h-3/4 flex max-h-max w-full max-w-2xl flex-col items-center justify-center gap-5 rounded-t-3xl bg-secondary px-2 py-6 sm:rounded-3xl">
+        {/* <h1 className="text-2xl font-bold text-background">Crie sua conta</h1> */}
         <form
-          action="Post"
-          className="flex w-full flex-col items-center justify-between gap-7"
+          action=""
+          className="flex w-full flex-col items-center justify-between gap-4"
         >
           <div className="relative w-4/5 max-w-72">
             <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xl text-gray-400">
-              <CgProfile className="text-foreground" />
+              <CgProfile
+                className={`${inputsError.name === true && 'text-destructive'}`}
+              />
             </span>
             <input
-              className="w-full rounded-sm px-3 py-2 pl-8"
+              className={`w-full rounded-sm ${inputsError.name ? 'border border-destructive' : 'border-none outline-none'} px-3 py-2 pl-8`}
               type="text"
               name="name"
               placeholder="Nome"
+              required
               value={userRegister.name}
               onChange={handleInputValues}
             />
           </div>
           <div className="relative w-4/5 max-w-72">
             <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xl text-gray-400">
-              <MdOutlineMail />
+              <MdOutlineMail
+                className={`${inputsError.email === true && 'text-destructive'}`}
+              />
             </span>
             <input
-              className="w-full rounded-sm px-3 py-2 pl-8"
+              className={`w-full rounded-sm ${inputsError.email ? 'border border-destructive' : 'border-none outline-none'} px-3 py-2 pl-8`}
               type="email"
               name="email"
               placeholder="E-mail"
+              required
               value={userRegister.email}
               onChange={handleInputValues}
             />
           </div>
           <div className="relative w-4/5 max-w-72">
             <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xl text-gray-400">
-              <FaRegBuilding />
+              <FaRegBuilding
+                className={`${inputsError.cnpj === true && 'text-destructive'}`}
+              />
             </span>
             <input
-              className="w-full rounded-sm px-3 py-2 pl-8"
+              className={`w-full rounded-sm ${inputsError.cnpj ? 'border border-destructive' : 'border-none outline-none'} px-3 py-2 pl-8`}
               type="text"
               name="cnpj"
               placeholder="CNPJ/CPF"
+              required
               value={userRegister.cnpj}
               onChange={handleInputValues}
             />
           </div>
           <div className="relative w-4/5 max-w-72">
             <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xl text-gray-400">
-              <IoLockClosedOutline />
+              <IoLockClosedOutline
+                className={`${inputsError.password === true && 'text-destructive'}`}
+              />
             </span>
             <input
-              className="w-full rounded-sm px-3 py-2 pl-8"
+              className={`w-full rounded-sm ${inputsError.password ? 'border border-destructive' : 'border-none outline-none'} px-3 py-2 pl-8`}
               type={showPassword ? 'text' : 'password'}
               name="password"
               placeholder="Crie sua senha"
+              required
               value={userRegister.password}
               onChange={handleInputValues}
             />
@@ -163,13 +232,16 @@ const Register = () => {
           </div>
           <div className="relative w-4/5 max-w-72">
             <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xl text-gray-400">
-              <IoLockClosedOutline />
+              <IoLockClosedOutline
+                className={`${inputsError.password === true && 'text-destructive'}`}
+              />
             </span>
             <input
-              className="w-full rounded-sm px-3 py-2 pl-8"
+              className={`w-full rounded-sm ${inputsError.secondPassword ? 'border border-destructive' : 'border-none outline-none'} px-3 py-2 pl-8`}
               type={confirmPassword ? 'text' : 'password'}
               name="secondPassword"
               placeholder="Digite sua senha novamente"
+              required
               value={userRegister.secondPassword}
               onChange={handleInputValues}
             />

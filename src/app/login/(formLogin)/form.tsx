@@ -27,7 +27,10 @@ interface FormLoginProps {
 export const FormLogin: React.FC<FormLoginProps> = ({ fetchedUsers }) => {
   const { status } = useSession();
   const router = useRouter();
-  const [error, setError] = useState(false);
+  const [error, setError] = useState({
+    email: false,
+    password: false,
+  });
   const [screenLoading, setScreenLoading] = useState(false);
   const [statusPassword, setStatusPassword] = useState(false);
   const [dataLoginUser, setDataLoginUser] = useState<LoginUser>(
@@ -61,26 +64,35 @@ export const FormLogin: React.FC<FormLoginProps> = ({ fetchedUsers }) => {
   const handleLoginCredentials = async (event: SyntheticEvent) => {
     event.preventDefault();
 
-    if (dataLoginUser.email === userEmail?.email) {
-      (await signIn('credentials', {
-        email: dataLoginUser.email,
-        password: dataLoginUser.password,
-        redirect: false,
-      })) as { error?: string };
+    const result = await signIn('credentials', {
+      email: dataLoginUser.email,
+      password: dataLoginUser.password,
+      redirect: false,
+    });
 
-      executeTimeout(1);
-      executeTimeout(7000);
-      toast.success('Sucesso no login, aguarde o carregamento...');
+    if (result?.error && userEmail?.email !== dataLoginUser.email) {
+      setError({ email: true, password: true });
+      toast.error('E-mail ou senha inválidos.');
+      return;
+    } else if (result?.error && userEmail?.email === dataLoginUser.email) {
+      setError({ ...error, password: true });
+      toast.error('Senha é inválida.');
       return;
     } else {
-      setError(!error);
-      toast.error('Verifique o E-mail digitado.');
+      toast.success('Sucesso no login, aguarde o carregamento...');
+      executeTimeout(1);
+      executeTimeout(7000);
+      return;
     }
   };
 
-  setTimeout(() => {
-    setError(false);
-  }, 3000);
+  useEffect(() => {
+    if (error.email || error.password) {
+      setTimeout(() => {
+        setError({ email: false, password: false });
+      }, 5000);
+    }
+  }, [error]);
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -113,21 +125,21 @@ export const FormLogin: React.FC<FormLoginProps> = ({ fetchedUsers }) => {
             </figure>
           </header>
 
-          <main className="h-max w-full rounded-3xl bg-secondary px-2 py-6">
+          <main className="h-max w-full rounded-t-3xl bg-secondary px-2 pb-12 sm:rounded-3xl">
             <section>
               <form
-                className="m-auto flex max-w-64 flex-col items-center gap-4 py-5"
+                className="mx-auto flex max-w-64 flex-col items-center gap-4 py-5"
                 action=""
                 onSubmit={handleLoginCredentials}
               >
                 <div className="relative w-4/5 max-w-72">
                   <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xl text-gray-400">
                     <MdOutlineMail
-                      className={`${error === true && 'text-destructive'}`}
+                      className={`${error.email === true && 'text-destructive'}`}
                     />
                   </span>
                   <input
-                    className={`w-full rounded-sm ${error === false && 'border-none outline-none'} px-3 py-2 pl-8 ${error === true && 'border border-destructive'}`}
+                    className={`w-full rounded-sm ${error.email === false && 'border-none outline-none'} px-3 py-2 pl-8 ${error.email === true && 'border border-destructive'}`}
                     type="email"
                     name="email"
                     placeholder="E-mail"
@@ -139,10 +151,12 @@ export const FormLogin: React.FC<FormLoginProps> = ({ fetchedUsers }) => {
                 <div className="w-4/5 max-w-72">
                   <div className="relative w-full">
                     <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xl text-gray-400">
-                      <IoLockClosedOutline />
+                      <IoLockClosedOutline
+                        className={`${error.password === true && 'text-destructive'}`}
+                      />
                     </span>
                     <input
-                      className="w-full rounded-sm border-none px-3 py-2 pl-8 outline-none"
+                      className={`w-full rounded-sm ${error.password === false && 'border-none outline-none'} px-3 py-2 pl-8 ${error.password === true && 'border border-destructive'}`}
                       type={statusPassword ? 'text' : 'password'}
                       name="password"
                       placeholder="Senha"
@@ -169,7 +183,7 @@ export const FormLogin: React.FC<FormLoginProps> = ({ fetchedUsers }) => {
                   </p> */}
                 </div>
                 <Button
-                  className="m-auto mt-5 w-40 bg-foreground text-lg"
+                  className="m-auto w-40 bg-foreground text-lg"
                   type="submit"
                 >
                   Entrar
