@@ -131,7 +131,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     delete dataToSubmit.owner;
 
     try {
-      const response = await axios.put(
+      await axios.put(
         `/api/updateAnimals?id=${dataToSubmit.id}`,
         dataToSubmit,
         {
@@ -140,12 +140,10 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
           },
         }
       );
-      console.log('Animal adicionada com sucesso:', response.data);
       setTimeout(() => {
         toast.success('Animal atualizado com sucesso!');
       }, 2000);
-    } catch (error) {
-      console.log('Erro ao atualizar animal', error);
+    } catch {
       toast.error('Ocorreu um erro ao atualizar o animal.');
     }
   };
@@ -157,7 +155,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
       updatedAt: new Date(),
     };
     try {
-      const response = await axios.post(
+      await axios.post(
         '/api/addVaccine',
         { dataOfVaccine: vaccineToSend },
         {
@@ -166,18 +164,13 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
           },
         }
       );
-      console.log(vaccineToSend);
       updatedListVaccines();
       setAddVaccine(false);
       setDataOfVaccine({} as Vaccine);
-      console.log('Vacina adicionada com sucesso:', response.data);
       setTimeout(() => {
         toast.success('Vacina adicionada com sucesso!');
       }, 2000);
-    } catch (error) {
-      console.log(vaccineToSend);
-
-      console.log('Erro ao adicionar vacina', error);
+    } catch {
       toast.error('Ocorreu um erro ao adicionar a vacina.');
     }
   };
