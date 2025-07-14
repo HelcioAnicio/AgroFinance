@@ -9,6 +9,7 @@ import { FormPregnantStatus } from './components/formPregnantStatus';
 import { FormWaitingStatus } from './components/formWaitingStatus';
 import { InputForm } from '@/components/ui/inputForm';
 import { SheetFooter, SheetClose } from '@/components/ui/sheet';
+import React from 'react';
 
 interface CardFormReproductionProps {
   animals: Animal[];
@@ -17,6 +18,8 @@ interface CardFormReproductionProps {
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
   submitForm: (allDataForm: Animal) => Promise<void>;
+  setTabValue: (value: string) => void;
+  setAllDataForm: React.Dispatch<React.SetStateAction<Animal>>;
 }
 
 export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
@@ -24,10 +27,17 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
   allDataForm,
   handleInputValues,
   submitForm,
+  setTabValue,
+  setAllDataForm,
 }) => {
   const scores = [
     1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 2.75, 3, 3.25, 3.5, 3.75, 4, 5,
   ];
+
+  const cleanAllDataForm = () => {
+    setTabValue('principais');
+    setAllDataForm({} as Animal);
+  };
 
   return (
     <>
@@ -106,9 +116,12 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
               )}
 
               <article className="flex w-full justify-end">
-                <SheetFooter>
+                <SheetFooter className="flex w-full flex-row justify-end gap-5">
                   <SheetClose asChild>
-                    <Button className="bg-card text-card-foreground hover:bg-primary-foreground">
+                    <Button
+                      className="bg-card text-card-foreground hover:bg-primary-foreground"
+                      onClick={() => cleanAllDataForm()}
+                    >
                       Cancelar
                     </Button>
                   </SheetClose>

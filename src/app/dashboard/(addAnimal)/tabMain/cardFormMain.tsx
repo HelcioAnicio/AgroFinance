@@ -2,11 +2,12 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Animal } from '@/types/animal';
 import { InputForm } from '@/components/ui/inputForm';
 import { RadioForm } from '@/components/ui/radioForm';
 import { SelectForm } from '@/components/ui/selectForm';
+import { toast } from 'sonner';
 
 interface CardFormMainProps {
   allDataForm: Animal;
@@ -16,6 +17,7 @@ interface CardFormMainProps {
   animals: Animal[];
   breedArray?: string[];
   setTabValue: (value: string) => void;
+  setAllDataForm: React.Dispatch<React.SetStateAction<Animal>>;
 }
 
 export const CardFormMain: React.FC<CardFormMainProps> = ({
@@ -23,12 +25,35 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
   allDataForm,
   handleInputValues,
   setTabValue,
+  setAllDataForm,
 }) => {
+  const checked = animals.find(
+    (animal) =>
+      animal?.manualId?.toLowerCase() === allDataForm?.manualId?.toLowerCase()
+  );
+
+  useEffect(() => {
+    if (checked !== undefined) {
+      toast.warning('Encontrado um animal com esse ID');
+    } else if (allDataForm.manualId === '') {
+      toast.warning('Favor preencher o ID');
+    } else {
+      toast.success('ID válido');
+    }
+  }, [checked]);
+
   const sendForm = (event: React.FormEvent) => {
     event.preventDefault();
-    console.log('Formulário enviado! Dados do formulário:', allDataForm);
-    setTabValue('reproducao');
-    console.log('Tab alterada para "reproducao"');
+    if (checked) {
+      toast.error('Favor alterar o ID do animal');
+    } else {
+      setTabValue('reproducao');
+    }
+  };
+
+  const cleanAllDataForm = () => {
+    setTabValue('principais');
+    setAllDataForm({} as Animal);
   };
 
   const breedArray = [
@@ -75,7 +100,7 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
               onChange={handleInputValues}
             />
 
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2">
               <span className="text-secondary">Sexo:</span>
               <RadioForm
                 htmlFor="female"
@@ -201,9 +226,15 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                 defaultOption="Escolha o pai"
               />
             </div>
-            <Button className="mt-auto flex justify-self-end" type="submit">
-              Próximo
-            </Button>
+            <div className="flex w-full flex-row justify-end gap-5">
+              <Button
+                className="bg-card text-card-foreground hover:bg-primary-foreground"
+                onClick={() => cleanAllDataForm()}
+              >
+                Cancelar
+              </Button>
+              <Button type="submit">Próximo</Button>
+            </div>
           </section>
         </form>
       </CardContent>
