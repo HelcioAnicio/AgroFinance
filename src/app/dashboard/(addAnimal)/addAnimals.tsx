@@ -85,7 +85,7 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
     };
 
     try {
-      const response = await axios.post(
+      await axios.post(
         '/api/addAnimals',
         { allDataForm: dataToSubmit },
         {
@@ -94,7 +94,6 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
           },
         }
       );
-      console.log('AnimalCadastrado: ', response.data);
       setAllDataForm({} as Animal);
       toast.success('Animal cadastrado com sucesso!');
       onAnimalAdded(dataToSubmit);
@@ -124,6 +123,7 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
             allDataForm={allDataForm}
             setTabValue={setTabValue}
             breedArray={breedArray}
+            setAllDataForm={setAllDataForm}
           />
         </TabsContent>
 
@@ -133,6 +133,8 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
             handleInputValues={handleInputValues}
             allDataForm={allDataForm}
             submitForm={submitForm}
+            setTabValue={setTabValue}
+            setAllDataForm={setAllDataForm}
           />
         </TabsContent>
       </Tabs>

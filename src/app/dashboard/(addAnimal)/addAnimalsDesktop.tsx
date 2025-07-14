@@ -57,10 +57,8 @@ export const AddAnimalDesktop: React.FC<AddAnimalProps> = ({
         allDataForm.fatherId === 'Comercial' ? null : allDataForm.fatherId,
     };
 
-    console.log('Dados enviados para o Supabase:', dataToSubmit);
-
     try {
-      const response = await axios.post(
+      await axios.post(
         '/api/addAnimals',
         { allDataForm: dataToSubmit },
         {
@@ -69,7 +67,6 @@ export const AddAnimalDesktop: React.FC<AddAnimalProps> = ({
           },
         }
       );
-      console.log('Animal cadastrado com sucesso:', response.data.dataWithId);
       setAllDataForm({} as Animal);
       toast.success('Animal cadastrado com sucesso!');
       onAnimalAdded(dataToSubmit);
@@ -95,6 +92,7 @@ export const AddAnimalDesktop: React.FC<AddAnimalProps> = ({
             handleInputValues={handleInputValues}
             allDataForm={allDataForm}
             setTabValue={setTabValue}
+            setAllDataForm={setAllDataForm}
           />
         </TabsContent>
 
@@ -104,6 +102,8 @@ export const AddAnimalDesktop: React.FC<AddAnimalProps> = ({
             handleInputValues={handleInputValues}
             allDataForm={allDataForm}
             submitForm={submitForm}
+            setTabValue={setTabValue}
+            setAllDataForm={setAllDataForm}
           />
         </TabsContent>
       </Tabs>
