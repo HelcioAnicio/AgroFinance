@@ -35,6 +35,7 @@ export const InputForm: React.FC<InputFormProps> = ({
           name={name}
           id={id}
           value={value ?? ''}
+          required
           onChange={onChange}
         />
       </div>
