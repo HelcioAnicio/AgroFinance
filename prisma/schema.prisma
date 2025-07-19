@@ -80,14 +80,14 @@ model Disease {
 }
 
 model Vaccine {
-  id          String   @id @default(uuid())
   name        String
   description String?
   date        DateTime
-  expiryDate  DateTime
   animalId    String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  expiryDate  DateTime
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   animal      Animal   @relation("AnimalVaccines", fields: [animalId], references: [id])
 }
 
