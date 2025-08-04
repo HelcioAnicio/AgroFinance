@@ -21,8 +21,8 @@ interface TableProps {
 }
 
 export const NotificationComponent: React.FC<TableProps> = ({
-  animals,
-  users,
+  // animals,
+  // users,
   notifications,
 }) => {
   console.log('notifications: ', notifications);
