@@ -8,8 +8,22 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { Animal } from '@/types/animal';
+import { User } from '@/types/user';
+import { NotificationComponent } from './notificationComponent';
+import { Notification } from '@/types/notification';
 
-export const Header = () => {
+interface TableProps {
+  animals: Animal[];
+  users: User[];
+  notifications: Notification[];
+}
+
+export const Header: React.FC<TableProps> = ({
+  animals,
+  users,
+  notifications,
+}) => {
   const { status, data } = useSession();
   const router = useRouter();
 
@@ -40,23 +54,27 @@ export const Header = () => {
 
       <nav className="flex w-full flex-col items-end gap-4">
         {status === 'authenticated' && (
-          <div className="flex items-center gap-1">
-            {data?.user?.name}
-            <Avatar className="size-8">
-              <AvatarImage
-                src={data?.user?.image ?? undefined}
-                alt="Image from google profile"
-              />
-              <AvatarFallback className="text-foreground">
-                {data?.user?.name?.charAt(0)}{' '}
-              </AvatarFallback>
-            </Avatar>
-            <Button
-              className="scale-75 bg-secondary p-1 text-accent"
-              onClick={handleLogoutClick}
-            >
-              Logout
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1">
+              {data?.user?.name}
+              <Avatar className="size-8">
+                <AvatarImage
+                  src={data?.user?.image ?? undefined}
+                  alt="Image from google profile"
+                />
+                <AvatarFallback className="text-foreground">
+                  {data?.user?.name?.charAt(0)}{' '}
+                </AvatarFallback>
+              </Avatar>
+            </div>
+            <Button className="p-1" onClick={handleLogoutClick}>
+              Sair
             </Button>
+            <NotificationComponent
+              animals={animals}
+              users={users}
+              notifications={notifications}
+            />
           </div>
         )}
 
