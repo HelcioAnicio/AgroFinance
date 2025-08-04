@@ -2,8 +2,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  // DropdownMenuLabel,
-  // DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
@@ -21,8 +19,6 @@ interface TableProps {
 }
 
 export const NotificationComponent: React.FC<TableProps> = ({
-  // animals,
-  // users,
   notifications,
 }) => {
   console.log('notifications: ', notifications);
