@@ -8,12 +8,10 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { User } from '@/types/user';
 import { NotificationComponent } from './notificationComponent';
 import { Notification } from '@/types/notification';
 
 interface TableProps {
-  users: User[];
   notifications: Notification[];
 }
 
