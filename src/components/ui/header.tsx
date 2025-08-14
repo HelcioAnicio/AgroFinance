@@ -8,22 +8,16 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Animal } from '@/types/animal';
 import { User } from '@/types/user';
 import { NotificationComponent } from './notificationComponent';
 import { Notification } from '@/types/notification';
 
 interface TableProps {
-  animals: Animal[];
   users: User[];
   notifications: Notification[];
 }
 
-export const Header: React.FC<TableProps> = ({
-  animals,
-  users,
-  notifications,
-}) => {
+export const Header: React.FC<TableProps> = ({ notifications }) => {
   const { status, data } = useSession();
   const router = useRouter();
 
@@ -70,11 +64,7 @@ export const Header: React.FC<TableProps> = ({
             <Button className="p-1" onClick={handleLogoutClick}>
               Sair
             </Button>
-            <NotificationComponent
-              animals={animals}
-              users={users}
-              notifications={notifications}
-            />
+            <NotificationComponent notifications={notifications} />
           </div>
         )}
 

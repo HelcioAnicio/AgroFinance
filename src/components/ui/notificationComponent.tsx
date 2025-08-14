@@ -7,14 +7,10 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { MdNotificationsNone } from 'react-icons/md';
 import { Button } from './button';
-import { Animal } from '@/types/animal';
-import { User } from '@/types/user';
 import { Notification } from '@/types/notification';
 import Link from 'next/link';
 
 interface TableProps {
-  animals: Animal[];
-  users: User[];
   notifications: Notification[];
 }
 
