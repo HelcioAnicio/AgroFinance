@@ -25,11 +25,11 @@ export const NotificationComponent: React.FC<TableProps> = ({
         <DropdownMenuTrigger>
           <Button className="relative flex gap-1 p-1 py-0">
             <MdNotificationsNone className="size-5" />
-            {notifications.length === 0 ? (
+            {(notifications?.length ?? 0) === 0 ? (
               ''
             ) : (
               <Badge className="absolute right-0 top-0 rounded-full bg-destructive p-0 px-1">
-                {notifications.length}
+                {notifications?.length ?? 0}
               </Badge>
             )}
           </Button>
