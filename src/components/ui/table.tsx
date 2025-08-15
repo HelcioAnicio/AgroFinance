@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Animal } from '@/types/animal';
 import { User } from '@/types/user';
 import { Sheet, SheetTrigger } from '@/components/ui/sheet';
-import { ListFilter, CirclePlus } from 'lucide-react';
+import { CirclePlus } from 'lucide-react';
+import { FaFilter } from 'react-icons/fa';
 import { AddAnimal } from '../../app/dashboard/(addAnimal)/addAnimals';
 import { Button } from '@/components/ui/button';
 import React, { useEffect, useState } from 'react';
@@ -115,22 +116,11 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
       ) : (
         <>
           <div className="sticky right-0 top-0 z-50 w-full">
-            <div className="flex w-full justify-between gap-10 px-1 sm:justify-end">
-              <input
-                className="w-full max-w-40 border border-b-gray-400 bg-input p-1 shadow-sm outline-none"
-                type="search"
-                name="inputSearch"
-                id="inputSearch"
-                placeholder="Pesquisar ID"
-                onChange={handleInputChange}
-              />
-
-              <div className="flex gap-1">
+            <div className="flex w-full justify-between gap-10 px-1">
+              <div className="flex items-center gap-3">
                 <Sheet>
                   <SheetTrigger asChild>
-                    <Button className="flex gap-1 p-1">
-                      Filtros <ListFilter className="size-4" />
-                    </Button>
+                    <FaFilter className="size-6" />
                   </SheetTrigger>
                   <Filters
                     listAnimals={listAnimals}
@@ -138,6 +128,16 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                     originalAnimals={originalAnimals}
                   />
                 </Sheet>
+                <input
+                  className="w-full max-w-40 border border-b-gray-400 bg-input p-1 shadow-sm outline-none"
+                  type="search"
+                  name="inputSearch"
+                  id="inputSearch"
+                  placeholder="Pesquisar ID"
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div className="flex gap-1">
                 <Sheet>
                   <SheetTrigger asChild className="sm:hidden">
                     <Button className="flex gap-2 p-1 sm:hidden">

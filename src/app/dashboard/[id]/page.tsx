@@ -3,8 +3,15 @@ import { Header } from '@/components/ui/header';
 import { prisma } from '@/lib/useDataBase';
 import { Animal } from '@/types/animal';
 import EditableAnimalDetails from './(components)/editableAnimalDetails';
-import { fetchAnimals, fetchVaccines } from '@/lib/fetchData';
+import {
+  fetchAnimals,
+  fetchNotifications,
+  fetchUsers,
+  fetchVaccines,
+} from '@/lib/fetchData';
 import { Vaccine } from '@/types/vaccine';
+import { authOptions } from '@/lib/auth';
+import { getServerSession } from 'next-auth';
 
 const DetailAnimalId = async ({
   params,
@@ -27,9 +34,16 @@ const DetailAnimalId = async ({
   });
   const vaccines = await fetchVaccines(animal?.id as string);
   const vaccine = vaccines;
+  const session = await getServerSession(authOptions);
+
+  const users = await fetchUsers();
+  const userEmail = users.find((user) => user.email === session?.user?.email);
+
+  const notifications = await fetchNotifications(userEmail?.id ?? '');
+
   return (
     <>
-      <Header />
+      <Header notifications={notifications} />
       <EditableAnimalDetails
         animal={animal as Animal}
         animals={animals}

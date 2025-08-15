@@ -3,6 +3,7 @@ import prisma from '@/lib/useDataBase';
 import { Animal } from '@/types/animal';
 import { User } from '@/types/user';
 import { Vaccine } from '@/types/vaccine';
+import { Notification } from '@/types/notification';
 
 export const fetchAnimals = async (ownerId?: string): Promise<Animal[]> => {
   try {
@@ -32,6 +33,22 @@ export const fetchAnimals = async (ownerId?: string): Promise<Animal[]> => {
 
 export const fetchUsers = async (): Promise<User[]> => {
   return await prisma.user.findMany();
+};
+
+export const fetchNotifications = async (
+  ownerId: string
+): Promise<Notification[]> => {
+  if (!ownerId) {
+    throw new Error('ownerId is required');
+  }
+
+  const notifications = await prisma.notification.findMany({
+    where: {
+      userId: ownerId,
+    },
+  });
+
+  return notifications as Notification[];
 };
 
 export const fetchVaccines = async (animalId: string): Promise<Vaccine[]> => {
