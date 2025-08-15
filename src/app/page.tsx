@@ -1,11 +1,11 @@
 import React from 'react';
-import { Header } from '@/components/ui/header';
+import { HeaderSimple } from '@/components/ui/headerSimple';
 import ClientAuth from '@/components/ui/clientAuth';
 
 const Home = () => {
   return (
     <ClientAuth>
-      <Header />
+      <HeaderSimple />
       <main className="m-auto w-full max-w-72 overflow-x-hidden px-2">
         <h1 className="text-3xl">Tela Inicial</h1>
         <p>
