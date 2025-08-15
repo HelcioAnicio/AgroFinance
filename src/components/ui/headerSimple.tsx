@@ -8,14 +8,8 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { NotificationComponent } from './notificationComponent';
-import { Notification } from '@/types/notification';
 
-interface TableProps {
-  notifications: Notification[];
-}
-
-export const Header: React.FC<TableProps> = ({ notifications }) => {
+export const HeaderSimple = () => {
   const { status, data } = useSession();
   const router = useRouter();
 
@@ -62,7 +56,6 @@ export const Header: React.FC<TableProps> = ({ notifications }) => {
             <Button className="p-1" onClick={handleLogoutClick}>
               Sair
             </Button>
-            <NotificationComponent notifications={notifications} />
           </div>
         )}
 
