@@ -9,6 +9,8 @@ import { MdNotificationsNone } from 'react-icons/md';
 import { Notification } from '@/types/notification';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import axios from 'axios';
+import { toast } from 'sonner';
 
 interface TableProps {
   notifications: Notification[];
@@ -17,7 +19,6 @@ interface TableProps {
 export const NotificationComponent: React.FC<TableProps> = ({
   notifications,
 }) => {
-  console.log('notifications: ', notifications);
   const [listNotifications, setListNotifications] = useState<Notification[]>(
     []
   );
@@ -44,32 +45,67 @@ export const NotificationComponent: React.FC<TableProps> = ({
     }
   }, [notifications]);
 
+  const handleStateRead = async (notificationClicked: Notification) => {
+    try {
+      await axios.put(
+        `/api/updateNotificationRead?id=${notificationClicked.id}`,
+        notificationClicked,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+    } catch {
+      toast.error('Erro ao tentar marcar como lido');
+    }
+  };
+
+  const today = new Date();
+
+  const notificationsUnread = (listNotifications ?? []).filter(
+    (notification: Notification) => {
+      const notifyAtDate = notification.notifyAt
+        ? new Date(notification.notifyAt)
+        : null;
+      return notifyAtDate && notifyAtDate <= today;
+    }
+  );
+  console.log('notificationsUnread: ', notificationsUnread);
+
   return (
     <div>
-      <DropdownMenu>
+      <DropdownMenu modal={false}>
         <DropdownMenuTrigger className="relative flex gap-1 rounded-sm bg-primary p-1 py-2">
           <MdNotificationsNone className="size-5 text-background" />
-          {notifications?.length >= 0 && (
+          {notificationsUnread.filter(
+            (notification: Notification) => notification.read === false
+          ).length > 0 && (
             <Badge className="absolute right-0 top-0 rounded-full bg-destructive p-0 px-1">
               {
-                (listNotifications ?? []).filter(
+                notificationsUnread.filter(
                   (notification: Notification) => notification.read === false
                 ).length
               }
             </Badge>
           )}
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="flex w-full min-w-0 max-w-72 items-center justify-end">
-          {(listNotifications ?? []).map(
+        <DropdownMenuContent className="flex w-full min-w-0 max-w-72 flex-col justify-end">
+          {(notificationsUnread ?? []).map(
             (notification: Notification, index: number) => (
-              <Link href={`dashboard/${notification.animalId}`} key={index}>
+              <Link
+                href={`dashboard/${notification.animalId}`}
+                key={index}
+                onClick={() => handleStateRead(notification)}
+              >
                 <DropdownMenuItem
                   className={`w-full text-xs ${notification.read === false ? 'bg-secondary text-background hover:bg-secondary' : 'bg-background hover:bg-background'}`}
                 >
-                  {notification.read === false && (
+                  {notification && (
                     <span className="h-2 w-4 rounded-full bg-background"></span>
                   )}
                   {notification.message}
+                  (notification.notifyAt)
                 </DropdownMenuItem>
               </Link>
             )
