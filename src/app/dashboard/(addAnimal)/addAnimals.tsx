@@ -71,7 +71,8 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
     }));
   };
 
-  const submitForm = async (allDataForm: Animal) => {
+  const submitForm = async (allDataForm: Animal, event?: FormDataEvent) => {
+    event?.preventDefault();
     const dataToSubmit = {
       ...allDataForm,
       id: uuidv4(),

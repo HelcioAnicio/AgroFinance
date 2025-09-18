@@ -34,13 +34,13 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
 
   useEffect(() => {
     if (checked !== undefined) {
-      toast.warning('Encontrado um animal com esse ID');
+      setTimeout(() => toast.warning('Encontrado um animal com esse ID'), 1000);
     } else if (allDataForm.manualId === '') {
-      toast.warning('Favor preencher o ID');
-    } else {
-      toast.success('ID válido');
+      setTimeout(() => toast.warning('Favor preencher o ID'), 1000);
+    } else if (checked === undefined && allDataForm.manualId) {
+      setTimeout(() => toast.success('ID válido'), 1000);
     }
-  }, [checked]);
+  }, [allDataForm.manualId, checked]);
 
   const sendForm = (event: React.FormEvent) => {
     event.preventDefault();
