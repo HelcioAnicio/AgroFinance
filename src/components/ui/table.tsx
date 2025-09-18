@@ -110,17 +110,20 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
   };
 
   return (
-    <main className="m-auto max-w-[750px] overflow-x-auto scroll-smooth pb-5">
+    <main
+      style={{ height: 'calc(100vh - 160px)' }}
+      className="m-auto max-w-[750px] pb-5"
+    >
       {isLoading ? (
         <Loading />
       ) : (
         <>
-          <div className="sticky right-0 top-0 z-50 w-full">
+          <div className="sticky right-0 top-0 z-50 max-h-[300px] w-full">
             <div className="flex w-full justify-between gap-10 px-1">
               <div className="flex items-center gap-3">
                 <Sheet>
                   <SheetTrigger asChild>
-                    <FaFilter className="size-6" />
+                    <FaFilter className="size-6 cursor-pointer" />
                   </SheetTrigger>
                   <Filters
                     listAnimals={listAnimals}
@@ -164,140 +167,142 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
             </div>
           </div>
           <br />
-          <table className="m-auto min-w-[750px] border-collapse text-left xl:text-sm">
-            <thead className="border-collapse bg-primary text-background">
-              <tr>
-                <th className="w-20 px-1 py-2">Status</th>
-                <th className="px-1 py-2">ID</th>
-                <th className="px-1 py-2">Raça</th>
-                <th className="px-1 py-2">Sexo</th>
-                <th className="px-1 py-2">Mãe</th>
-                <th className="px-1 py-2">Pai</th>
-                <th className="px-1 py-2">Nascimento</th>
-                <th className="px-1 py-2">Categoria</th>
-                <th className="px-1 py-2">Peso</th>
-                <th className="sticky right-0 bg-primary px-1 py-2 text-background"></th>
-              </tr>
-            </thead>
-            <tbody className="h-[calc(100%-200px)] overflow-y-auto scroll-smooth">
-              {listAnimals.map((animal: Animal, index: number) => {
-                const mother: Animal | undefined = animals.find(
-                  (a) => a.id === animal.motherId
-                );
-                const father: Animal | undefined = animals.find(
-                  (a) => a.id === animal.fatherId
-                );
+          <div className="h-full w-full overflow-y-auto pb-10">
+            <table className="m-auto max-w-[750px] border-collapse overflow-x-auto overflow-y-scroll scroll-smooth text-left xl:text-sm">
+              <thead className="sticky top-0 z-50 border-collapse bg-primary text-background">
+                <tr>
+                  <th className="w-20 px-1 py-2">Status</th>
+                  <th className="px-1 py-2">ID</th>
+                  <th className="px-1 py-2">Raça</th>
+                  <th className="px-1 py-2">Sexo</th>
+                  <th className="px-1 py-2">Mãe</th>
+                  <th className="px-1 py-2">Pai</th>
+                  <th className="px-1 py-2">Nascimento</th>
+                  <th className="px-1 py-2">Categoria</th>
+                  <th className="px-1 py-2">Peso</th>
+                  <th className="sticky right-0 bg-primary px-1 py-2 text-background"></th>
+                </tr>
+              </thead>
+              <tbody className="overflow-y-auto scroll-smooth">
+                {listAnimals.map((animal: Animal, index: number) => {
+                  const mother: Animal | undefined = animals.find(
+                    (a) => a.id === animal.motherId
+                  );
+                  const father: Animal | undefined = animals.find(
+                    (a) => a.id === animal.fatherId
+                  );
 
-                return (
-                  <tr
-                    key={animal.id}
-                    className={`${index % 2 === 0 ? 'bg-muted' : ''} cursor-pointer`}
-                    onClick={() => handleNavigation(animal.id)}
-                  >
-                    <td className="max-w-max px-1 py-3">
-                      {animal?.status === 'active' ? (
-                        <>
-                          <FaCheckCircle className="inline-block size-3 text-green-400" />{' '}
-                          Ativo
-                        </>
-                      ) : animal?.status === 'inactive' ? (
-                        <>
-                          <MdHighlightOff className="inline-block size-3 text-gray-500" />{' '}
-                          Inativo
-                        </>
-                      ) : animal?.status === 'dead' ? (
-                        <>
-                          <IoSkull className="inline-block size-3 text-black" />{' '}
-                          Morto
-                        </>
-                      ) : (
-                        <>
-                          <TbMoneybag className="inline-block size-3 text-yellow-600" />{' '}
-                          Vendido
-                        </>
-                      )}
-                    </td>
-                    <td className="px-1 py-3">
-                      {animal.manualId.charAt(0).toLocaleUpperCase() +
-                        animal.manualId.slice(1)}
-                    </td>
-                    <td className="px-1 py-3">{animal.breed}</td>
-                    <td className="px-1 py-3">
-                      {animal.gender === 'male' ? 'Macho' : 'Fêmea'}
-                    </td>
-                    {animal.motherId === null ? (
-                      <td className="cursor-default px-1 py-3">
-                        <span className="flex w-max items-center gap-1">
-                          Comercial
-                        </span>
-                      </td>
-                    ) : (
-                      <td
-                        className="px-1 py-3 transition duration-300 ease-in-out hover:opacity-50"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          handleNavigation(animal.motherId);
-                        }}
-                      >
-                        <span className="flex w-max items-center gap-1 border-b border-foreground">
-                          {`Vaca ${mother?.manualId}`}
-                          <LiaExternalLinkAltSolid className="inline-block size-4" />
-                        </span>
-                      </td>
-                    )}
-                    {animal.fatherId === null ? (
-                      <td className="cursor-default px-1 py-3">
-                        <span className="flex w-max items-center gap-1">
-                          Comercial
-                        </span>
-                      </td>
-                    ) : (
-                      <td
-                        className="px-1 py-3 transition duration-300 ease-in-out hover:opacity-50"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          handleNavigation(animal.fatherId);
-                        }}
-                      >
-                        <span className="flex w-max items-center gap-1 border-b border-foreground">
-                          {`Touro ${father?.manualId}`}
-                          <LiaExternalLinkAltSolid className="inline-block size-4" />
-                        </span>
-                      </td>
-                    )}
-                    <td className="px-1 py-3">
-                      {animal.birthDate
-                        ? new Date(animal.birthDate).toLocaleDateString()
-                        : 'N/A'}
-                    </td>
-
-                    <td className="px-1 py-3">
-                      {animal.category === 'calf'
-                        ? 'Bezerro'
-                        : animal.category === 'steer'
-                          ? 'Novilho'
-                          : animal.category === 'adult'
-                            ? 'Adulto'
-                            : animal.category === 'senior'
-                              ? 'Idoso'
-                              : animal.category
-                                ? `${animal.category[0].toUpperCase()}${animal.category.substring(1)}`
-                                : 'N/A'}
-                    </td>
-
-                    <td className="px-1 py-3">{animal.weight} Kg</td>
-                    <td
-                      className={`sticky right-0 px-1 py-3 ${
-                        index % 2 === 0 ? 'bg-muted' : 'bg-background'
-                      }`}
+                  return (
+                    <tr
+                      key={animal.id}
+                      className={`${index % 2 === 0 ? 'bg-muted' : ''} cursor-pointer`}
+                      onClick={() => handleNavigation(animal.id)}
                     >
-                      <SquareArrowOutUpLeft size={20} />
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      <td className="max-w-max px-1 py-3">
+                        {animal?.status === 'active' ? (
+                          <>
+                            <FaCheckCircle className="inline-block size-3 text-green-400" />{' '}
+                            Ativo
+                          </>
+                        ) : animal?.status === 'inactive' ? (
+                          <>
+                            <MdHighlightOff className="inline-block size-3 text-gray-500" />{' '}
+                            Inativo
+                          </>
+                        ) : animal?.status === 'dead' ? (
+                          <>
+                            <IoSkull className="inline-block size-3 text-black" />{' '}
+                            Morto
+                          </>
+                        ) : (
+                          <>
+                            <TbMoneybag className="inline-block size-3 text-yellow-600" />{' '}
+                            Vendido
+                          </>
+                        )}
+                      </td>
+                      <td className="px-1 py-3">
+                        {animal.manualId.charAt(0).toLocaleUpperCase() +
+                          animal.manualId.slice(1)}
+                      </td>
+                      <td className="px-1 py-3">{animal.breed}</td>
+                      <td className="px-1 py-3">
+                        {animal.gender === 'male' ? 'Macho' : 'Fêmea'}
+                      </td>
+                      {animal.motherId === null ? (
+                        <td className="cursor-default px-1 py-3">
+                          <span className="flex w-max items-center gap-1">
+                            Comercial
+                          </span>
+                        </td>
+                      ) : (
+                        <td
+                          className="px-1 py-3 transition duration-300 ease-in-out hover:opacity-50"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleNavigation(animal.motherId);
+                          }}
+                        >
+                          <span className="flex w-max items-center gap-1 border-b border-foreground">
+                            {`Vaca ${mother?.manualId}`}
+                            <LiaExternalLinkAltSolid className="inline-block size-4" />
+                          </span>
+                        </td>
+                      )}
+                      {animal.fatherId === null ? (
+                        <td className="cursor-default px-1 py-3">
+                          <span className="flex w-max items-center gap-1">
+                            Comercial
+                          </span>
+                        </td>
+                      ) : (
+                        <td
+                          className="px-1 py-3 transition duration-300 ease-in-out hover:opacity-50"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleNavigation(animal.fatherId);
+                          }}
+                        >
+                          <span className="flex w-max items-center gap-1 border-b border-foreground">
+                            {`Touro ${father?.manualId}`}
+                            <LiaExternalLinkAltSolid className="inline-block size-4" />
+                          </span>
+                        </td>
+                      )}
+                      <td className="px-1 py-3">
+                        {animal.birthDate
+                          ? new Date(animal.birthDate).toLocaleDateString()
+                          : 'N/A'}
+                      </td>
+
+                      <td className="px-1 py-3">
+                        {animal.category === 'calf'
+                          ? 'Bezerro'
+                          : animal.category === 'steer'
+                            ? 'Novilho'
+                            : animal.category === 'adult'
+                              ? 'Adulto'
+                              : animal.category === 'senior'
+                                ? 'Idoso'
+                                : animal.category
+                                  ? `${animal.category[0].toUpperCase()}${animal.category.substring(1)}`
+                                  : 'N/A'}
+                      </td>
+
+                      <td className="px-1 py-3">{animal.weight} Kg</td>
+                      <td
+                        className={`sticky right-0 px-1 py-3 ${
+                          index % 2 === 0 ? 'bg-muted' : 'bg-background'
+                        }`}
+                      >
+                        <SquareArrowOutUpLeft size={20} />
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </>
       )}
     </main>
