@@ -40,7 +40,7 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
         />
       </article>
 
-      <article className="flex flex-wrap justify-between gap-2">
+      <article className="flex flex-wrap gap-2 md:gap-10">
         <SelectForm
           htmlFor="bullId"
           label="Touro utilizado:"
@@ -67,13 +67,13 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
           id="protocol"
           value={allDataForm.protocol || ''}
           options={[
-            { label: 'Inseminação artificial', value: 'protocol1' },
-            { label: 'Inseminação', value: 'protocol2' },
+            { label: '3 manejos', value: '3 manejos' },
+            { label: '4 manejos', value: '4 manejos' },
+            { label: 'Misto', value: 'misto' },
           ]}
           defaultOption="Protocolo"
           onChange={handleInputValues}
           disabled={allDataForm.handlingType === 'bullMating'}
-          // classNameInput={'max-w-32'}
         />
       </article>
 
