@@ -67,8 +67,6 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
 
   const handleNavigation = (id: string | null) => {
     setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 3000);
-
     router.push(`dashboard/${id}`);
   };
 
