@@ -182,7 +182,14 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                         if (ageInMonths <= 12) return 'Bezerro';
                         if (ageInMonths <= 24) return 'Novilho';
                         if (ageInMonths <= 36) return 'Adulto';
-                        return 'Idoso';
+                        if (ageInMonths >= 37 && ageInMonths <= 120) {
+                          return allDataForm.gender === 'male'
+                            ? 'Touro'
+                            : 'Vaca';
+                        }
+                        return allDataForm.gender === 'male'
+                          ? 'Touro velho'
+                          : 'Vaca velha';
                       })()
                     : ''}
                 </p>

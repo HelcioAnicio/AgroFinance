@@ -105,7 +105,6 @@ export const NotificationComponent: React.FC<TableProps> = ({
                     <span className="h-2 w-4 rounded-full bg-background"></span>
                   )}
                   {notification.message}
-                  (notification.notifyAt)
                 </DropdownMenuItem>
               </Link>
             )
