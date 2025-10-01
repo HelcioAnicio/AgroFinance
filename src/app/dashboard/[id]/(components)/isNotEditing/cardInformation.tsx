@@ -73,7 +73,24 @@ export const CardInformation: React.FC<InformationProps> = ({ animal }) => {
         </Card>
         <Card className="w-max rounded-sm px-3 py-1">
           <strong>Categoria: </strong>
-          <span>{animal?.category}</span>
+          <span>
+            {' '}
+            {animal?.category === 'calf'
+              ? 'Bezerro'
+              : animal?.category === 'steer'
+                ? 'Novilho'
+                : animal?.category === 'adult'
+                  ? animal?.gender === 'female'
+                    ? 'Vaca'
+                    : 'Boi'
+                  : animal?.category === 'senior'
+                    ? animal?.gender === 'female'
+                      ? 'Vaca velha'
+                      : 'Boi velho'
+                    : animal?.category
+                      ? `${animal?.category[0].toUpperCase()}${animal?.category.substring(1)}`
+                      : 'N/A'}
+          </span>
         </Card>
       </section>
       <section className="flex w-full max-w-sm flex-wrap gap-2 p-2">
