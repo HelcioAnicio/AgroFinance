@@ -196,35 +196,37 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                       className={`${index % 2 === 0 ? 'bg-muted' : ''} cursor-pointer`}
                       onClick={() => handleNavigation(animal.id)}
                     >
-                      <td className="max-w-max px-1 py-3">
-                        {animal?.status === 'active' ? (
-                          <>
-                            <FaCheckCircle className="inline-block size-3 text-green-400" />{' '}
-                            Ativo
-                          </>
-                        ) : animal?.status === 'inactive' ? (
-                          <>
-                            <MdHighlightOff className="inline-block size-3 text-gray-500" />{' '}
-                            Inativo
-                          </>
-                        ) : animal?.status === 'dead' ? (
-                          <>
-                            <IoSkull className="inline-block size-3 text-black" />{' '}
-                            Morto
-                          </>
-                        ) : (
-                          <>
-                            <TbMoneybag className="inline-block size-3 text-yellow-600" />{' '}
-                            Vendido
-                          </>
-                        )}
+                      <td className="px-1 py-3 pr-4">
+                        <span className="flex w-max items-center gap-1">
+                          {animal?.status === 'active' ? (
+                            <>
+                              <FaCheckCircle className="inline-block size-3 text-green-400" />{' '}
+                              Ativo
+                            </>
+                          ) : animal?.status === 'inactive' ? (
+                            <>
+                              <MdHighlightOff className="inline-block size-3 text-gray-500" />{' '}
+                              Inativo
+                            </>
+                          ) : animal?.status === 'dead' ? (
+                            <>
+                              <IoSkull className="inline-block size-3 text-black" />{' '}
+                              Morto
+                            </>
+                          ) : (
+                            <>
+                              <TbMoneybag className="inline-block size-3 text-yellow-600" />{' '}
+                              Vendido
+                            </>
+                          )}
+                        </span>
                       </td>
                       <td className="px-1 py-3">
                         {animal.manualId.charAt(0).toLocaleUpperCase() +
                           animal.manualId.slice(1)}
                       </td>
                       <td className="px-1 py-3">{animal.breed}</td>
-                      <td className="px-1 py-3">
+                      <td className="px-1 py-3 pr-4">
                         {animal.gender === 'male' ? 'Macho' : 'Fêmea'}
                       </td>
                       {animal.motherId === null ? (
@@ -235,7 +237,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                         </td>
                       ) : (
                         <td
-                          className="px-1 py-3 transition duration-300 ease-in-out hover:opacity-50"
+                          className="px-1 py-3 pr-4 transition duration-300 ease-in-out hover:opacity-50"
                           onClick={(event) => {
                             event.stopPropagation();
                             handleNavigation(animal.motherId);
@@ -255,7 +257,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                         </td>
                       ) : (
                         <td
-                          className="px-1 py-3 transition duration-300 ease-in-out hover:opacity-50"
+                          className="px-1 py-3 pr-4 transition duration-300 ease-in-out hover:opacity-50"
                           onClick={(event) => {
                             event.stopPropagation();
                             handleNavigation(animal.fatherId);
@@ -273,21 +275,29 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                           : 'N/A'}
                       </td>
 
-                      <td className="px-1 py-3">
-                        {animal.category === 'calf'
-                          ? 'Bezerro'
-                          : animal.category === 'steer'
-                            ? 'Novilho'
-                            : animal.category === 'adult'
-                              ? 'Adulto'
-                              : animal.category === 'senior'
-                                ? 'Idoso'
-                                : animal.category
-                                  ? `${animal.category[0].toUpperCase()}${animal.category.substring(1)}`
-                                  : 'N/A'}
+                      <td className="px-2 py-3">
+                        <span className="flex w-max">
+                          {animal.category === 'calf'
+                            ? 'Bezerro'
+                            : animal.category === 'steer'
+                              ? 'Novilho'
+                              : animal.category === 'adult'
+                                ? animal.gender === 'female'
+                                  ? 'Vaca'
+                                  : 'Boi'
+                                : animal.category === 'senior'
+                                  ? animal.gender === 'female'
+                                    ? 'Vaca velha'
+                                    : 'Boi velho'
+                                  : animal.category
+                                    ? `${animal.category[0].toUpperCase()}${animal.category.substring(1)}`
+                                    : 'N/A'}
+                        </span>
                       </td>
 
-                      <td className="px-1 py-3">{animal.weight} Kg</td>
+                      <td className="px-2 py-3">
+                        <span className="flex w-max">{animal.weight} Kg</span>
+                      </td>
                       <td
                         className={`sticky right-0 px-1 py-3 ${
                           index % 2 === 0 ? 'bg-muted' : 'bg-background'
