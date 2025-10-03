@@ -115,14 +115,50 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
                 <label className="text-secondary" htmlFor="category">
                   Categoria:
                 </label>
-                <input
-                  type="text"
+                <select
                   name="category"
                   id="category"
                   value={allDataForm.category ?? ''}
                   onChange={handleInputValues}
-                  className="w-full border border-b border-b-primary bg-transparent outline-none"
-                />
+                  className="h-20 min-w-24 flex-1 overflow-y-auto scroll-smooth border border-b border-b-primary bg-transparent outline-none"
+                >
+                  <option disabled value=""></option>
+                  <option value="bezerro">Bezerro</option>
+                  <option
+                    value={
+                      allDataForm.gender === 'male' ? 'garrote' : 'novilha'
+                    }
+                  >
+                    {allDataForm.gender === 'male' ? 'Garrote' : 'Novilha'}
+                  </option>
+
+                  <option
+                    value={allDataForm.gender === 'male' ? 'boi' : 'vaca'}
+                  >
+                    {allDataForm.gender === 'male' ? 'Boi' : 'Vaca'}
+                  </option>
+
+                  <option
+                    value={
+                      allDataForm.gender === 'male' ? 'boi velho' : 'vaca velha'
+                    }
+                  >
+                    {allDataForm.gender === 'male' ? 'Boi velho' : 'Vaca Velha'}
+                  </option>
+
+                  {allDataForm.gender === 'male' && (
+                    <>
+                      <option value="touro">Touro</option>
+                      <option value="touro velho">Touro velho</option>
+                    </>
+                  )}
+
+                  {allDataForm.motherId && (
+                    <option value={allDataForm.motherId ?? ''}>
+                      Vaca {allDataForm.mother?.manualId}
+                    </option>
+                  )}
+                </select>
               </div>
 
               <div className="flex flex-col gap-1">
