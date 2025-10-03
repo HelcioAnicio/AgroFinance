@@ -170,29 +170,36 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
 
               <div className="flex flex-col gap-1">
                 <span className="text-secondary">Categoria:</span>
-                <p>
-                  {allDataForm.birthDate
-                    ? (() => {
-                        const birthDate = new Date(allDataForm.birthDate);
-                        const ageInMonths =
-                          (new Date().getFullYear() - birthDate.getFullYear()) *
-                            12 +
-                          new Date().getMonth() -
-                          birthDate.getMonth();
-                        if (ageInMonths <= 12) return 'Bezerro';
-                        if (ageInMonths <= 24) return 'Novilho';
-                        if (ageInMonths <= 36) return 'Adulto';
-                        if (ageInMonths >= 37 && ageInMonths <= 120) {
-                          return allDataForm.gender === 'male'
-                            ? 'Touro'
-                            : 'Vaca';
-                        }
-                        return allDataForm.gender === 'male'
+                {(() => {
+                  let category = '';
+                  if (allDataForm.birthDate) {
+                    const birthDate = new Date(allDataForm.birthDate);
+                    const ageInMonths =
+                      (new Date().getFullYear() - birthDate.getFullYear()) *
+                        12 +
+                      new Date().getMonth() -
+                      birthDate.getMonth();
+                    if (ageInMonths <= 12) category = 'Bezerro';
+                    else if (ageInMonths <= 24) {
+                      category =
+                        allDataForm.gender === 'male' ? 'Garrote' : 'Novilha';
+                    } else if (ageInMonths <= 36) {
+                      category =
+                        allDataForm.gender === 'male' ? 'Garrote' : 'Vaca';
+                    } else if (ageInMonths >= 37 && ageInMonths <= 120) {
+                      category = allDataForm.gender === 'male' ? 'Boi' : 'Vaca';
+                    } else {
+                      category =
+                        allDataForm.gender === 'male'
                           ? 'Touro velho'
                           : 'Vaca velha';
-                      })()
-                    : ''}
-                </p>
+                    }
+                    if (allDataForm.category !== category) {
+                      setAllDataForm((prev) => ({ ...prev, category }));
+                    }
+                  }
+                  return <p>{category}</p>;
+                })()}
               </div>
 
               <SelectForm
@@ -205,7 +212,11 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                 options={[
                   { label: 'Comercial', value: 'Comercial' },
                   ...animals
-                    .filter((animal) => animal.gender === 'female')
+                    .filter(
+                      (animal) =>
+                        animal.gender === 'female' &&
+                        animal.category !== 'Bezerro'
+                    )
                     .map((animal) => ({
                       label: `Vaca ${animal.manualId}`,
                       value: animal.id,
@@ -224,7 +235,11 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                 options={[
                   { label: 'Comercial', value: 'Comercial' },
                   ...animals
-                    .filter((animal) => animal.gender === 'male')
+                    .filter(
+                      (animal) =>
+                        animal.gender === 'male' &&
+                        animal.category.includes('Touro')
+                    )
                     .map((animal) => ({
                       label: `Touro ${animal.manualId}`,
                       value: animal.id,
