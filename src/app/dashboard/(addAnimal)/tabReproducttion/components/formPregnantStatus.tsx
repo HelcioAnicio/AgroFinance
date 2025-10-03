@@ -51,7 +51,10 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
           options={[
             { label: 'Comercial', value: 'Comercial' },
             ...animals
-              .filter((animal) => animal.gender === 'male')
+              .filter(
+                (animal) =>
+                  animal.gender === 'male' && animal.category.includes('Touro')
+              )
               .map((animal) => ({
                 label: `Touro ${animal.manualId}`,
                 value: animal.id,
@@ -147,7 +150,10 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
           options={[
             { label: 'Comercial', value: 'comercial' },
             ...animals
-              .filter((animal) => animal.gender === 'male')
+              .filter(
+                (animal) =>
+                  animal.gender === 'male' && animal.category.includes('Touro')
+              )
               .map((animal) => ({
                 label: `Touro ${animal.manualId}`,
                 value: animal.id,

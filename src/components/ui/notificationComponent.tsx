@@ -71,7 +71,6 @@ export const NotificationComponent: React.FC<TableProps> = ({
       return notifyAtDate && notifyAtDate <= today;
     }
   );
-  console.log('notificationsUnread: ', notificationsUnread);
 
   return (
     <div>
