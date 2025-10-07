@@ -179,8 +179,10 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                         12 +
                       new Date().getMonth() -
                       birthDate.getMonth();
-                    if (ageInMonths <= 12) category = 'Bezerro';
-                    else if (ageInMonths <= 24) {
+                    if (ageInMonths <= 8) category = 'Dependente';
+                    else if (ageInMonths <= 12) {
+                      category = 'Bezerro';
+                    } else if (ageInMonths <= 24) {
                       category =
                         allDataForm.gender === 'male' ? 'Garrote' : 'Novilha';
                     } else if (ageInMonths <= 36) {
@@ -191,7 +193,7 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                     } else {
                       category =
                         allDataForm.gender === 'male'
-                          ? 'Touro velho'
+                          ? 'Boi velho'
                           : 'Vaca velha';
                     }
                     if (allDataForm.category !== category) {

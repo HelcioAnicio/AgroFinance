@@ -52,8 +52,13 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
 
   useEffect(() => {
     if (inputValue === '') {
-      setListAnimals(originalAnimals);
+      const listWithoutDependents = originalAnimals.filter((animal) => {
+        return animal.category !== 'dependente';
+      });
+      console.log('listWithoutDependents: ', listWithoutDependents);
+      setListAnimals(listWithoutDependents);
     } else {
+      setListAnimals(originalAnimals);
       const filtered = originalAnimals.filter((animal) => {
         const manualId = String(animal.manualId);
         const input = String(inputValue?.toLowerCase());
@@ -277,7 +282,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
 
                       <td className="px-2 py-3">
                         <span className="flex w-max">
-                          {animal.category === 'calf'
+                          {/* {animal.category === 'calf'
                             ? 'Bezerro'
                             : animal.category === 'steer'
                               ? 'Novilho'
@@ -291,7 +296,9 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                                     : 'Boi velho'
                                   : animal.category
                                     ? `${animal.category[0].toUpperCase()}${animal.category.substring(1)}`
-                                    : 'N/A'}
+                                    : 'N/A'} */}
+                          {animal.category[0].toLocaleUpperCase()}
+                          {animal.category.substring(1)}
                         </span>
                       </td>
 

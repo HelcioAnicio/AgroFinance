@@ -64,6 +64,7 @@ export const Filters: React.FC<FiltersProps> = ({
       steer: false,
       adult: false,
       senior: false,
+      old: false,
     },
     weight: {
       '300kg': false,
@@ -149,11 +150,13 @@ export const Filters: React.FC<FiltersProps> = ({
         (!typeFilters.category.calf &&
           !typeFilters.category.steer &&
           !typeFilters.category.adult &&
-          !typeFilters.category.senior) ||
+          !typeFilters.category.senior &&
+          !typeFilters.category.old) ||
         (typeFilters.category.calf && animal.category === 'calf') ||
         (typeFilters.category.steer && animal.category === 'steer') ||
         (typeFilters.category.adult && animal.category === 'adult') ||
-        (typeFilters.category.senior && animal.category === 'senior');
+        (typeFilters.category.senior && animal.category === 'senior') ||
+        (typeFilters.category.old && animal.category === 'old');
 
       const matchesWeight =
         (!typeFilters.weight['300kg'] &&
@@ -219,6 +222,7 @@ export const Filters: React.FC<FiltersProps> = ({
         steer: false,
         adult: false,
         senior: false,
+        old: false,
       },
       weight: {
         '300kg': false,
@@ -354,13 +358,24 @@ export const Filters: React.FC<FiltersProps> = ({
               onChange={updateListAndInput}
             />
             <RadioForm
-              label="+ 36m"
+              label="36m - 120m"
               htmlFor="category.senior"
               id="category.senior"
               name="category.senior"
               type="checkbox"
               value="senior"
               checked={typeFilters.category.senior}
+              onChange={updateListAndInput}
+            />
+
+            <RadioForm
+              label="+ 120m"
+              htmlFor="category.old"
+              id="category.old"
+              name="category.old"
+              type="checkbox"
+              value="old"
+              checked={typeFilters.category.old}
               onChange={updateListAndInput}
             />
           </div>
