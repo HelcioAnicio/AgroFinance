@@ -24,7 +24,7 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
         <CardContent className="p-1">
           <section className="flex flex-col gap-4">
             <div className="grid grid-cols-2 gap-4">
-              <div className="flex items-end gap-1">
+              <div className="">
                 <label className="text-secondary" htmlFor="manualId">
                   Id do animal:
                 </label>
@@ -34,7 +34,7 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
                   id="manualId"
                   value={allDataForm.manualId ?? ''}
                   onChange={handleInputValues}
-                  className="w-12 border border-b border-b-primary bg-transparent outline-none"
+                  className="w-full border border-b border-b-primary bg-transparent outline-none"
                 />
               </div>
               <div className="flex items-end gap-1">
@@ -123,6 +123,7 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
                   className="h-20 min-w-24 flex-1 overflow-y-auto scroll-smooth border border-b border-b-primary bg-transparent outline-none"
                 >
                   <option disabled value=""></option>
+                  <option value="dependente">Dependente</option>
                   <option value="bezerro">Bezerro</option>
                   <option
                     value={
