@@ -127,38 +127,64 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
                   <option value="bezerro">Bezerro</option>
                   <option
                     value={
-                      allDataForm.gender === 'male' ? 'garrote' : 'novilha'
+                      allDataForm.category && allDataForm.gender === 'male'
+                        ? 'garrote'
+                        : 'novilha'
                     }
                   >
-                    {allDataForm.gender === 'male' ? 'Garrote' : 'Novilha'}
-                  </option>
-
-                  <option
-                    value={allDataForm.gender === 'male' ? 'boi' : 'vaca'}
-                  >
-                    {allDataForm.gender === 'male' ? 'Boi' : 'Vaca'}
+                    {allDataForm.category && allDataForm.gender === 'male'
+                      ? 'Garrote'
+                      : 'Novilha'}
                   </option>
 
                   <option
                     value={
-                      allDataForm.gender === 'male' ? 'boi velho' : 'vaca velha'
+                      allDataForm.category && allDataForm.gender === 'male'
+                        ? 'boi'
+                        : 'vaca'
                     }
                   >
-                    {allDataForm.gender === 'male' ? 'Boi velho' : 'Vaca Velha'}
+                    {allDataForm.category && allDataForm.gender === 'male'
+                      ? 'Boi'
+                      : 'Vaca'}
                   </option>
 
-                  {allDataForm.gender === 'male' && (
+                  <option
+                    value={
+                      allDataForm.category && allDataForm.gender === 'male'
+                        ? 'boi velho'
+                        : 'vaca velha'
+                    }
+                  >
+                    {allDataForm.category && allDataForm.gender === 'male'
+                      ? 'Boi velho'
+                      : 'Vaca Velha'}
+                  </option>
+
+                  {allDataForm.category && allDataForm.gender === 'male' && (
                     <>
                       <option value="touro">Touro</option>
                       <option value="touro velho">Touro velho</option>
                     </>
                   )}
 
-                  {allDataForm.motherId && (
-                    <option value={allDataForm.motherId ?? ''}>
-                      Vaca {allDataForm.mother?.manualId}
-                    </option>
-                  )}
+                  {/* {allDataForm.category &&
+                    ![
+                      'dependente',
+                      'bezerro',
+                      'garrote',
+                      'novilha',
+                      'boi',
+                      'vaca',
+                      'boi velho',
+                      'vaca velha',
+                      'touro',
+                      'touro velho',
+                    ].includes(allDataForm.category) && (
+                      <option hidden value={allDataForm.category}>
+                        {allDataForm.category}
+                      </option>
+                    )} */}
                 </select>
               </div>
 
@@ -174,9 +200,11 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
                   className="h-20 min-w-24 flex-1 overflow-y-auto scroll-smooth border border-b border-b-primary bg-transparent outline-none"
                 >
                   <option disabled value=""></option>
-                  <option value="Comercial">Comercial</option>
+                  <option value={(allDataForm.motherId = 'Comercial')}>
+                    Comercial
+                  </option>
                   {allDataForm.motherId && (
-                    <option value={allDataForm.motherId ?? ''}>
+                    <option value={allDataForm.motherId}>
                       Vaca {allDataForm.mother?.manualId}
                     </option>
                   )}
@@ -195,9 +223,11 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
                   className="min-w-24 flex-1 border border-b border-b-primary bg-transparent outline-none"
                 >
                   <option value="" disabled></option>
-                  <option value="Comercial">Comercial</option>
+                  <option value={(allDataForm.fatherId = 'Comercial')}>
+                    Comercial
+                  </option>
                   {allDataForm.fatherId && (
-                    <option value={allDataForm.fatherId ?? ''}>
+                    <option value={allDataForm.fatherId}>
                       Touro {allDataForm.father?.manualId}
                     </option>
                   )}
