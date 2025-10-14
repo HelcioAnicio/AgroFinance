@@ -89,7 +89,6 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
       [name]: newValue,
     }));
   };
-  console.log(allDataForm);
 
   const handleInputValuesVaccine = (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
