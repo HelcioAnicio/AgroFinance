@@ -82,6 +82,11 @@ export const Filters: React.FC<FiltersProps> = ({
       pev: false,
     },
     breed: '',
+    andrological: {
+      positive: false,
+      negative: false,
+      notDone: false,
+    },
   });
 
   const updateListAndInput = (
@@ -118,6 +123,16 @@ export const Filters: React.FC<FiltersProps> = ({
         return {
           ...prevFilters,
           breed: value,
+        };
+      } else if (filterType === 'andrological') {
+        return {
+          ...prevFilters,
+          andrological: {
+            positive: false,
+            negative: false,
+            notDone: false,
+            [value]: true,
+          },
         };
       }
 
@@ -192,17 +207,33 @@ export const Filters: React.FC<FiltersProps> = ({
           !typeFilters.reproductiveStatus.pregnant &&
           !typeFilters.reproductiveStatus.waiting &&
           !typeFilters.reproductiveStatus.pev) ||
-        (typeFilters.reproductiveStatus &&
+        (typeFilters.reproductiveStatus.empty &&
           animal.reproductiveStatus === 'empty') ||
-        (typeFilters.reproductiveStatus &&
+        (typeFilters.reproductiveStatus.pregnant &&
           animal.reproductiveStatus === 'pregnant') ||
-        (typeFilters.reproductiveStatus &&
+        (typeFilters.reproductiveStatus.waiting &&
           animal.reproductiveStatus === 'waiting') ||
-        (typeFilters.reproductiveStatus && animal.reproductiveStatus === 'pev');
+        (typeFilters.reproductiveStatus.pev &&
+          animal.reproductiveStatus === 'pev');
 
+      console.log(
+        'matchesReproductive: ',
+        animal.manualId,
+        matchesReproductive
+      );
       const matchesBreed =
         !typeFilters.breed ||
         (typeFilters.breed && animal.breed === typeFilters.breed);
+
+      const matchesAndrological =
+        !typeFilters.andrological ||
+        (typeFilters.andrological.positive &&
+          animal.andrological === 'positive') ||
+        !typeFilters.andrological ||
+        (typeFilters.andrological.negative &&
+          animal.andrological === 'negative') ||
+        !typeFilters.andrological ||
+        (typeFilters.andrological.notDone && animal.andrological === 'notDone');
 
       return (
         matchesStatus &&
@@ -211,7 +242,8 @@ export const Filters: React.FC<FiltersProps> = ({
         matchesWeight &&
         matchesDate &&
         matchesReproductive &&
-        matchesBreed
+        matchesBreed &&
+        matchesAndrological
       );
     });
     setListAnimals(filtered);
@@ -252,6 +284,11 @@ export const Filters: React.FC<FiltersProps> = ({
         pev: false,
       },
       breed: '',
+      andrological: {
+        positive: false,
+        negative: false,
+        notDone: false,
+      },
     });
     setListAnimals(originalAnimals);
   };
@@ -500,6 +537,34 @@ export const Filters: React.FC<FiltersProps> = ({
                 })),
               ]}
               defaultOption="Escolha a raça"
+            />
+          </div>
+        </div>
+
+        <div>
+          <p className="font-semibold">Status do andrológico:</p>
+          <div className="flex flex-wrap gap-x-5 gap-y-2">
+            <SelectForm
+              label=""
+              htmlFor="andrological"
+              id="andrological"
+              name="andrological"
+              value={
+                Object.keys(typeFilters.andrological).find(
+                  (key) =>
+                    typeFilters.andrological[
+                      key as keyof typeof typeFilters.andrological
+                    ]
+                ) || ''
+              }
+              onChange={updateListAndInput}
+              defaultOption="Status do animal"
+              options={[
+                { label: 'Todas os status', value: '' },
+                { label: 'Positivo', value: 'positive' },
+                { label: 'Negativo', value: 'negative' },
+                { label: 'Não realizado', value: 'notDone' },
+              ]}
             />
           </div>
         </div>
