@@ -55,7 +55,6 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
       const listWithoutDependents = originalAnimals.filter((animal) => {
         return animal.category !== 'dependente';
       });
-      console.log('listWithoutDependents: ', listWithoutDependents);
       setListAnimals(listWithoutDependents);
     } else {
       setListAnimals(originalAnimals);
