@@ -19,6 +19,7 @@ import { LiaExternalLinkAltSolid } from 'react-icons/lia';
 import { TbMoneybag } from 'react-icons/tb';
 import { MdHighlightOff } from 'react-icons/md';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
+import { FaFileArrowDown } from 'react-icons/fa6';
 
 interface TableProps {
   animals: Animal[];
@@ -142,7 +143,22 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                   onChange={handleInputChange}
                 />
               </div>
-              <div className="flex gap-1">
+              <div className="flex gap-3">
+                <div>
+                  <label
+                    htmlFor="document"
+                    className="flex items-center rounded-md border border-foreground p-2"
+                  >
+                    Importar animais
+                    <FaFileArrowDown size={20} />
+                  </label>
+                  <input
+                    type="file"
+                    name="document"
+                    id="document"
+                    className="hidden"
+                  />
+                </div>
                 <Sheet>
                   <SheetTrigger asChild className="sm:hidden">
                     <Button className="flex gap-2 p-1 sm:hidden">
