@@ -146,15 +146,17 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
               </div>
               <div className="flex gap-3">
                 <div>
-                  <label 
-                    htmlFor="document" 
-                    className="flex items-center border border-foreground p-2 rounded-md">
-                      Importar animais<FaFileArrowDown size={20}/>
+                  <label
+                    htmlFor="document"
+                    className="flex items-center rounded-md border border-foreground p-2"
+                  >
+                    Importar animais
+                    <FaFileArrowDown size={20} />
                   </label>
-                  <input 
-                    type="file" 
-                    name="document" 
-                    id="document" 
+                  <input
+                    type="file"
+                    name="document"
+                    id="document"
                     className="hidden"
                   />
                 </div>
