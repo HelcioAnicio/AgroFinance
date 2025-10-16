@@ -21,6 +21,8 @@ import { MdHighlightOff } from 'react-icons/md';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { FaFileArrowDown } from 'react-icons/fa6';
 import * as XLSX from 'xlsx';
+import { v4 as uuidv4 } from 'uuid';
+
 
 interface TableProps {
   animals: Animal[];
@@ -44,6 +46,11 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
       const sheetName = workbook.SheetNames[0];
       const sheet = workbook.Sheets[sheetName];
       const json = XLSX.utils.sheet_to_json(sheet);
+      
+      json.forEach(element => {
+        element.id = uuidv4();
+        console.log('Animais',element)
+      });      
 
       try {
         const res = await fetch('/api/importAnimals', {
