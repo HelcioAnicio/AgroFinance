@@ -20,6 +20,7 @@ import { TbMoneybag } from 'react-icons/tb';
 import { MdHighlightOff } from 'react-icons/md';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { FaFileArrowDown } from 'react-icons/fa6';
+import * as XLSX from 'xlsx';
 
 interface TableProps {
   animals: Animal[];
@@ -32,6 +33,49 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const [inputValue, setInputValue] = useState<string | null>('');
+
+  const [inputFile, setInputFile] = useState<File | null>(null);
+
+  async function handleUpload() {
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const data = new Uint8Array(event.target?.result as ArrayBuffer);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+      const json = XLSX.utils.sheet_to_json(sheet);
+
+      try {
+        const res = await fetch('/api/importAnimals', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(json),
+        });
+
+        const result = await res.json();
+        if (result.success) {
+          alert('Animais importados com sucesso!');
+          console.log('result: ', result);
+        } else {
+          alert('Erro ao importar os animais.');
+          console.log('result: ', result);
+        }
+      } catch {
+        alert('Erro ao enviar o arquivo.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (inputFile !== null) reader.readAsArrayBuffer(inputFile);
+  }
+
+  const handleInputFileValue = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files ? event.target.files[0] : null;
+    setInputFile(file);
+  };
+
+  console.log('inputFile: ', inputFile);
 
   useEffect(() => {
     const sortedAnimals = animals.sort((a, b) => {
@@ -56,7 +100,6 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
       const listWithoutDependents = originalAnimals.filter((animal) => {
         return animal.category !== 'dependente';
       });
-      console.log('listWithoutDependents: ', listWithoutDependents);
       setListAnimals(listWithoutDependents);
     } else {
       setListAnimals(originalAnimals);
@@ -158,7 +201,9 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                     name="document"
                     id="document"
                     className="hidden"
+                    onChange={handleInputFileValue}
                   />
+                  <Button onClick={handleUpload}>Cadastrar todos</Button>
                 </div>
                 <Sheet>
                   <SheetTrigger asChild className="sm:hidden">

@@ -8,7 +8,6 @@ export async function PUT(req: Request) {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
     const allDataForm = await req.json();
-    console.log('allDataForm: ', allDataForm);
 
     if (!id) {
       return NextResponse.json(
@@ -57,7 +56,6 @@ export async function PUT(req: Request) {
           createdAt: dateNow,
         },
       });
-      console.log('createNotification: ', createNotification);
     }
 
     return NextResponse.json({

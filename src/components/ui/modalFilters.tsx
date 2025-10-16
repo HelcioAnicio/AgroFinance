@@ -142,7 +142,6 @@ export const Filters: React.FC<FiltersProps> = ({
       const ageInMonths =
         (today.getFullYear() - age.getFullYear()) * 12 +
         (today.getMonth() - age.getMonth());
-      console.log(`ageInMonths: ${animal.manualId} `, ageInMonths);
 
       const matchesStatus =
         activeStatusFilters.length === 0 ||
