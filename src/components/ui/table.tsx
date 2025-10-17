@@ -1,6 +1,6 @@
 'use client';
 
-import { Icon, SquareArrowOutUpLeft } from 'lucide-react';
+import { SquareArrowOutUpLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Animal } from '@/types/animal';
 import { User } from '@/types/user';
