@@ -1,6 +1,6 @@
 'use client';
 
-import { SquareArrowOutUpLeft } from 'lucide-react';
+import { Icon, SquareArrowOutUpLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Animal } from '@/types/animal';
 import { User } from '@/types/user';
@@ -20,9 +20,21 @@ import { TbMoneybag } from 'react-icons/tb';
 import { MdHighlightOff } from 'react-icons/md';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { FaFileArrowDown } from 'react-icons/fa6';
+import { IoDownloadOutline } from 'react-icons/io5';
+import { IoMdCloseCircleOutline } from 'react-icons/io';
 import * as XLSX from 'xlsx';
-import { v4 as uuidv4 } from 'uuid';
 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+
+import Link from 'next/link';
+import { toast } from 'sonner';
 
 interface TableProps {
   animals: Animal[];
@@ -35,8 +47,9 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const [inputValue, setInputValue] = useState<string | null>('');
-
   const [inputFile, setInputFile] = useState<File | null>(null);
+
+  const [cardImport, setCardImport] = useState(false);
 
   async function handleUpload() {
     const reader = new FileReader();
@@ -46,11 +59,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
       const sheetName = workbook.SheetNames[0];
       const sheet = workbook.Sheets[sheetName];
       const json = XLSX.utils.sheet_to_json(sheet);
-      
-      json.forEach(element => {
-        element.id = uuidv4();
-        console.log('Animais',element)
-      });      
+      setIsLoading(!isLoading);
 
       try {
         const res = await fetch('/api/importAnimals', {
@@ -61,15 +70,18 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
 
         const result = await res.json();
         if (result.success) {
-          alert('Animais importados com sucesso!');
-          console.log('result: ', result);
+          toast.success('Lista cadastrada com sucesso!');
+          setCardImport(!cardImport);
         } else {
-          alert('Erro ao importar os animais.');
-          console.log('result: ', result);
+          setCardImport(!cardImport);
+          toast.error('Erro com a importação');
         }
       } catch {
-        alert('Erro ao enviar o arquivo.');
+        setCardImport(!cardImport);
+        toast.error('Erro com o arquivo');
+        setIsLoading(false);
       } finally {
+        setCardImport(!cardImport);
         setIsLoading(false);
       }
     };
@@ -166,14 +178,68 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
   return (
     <main
       style={{ height: 'calc(100vh - 160px)' }}
-      className="m-auto max-w-[750px] pb-5"
+      className="relative m-auto max-w-[750px] pb-5"
     >
+      {cardImport && (
+        <Card className="absolute left-1/2 top-1/2 z-50 w-full -translate-x-1/2 -translate-y-1/2 transition-all duration-300 sm:w-4/5">
+          <CardHeader className="relative">
+            <Button
+              variant="ghost"
+              className="absolute right-2 top-2"
+              onClick={() => setCardImport(!cardImport)}
+            >
+              <IoMdCloseCircleOutline size={20} />
+            </Button>
+            <CardTitle className="flex items-start justify-between text-lg">
+              Escolha o arquivo para importar
+            </CardTitle>
+            <CardDescription>
+              Para que a importação funcione, use o arquivo modelo no link
+              abaixo. Transfira os animais para o arquivo, salve o novo arquivo
+              e importe pelo botão. <br /> <br />
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link
+              download={'animal_model_template.xlsx'}
+              href={'/animal_model_template.xlsx'}
+              className="flex items-center gap-1 underline"
+            >
+              Arquivo modelo <IoDownloadOutline />
+            </Link>
+          </CardContent>
+          <CardFooter>
+            <Button className="mr-auto flex" variant="ghost">
+              Cancel
+            </Button>
+            <div className="flex gap-2">
+              <label
+                htmlFor="document"
+                className="flex items-center rounded-md border border-foreground p-2"
+              >
+                Escolher arquivo
+                <FaFileArrowDown size={16} />
+              </label>
+              <input
+                type="file"
+                name="document"
+                id="document"
+                className="hidden"
+                onChange={handleInputFileValue}
+              />
+              <Button onClick={handleUpload} disabled={inputFile == null}>
+                Cadastrar todos
+              </Button>
+            </div>
+          </CardFooter>
+        </Card>
+      )}
       {isLoading ? (
         <Loading />
       ) : (
         <>
           <div className="sticky right-0 top-0 z-50 max-h-[300px] w-full">
-            <div className="flex w-full justify-between gap-10 px-1">
+            <div className="relative flex w-full justify-between gap-10 px-1">
               <div className="flex items-center gap-3">
                 <Sheet>
                   <SheetTrigger asChild>
@@ -195,23 +261,15 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                 />
               </div>
               <div className="flex gap-3">
-                <div>
-                  <label
-                    htmlFor="document"
-                    className="flex items-center rounded-md border border-foreground p-2"
-                  >
-                    Importar animais
-                    <FaFileArrowDown size={20} />
-                  </label>
-                  <input
-                    type="file"
-                    name="document"
-                    id="document"
-                    className="hidden"
-                    onChange={handleInputFileValue}
-                  />
-                  <Button onClick={handleUpload}>Cadastrar todos</Button>
-                </div>
+                <Button
+                  variant="outline"
+                  className="flex items-center rounded-md border border-foreground p-2 text-xs"
+                  onClick={() => setCardImport(true)}
+                >
+                  Importar animais
+                  <FaFileArrowDown size={16} />
+                </Button>
+
                 <Sheet>
                   <SheetTrigger asChild className="sm:hidden">
                     <Button className="flex gap-2 p-1 sm:hidden">
@@ -240,7 +298,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
           <br />
           <div className="h-full w-full overflow-y-auto pb-10">
             <table className="m-auto max-w-[750px] border-collapse overflow-x-auto overflow-y-scroll scroll-smooth text-left xl:text-sm">
-              <thead className="sticky top-0 z-50 border-collapse bg-primary text-background">
+              <thead className="sticky top-0 z-20 border-collapse bg-primary text-background">
                 <tr>
                   <th className="w-20 px-1 py-2">Status</th>
                   <th className="px-1 py-2">ID</th>
