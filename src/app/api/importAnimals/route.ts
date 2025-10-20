@@ -14,11 +14,23 @@ export async function POST(req: Request) {
     const animals = items.map((item: Animal) => ({
       ...item,
       id: uuidv4(),
+      birthDate: new Date(item.birthDate),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      expectedDueDate: item.expectedDueDate
+        ? new Date(item.expectedDueDate)
+        : null,
+      vaccineDate: item.vaccineDate ? new Date(item.vaccineDate) : null,
+      vaccineExpiry: item.vaccineExpiry ? new Date(item.vaccineExpiry) : null,
+      dewormingDate: item.dewormingDate ? new Date(item.dewormingDate) : null,
+      dewormingExpiry: item.dewormingExpiry
+        ? new Date(item.dewormingExpiry)
+        : null,
     }));
 
     await prisma.animal.createMany({
       data: animals,
-      skipDuplicates: true, 
+      skipDuplicates: true,
     });
 
     return NextResponse.json({ success: true });
@@ -27,4 +39,3 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: false, error }, { status: 500 });
   }
 }
-

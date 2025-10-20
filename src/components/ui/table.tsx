@@ -94,8 +94,6 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
     setInputFile(file);
   };
 
-  console.log('inputFile: ', inputFile);
-
   useEffect(() => {
     const sortedAnimals = animals.sort((a, b) => {
       const aIsNumber = !isNaN(Number(a.manualId));
