@@ -1,7 +1,7 @@
 import prisma from '@/lib/useDataBase';
 import { NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
-import {Animal} from '@/types/animal';
+import { Animal } from '@/types/animal';
 
 export async function POST(req: Request) {
   console.log(req);
@@ -27,3 +27,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: false, error }, { status: 500 });
   }
 }
+
