@@ -1,6 +1,6 @@
 'use client';
 
-import { Icon, SquareArrowOutUpLeft } from 'lucide-react';
+import { SquareArrowOutUpLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Animal } from '@/types/animal';
 import { User } from '@/types/user';
@@ -93,8 +93,6 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
     const file = event.target.files ? event.target.files[0] : null;
     setInputFile(file);
   };
-
-  console.log('inputFile: ', inputFile);
 
   useEffect(() => {
     const sortedAnimals = animals.sort((a, b) => {
