@@ -357,7 +357,10 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                         {animal.manualId.charAt(0).toLocaleUpperCase() +
                           animal.manualId.slice(1)}
                       </td>
-                      <td className="px-1 py-3">{animal.breed}</td>
+                      <td className="px-1 py-3">
+                        {animal.breed.charAt(0).toUpperCase() +
+                          animal.breed.slice(1)}
+                      </td>
                       <td className="px-1 py-3 pr-4">
                         {animal.gender === 'male' ? 'Macho' : 'Fêmea'}
                       </td>
@@ -409,23 +412,8 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
 
                       <td className="px-2 py-3">
                         <span className="flex w-max">
-                          {/* {animal.category === 'calf'
-                            ? 'Bezerro'
-                            : animal.category === 'steer'
-                              ? 'Novilho'
-                              : animal.category === 'adult'
-                                ? animal.gender === 'female'
-                                  ? 'Vaca'
-                                  : 'Boi'
-                                : animal.category === 'senior'
-                                  ? animal.gender === 'female'
-                                    ? 'Vaca velha'
-                                    : 'Boi velho'
-                                  : animal.category
-                                    ? `${animal.category[0].toUpperCase()}${animal.category.substring(1)}`
-                                    : 'N/A'} */}
-                          {animal.category[0].toLocaleUpperCase()}
-                          {animal.category.substring(1)}
+                          {animal.category.charAt(0).toLocaleUpperCase() +
+                            animal.category.slice(1)}
                         </span>
                       </td>
 
