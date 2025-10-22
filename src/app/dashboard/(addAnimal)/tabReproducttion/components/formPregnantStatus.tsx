@@ -29,12 +29,12 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
           value={allDataForm.handlingType || ''}
           defaultOption="Escolha o manejo"
           options={[
-            { label: 'Touro', value: 'bullMating' },
+            { label: 'Monta natural', value: 'monta natural' },
             {
               label: 'Inseminação Artificial',
-              value: 'artificialInsemination',
+              value: 'inseminação artificial',
             },
-            { label: 'Todos os Métodos', value: 'allMethods' },
+            { label: 'Todos os Métodos', value: 'todos os metodos' },
           ]}
           onChange={handleInputValues}
         />
@@ -49,7 +49,7 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
           value={allDataForm.bullId || ''}
           defaultOption="Escolha o touro"
           options={[
-            { label: 'Comercial', value: 'Comercial' },
+            { label: 'Comercial', value: 'comercial' },
             ...animals
               .filter(
                 (animal) =>
