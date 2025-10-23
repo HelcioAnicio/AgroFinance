@@ -103,7 +103,7 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
                   className="min-w-24 flex-1 overflow-y-auto scroll-smooth border border-b border-b-primary bg-transparent outline-none"
                 >
                   <option value="" disabled></option>
-                  {breedArray.map((breed, id) => (
+                  {breedArray.map((breed: string, id) => (
                     <option value={breed} key={id}>
                       {breed}
                     </option>

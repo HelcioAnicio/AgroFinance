@@ -24,18 +24,19 @@ export const CardInformation: React.FC<InformationProps> = ({ animal }) => {
         </Card>
         <Card className="w-max rounded-sm px-3 py-1">
           <strong>Status: </strong>
-          <span>
-            {animal?.status === 'active' ? (
+          <span className="flex w-max items-center gap-1">
+            {animal?.status === 'active' || animal?.status === 'ativo' ? (
               <>
                 <FaCheckCircle className="inline-block size-3 text-green-400" />{' '}
                 Ativo
               </>
-            ) : animal?.status === 'inactive' ? (
+            ) : animal?.status === 'inactive' ||
+              animal?.status === 'inativo' ? (
               <>
                 <MdHighlightOff className="inline-block size-3 text-gray-500" />{' '}
                 Inativo
               </>
-            ) : animal?.status === 'dead' ? (
+            ) : animal?.status === 'dead' || animal?.status === 'morto' ? (
               <>
                 <IoSkull className="inline-block size-3 text-black" /> Morto
               </>

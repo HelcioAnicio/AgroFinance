@@ -212,7 +212,7 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                 value={allDataForm.motherId ?? ''}
                 onChange={handleInputValues}
                 options={[
-                  { label: 'Comercial', value: 'Comercial' },
+                  { label: 'Comercial', value: 'comercial' },
                   ...animals
                     .filter(
                       (animal) =>
@@ -235,7 +235,7 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                 value={allDataForm.fatherId ?? ''}
                 onChange={handleInputValues}
                 options={[
-                  { label: 'Comercial', value: 'Comercial' },
+                  { label: 'Comercial', value: 'comercial' },
                   ...animals
                     .filter(
                       (animal) =>

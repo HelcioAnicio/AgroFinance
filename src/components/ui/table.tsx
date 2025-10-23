@@ -327,17 +327,20 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                     >
                       <td className="px-1 py-3 pr-4">
                         <span className="flex w-max items-center gap-1">
-                          {animal?.status === 'active' ? (
+                          {animal?.status === 'active' ||
+                          animal?.status === 'ativo' ? (
                             <>
                               <FaCheckCircle className="inline-block size-3 text-green-400" />{' '}
                               Ativo
                             </>
-                          ) : animal?.status === 'inactive' ? (
+                          ) : animal?.status === 'inactive' ||
+                            animal?.status === 'inativo' ? (
                             <>
                               <MdHighlightOff className="inline-block size-3 text-gray-500" />{' '}
                               Inativo
                             </>
-                          ) : animal?.status === 'dead' ? (
+                          ) : animal?.status === 'dead' ||
+                            animal?.status === 'morto' ? (
                             <>
                               <IoSkull className="inline-block size-3 text-black" />{' '}
                               Morto
@@ -354,9 +357,14 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                         {animal.manualId.charAt(0).toLocaleUpperCase() +
                           animal.manualId.slice(1)}
                       </td>
-                      <td className="px-1 py-3">{animal.breed}</td>
+                      <td className="px-1 py-3">
+                        {animal.breed.charAt(0).toUpperCase() +
+                          animal.breed.slice(1)}
+                      </td>
                       <td className="px-1 py-3 pr-4">
-                        {animal.gender === 'male' ? 'Macho' : 'Fêmea'}
+                        {animal.gender === 'male' || animal.gender === 'macho'
+                          ? 'Macho'
+                          : 'Fêmea'}
                       </td>
                       {animal.motherId === null ? (
                         <td className="cursor-default px-1 py-3">
@@ -405,25 +413,30 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                       </td>
 
                       <td className="px-2 py-3">
-                        <span className="flex w-max">
-                          {/* {animal.category === 'calf'
-                            ? 'Bezerro'
-                            : animal.category === 'steer'
-                              ? 'Novilho'
-                              : animal.category === 'adult'
-                                ? animal.gender === 'female'
-                                  ? 'Vaca'
-                                  : 'Boi'
-                                : animal.category === 'senior'
-                                  ? animal.gender === 'female'
-                                    ? 'Vaca velha'
-                                    : 'Boi velho'
-                                  : animal.category
-                                    ? `${animal.category[0].toUpperCase()}${animal.category.substring(1)}`
-                                    : 'N/A'} */}
-                          {animal.category[0].toLocaleUpperCase()}
-                          {animal.category.substring(1)}
+                        <span>
+                          {animal.category === 'neonate'
+                            ? 'Neonato'
+                            : animal.category === 'calf'
+                              ? 'Bezerro'
+                              : animal.category === 'steer' &&
+                                  animal.gender === 'male'
+                                ? 'Garrote'
+                                : animal.category === 'steer' &&
+                                    animal.gender === 'female'
+                                  ? 'Novilho'
+                                  : animal.category === 'cow'
+                                    ? 'Vaca'
+                                    : animal.category === 'old cow'
+                                      ? 'Vaca velha'
+                                      : animal.category === 'ox'
+                                        ? 'Boi'
+                                        : animal.category === 'old ox'
+                                          ? 'Boi Velho'
+                                          : animal.category === 'bull'
+                                            ? 'Touro'
+                                            : 'Touro velho'}
                         </span>
+                        )
                       </td>
 
                       <td className="px-2 py-3">
