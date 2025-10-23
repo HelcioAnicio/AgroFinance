@@ -28,13 +28,19 @@ export async function POST(req: Request) {
     const animals = items.map((item: Animal) => ({
       ...item,
       id: uuidv4(),
-      manualId: item.manualId?.toLowerCase() ?? uuidv4(),
+      status:
+        item.status === 'ativo'
+          ? 'active'
+          : item.status === 'inativo'
+            ? 'inactive'
+            : item.status === 'morto'
+              ? 'dead'
+              : 'sold',
+      manualId: item.manualId?.toLowerCase(),
+      gender: item.gender === 'macho' ? 'male' : 'female',
       birthDate:
-        typeof item.birthDate === 'number'
-          ? new Date(
-              excelDateToJSDate(item.birthDate).toISOString().split('T')[0]
-            )
-          : null,
+        typeof item.birthDate === 'number' &&
+        new Date(excelDateToJSDate(item.birthDate).toISOString().split('T')[0]),
       breed: item.breed?.toLowerCase(),
       createdAt: new Date(),
       updatedAt: new Date(),
