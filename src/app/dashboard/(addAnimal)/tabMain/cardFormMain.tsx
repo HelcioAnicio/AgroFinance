@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Animal } from '@/types/animal';
 import { InputForm } from '@/components/ui/inputForm';
 import { RadioForm } from '@/components/ui/radioForm';
@@ -81,7 +81,7 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
     'Red Poll',
   ];
 
-  let category = '';
+  const [category, setCategory] = useState<string>('');
   useEffect(() => {
     if (allDataForm.birthDate) {
       const birthDate = new Date(allDataForm.birthDate);
@@ -90,23 +90,29 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
         new Date().getMonth() -
         birthDate.getMonth();
       if (ageInMonths <= 8 && allDataForm.birthDate !== null) {
-        category = 'neonate';
+        setCategory('neonate');
       } else if (ageInMonths <= 12) {
-        category = 'calf';
+        setCategory('calf');
       } else if (ageInMonths <= 24) {
-        category = allDataForm.gender === 'male' ? 'steer' : 'steer';
+        setCategory(allDataForm.gender === 'male' ? 'steer' : 'steer');
       } else if (ageInMonths <= 36) {
-        category = allDataForm.gender === 'male' ? 'steer' : 'cow';
+        setCategory(allDataForm.gender === 'male' ? 'steer' : 'cow');
       } else if (ageInMonths >= 37 && ageInMonths <= 120) {
-        category = allDataForm.gender === 'male' ? 'ox' : 'cow';
+        setCategory(allDataForm.gender === 'male' ? 'ox' : 'cow');
       } else {
-        category = allDataForm.gender === 'male' ? 'old ox' : 'old cow';
+        setCategory(allDataForm.gender === 'male' ? 'old ox' : 'old cow');
       }
       if (allDataForm.category !== category) {
         setAllDataForm((prev) => ({ ...prev, category }));
       }
     }
-  }, [category]);
+  }, [
+    category,
+    allDataForm.birthDate,
+    allDataForm.gender,
+    allDataForm.category,
+    setAllDataForm,
+  ]);
 
   return (
     <Card className="min-h-80">

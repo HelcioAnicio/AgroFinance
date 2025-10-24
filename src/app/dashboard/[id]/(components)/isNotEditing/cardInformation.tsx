@@ -20,7 +20,10 @@ export const CardInformation: React.FC<InformationProps> = ({ animal }) => {
       <section className="flex w-full max-w-sm flex-wrap gap-2 p-2">
         <Card className="w-max rounded-sm px-3 py-1">
           <strong>Id: </strong>
-          <span>{animal?.manualId}</span>
+          <span>
+            {animal?.manualId.charAt(0).toUpperCase()}$
+            {animal?.manualId.substring(1)}
+          </span>
         </Card>
         <Card className="w-max rounded-sm px-3 py-1">
           <strong>Status: </strong>
@@ -72,7 +75,7 @@ export const CardInformation: React.FC<InformationProps> = ({ animal }) => {
           <strong>Raça: </strong>
           <span>
             {animal?.breed
-              ? `${animal?.breed[0].toUpperCase()}${animal.category.substring(1)}`
+              ? `${animal?.breed[0].toUpperCase()}${animal.breed.substring(1)}`
               : 'N/A'}
           </span>
         </Card>
