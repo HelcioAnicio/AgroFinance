@@ -20,7 +20,10 @@ export const CardInformation: React.FC<InformationProps> = ({ animal }) => {
       <section className="flex w-full max-w-sm flex-wrap gap-2 p-2">
         <Card className="w-max rounded-sm px-3 py-1">
           <strong>Id: </strong>
-          <span>{animal?.manualId}</span>
+          <span>
+            {animal?.manualId.charAt(0).toUpperCase()}$
+            {animal?.manualId.substring(1)}
+          </span>
         </Card>
         <Card className="w-max rounded-sm px-3 py-1">
           <strong>Status: </strong>
@@ -70,7 +73,11 @@ export const CardInformation: React.FC<InformationProps> = ({ animal }) => {
       <section className="flex w-full max-w-sm flex-wrap gap-2 p-2">
         <Card className="w-max rounded-sm px-3 py-1">
           <strong>Raça: </strong>
-          <span>{animal?.breed}</span>
+          <span>
+            {animal?.breed
+              ? `${animal?.breed[0].toUpperCase()}${animal.breed.substring(1)}`
+              : 'N/A'}
+          </span>
         </Card>
         <Card className="w-max rounded-sm px-3 py-1">
           <strong>Categoria: </strong>
@@ -78,17 +85,53 @@ export const CardInformation: React.FC<InformationProps> = ({ animal }) => {
             {animal?.category
               ? `${animal?.category[0].toUpperCase()}${animal?.category.substring(1)}`
               : 'N/A'}
+            <span>
+              {animal?.category
+                ? animal?.category === 'neonate'
+                  ? 'Neonato'
+                  : animal?.category === 'calf'
+                    ? 'Bezerro'
+                    : animal?.category === 'steer' && animal?.gender === 'male'
+                      ? 'Garrote'
+                      : animal?.category === 'steer' &&
+                          animal?.gender === 'female'
+                        ? 'Novilho'
+                        : animal?.category === 'cow'
+                          ? 'Vaca'
+                          : animal?.category === 'old cow'
+                            ? 'Vaca velha'
+                            : animal?.category === 'ox'
+                              ? 'Boi'
+                              : animal?.category === 'old ox'
+                                ? 'Boi Velho'
+                                : animal?.category === 'bull'
+                                  ? 'Touro'
+                                  : 'Touro velho'
+                : 'N/A'}
+            </span>
           </span>
         </Card>
       </section>
       <section className="flex w-full max-w-sm flex-wrap gap-2 p-2">
         <Card className="w-max rounded-sm px-3 py-1">
           <strong>Id Mãe: </strong>
-          <span>{animal?.mother?.manualId || 'Comercial'}</span>
+          <span>
+            {!isNaN(
+              Number(
+                `${animal?.mother?.manualId.toUpperCase()}${animal?.mother?.manualId.substring(1)}}`
+              )
+            ) || 'Comercial'}
+          </span>
         </Card>
         <Card className="w-max rounded-sm px-3 py-1">
           <strong>Id Pai: </strong>
-          <span>{animal?.father?.manualId || 'Comercial'}</span>
+          <span>
+            {!isNaN(
+              Number(
+                `${animal?.father?.manualId.toUpperCase()}${animal?.father?.manualId.substring(1)}}`
+              )
+            ) || 'Comercial'}
+          </span>
         </Card>
       </section>
     </Card>

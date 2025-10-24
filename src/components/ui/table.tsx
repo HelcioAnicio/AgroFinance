@@ -18,20 +18,19 @@ import { IoSkull } from 'react-icons/io5';
 import { LiaExternalLinkAltSolid } from 'react-icons/lia';
 import { TbMoneybag } from 'react-icons/tb';
 import { MdHighlightOff } from 'react-icons/md';
-import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { FaFileArrowDown } from 'react-icons/fa6';
 import { IoDownloadOutline } from 'react-icons/io5';
-import { IoMdCloseCircleOutline } from 'react-icons/io';
 import * as XLSX from 'xlsx';
-
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -115,7 +114,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
   useEffect(() => {
     if (inputValue === '') {
       const listWithoutDependents = originalAnimals.filter((animal) => {
-        return animal.category !== 'dependente';
+        return animal.category !== 'neonate';
       });
       setListAnimals(listWithoutDependents);
     } else {
@@ -178,60 +177,6 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
       style={{ height: 'calc(100vh - 160px)' }}
       className="relative m-auto max-w-[750px] pb-5"
     >
-      {cardImport && (
-        <Card className="absolute left-1/2 top-1/2 z-50 w-full -translate-x-1/2 -translate-y-1/2 transition-all duration-300 sm:w-4/5">
-          <CardHeader className="relative">
-            <Button
-              variant="ghost"
-              className="absolute right-2 top-2"
-              onClick={() => setCardImport(!cardImport)}
-            >
-              <IoMdCloseCircleOutline size={20} />
-            </Button>
-            <CardTitle className="flex items-start justify-between text-lg">
-              Escolha o arquivo para importar
-            </CardTitle>
-            <CardDescription>
-              Para que a importação funcione, use o arquivo modelo no link
-              abaixo. Transfira os animais para o arquivo, salve o novo arquivo
-              e importe pelo botão. <br /> <br />
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Link
-              download={'animal_model_template.xlsx'}
-              href={'/animal_model_template.xlsx'}
-              className="flex items-center gap-1 underline"
-            >
-              Arquivo modelo <IoDownloadOutline />
-            </Link>
-          </CardContent>
-          <CardFooter>
-            <Button className="mr-auto flex" variant="ghost">
-              Cancel
-            </Button>
-            <div className="flex gap-2">
-              <label
-                htmlFor="document"
-                className="flex items-center rounded-md border border-foreground p-2"
-              >
-                Escolher arquivo
-                <FaFileArrowDown size={16} />
-              </label>
-              <input
-                type="file"
-                name="document"
-                id="document"
-                className="hidden"
-                onChange={handleInputFileValue}
-              />
-              <Button onClick={handleUpload} disabled={inputFile == null}>
-                Cadastrar todos
-              </Button>
-            </div>
-          </CardFooter>
-        </Card>
-      )}
       {isLoading ? (
         <Loading />
       ) : (
@@ -259,14 +204,58 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                 />
               </div>
               <div className="flex gap-3">
-                <Button
-                  variant="outline"
-                  className="flex items-center rounded-md border border-foreground p-2 text-xs"
-                  onClick={() => setCardImport(true)}
-                >
-                  Importar animais
-                  <FaFileArrowDown size={16} />
-                </Button>
+                <Dialog>
+                  <DialogTrigger className="flex items-center rounded-md border border-foreground p-2 text-xs">
+                    Importar animais
+                    <FaFileArrowDown size={16} />
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Escolha o arquivo para importar</DialogTitle>
+                      <DialogDescription>
+                        Para que a importação funcione, use o arquivo modelo no
+                        link abaixo. Transfira os animais para o arquivo, salve
+                        o novo arquivo e importe pelo botão. <br /> <br />
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="flex gap-2">
+                      <Link
+                        download={'animal_model_template.xlsx'}
+                        href={'/animal_model_template.xlsx'}
+                        className="flex w-max items-center gap-1 underline"
+                      >
+                        Arquivo modelo <IoDownloadOutline />
+                      </Link>
+                      <label
+                        htmlFor="document"
+                        className="flex items-center rounded-md border border-foreground p-2"
+                      >
+                        Escolher arquivo
+                        <FaFileArrowDown size={16} />
+                      </label>
+                      <input
+                        type="file"
+                        name="document"
+                        id="document"
+                        className="hidden"
+                        onChange={handleInputFileValue}
+                      />
+                    </div>
+                    <DialogFooter>
+                      <DialogClose className="mr-auto" asChild>
+                        <Button variant="outline">Cancel</Button>
+                      </DialogClose>
+
+                      <DialogClose asChild>
+                        {inputFile && (
+                          <Button onClick={handleUpload}>
+                            Cadastrar animais
+                          </Button>
+                        )}
+                      </DialogClose>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
 
                 <Sheet>
                   <SheetTrigger asChild className="sm:hidden">
@@ -412,8 +401,8 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                           : 'N/A'}
                       </td>
 
-                      <td className="px-2 py-3">
-                        <span>
+                      <td className="px-1 py-3 pr-4">
+                        <span className="flex w-max">
                           {animal.category === 'neonate'
                             ? 'Neonato'
                             : animal.category === 'calf'
@@ -436,9 +425,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                                             ? 'Touro'
                                             : 'Touro velho'}
                         </span>
-                        )
                       </td>
-
                       <td className="px-2 py-3">
                         <span className="flex w-max">{animal.weight} Kg</span>
                       </td>
