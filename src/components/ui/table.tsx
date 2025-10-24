@@ -115,7 +115,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
   useEffect(() => {
     if (inputValue === '') {
       const listWithoutDependents = originalAnimals.filter((animal) => {
-        return animal.category !== 'dependente';
+        return animal.category !== 'neonate';
       });
       setListAnimals(listWithoutDependents);
     } else {
@@ -412,8 +412,8 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                           : 'N/A'}
                       </td>
 
-                      <td className="px-2 py-3">
-                        <span>
+                      <td className="px-1 py-3 pr-4">
+                        <span className="flex w-max">
                           {animal.category === 'neonate'
                             ? 'Neonato'
                             : animal.category === 'calf'
@@ -436,9 +436,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                                             ? 'Touro'
                                             : 'Touro velho'}
                         </span>
-                        )
                       </td>
-
                       <td className="px-2 py-3">
                         <span className="flex w-max">{animal.weight} Kg</span>
                       </td>

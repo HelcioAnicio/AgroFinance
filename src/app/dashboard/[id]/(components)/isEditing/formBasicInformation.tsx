@@ -123,15 +123,9 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
                   className="h-20 min-w-24 flex-1 overflow-y-auto scroll-smooth border border-b border-b-primary bg-transparent outline-none"
                 >
                   <option disabled value=""></option>
-                  <option value="dependente">Dependente</option>
-                  <option value="bezerro">Bezerro</option>
-                  <option
-                    value={
-                      allDataForm.category && allDataForm.gender === 'male'
-                        ? 'garrote'
-                        : 'novilha'
-                    }
-                  >
+                  <option value="neonate">Dependente</option>
+                  <option value="calf">Bezerro</option>
+                  <option value="steer">
                     {allDataForm.category && allDataForm.gender === 'male'
                       ? 'Garrote'
                       : 'Novilha'}
@@ -140,8 +134,8 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
                   <option
                     value={
                       allDataForm.category && allDataForm.gender === 'male'
-                        ? 'boi'
-                        : 'vaca'
+                        ? 'ox'
+                        : 'cow'
                     }
                   >
                     {allDataForm.category && allDataForm.gender === 'male'
@@ -152,8 +146,8 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
                   <option
                     value={
                       allDataForm.category && allDataForm.gender === 'male'
-                        ? 'boi velho'
-                        : 'vaca velha'
+                        ? 'old ox'
+                        : 'old cow'
                     }
                   >
                     {allDataForm.category && allDataForm.gender === 'male'
@@ -163,28 +157,10 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
 
                   {allDataForm.category && allDataForm.gender === 'male' && (
                     <>
-                      <option value="touro">Touro</option>
-                      <option value="touro velho">Touro velho</option>
+                      <option value="bull">Touro</option>
+                      <option value="old bull">Touro velho</option>
                     </>
                   )}
-
-                  {/* {allDataForm.category &&
-                    ![
-                      'dependente',
-                      'bezerro',
-                      'garrote',
-                      'novilha',
-                      'boi',
-                      'vaca',
-                      'boi velho',
-                      'vaca velha',
-                      'touro',
-                      'touro velho',
-                    ].includes(allDataForm.category) && (
-                      <option hidden value={allDataForm.category}>
-                        {allDataForm.category}
-                      </option>
-                    )} */}
                 </select>
               </div>
 

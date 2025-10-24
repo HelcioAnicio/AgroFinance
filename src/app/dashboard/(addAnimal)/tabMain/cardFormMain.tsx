@@ -81,6 +81,33 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
     'Red Poll',
   ];
 
+  let category = '';
+  useEffect(() => {
+    if (allDataForm.birthDate) {
+      const birthDate = new Date(allDataForm.birthDate);
+      const ageInMonths =
+        (new Date().getFullYear() - birthDate.getFullYear()) * 12 +
+        new Date().getMonth() -
+        birthDate.getMonth();
+      if (ageInMonths <= 8 && allDataForm.birthDate !== null) {
+        category = 'neonate';
+      } else if (ageInMonths <= 12) {
+        category = 'calf';
+      } else if (ageInMonths <= 24) {
+        category = allDataForm.gender === 'male' ? 'steer' : 'steer';
+      } else if (ageInMonths <= 36) {
+        category = allDataForm.gender === 'male' ? 'steer' : 'cow';
+      } else if (ageInMonths >= 37 && ageInMonths <= 120) {
+        category = allDataForm.gender === 'male' ? 'ox' : 'cow';
+      } else {
+        category = allDataForm.gender === 'male' ? 'old ox' : 'old cow';
+      }
+      if (allDataForm.category !== category) {
+        setAllDataForm((prev) => ({ ...prev, category }));
+      }
+    }
+  }, [category]);
+
   return (
     <Card className="min-h-80">
       <CardHeader className="py-2">
@@ -170,38 +197,28 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
 
               <div className="flex flex-col gap-1">
                 <span className="text-secondary">Categoria:</span>
-                {(() => {
-                  let category = '';
-                  if (allDataForm.birthDate) {
-                    const birthDate = new Date(allDataForm.birthDate);
-                    const ageInMonths =
-                      (new Date().getFullYear() - birthDate.getFullYear()) *
-                        12 +
-                      new Date().getMonth() -
-                      birthDate.getMonth();
-                    if (ageInMonths <= 8) category = 'Dependente';
-                    else if (ageInMonths <= 12) {
-                      category = 'Bezerro';
-                    } else if (ageInMonths <= 24) {
-                      category =
-                        allDataForm.gender === 'male' ? 'Garrote' : 'Novilha';
-                    } else if (ageInMonths <= 36) {
-                      category =
-                        allDataForm.gender === 'male' ? 'Garrote' : 'Vaca';
-                    } else if (ageInMonths >= 37 && ageInMonths <= 120) {
-                      category = allDataForm.gender === 'male' ? 'Boi' : 'Vaca';
-                    } else {
-                      category =
-                        allDataForm.gender === 'male'
-                          ? 'Boi velho'
-                          : 'Vaca velha';
-                    }
-                    if (allDataForm.category !== category) {
-                      setAllDataForm((prev) => ({ ...prev, category }));
-                    }
-                  }
-                  return <p>{category}</p>;
-                })()}
+
+                <p>
+                  {allDataForm.category === 'neonate'
+                    ? 'Neonate'
+                    : allDataForm.category === 'calf'
+                      ? 'Bezerro'
+                      : allDataForm.category === 'steer' &&
+                          allDataForm.gender === 'male'
+                        ? 'Garrote'
+                        : allDataForm.category === 'steer' &&
+                            allDataForm.gender === 'female'
+                          ? 'Novilha'
+                          : allDataForm.category === 'ox'
+                            ? 'Boi'
+                            : allDataForm.category === 'cow'
+                              ? 'Vaca'
+                              : allDataForm.category === 'old ox'
+                                ? 'Boi velho'
+                                : allDataForm.category === 'old cow'
+                                  ? 'Vaca velha'
+                                  : 'Não informada'}
+                </p>
               </div>
 
               <SelectForm
@@ -217,7 +234,9 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                     .filter(
                       (animal) =>
                         animal.gender === 'female' &&
-                        animal.category !== 'Bezerro'
+                        animal.category !== 'steer' &&
+                        animal.category !== 'neonate' &&
+                        animal.status === 'active'
                     )
                     .map((animal) => ({
                       label: `Vaca ${animal.manualId}`,
@@ -240,7 +259,8 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                     .filter(
                       (animal) =>
                         animal.gender === 'male' &&
-                        animal.category.includes('Touro')
+                        animal.category.includes('bull') &&
+                        animal.status === 'active'
                     )
                     .map((animal) => ({
                       label: `Touro ${animal.manualId}`,
