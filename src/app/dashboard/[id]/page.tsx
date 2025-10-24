@@ -19,7 +19,10 @@ const DetailAnimalId = async ({
   params: Promise<{ id: string }>;
 }) => {
   const id = (await params).id;
-  const animals = await fetchAnimals();
+  const users = await fetchUsers();
+  const session = await getServerSession(authOptions);
+  const userEmail = users.find((user) => user.email === session?.user?.email);
+  const animals = await fetchAnimals(userEmail?.id ?? undefined);
   const animal = await prisma.animal.findUnique({
     where: { id },
     include: {
@@ -34,10 +37,6 @@ const DetailAnimalId = async ({
   });
   const vaccines = await fetchVaccines(animal?.id as string);
   const vaccine = vaccines;
-  const session = await getServerSession(authOptions);
-
-  const users = await fetchUsers();
-  const userEmail = users.find((user) => user.email === session?.user?.email);
 
   const notifications = await fetchNotifications(userEmail?.id ?? '');
 
