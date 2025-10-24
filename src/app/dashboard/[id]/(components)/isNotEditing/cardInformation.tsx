@@ -21,11 +21,11 @@ export const CardInformation: React.FC<InformationProps> = ({ animal }) => {
         <Card className="w-max rounded-sm px-3 py-1">
           <strong>Id: </strong>
           <span>
-            {animal?.manualId.charAt(0).toUpperCase()}$
+            {animal?.manualId.charAt(0).toUpperCase()}
             {animal?.manualId.substring(1)}
           </span>
         </Card>
-        <Card className="w-max rounded-sm px-3 py-1">
+        <Card className="flex w-max gap-1 rounded-sm px-3 py-1">
           <strong>Status: </strong>
           <span className="flex w-max items-center gap-1">
             {animal?.status === 'active' || animal?.status === 'ativo' ? (

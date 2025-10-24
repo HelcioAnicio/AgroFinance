@@ -8,12 +8,14 @@ interface FormBasicInformationProps {
   ) => void;
   breedArray: string[];
   animal: Animal | null;
+  animals: Animal[];
 }
 
 export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
   allDataForm,
   handleInputValues,
   breedArray,
+  animals,
 }) => {
   return (
     <>
@@ -179,11 +181,19 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
                   <option value={(allDataForm.motherId = 'Comercial')}>
                     Comercial
                   </option>
-                  {allDataForm.motherId && (
-                    <option value={allDataForm.motherId}>
-                      Vaca {allDataForm.mother?.manualId}
-                    </option>
-                  )}
+                  {animals
+                    .filter(
+                      (animal) =>
+                        animal.gender === 'female' &&
+                        animal.status === 'active' &&
+                        animal.category !== 'calf' &&
+                        animal.category !== 'neonate'
+                    )
+                    .map((animal) => (
+                      <option key={animal.id} value={animal.id}>
+                        Vaca {animal.manualId}
+                      </option>
+                    ))}
                 </select>
               </div>
 
