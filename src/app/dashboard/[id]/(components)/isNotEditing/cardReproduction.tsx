@@ -82,7 +82,7 @@ export const CardReproduction: React.FC<ReproductionProps> = ({ animal }) => {
               <section className="flex w-full max-w-sm flex-wrap gap-2">
                 <Card className="w-max rounded-sm px-3 py-1">
                   <strong>Touro da IATF: </strong>
-                  <span>{animal?.bullIatf || 'N/A'}</span>
+                  <span>{animal?.bull?.manualId || 'N/A'}</span>
                 </Card>
                 <Card className="w-max rounded-sm px-3 py-1">
                   <strong>ECC: </strong>

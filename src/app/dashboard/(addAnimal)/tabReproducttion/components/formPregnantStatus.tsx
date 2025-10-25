@@ -29,12 +29,12 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
           value={allDataForm.handlingType || ''}
           defaultOption="Escolha o manejo"
           options={[
-            { label: 'Monta natural', value: 'monta natural' },
+            { label: 'Monta natural', value: 'naturalMating' },
             {
               label: 'Inseminação Artificial',
-              value: 'inseminação artificial',
+              value: 'artificialInsemination',
             },
-            { label: 'Todos os Métodos', value: 'todos os metodos' },
+            { label: 'Todos os metodos', value: 'allMethods' },
           ]}
           onChange={handleInputValues}
         />
@@ -70,9 +70,9 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
           id="protocol"
           value={allDataForm.protocol || ''}
           options={[
-            { label: '3 manejos', value: '3 manejos' },
-            { label: '4 manejos', value: '4 manejos' },
-            { label: 'Misto', value: 'misto' },
+            { label: '3 manejos', value: '3 handlings' },
+            { label: '4 manejos', value: '4 handlings' },
+            { label: 'Misto', value: 'mixed' },
           ]}
           defaultOption="Protocolo"
           onChange={handleInputValues}
