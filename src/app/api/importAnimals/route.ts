@@ -42,6 +42,62 @@ export async function POST(req: Request) {
         typeof item.birthDate === 'number' &&
         new Date(excelDateToJSDate(item.birthDate).toISOString().split('T')[0]),
       breed: item.breed?.toLowerCase(),
+      category:
+        item.category === 'dependente'
+          ? 'neonate'
+          : item.category === 'bezerro'
+            ? 'calf'
+            : item.category === 'novilho' || item.category === 'garrote'
+              ? 'steer'
+              : item.category === 'vaca'
+                ? 'cow'
+                : item.category === 'vaca velha'
+                  ? 'old cow'
+                  : item.category === 'boi'
+                    ? 'ox'
+                    : item.category === 'boi velho'
+                      ? 'old ox'
+                      : 'bull',
+      reproductiveStatus:
+        item.reproductiveStatus === 'vazio'
+          ? 'empty'
+          : item.reproductiveStatus === 'prenha'
+            ? 'pregnant'
+            : item.reproductiveStatus === 'espera'
+              ? 'waiting'
+              : item.reproductiveStatus === 'pev'
+                ? 'pev'
+                : null,
+      handlingType:
+        item.handlingType === 'monta natural'
+          ? 'naturalMating'
+          : item.handlingType === 'inseminação artificial'
+            ? 'artificialInsemination'
+            : item.handlingType === 'todos os metodos'
+              ? 'allMethods'
+              : null,
+      protocol:
+        item.protocol === '3 manejos'
+          ? '3 handlings'
+          : item.protocol === '4 manejos'
+            ? '4 handlings'
+            : item.protocol === 'misto'
+              ? 'mixed'
+              : null,
+      andrological:
+        item.andrological === 'positivo'
+          ? 'positive'
+          : item.andrological === 'negativo'
+            ? 'negative'
+            : item.andrological === 'não realizado'
+              ? 'notDone'
+              : null,
+      fetalGender:
+        item.fetalGender === 'macho'
+          ? 'male'
+          : item.andrological === 'femea'
+            ? 'female'
+            : null,
       createdAt: new Date(),
       updatedAt: new Date(),
       expectedDueDate:
@@ -144,29 +200,44 @@ export async function POST(req: Request) {
     const validAnimals = allAnimalsUpdated.filter((a) => a !== null);
 
     for (const animal of validAnimals) {
-      if (
-        animal?.reproductiveStatus === 'pregnant' &&
-        animal.expectedDueDate instanceof Date
-      ) {
-        const expectedDute: Date = new Date(animal.expectedDueDate);
-        const notifyAt = new Date(expectedDute);
-        notifyAt.setMonth(notifyAt.getMonth() - 1);
+      try {
+        if (
+          animal?.reproductiveStatus === 'pregnant' ||
+          animal?.reproductiveStatus === 'prenha'
+        ) {
+          let expectedDute;
 
-        if (!userEmail?.id) {
-          throw new Error('Usuário não encontrado');
+          if (animal.expectedDueDate !== null) {
+            expectedDute = new Date(animal?.expectedDueDate);
+          } else {
+            return console.log('Expectativa está vazia');
+          }
+          const monthOfExpectedDute = expectedDute.getMonth();
+
+          const notifyAt = new Date(
+            expectedDute.setMonth(monthOfExpectedDute - 1)
+          );
+
+          notifyAt.setMonth(notifyAt.getMonth() - 1);
+
+          if (!userEmail?.id) {
+            throw new Error('Usuário não encontrado');
+          }
+
+          await prisma.notification.create({
+            data: {
+              id: uuidv4(),
+              message: `Seu animal ${animal.manualId} está próximo ao parto.`,
+              notifyAt: notifyAt,
+              read: false,
+              userId: userEmail.id,
+              animalId: animal.id,
+              createdAt: new Date(),
+            },
+          });
         }
-
-        await prisma.notification.create({
-          data: {
-            id: uuidv4(),
-            message: '...',
-            notifyAt: new Date(),
-            read: false,
-            userId: userEmail.id,
-            animalId: animal.id,
-            createdAt: new Date(),
-          },
-        });
+      } catch (error) {
+        console.log('Erro ao tentar cadastrar', error);
       }
     }
 

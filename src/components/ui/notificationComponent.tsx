@@ -89,7 +89,7 @@ export const NotificationComponent: React.FC<TableProps> = ({
             </Badge>
           )}
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="flex w-full min-w-0 max-w-72 flex-col justify-end">
+        <DropdownMenuContent className="flex w-full min-w-0 max-w-72 flex-col justify-end gap-3">
           {(notificationsUnread ?? []).map(
             (notification: Notification, index: number) => (
               <Link
@@ -98,10 +98,10 @@ export const NotificationComponent: React.FC<TableProps> = ({
                 onClick={() => handleStateRead(notification)}
               >
                 <DropdownMenuItem
-                  className={`w-full text-xs ${notification.read === false ? 'bg-secondary text-background hover:bg-secondary' : 'bg-background hover:bg-background'}`}
+                  className={`w-full cursor-pointer text-xs ${notification.read === false ? 'bg-secondary text-background hover:bg-secondary' : 'bg-background hover:bg-background'}`}
                 >
                   {notification && (
-                    <span className="h-2 w-4 rounded-full bg-background"></span>
+                    <span className="h-2 w-2 rounded-full bg-background"></span>
                   )}
                   {notification.message}
                 </DropdownMenuItem>
