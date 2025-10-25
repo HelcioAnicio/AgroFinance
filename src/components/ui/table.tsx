@@ -169,7 +169,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
   return (
     <main
       style={{ height: 'calc(100vh - 160px)' }}
-      className="relative m-auto max-w-[750px] pb-5"
+      className="relative m-auto max-w-max pb-5"
     >
       {isLoading ? (
         <Loading />
@@ -197,7 +197,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                   onChange={handleInputChange}
                 />
               </div>
-              <div className="flex gap-3">
+              <div className="flex flex-col gap-3 md:flex-row">
                 <Dialog>
                   <DialogTrigger className="flex items-center rounded-md border border-foreground p-2 text-xs">
                     Importar animais
@@ -278,7 +278,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
           </div>
           <br />
           <div className="h-full w-full overflow-y-auto pb-10">
-            <table className="m-auto max-w-[750px] border-collapse overflow-x-auto overflow-y-scroll scroll-smooth text-left xl:text-sm">
+            <table className="m-auto max-w-max border-collapse overflow-x-auto overflow-y-scroll scroll-smooth text-left xl:text-sm">
               <thead className="sticky top-0 z-20 border-collapse bg-primary text-background">
                 <tr>
                   <th className="w-20 px-1 py-2">Status</th>
@@ -397,27 +397,28 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
 
                       <td className="px-1 py-3 pr-4">
                         <span className="flex w-max">
-                          {animal.category === 'neonate'
+                          {animal.category == 'neonate'
                             ? 'Neonato'
-                            : animal.category === 'calf'
+                            : animal.category == 'calf'
                               ? 'Bezerro'
-                              : animal.category === 'steer' &&
-                                  animal.gender === 'male'
+                              : animal.category == 'steer' &&
+                                  animal.gender == 'male'
                                 ? 'Garrote'
-                                : animal.category === 'steer' &&
-                                    animal.gender === 'female'
+                                : animal.category == 'steer' &&
+                                    animal.gender == 'female'
                                   ? 'Novilho'
-                                  : animal.category === 'cow'
+                                  : animal.category == 'cow'
                                     ? 'Vaca'
-                                    : animal.category === 'old cow'
+                                    : animal.category == 'old cow'
                                       ? 'Vaca velha'
-                                      : animal.category === 'ox'
+                                      : animal.category == 'ox'
                                         ? 'Boi'
-                                        : animal.category === 'old ox'
+                                        : animal.category == 'old ox'
                                           ? 'Boi Velho'
-                                          : animal.category === 'bull'
+                                          : animal.category == 'bull'
                                             ? 'Touro'
-                                            : 'Touro velho'}
+                                            : animal.category == 'old bull' &&
+                                              'Touro velho'}
                         </span>
                       </td>
                       <td className="px-2 py-3">

@@ -83,32 +83,27 @@ export const CardInformation: React.FC<InformationProps> = ({ animal }) => {
           <strong>Categoria: </strong>
           <span>
             {animal?.category
-              ? `${animal?.category[0].toUpperCase()}${animal?.category.substring(1)}`
+              ? animal?.category === 'neonate'
+                ? 'Neonato'
+                : animal?.category === 'calf'
+                  ? 'Bezerro'
+                  : animal?.category === 'steer' && animal?.gender === 'male'
+                    ? 'Garrote'
+                    : animal?.category === 'steer' &&
+                        animal?.gender === 'female'
+                      ? 'Novilho'
+                      : animal?.category === 'cow'
+                        ? 'Vaca'
+                        : animal?.category === 'old cow'
+                          ? 'Vaca velha'
+                          : animal?.category === 'ox'
+                            ? 'Boi'
+                            : animal?.category === 'old ox'
+                              ? 'Boi Velho'
+                              : animal?.category === 'bull'
+                                ? 'Touro'
+                                : 'Touro velho'
               : 'N/A'}
-            <span>
-              {animal?.category
-                ? animal?.category === 'neonate'
-                  ? 'Neonato'
-                  : animal?.category === 'calf'
-                    ? 'Bezerro'
-                    : animal?.category === 'steer' && animal?.gender === 'male'
-                      ? 'Garrote'
-                      : animal?.category === 'steer' &&
-                          animal?.gender === 'female'
-                        ? 'Novilho'
-                        : animal?.category === 'cow'
-                          ? 'Vaca'
-                          : animal?.category === 'old cow'
-                            ? 'Vaca velha'
-                            : animal?.category === 'ox'
-                              ? 'Boi'
-                              : animal?.category === 'old ox'
-                                ? 'Boi Velho'
-                                : animal?.category === 'bull'
-                                  ? 'Touro'
-                                  : 'Touro velho'
-                : 'N/A'}
-            </span>
           </span>
         </Card>
       </section>
