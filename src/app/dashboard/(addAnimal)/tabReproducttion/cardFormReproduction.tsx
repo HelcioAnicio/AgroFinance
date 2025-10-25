@@ -64,9 +64,9 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
                       value={allDataForm.reproductiveStatus ?? ''}
                       defaultOption="Status do animal"
                       options={[
-                        { label: 'Vazia', value: 'empty' },
-                        { label: 'Prenha', value: 'pregnant' },
-                        { label: 'Em espera', value: 'waiting' },
+                        { label: 'Vazia', value: 'vazio' },
+                        { label: 'Prenha', value: 'prenha' },
+                        { label: 'Em espera', value: 'em espera' },
                         { label: 'PEV', value: 'pev' },
                       ]}
                       onChange={handleInputValues}

@@ -164,3 +164,4 @@ model Notification {
   Animal    Animal   @relation(fields: [animalId], references: [id], onDelete: Cascade, map: "fk_notification_animal")
   User      User     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "fk_notification_user")
 }
+

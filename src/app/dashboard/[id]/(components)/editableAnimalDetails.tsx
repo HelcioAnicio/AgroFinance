@@ -254,6 +254,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
             allDataForm={allDataForm}
             handleInputValues={handleInputValues}
             animal={animal as Animal}
+            animals={animals}
             breedArray={breedArray}
           />
 
