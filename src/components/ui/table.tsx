@@ -48,8 +48,6 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
   const [inputValue, setInputValue] = useState<string | null>('');
   const [inputFile, setInputFile] = useState<File | null>(null);
 
-  const [cardImport, setCardImport] = useState(false);
-
   async function handleUpload() {
     const reader = new FileReader();
     reader.onload = async (event) => {
@@ -70,17 +68,13 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
         const result = await res.json();
         if (result.success) {
           toast.success('Lista cadastrada com sucesso!');
-          setCardImport(!cardImport);
         } else {
-          setCardImport(!cardImport);
           toast.error('Erro com a importação');
         }
       } catch {
-        setCardImport(!cardImport);
         toast.error('Erro com o arquivo');
         setIsLoading(false);
       } finally {
-        setCardImport(!cardImport);
         setIsLoading(false);
       }
     };

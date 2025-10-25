@@ -81,8 +81,6 @@ export async function POST(req: Request) {
       ownerId: userEmail.id,
     }));
 
-    console.log('animais do primeiro console', animals);
-
     const allAnimalsUpdated = animals.map((animal) => {
       let fatherId: string | null;
       let motherId: string | null;
@@ -138,12 +136,39 @@ export async function POST(req: Request) {
       };
     });
 
-    console.log('animais do segundo console', allAnimalsUpdated);
-
     await prisma.animal.createMany({
       data: allAnimalsUpdated as [],
       skipDuplicates: true,
     });
+
+    const validAnimals = allAnimalsUpdated.filter((a) => a !== null);
+
+    for (const animal of validAnimals) {
+      if (
+        animal?.reproductiveStatus === 'pregnant' &&
+        animal.expectedDueDate instanceof Date
+      ) {
+        const expectedDute: Date = new Date(animal.expectedDueDate);
+        const notifyAt = new Date(expectedDute);
+        notifyAt.setMonth(notifyAt.getMonth() - 1);
+
+        if (!userEmail?.id) {
+          throw new Error('Usuário não encontrado');
+        }
+
+        await prisma.notification.create({
+          data: {
+            id: uuidv4(),
+            message: '...',
+            notifyAt: new Date(),
+            read: false,
+            userId: userEmail.id,
+            animalId: animal.id,
+            createdAt: new Date(),
+          },
+        });
+      }
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {
