@@ -4,13 +4,14 @@ import { SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CardFormMain } from './tabMain/cardFormMain';
 import { CardFormReproduction } from './tabReproducttion/cardFormReproduction';
-import React, { useState } from 'react';
-import axios from 'axios';
+import React, { useEffect, useState } from 'react';
+// import axios from 'axios';
 import { useSession } from 'next-auth/react';
 import { Animal } from '@/types/animal';
 import { User } from '@/types/user';
-import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'sonner';
+import { v4 as uuidv4 } from 'uuid';
+
 // import { CardFormVacines } from './tabVacines/cardFormVacines';
 
 interface AddAnimalProps {
@@ -54,6 +55,17 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
     'Red Poll',
   ];
 
+  useEffect(() => {
+    console.log('AllDataForm', allDataForm);
+    if (allDataForm.expectedDueDate !== null) {
+      const expectedDute = new Date(allDataForm.expectedDueDate);
+      const monthOfExpectedDute = expectedDute.getMonth();
+
+      const notifyAt = new Date(expectedDute.setMonth(monthOfExpectedDute - 1));
+      console.log('notifyAt: ', notifyAt);
+    }
+  }, [allDataForm]);
+
   const handleInputValues = (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -78,23 +90,34 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
       id: uuidv4(),
       manualId: allDataForm.manualId.toLowerCase(),
       ownerId: userEmail?.id || '',
-      updatedAt: new Date(),
+      birthDate: new Date(allDataForm.birthDate),
+      expectedDueDate:
+        allDataForm.expectedDueDate == null
+          ? null
+          : new Date(allDataForm.expectedDueDate),
       motherId:
-        allDataForm.motherId === 'Comercial' ? null : allDataForm.motherId,
+        allDataForm.motherId === 'comercial' ? null : allDataForm.motherId,
       fatherId:
-        allDataForm.fatherId === 'Comercial' ? null : allDataForm.fatherId,
+        allDataForm.fatherId === 'comercial' ? null : allDataForm.fatherId,
+      bullId:
+        allDataForm.bullId === 'comercial' || null || undefined
+          ? null
+          : allDataForm.bullId,
+      bullIatf:
+        allDataForm.bullIatf === 'comercial' || null || undefined
+          ? null
+          : allDataForm.bullIatf,
+      updatedAt: new Date(),
     };
+    console.log('dataToSubmit', JSON.stringify(dataToSubmit));
 
     try {
-      await axios.post(
-        '/api/addAnimals',
-        { allDataForm: dataToSubmit },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      await fetch('/api/addAnimals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ allDataForm: dataToSubmit }),
+      });
+
       setAllDataForm({} as Animal);
       toast.success('Animal cadastrado com sucesso!');
       onAnimalAdded(dataToSubmit);
