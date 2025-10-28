@@ -127,7 +127,7 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
                   </SheetClose>
                   <SheetClose asChild>
                     <Button
-                      type="submit"
+                      type="button"
                       onClick={() => submitForm(allDataForm)}
                     >
                       Adicionar Animal

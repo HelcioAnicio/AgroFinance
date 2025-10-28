@@ -22,16 +22,16 @@ export const FormWaitingStatus: React.FC<FormWaitingStatusProps> = ({
           label="Manejo utilizado:"
           name="handlingType"
           id="handlingType"
-          value={allDataForm.handlingType ?? ''}
+          value={allDataForm.handlingType || ''}
+          defaultOption="Escolha o manejo"
           options={[
-            { label: 'Montada com touro', value: 'bullMating' },
+            { label: 'Monta natural', value: 'naturalMating' },
             {
               label: 'Inseminação Artificial',
               value: 'artificialInsemination',
             },
-            { label: 'Todos os métodos', value: 'allMethods' },
+            { label: 'Todos os metodos', value: 'allMethods' },
           ]}
-          defaultOption="Selecione o manejo"
           onChange={handleInputValues}
         />
         <SelectForm
@@ -39,15 +39,15 @@ export const FormWaitingStatus: React.FC<FormWaitingStatusProps> = ({
           label="Protocolo usado:"
           name="protocol"
           id="protocol"
-          value={allDataForm.protocol ?? ''}
+          value={allDataForm.protocol || ''}
           options={[
-            { label: 'Inseminação artificial', value: 'protocol1' },
-            { label: 'Inseminação', value: 'protocol2' },
+            { label: '3 manejos', value: '3 handlings' },
+            { label: '4 manejos', value: '4 handlings' },
+            { label: 'Misto', value: 'mixed' },
           ]}
           defaultOption="Protocolo"
           onChange={handleInputValues}
-          disabled={allDataForm.handlingType === 'bullMating'}
-          classNameInput={'max-w-32'}
+          disabled={allDataForm.handlingType === 'naturalMating'}
         />
       </article>
 
@@ -57,36 +57,44 @@ export const FormWaitingStatus: React.FC<FormWaitingStatusProps> = ({
           label="Touro utilizado:"
           name="bullId"
           id="bullId"
-          value={allDataForm.bullId ?? ''}
+          value={allDataForm.bullId || ''}
           defaultOption="Escolha o touro"
           options={[
-            { label: 'Comercial', value: 'Comercial' },
+            { label: 'Comercial', value: 'comercial' },
             ...animals
-              .filter((animal) => animal.gender === 'male')
+              .filter(
+                (animal) =>
+                  animal.gender === 'male' && animal.category.includes('Touro')
+              )
               .map((animal) => ({
                 label: `Touro ${animal.manualId}`,
                 value: animal.id,
               })),
           ]}
           onChange={handleInputValues}
+          disabled={allDataForm.handlingType === 'artificialInsemination'}
         />
+
         <SelectForm
           htmlFor="bullIatf"
           label="Touro utilizado na IATF:"
           name="bullIatf"
           id="bullIatf"
-          value={allDataForm.bullIatf ?? ''}
+          value={allDataForm.bullIatf || ''}
           options={[
             { label: 'Comercial', value: 'comercial' },
             ...animals
-              .filter((animal) => animal.gender === 'male')
+              .filter(
+                (animal) =>
+                  animal.gender === 'male' && animal.category.includes('Touro')
+              )
               .map((animal) => ({
                 label: `Touro ${animal.manualId}`,
                 value: animal.id,
               })),
           ]}
           onChange={handleInputValues}
-          disabled={allDataForm.handlingType === 'bullMating'}
+          disabled={allDataForm.handlingType === 'naturalMating'}
         />
       </article>
     </>

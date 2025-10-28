@@ -21,6 +21,8 @@ export async function POST(req: NextRequest) {
     const body = text ? JSON.parse(text) : {};
     console.log('parsed body:', body);
 
+    // const json = await req.json();
+
     const { allDataForm } = body || {};
     if (!allDataForm) {
       return NextResponse.json(

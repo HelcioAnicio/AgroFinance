@@ -61,6 +61,7 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
               })),
           ]}
           onChange={handleInputValues}
+          disabled={allDataForm.handlingType === 'artificialInsemination'}
         />
 
         <SelectForm
@@ -76,7 +77,7 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
           ]}
           defaultOption="Protocolo"
           onChange={handleInputValues}
-          disabled={allDataForm.handlingType === 'bullMating'}
+          disabled={allDataForm.handlingType === 'naturalMating'}
         />
       </article>
 
@@ -160,7 +161,7 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
               })),
           ]}
           onChange={handleInputValues}
-          disabled={allDataForm.handlingType === 'bullMating'}
+          disabled={allDataForm.handlingType === 'naturalMating'}
         />
       </article>
     </>

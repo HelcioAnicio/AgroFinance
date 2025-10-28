@@ -4,15 +4,13 @@ import { SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CardFormMain } from './tabMain/cardFormMain';
 import { CardFormReproduction } from './tabReproducttion/cardFormReproduction';
-import React, { useEffect, useState } from 'react';
-// import axios from 'axios';
+import React, { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { Animal } from '@/types/animal';
 import { User } from '@/types/user';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
-
-// import { CardFormVacines } from './tabVacines/cardFormVacines';
+import axios from 'axios';
 
 interface AddAnimalProps {
   animals: Animal[];
@@ -55,17 +53,6 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
     'Red Poll',
   ];
 
-  useEffect(() => {
-    console.log('AllDataForm', allDataForm);
-    if (allDataForm.expectedDueDate !== null) {
-      const expectedDute = new Date(allDataForm.expectedDueDate);
-      const monthOfExpectedDute = expectedDute.getMonth();
-
-      const notifyAt = new Date(expectedDute.setMonth(monthOfExpectedDute - 1));
-      console.log('notifyAt: ', notifyAt);
-    }
-  }, [allDataForm]);
-
   const handleInputValues = (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -87,6 +74,7 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
     event?.preventDefault();
     const dataToSubmit = {
       ...allDataForm,
+      status: 'active',
       id: uuidv4(),
       manualId: allDataForm.manualId.toLowerCase(),
       ownerId: userEmail?.id || '',
@@ -109,14 +97,17 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
           : allDataForm.bullIatf,
       updatedAt: new Date(),
     };
-    console.log('dataToSubmit', JSON.stringify(dataToSubmit));
 
     try {
-      await fetch('/api/addAnimals', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ allDataForm: dataToSubmit }),
-      });
+      await axios.post(
+        '/api/addAnimals',
+        { allDataForm: dataToSubmit },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
       setAllDataForm({} as Animal);
       toast.success('Animal cadastrado com sucesso!');
