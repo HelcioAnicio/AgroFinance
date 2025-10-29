@@ -5,13 +5,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CardFormMain } from './tabMain/cardFormMain';
 import { CardFormReproduction } from './tabReproducttion/cardFormReproduction';
 import React, { useState } from 'react';
-import axios from 'axios';
 import { useSession } from 'next-auth/react';
 import { Animal } from '@/types/animal';
 import { User } from '@/types/user';
-import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'sonner';
-// import { CardFormVacines } from './tabVacines/cardFormVacines';
+import { v4 as uuidv4 } from 'uuid';
+import axios from 'axios';
 
 interface AddAnimalProps {
   animals: Animal[];
@@ -75,14 +74,28 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
     event?.preventDefault();
     const dataToSubmit = {
       ...allDataForm,
+      status: 'active',
       id: uuidv4(),
       manualId: allDataForm.manualId.toLowerCase(),
       ownerId: userEmail?.id || '',
-      updatedAt: new Date(),
+      birthDate: new Date(allDataForm.birthDate),
+      expectedDueDate:
+        allDataForm.expectedDueDate == null
+          ? null
+          : new Date(allDataForm.expectedDueDate),
       motherId:
-        allDataForm.motherId === 'Comercial' ? null : allDataForm.motherId,
+        allDataForm.motherId === 'comercial' ? null : allDataForm.motherId,
       fatherId:
-        allDataForm.fatherId === 'Comercial' ? null : allDataForm.fatherId,
+        allDataForm.fatherId === 'comercial' ? null : allDataForm.fatherId,
+      bullId:
+        allDataForm.bullId === 'comercial' || null || undefined
+          ? null
+          : allDataForm.bullId,
+      bullIatf:
+        allDataForm.bullIatf === 'comercial' || null || undefined
+          ? null
+          : allDataForm.bullIatf,
+      updatedAt: new Date(),
     };
 
     try {

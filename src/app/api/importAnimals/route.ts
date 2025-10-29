@@ -70,7 +70,7 @@ export async function POST(req: Request) {
                 : null,
       handlingType:
         item.handlingType === 'monta natural'
-          ? 'naturalMating'
+          ? 'handlingType'
           : item.handlingType === 'inseminação artificial'
             ? 'artificialInsemination'
             : item.handlingType === 'todos os metodos'
