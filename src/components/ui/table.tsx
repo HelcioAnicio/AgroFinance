@@ -240,7 +240,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                         <Button variant="outline">Cancel</Button>
                       </DialogClose>
 
-                      <DialogClose asChild>
+                      <DialogClose>
                         {inputFile && (
                           <Button onClick={handleUpload}>
                             Cadastrar animais
@@ -277,7 +277,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
             </div>
           </div>
           <br />
-          <div className="h-full w-full overflow-y-auto pb-10">
+          <div className="h-full w-full overflow-y-auto pb-28 md:pb-10">
             <table className="m-auto max-w-max border-collapse overflow-x-auto overflow-y-scroll scroll-smooth text-left xl:text-sm">
               <thead className="sticky top-0 z-20 border-collapse bg-primary text-background">
                 <tr>
