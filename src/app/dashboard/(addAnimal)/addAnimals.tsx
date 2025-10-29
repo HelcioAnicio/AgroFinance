@@ -108,7 +108,6 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
           },
         }
       );
-
       setAllDataForm({} as Animal);
       toast.success('Animal cadastrado com sucesso!');
       onAnimalAdded(dataToSubmit);

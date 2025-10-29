@@ -9,7 +9,8 @@ import { FormPregnantStatus } from './components/formPregnantStatus';
 import { FormWaitingStatus } from './components/formWaitingStatus';
 import { InputForm } from '@/components/ui/inputForm';
 import { SheetFooter, SheetClose } from '@/components/ui/sheet';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 interface CardFormReproductionProps {
   animals: Animal[];
@@ -38,6 +39,25 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
     setTabValue('principais');
     setAllDataForm({} as Animal);
   };
+  const [validDate, setValidDate] = useState(false);
+
+  useEffect(() => {
+    const today = new Date().toISOString().split('T')[0];
+    console.log('today: ', today);
+    if (allDataForm.expectedDueDate) {
+      const inputExpectedDueDate = new Date(allDataForm.expectedDueDate)
+        .toISOString()
+        .split('T')[0];
+      console.log('inputExpectedDueDate: ', inputExpectedDueDate);
+      if (inputExpectedDueDate <= today) {
+        toast.error('Data de expectativa de parto está errada.');
+        setValidDate(false);
+      } else {
+        toast.success('Data de expectativa está correta.');
+        return setValidDate(true);
+      }
+    }
+  }, [setValidDate, allDataForm.expectedDueDate]);
 
   return (
     <>
@@ -129,6 +149,7 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
                     <Button
                       type="button"
                       onClick={() => submitForm(allDataForm)}
+                      disabled={validDate === false}
                     >
                       Adicionar Animal
                     </Button>
