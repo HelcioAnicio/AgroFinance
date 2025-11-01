@@ -216,23 +216,22 @@ export const Filters: React.FC<FiltersProps> = ({
         (typeFilters.reproductiveStatus.pev &&
           animal.reproductiveStatus === 'pev');
 
-      console.log(
-        'matchesReproductive: ',
-        animal.manualId,
-        matchesReproductive
-      );
+      console.log('matchesGender: ', animal.manualId, matchesGender);
       const matchesBreed =
         !typeFilters.breed ||
         (typeFilters.breed && animal.breed === typeFilters.breed);
 
+      const anyAndro =
+        typeFilters.andrological.positive ||
+        typeFilters.andrological.negative ||
+        typeFilters.andrological.notDone;
+
       const matchesAndrological =
-        !typeFilters.andrological ||
+        !anyAndro ||
         (typeFilters.andrological.positive &&
           animal.andrological === 'positive') ||
-        !typeFilters.andrological ||
         (typeFilters.andrological.negative &&
           animal.andrological === 'negative') ||
-        !typeFilters.andrological ||
         (typeFilters.andrological.notDone && animal.andrological === 'notDone');
 
       return (
@@ -246,6 +245,7 @@ export const Filters: React.FC<FiltersProps> = ({
         matchesAndrological
       );
     });
+
     setListAnimals(filtered);
   };
 
@@ -291,6 +291,10 @@ export const Filters: React.FC<FiltersProps> = ({
       },
     });
     setListAnimals(originalAnimals);
+    const listWithoutDependents = originalAnimals.filter((animal) => {
+      return animal.category !== 'neonate';
+    });
+    setListAnimals(listWithoutDependents);
   };
 
   return (

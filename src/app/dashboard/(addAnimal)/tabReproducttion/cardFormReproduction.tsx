@@ -43,12 +43,14 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
 
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
-    console.log('today: ', today);
-    if (allDataForm.expectedDueDate) {
+    if (allDataForm.gender === 'male') {
+      setValidDate(true);
+      return;
+    }
+    if (allDataForm.expectedDueDate && allDataForm.gender === 'female') {
       const inputExpectedDueDate = new Date(allDataForm.expectedDueDate)
         .toISOString()
         .split('T')[0];
-      console.log('inputExpectedDueDate: ', inputExpectedDueDate);
       if (inputExpectedDueDate <= today) {
         toast.error('Data de expectativa de parto está errada.');
         setValidDate(false);
@@ -57,7 +59,7 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
         return setValidDate(true);
       }
     }
-  }, [setValidDate, allDataForm.expectedDueDate]);
+  }, [setValidDate, allDataForm.expectedDueDate, allDataForm.gender]);
 
   return (
     <>
