@@ -140,13 +140,16 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
           },
         }
       );
-      console.log('Animal adicionada com sucesso:', response.data);
+
       setTimeout(() => {
         toast.success('Animal atualizado com sucesso!');
       }, 2000);
+      allDataForm = dataToSubmit;
+      // useEffect(() => {}, []);
+      return response;
     } catch (error) {
-      console.log('Erro ao atualizar animal', error);
       toast.error('Ocorreu um erro ao atualizar o animal.');
+      return error;
     }
   };
 
@@ -166,19 +169,16 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
           },
         }
       );
-      console.log(vaccineToSend);
       updatedListVaccines();
       setAddVaccine(false);
       setDataOfVaccine({} as Vaccine);
-      console.log('Vacina adicionada com sucesso:', response.data);
       setTimeout(() => {
         toast.success('Vacina adicionada com sucesso!');
       }, 2000);
+      return response;
     } catch (error) {
-      console.log(vaccineToSend);
-
-      console.log('Erro ao adicionar vacina', error);
       toast.error('Ocorreu um erro ao adicionar a vacina.');
+      return error;
     }
   };
 
@@ -187,7 +187,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
       try {
         await axios.delete(`/api/animals/${animal.id}`);
         toast.success('Animal excluído com sucesso!');
-        router.push('/animais');
+        router.push('/dashboard');
       } catch {
         toast.error('Erro ao excluir o animal.');
       }
