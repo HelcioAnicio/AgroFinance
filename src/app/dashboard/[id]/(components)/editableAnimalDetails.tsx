@@ -139,7 +139,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
         toast.success('Animal atualizado com sucesso!');
         setIsEditing(!isEditing);
       }, 2000);
-      allDataForm = dataToSubmit;
+      animal = allDataForm;
       return response;
     } catch (error) {
       toast.error('Ocorreu um erro ao atualizar o animal.');
