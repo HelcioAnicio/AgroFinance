@@ -76,12 +76,6 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   const handleBack = () => {
     router.back();
   };
-  const handleIsEditing = () => {
-    setIsEditing(true);
-  };
-  const handleNotEditing = () => {
-    setIsEditing(false);
-  };
 
   const handleInputValues = (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -143,9 +137,9 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
 
       setTimeout(() => {
         toast.success('Animal atualizado com sucesso!');
+        setIsEditing(!isEditing);
       }, 2000);
       allDataForm = dataToSubmit;
-      // useEffect(() => {}, []);
       return response;
     } catch (error) {
       toast.error('Ocorreu um erro ao atualizar o animal.');
@@ -216,10 +210,10 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                 <button onClick={handleDelete}>
                   <Trash2 className="text-red-500" />
                 </button>
-                <Button onClick={handleIsEditing}>Editar</Button>
+                <Button onClick={() => setIsEditing(!isEditing)}>Editar</Button>
               </>
             ) : (
-              <Button onClick={handleNotEditing}>Cancelar</Button>
+              <Button onClick={() => setIsEditing(!isEditing)}>Cancelar</Button>
             )}
           </div>
         </div>
@@ -266,6 +260,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
             allDataForm={allDataForm}
             handleInputValues={handleInputValues}
             animal={animal as Animal}
+            animals={animals}
             breedArray={breedArray}
           />
 
@@ -365,7 +360,15 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
             </CardContent>
           </Card>
 
-          <Button onClick={() => submitForm(allDataForm)}>Salvar</Button>
+          <Button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              submitForm(allDataForm);
+            }}
+          >
+            Salvar
+          </Button>
         </form>
       )}
       {addVaccine ? (

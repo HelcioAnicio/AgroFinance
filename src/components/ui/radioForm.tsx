@@ -30,6 +30,7 @@ export const RadioForm: React.FC<RadioFormProps> = ({
           id={id}
           value={value}
           checked={checked}
+          required
           onChange={onChange}
         />
         <label htmlFor={htmlFor} className="py-2">

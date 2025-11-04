@@ -29,18 +29,18 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
           value={allDataForm.handlingType || ''}
           defaultOption="Escolha o manejo"
           options={[
-            { label: 'Touro', value: 'bullMating' },
+            { label: 'Monta natural', value: 'naturalMating' },
             {
               label: 'Inseminação Artificial',
               value: 'artificialInsemination',
             },
-            { label: 'Todos os Métodos', value: 'allMethods' },
+            { label: 'Todos os metodos', value: 'allMethods' },
           ]}
           onChange={handleInputValues}
         />
       </article>
 
-      <article className="flex flex-wrap justify-between gap-2">
+      <article className="flex flex-wrap gap-2 md:gap-10">
         <SelectForm
           htmlFor="bullId"
           label="Touro utilizado:"
@@ -49,15 +49,19 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
           value={allDataForm.bullId || ''}
           defaultOption="Escolha o touro"
           options={[
-            { label: 'Comercial', value: 'Comercial' },
+            { label: 'Comercial', value: 'comercial' },
             ...animals
-              .filter((animal) => animal.gender === 'male')
+              .filter(
+                (animal) =>
+                  animal.gender === 'male' && animal.category.includes('Touro')
+              )
               .map((animal) => ({
                 label: `Touro ${animal.manualId}`,
                 value: animal.id,
               })),
           ]}
           onChange={handleInputValues}
+          disabled={allDataForm.handlingType === 'artificialInsemination'}
         />
 
         <SelectForm
@@ -67,13 +71,13 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
           id="protocol"
           value={allDataForm.protocol || ''}
           options={[
-            { label: 'Inseminação artificial', value: 'protocol1' },
-            { label: 'Inseminação', value: 'protocol2' },
+            { label: '3 manejos', value: '3 handlings' },
+            { label: '4 manejos', value: '4 handlings' },
+            { label: 'Misto', value: 'mixed' },
           ]}
           defaultOption="Protocolo"
           onChange={handleInputValues}
-          disabled={allDataForm.handlingType === 'bullMating'}
-          // classNameInput={'max-w-32'}
+          disabled={allDataForm.handlingType === 'naturalMating'}
         />
       </article>
 
@@ -147,14 +151,17 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
           options={[
             { label: 'Comercial', value: 'comercial' },
             ...animals
-              .filter((animal) => animal.gender === 'male')
+              .filter(
+                (animal) =>
+                  animal.gender === 'male' && animal.category.includes('Touro')
+              )
               .map((animal) => ({
                 label: `Touro ${animal.manualId}`,
                 value: animal.id,
               })),
           ]}
           onChange={handleInputValues}
-          disabled={allDataForm.handlingType === 'bullMating'}
+          disabled={allDataForm.handlingType === 'naturalMating'}
         />
       </article>
     </>

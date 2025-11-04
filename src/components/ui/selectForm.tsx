@@ -35,6 +35,7 @@ export const SelectForm: React.FC<SelectFormProps> = ({
         id={id}
         value={value}
         onChange={onChange}
+        required
         disabled={disabled}
         className={`min-w-max flex-1 border border-b border-b-primary bg-transparent outline-none ${classNameInput}`}
       >

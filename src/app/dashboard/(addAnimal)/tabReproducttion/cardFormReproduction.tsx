@@ -9,6 +9,8 @@ import { FormPregnantStatus } from './components/formPregnantStatus';
 import { FormWaitingStatus } from './components/formWaitingStatus';
 import { InputForm } from '@/components/ui/inputForm';
 import { SheetFooter, SheetClose } from '@/components/ui/sheet';
+import React, { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 interface CardFormReproductionProps {
   animals: Animal[];
@@ -17,6 +19,8 @@ interface CardFormReproductionProps {
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
   submitForm: (allDataForm: Animal) => Promise<void>;
+  setTabValue: (value: string) => void;
+  setAllDataForm: React.Dispatch<React.SetStateAction<Animal>>;
 }
 
 export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
@@ -24,10 +28,38 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
   allDataForm,
   handleInputValues,
   submitForm,
+  setTabValue,
+  setAllDataForm,
 }) => {
   const scores = [
     1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 2.75, 3, 3.25, 3.5, 3.75, 4, 5,
   ];
+
+  const cleanAllDataForm = () => {
+    setTabValue('principais');
+    setAllDataForm({} as Animal);
+  };
+  const [validDate, setValidDate] = useState(false);
+
+  useEffect(() => {
+    const today = new Date().toISOString().split('T')[0];
+    if (allDataForm.gender === 'male') {
+      setValidDate(true);
+      return;
+    }
+    if (allDataForm.expectedDueDate && allDataForm.gender === 'female') {
+      const inputExpectedDueDate = new Date(allDataForm.expectedDueDate)
+        .toISOString()
+        .split('T')[0];
+      if (inputExpectedDueDate <= today) {
+        toast.error('Data de expectativa de parto está errada.');
+        setValidDate(false);
+      } else {
+        toast.success('Data de expectativa está correta.');
+        return setValidDate(true);
+      }
+    }
+  }, [setValidDate, allDataForm.expectedDueDate, allDataForm.gender]);
 
   return (
     <>
@@ -106,16 +138,20 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
               )}
 
               <article className="flex w-full justify-end">
-                <SheetFooter>
+                <SheetFooter className="flex w-full flex-row justify-end gap-5">
                   <SheetClose asChild>
-                    <Button className="bg-card text-card-foreground hover:bg-primary-foreground">
+                    <Button
+                      className="bg-card text-card-foreground hover:bg-primary-foreground"
+                      onClick={() => cleanAllDataForm()}
+                    >
                       Cancelar
                     </Button>
                   </SheetClose>
                   <SheetClose asChild>
                     <Button
-                      type="submit"
+                      type="button"
                       onClick={() => submitForm(allDataForm)}
+                      disabled={validDate === false}
                     >
                       Adicionar Animal
                     </Button>

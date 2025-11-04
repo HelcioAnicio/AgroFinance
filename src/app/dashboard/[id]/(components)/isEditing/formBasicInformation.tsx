@@ -8,12 +8,14 @@ interface FormBasicInformationProps {
   ) => void;
   breedArray: string[];
   animal: Animal | null;
+  animals: Animal[];
 }
 
 export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
   allDataForm,
   handleInputValues,
   breedArray,
+  animals,
 }) => {
   return (
     <>
@@ -24,7 +26,7 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
         <CardContent className="p-1">
           <section className="flex flex-col gap-4">
             <div className="grid grid-cols-2 gap-4">
-              <div className="flex items-end gap-1">
+              <div className="">
                 <label className="text-secondary" htmlFor="manualId">
                   Id do animal:
                 </label>
@@ -34,7 +36,7 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
                   id="manualId"
                   value={allDataForm.manualId ?? ''}
                   onChange={handleInputValues}
-                  className="w-12 border border-b border-b-primary bg-transparent outline-none"
+                  className="w-full border border-b border-b-primary bg-transparent outline-none"
                 />
               </div>
               <div className="flex items-end gap-1">
@@ -103,7 +105,7 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
                   className="min-w-24 flex-1 overflow-y-auto scroll-smooth border border-b border-b-primary bg-transparent outline-none"
                 >
                   <option value="" disabled></option>
-                  {breedArray.map((breed, id) => (
+                  {breedArray.map((breed: string, id) => (
                     <option value={breed} key={id}>
                       {breed}
                     </option>
@@ -115,14 +117,53 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
                 <label className="text-secondary" htmlFor="category">
                   Categoria:
                 </label>
-                <input
-                  type="text"
+                <select
                   name="category"
                   id="category"
                   value={allDataForm.category ?? ''}
                   onChange={handleInputValues}
-                  className="w-full border border-b border-b-primary bg-transparent outline-none"
-                />
+                  className="h-20 min-w-24 flex-1 overflow-y-auto scroll-smooth border border-b border-b-primary bg-transparent outline-none"
+                >
+                  <option disabled value=""></option>
+                  <option value="neonate">Dependente</option>
+                  <option value="calf">Bezerro</option>
+                  <option value="steer">
+                    {allDataForm.category && allDataForm.gender === 'male'
+                      ? 'Garrote'
+                      : 'Novilha'}
+                  </option>
+
+                  <option
+                    value={
+                      allDataForm.category && allDataForm.gender === 'male'
+                        ? 'ox'
+                        : 'cow'
+                    }
+                  >
+                    {allDataForm.category && allDataForm.gender === 'male'
+                      ? 'Boi'
+                      : 'Vaca'}
+                  </option>
+
+                  <option
+                    value={
+                      allDataForm.category && allDataForm.gender === 'male'
+                        ? 'old ox'
+                        : 'old cow'
+                    }
+                  >
+                    {allDataForm.category && allDataForm.gender === 'male'
+                      ? 'Boi velho'
+                      : 'Vaca Velha'}
+                  </option>
+
+                  {allDataForm.category && allDataForm.gender === 'male' && (
+                    <>
+                      <option value="bull">Touro</option>
+                      <option value="old bull">Touro velho</option>
+                    </>
+                  )}
+                </select>
               </div>
 
               <div className="flex flex-col gap-1">
@@ -137,12 +178,22 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
                   className="h-20 min-w-24 flex-1 overflow-y-auto scroll-smooth border border-b border-b-primary bg-transparent outline-none"
                 >
                   <option disabled value=""></option>
-                  <option value="Comercial">Comercial</option>
-                  {allDataForm.motherId && (
-                    <option value={allDataForm.motherId ?? ''}>
-                      Vaca {allDataForm.mother?.manualId}
-                    </option>
-                  )}
+                  <option value={(allDataForm.motherId = 'Comercial')}>
+                    Comercial
+                  </option>
+                  {animals
+                    .filter(
+                      (animal) =>
+                        animal.gender === 'female' &&
+                        animal.status === 'active' &&
+                        animal.category !== 'calf' &&
+                        animal.category !== 'neonate'
+                    )
+                    .map((animal) => (
+                      <option key={animal.id} value={animal.id}>
+                        Vaca {animal.manualId}
+                      </option>
+                    ))}
                 </select>
               </div>
 
@@ -158,9 +209,11 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
                   className="min-w-24 flex-1 border border-b border-b-primary bg-transparent outline-none"
                 >
                   <option value="" disabled></option>
-                  <option value="Comercial">Comercial</option>
+                  <option value={(allDataForm.fatherId = 'Comercial')}>
+                    Comercial
+                  </option>
                   {allDataForm.fatherId && (
-                    <option value={allDataForm.fatherId ?? ''}>
+                    <option value={allDataForm.fatherId}>
                       Touro {allDataForm.father?.manualId}
                     </option>
                   )}

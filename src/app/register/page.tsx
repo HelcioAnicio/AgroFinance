@@ -82,7 +82,6 @@ const Register = () => {
     );
 
     const hasAnyError = Object.values(newErrors).some((value) => value);
-    console.log('hasAnyError: ', hasAnyError);
     setInputsError(newErrors);
 
     if (hasAnyError) {

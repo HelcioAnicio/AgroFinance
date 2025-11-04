@@ -21,17 +21,18 @@ model User {
   accounts      Account[]
   animals       Animal[]
   Authenticator Authenticator[]
+  Notification  Notification[]
   sessions      Session[]
 }
 
 model Animal {
-  id                  String      @id @default(dbgenerated("gen_random_uuid()"))
+  id                  String         @id @default(dbgenerated("gen_random_uuid()"))
   manualId            String
   gender              String
   birthDate           DateTime
   weight              Float
   breed               String
-  category            String      @default("") @map("category")
+  category            String         @default("") @map("category")
   motherId            String?
   fatherId            String?
   reproductiveStatus  String?
@@ -45,25 +46,26 @@ model Animal {
   bodyConditionScore  Float?
   observations        String?
   ownerId             String
-  createdAt           DateTime    @default(now())
-  updatedAt           DateTime    @updatedAt
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
   dewormingDate       DateTime?
   dewormingExpiry     DateTime?
   dewormingName       String?
-  status              String      @default("active")
+  status              String         @default("active")
   vaccineDate         DateTime?
   vaccineExpiry       DateTime?
   vaccineName         String?
-  bull                Animal?     @relation("BullHandling", fields: [bullId], references: [id])
-  offspringFromBull   Animal[]    @relation("BullHandling")
-  father              Animal?     @relation("FatherOffspring", fields: [fatherId], references: [id])
-  offspringFromFather Animal[]    @relation("FatherOffspring")
-  mother              Animal?     @relation("MotherOffspring", fields: [motherId], references: [id])
-  offspringFromMother Animal[]    @relation("MotherOffspring")
-  owner               User        @relation(fields: [ownerId], references: [id])
-  dewormings          Deworming[] @relation("AnimalDewormings")
-  diseases            Disease[]   @relation("AnimalDiseases")
-  vaccines            Vaccine[]   @relation("AnimalVaccines")
+  bull                Animal?        @relation("BullHandling", fields: [bullId], references: [id])
+  offspringFromBull   Animal[]       @relation("BullHandling")
+  father              Animal?        @relation("FatherOffspring", fields: [fatherId], references: [id])
+  offspringFromFather Animal[]       @relation("FatherOffspring")
+  mother              Animal?        @relation("MotherOffspring", fields: [motherId], references: [id])
+  offspringFromMother Animal[]       @relation("MotherOffspring")
+  owner               User           @relation(fields: [ownerId], references: [id])
+  dewormings          Deworming[]    @relation("AnimalDewormings")
+  diseases            Disease[]      @relation("AnimalDiseases")
+  Notification        Notification[]
+  vaccines            Vaccine[]      @relation("AnimalVaccines")
 
   @@unique([manualId, ownerId])
 }
@@ -80,14 +82,14 @@ model Disease {
 }
 
 model Vaccine {
-  id          String   @id @default(uuid())
   name        String
   description String?
   date        DateTime
-  expiryDate  DateTime
   animalId    String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  expiryDate  DateTime
+  id          String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   animal      Animal   @relation("AnimalVaccines", fields: [animalId], references: [id])
 }
 
@@ -150,3 +152,16 @@ model Authenticator {
 
   @@id([userId, credentialID])
 }
+
+model Notification {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  message   String
+  notifyAt  DateTime @db.Timestamp(6)
+  read      Boolean  @default(false)
+  userId    String
+  animalId  String
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  Animal    Animal   @relation(fields: [animalId], references: [id], onDelete: Cascade, map: "fk_notification_animal")
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "fk_notification_user")
+}
+

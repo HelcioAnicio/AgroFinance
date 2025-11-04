@@ -5,13 +5,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CardFormMain } from './tabMain/cardFormMain';
 import { CardFormReproduction } from './tabReproducttion/cardFormReproduction';
 import React, { useState } from 'react';
-import axios from 'axios';
 import { useSession } from 'next-auth/react';
 import { Animal } from '@/types/animal';
 import { User } from '@/types/user';
-import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'sonner';
-// import { CardFormVacines } from './tabVacines/cardFormVacines';
+import { v4 as uuidv4 } from 'uuid';
+import axios from 'axios';
 
 interface AddAnimalProps {
   animals: Animal[];
@@ -71,21 +70,36 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
     }));
   };
 
-  const submitForm = async (allDataForm: Animal) => {
+  const submitForm = async (allDataForm: Animal, event?: FormDataEvent) => {
+    event?.preventDefault();
     const dataToSubmit = {
       ...allDataForm,
+      status: 'active',
       id: uuidv4(),
       manualId: allDataForm.manualId.toLowerCase(),
       ownerId: userEmail?.id || '',
-      updatedAt: new Date(),
+      birthDate: new Date(allDataForm.birthDate),
+      expectedDueDate:
+        allDataForm.expectedDueDate == null
+          ? null
+          : new Date(allDataForm.expectedDueDate),
       motherId:
-        allDataForm.motherId === 'Comercial' ? null : allDataForm.motherId,
+        allDataForm.motherId === 'comercial' ? null : allDataForm.motherId,
       fatherId:
-        allDataForm.fatherId === 'Comercial' ? null : allDataForm.fatherId,
+        allDataForm.fatherId === 'comercial' ? null : allDataForm.fatherId,
+      bullId:
+        allDataForm.bullId === 'comercial' || null || undefined
+          ? null
+          : allDataForm.bullId,
+      bullIatf:
+        allDataForm.bullIatf === 'comercial' || null || undefined
+          ? null
+          : allDataForm.bullIatf,
+      updatedAt: new Date(),
     };
 
     try {
-      const response = await axios.post(
+      await axios.post(
         '/api/addAnimals',
         { allDataForm: dataToSubmit },
         {
@@ -94,7 +108,6 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
           },
         }
       );
-      console.log('AnimalCadastrado: ', response.data);
       setAllDataForm({} as Animal);
       toast.success('Animal cadastrado com sucesso!');
       onAnimalAdded(dataToSubmit);
@@ -124,6 +137,7 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
             allDataForm={allDataForm}
             setTabValue={setTabValue}
             breedArray={breedArray}
+            setAllDataForm={setAllDataForm}
           />
         </TabsContent>
 
@@ -133,6 +147,8 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
             handleInputValues={handleInputValues}
             allDataForm={allDataForm}
             submitForm={submitForm}
+            setTabValue={setTabValue}
+            setAllDataForm={setAllDataForm}
           />
         </TabsContent>
       </Tabs>

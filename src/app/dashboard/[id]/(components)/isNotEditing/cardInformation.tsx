@@ -20,22 +20,26 @@ export const CardInformation: React.FC<InformationProps> = ({ animal }) => {
       <section className="flex w-full max-w-sm flex-wrap gap-2 p-2">
         <Card className="w-max rounded-sm px-3 py-1">
           <strong>Id: </strong>
-          <span>{animal?.manualId}</span>
-        </Card>
-        <Card className="w-max rounded-sm px-3 py-1">
-          <strong>Status: </strong>
           <span>
-            {animal?.status === 'active' ? (
+            {animal?.manualId.charAt(0).toUpperCase()}
+            {animal?.manualId.substring(1)}
+          </span>
+        </Card>
+        <Card className="flex w-max gap-1 rounded-sm px-3 py-1">
+          <strong>Status: </strong>
+          <span className="flex w-max items-center gap-1">
+            {animal?.status === 'active' || animal?.status === 'ativo' ? (
               <>
                 <FaCheckCircle className="inline-block size-3 text-green-400" />{' '}
                 Ativo
               </>
-            ) : animal?.status === 'inactive' ? (
+            ) : animal?.status === 'inactive' ||
+              animal?.status === 'inativo' ? (
               <>
                 <MdHighlightOff className="inline-block size-3 text-gray-500" />{' '}
                 Inativo
               </>
-            ) : animal?.status === 'dead' ? (
+            ) : animal?.status === 'dead' || animal?.status === 'morto' ? (
               <>
                 <IoSkull className="inline-block size-3 text-black" /> Morto
               </>
@@ -69,21 +73,60 @@ export const CardInformation: React.FC<InformationProps> = ({ animal }) => {
       <section className="flex w-full max-w-sm flex-wrap gap-2 p-2">
         <Card className="w-max rounded-sm px-3 py-1">
           <strong>Raça: </strong>
-          <span>{animal?.breed}</span>
+          <span>
+            {animal?.breed
+              ? `${animal?.breed[0].toUpperCase()}${animal.breed.substring(1)}`
+              : 'N/A'}
+          </span>
         </Card>
         <Card className="w-max rounded-sm px-3 py-1">
           <strong>Categoria: </strong>
-          <span>{animal?.category}</span>
+          <span>
+            {animal?.category
+              ? animal?.category === 'neonate'
+                ? 'Neonato'
+                : animal?.category === 'calf'
+                  ? 'Bezerro'
+                  : animal?.category === 'steer' && animal?.gender === 'male'
+                    ? 'Garrote'
+                    : animal?.category === 'steer' &&
+                        animal?.gender === 'female'
+                      ? 'Novilho'
+                      : animal?.category === 'cow'
+                        ? 'Vaca'
+                        : animal?.category === 'old cow'
+                          ? 'Vaca velha'
+                          : animal?.category === 'ox'
+                            ? 'Boi'
+                            : animal?.category === 'old ox'
+                              ? 'Boi Velho'
+                              : animal?.category === 'bull'
+                                ? 'Touro'
+                                : 'Touro velho'
+              : 'N/A'}
+          </span>
         </Card>
       </section>
       <section className="flex w-full max-w-sm flex-wrap gap-2 p-2">
         <Card className="w-max rounded-sm px-3 py-1">
           <strong>Id Mãe: </strong>
-          <span>{animal?.mother?.manualId || 'Comercial'}</span>
+          <span>
+            {!isNaN(
+              Number(
+                `${animal?.mother?.manualId.toUpperCase()}${animal?.mother?.manualId.substring(1)}}`
+              )
+            ) || 'Comercial'}
+          </span>
         </Card>
         <Card className="w-max rounded-sm px-3 py-1">
           <strong>Id Pai: </strong>
-          <span>{animal?.father?.manualId || 'Comercial'}</span>
+          <span>
+            {!isNaN(
+              Number(
+                `${animal?.father?.manualId.toUpperCase()}${animal?.father?.manualId.substring(1)}}`
+              )
+            ) || 'Comercial'}
+          </span>
         </Card>
       </section>
     </Card>

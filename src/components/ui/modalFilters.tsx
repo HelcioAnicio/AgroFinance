@@ -59,11 +59,12 @@ export const Filters: React.FC<FiltersProps> = ({
       male: false,
       female: false,
     },
-    category: {
-      calf: false,
-      steer: false,
-      adult: false,
-      senior: false,
+    age: {
+      less12: false,
+      between12And24: false,
+      between24And36: false,
+      between36And120: false,
+      more120: false,
     },
     weight: {
       '300kg': false,
@@ -81,6 +82,11 @@ export const Filters: React.FC<FiltersProps> = ({
       pev: false,
     },
     breed: '',
+    andrological: {
+      positive: false,
+      negative: false,
+      notDone: false,
+    },
   });
 
   const updateListAndInput = (
@@ -118,6 +124,16 @@ export const Filters: React.FC<FiltersProps> = ({
           ...prevFilters,
           breed: value,
         };
+      } else if (filterType === 'andrological') {
+        return {
+          ...prevFilters,
+          andrological: {
+            positive: false,
+            negative: false,
+            notDone: false,
+            [value]: true,
+          },
+        };
       }
 
       return {
@@ -136,6 +152,12 @@ export const Filters: React.FC<FiltersProps> = ({
       .map(([key]) => key);
 
     const filtered = listAnimals.filter((animal) => {
+      const age = new Date(animal.birthDate);
+      const today = new Date();
+      const ageInMonths =
+        (today.getFullYear() - age.getFullYear()) * 12 +
+        (today.getMonth() - age.getMonth());
+
       const matchesStatus =
         activeStatusFilters.length === 0 ||
         activeStatusFilters.includes(animal.status);
@@ -145,15 +167,23 @@ export const Filters: React.FC<FiltersProps> = ({
         (typeFilters.gender.male && animal.gender === 'male') ||
         (typeFilters.gender.female && animal.gender === 'female');
 
-      const matchesCategory =
-        (!typeFilters.category.calf &&
-          !typeFilters.category.steer &&
-          !typeFilters.category.adult &&
-          !typeFilters.category.senior) ||
-        (typeFilters.category.calf && animal.category === 'calf') ||
-        (typeFilters.category.steer && animal.category === 'steer') ||
-        (typeFilters.category.adult && animal.category === 'adult') ||
-        (typeFilters.category.senior && animal.category === 'senior');
+      const matchesAge =
+        (!typeFilters.age.less12 &&
+          !typeFilters.age.between12And24 &&
+          !typeFilters.age.between24And36 &&
+          !typeFilters.age.between36And120 &&
+          !typeFilters.age.more120) ||
+        (typeFilters.age.less12 && ageInMonths <= 12) ||
+        (typeFilters.age.between12And24 &&
+          ageInMonths >= 13 &&
+          ageInMonths <= 24) ||
+        (typeFilters.age.between24And36 &&
+          ageInMonths >= 25 &&
+          ageInMonths <= 36) ||
+        (typeFilters.age.between36And120 &&
+          ageInMonths >= 37 &&
+          ageInMonths <= 120) ||
+        (typeFilters.age.more120 && ageInMonths > 120);
 
       const matchesWeight =
         (!typeFilters.weight['300kg'] &&
@@ -177,28 +207,45 @@ export const Filters: React.FC<FiltersProps> = ({
           !typeFilters.reproductiveStatus.pregnant &&
           !typeFilters.reproductiveStatus.waiting &&
           !typeFilters.reproductiveStatus.pev) ||
-        (typeFilters.reproductiveStatus &&
+        (typeFilters.reproductiveStatus.empty &&
           animal.reproductiveStatus === 'empty') ||
-        (typeFilters.reproductiveStatus &&
+        (typeFilters.reproductiveStatus.pregnant &&
           animal.reproductiveStatus === 'pregnant') ||
-        (typeFilters.reproductiveStatus &&
+        (typeFilters.reproductiveStatus.waiting &&
           animal.reproductiveStatus === 'waiting') ||
-        (typeFilters.reproductiveStatus && animal.reproductiveStatus === 'pev');
+        (typeFilters.reproductiveStatus.pev &&
+          animal.reproductiveStatus === 'pev');
 
+      console.log('matchesGender: ', animal.manualId, matchesGender);
       const matchesBreed =
         !typeFilters.breed ||
         (typeFilters.breed && animal.breed === typeFilters.breed);
 
+      const anyAndro =
+        typeFilters.andrological.positive ||
+        typeFilters.andrological.negative ||
+        typeFilters.andrological.notDone;
+
+      const matchesAndrological =
+        !anyAndro ||
+        (typeFilters.andrological.positive &&
+          animal.andrological === 'positive') ||
+        (typeFilters.andrological.negative &&
+          animal.andrological === 'negative') ||
+        (typeFilters.andrological.notDone && animal.andrological === 'notDone');
+
       return (
         matchesStatus &&
         matchesGender &&
-        matchesCategory &&
+        matchesAge &&
         matchesWeight &&
         matchesDate &&
         matchesReproductive &&
-        matchesBreed
+        matchesBreed &&
+        matchesAndrological
       );
     });
+
     setListAnimals(filtered);
   };
 
@@ -214,11 +261,12 @@ export const Filters: React.FC<FiltersProps> = ({
         male: false,
         female: false,
       },
-      category: {
-        calf: false,
-        steer: false,
-        adult: false,
-        senior: false,
+      age: {
+        less12: false,
+        between12And24: false,
+        between24And36: false,
+        between36And120: false,
+        more120: false,
       },
       weight: {
         '300kg': false,
@@ -236,8 +284,17 @@ export const Filters: React.FC<FiltersProps> = ({
         pev: false,
       },
       breed: '',
+      andrological: {
+        positive: false,
+        negative: false,
+        notDone: false,
+      },
     });
     setListAnimals(originalAnimals);
+    const listWithoutDependents = originalAnimals.filter((animal) => {
+      return animal.category !== 'neonate';
+    });
+    setListAnimals(listWithoutDependents);
   };
 
   return (
@@ -325,42 +382,53 @@ export const Filters: React.FC<FiltersProps> = ({
           <div className="flex flex-wrap gap-x-5 gap-y-2">
             <RadioForm
               label="0 - 12m"
-              htmlFor="category.calf"
-              id="category.calf"
-              name="category.calf"
+              htmlFor="age.less12"
+              id="age.less12"
+              name="age.less12"
               type="checkbox"
-              value="calf"
-              checked={typeFilters.category.calf}
+              value="11"
+              checked={typeFilters.age.less12}
               onChange={updateListAndInput}
             />
             <RadioForm
               label="12m - 24m"
-              htmlFor="category.steer"
-              id="category.steer"
-              name="category.steer"
+              htmlFor="age.between12And24"
+              id="age.between12And24"
+              name="age.between12And24"
               type="checkbox"
-              value="steer"
-              checked={typeFilters.category.steer}
+              value="23"
+              checked={typeFilters.age.between12And24}
               onChange={updateListAndInput}
             />
             <RadioForm
               label="24m - 36m"
-              htmlFor="category.adult"
-              id="category.adult"
-              name="category.adult"
+              htmlFor="age.between24And36"
+              id="age.between24And36"
+              name="age.between24And36"
               type="checkbox"
-              value="adult"
-              checked={typeFilters.category.adult}
+              value="35"
+              checked={typeFilters.age.between24And36}
               onChange={updateListAndInput}
             />
             <RadioForm
-              label="+ 36m"
-              htmlFor="category.senior"
-              id="category.senior"
-              name="category.senior"
+              label="36m - 120m"
+              htmlFor="age.between36And120"
+              id="age.between36And120"
+              name="age.between36And120"
               type="checkbox"
-              value="senior"
-              checked={typeFilters.category.senior}
+              value="119"
+              checked={typeFilters.age.between36And120}
+              onChange={updateListAndInput}
+            />
+
+            <RadioForm
+              label="+ 120m"
+              htmlFor="age.more120"
+              id="age.more120"
+              name="age.more120"
+              type="checkbox"
+              value="121"
+              checked={typeFilters.age.more120}
               onChange={updateListAndInput}
             />
           </div>
@@ -473,6 +541,34 @@ export const Filters: React.FC<FiltersProps> = ({
                 })),
               ]}
               defaultOption="Escolha a raça"
+            />
+          </div>
+        </div>
+
+        <div>
+          <p className="font-semibold">Status do andrológico:</p>
+          <div className="flex flex-wrap gap-x-5 gap-y-2">
+            <SelectForm
+              label=""
+              htmlFor="andrological"
+              id="andrological"
+              name="andrological"
+              value={
+                Object.keys(typeFilters.andrological).find(
+                  (key) =>
+                    typeFilters.andrological[
+                      key as keyof typeof typeFilters.andrological
+                    ]
+                ) || ''
+              }
+              onChange={updateListAndInput}
+              defaultOption="Status do animal"
+              options={[
+                { label: 'Todas os status', value: '' },
+                { label: 'Positivo', value: 'positive' },
+                { label: 'Negativo', value: 'negative' },
+                { label: 'Não realizado', value: 'notDone' },
+              ]}
             />
           </div>
         </div>

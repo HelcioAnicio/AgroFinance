@@ -2,11 +2,12 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Animal } from '@/types/animal';
 import { InputForm } from '@/components/ui/inputForm';
 import { RadioForm } from '@/components/ui/radioForm';
 import { SelectForm } from '@/components/ui/selectForm';
+import { toast } from 'sonner';
 
 interface CardFormMainProps {
   allDataForm: Animal;
@@ -16,6 +17,7 @@ interface CardFormMainProps {
   animals: Animal[];
   breedArray?: string[];
   setTabValue: (value: string) => void;
+  setAllDataForm: React.Dispatch<React.SetStateAction<Animal>>;
 }
 
 export const CardFormMain: React.FC<CardFormMainProps> = ({
@@ -23,12 +25,35 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
   allDataForm,
   handleInputValues,
   setTabValue,
+  setAllDataForm,
 }) => {
+  const checked = animals.find(
+    (animal) =>
+      animal?.manualId?.toLowerCase() === allDataForm?.manualId?.toLowerCase()
+  );
+
+  useEffect(() => {
+    if (checked !== undefined) {
+      setTimeout(() => toast.warning('Encontrado um animal com esse ID'), 1000);
+    } else if (allDataForm.manualId === '') {
+      setTimeout(() => toast.warning('Favor preencher o ID'), 1000);
+    } else if (checked === undefined && allDataForm.manualId) {
+      setTimeout(() => toast.success('ID válido'), 1000);
+    }
+  }, [allDataForm.manualId, checked]);
+
   const sendForm = (event: React.FormEvent) => {
     event.preventDefault();
-    console.log('Formulário enviado! Dados do formulário:', allDataForm);
-    setTabValue('reproducao');
-    console.log('Tab alterada para "reproducao"');
+    if (checked) {
+      toast.error('Favor alterar o ID do animal');
+    } else {
+      setTabValue('reproducao');
+    }
+  };
+
+  const cleanAllDataForm = () => {
+    setTabValue('principais');
+    setAllDataForm({} as Animal);
   };
 
   const breedArray = [
@@ -56,6 +81,39 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
     'Red Poll',
   ];
 
+  const [category, setCategory] = useState<string>('');
+  useEffect(() => {
+    if (allDataForm.birthDate) {
+      const birthDate = new Date(allDataForm.birthDate);
+      const ageInMonths =
+        (new Date().getFullYear() - birthDate.getFullYear()) * 12 +
+        new Date().getMonth() -
+        birthDate.getMonth();
+      if (ageInMonths <= 8 && allDataForm.birthDate !== null) {
+        setCategory('neonate');
+      } else if (ageInMonths <= 12) {
+        setCategory('calf');
+      } else if (ageInMonths <= 24) {
+        setCategory(allDataForm.gender === 'male' ? 'steer' : 'steer');
+      } else if (ageInMonths <= 36) {
+        setCategory(allDataForm.gender === 'male' ? 'steer' : 'cow');
+      } else if (ageInMonths >= 37 && ageInMonths <= 120) {
+        setCategory(allDataForm.gender === 'male' ? 'ox' : 'cow');
+      } else {
+        setCategory(allDataForm.gender === 'male' ? 'old ox' : 'old cow');
+      }
+      if (allDataForm.category !== category) {
+        setAllDataForm((prev) => ({ ...prev, category }));
+      }
+    }
+  }, [
+    category,
+    allDataForm.birthDate,
+    allDataForm.gender,
+    allDataForm.category,
+    setAllDataForm,
+  ]);
+
   return (
     <Card className="min-h-80">
       <CardHeader className="py-2">
@@ -75,7 +133,7 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
               onChange={handleInputValues}
             />
 
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2">
               <span className="text-secondary">Sexo:</span>
               <RadioForm
                 htmlFor="female"
@@ -145,21 +203,27 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
 
               <div className="flex flex-col gap-1">
                 <span className="text-secondary">Categoria:</span>
+
                 <p>
-                  {allDataForm.birthDate
-                    ? (() => {
-                        const birthDate = new Date(allDataForm.birthDate);
-                        const ageInMonths =
-                          (new Date().getFullYear() - birthDate.getFullYear()) *
-                            12 +
-                          new Date().getMonth() -
-                          birthDate.getMonth();
-                        if (ageInMonths <= 12) return 'Bezerro';
-                        if (ageInMonths <= 24) return 'Novilho';
-                        if (ageInMonths <= 36) return 'Adulto';
-                        return 'Idoso';
-                      })()
-                    : ''}
+                  {allDataForm.category === 'neonate'
+                    ? 'Neonate'
+                    : allDataForm.category === 'calf'
+                      ? 'Bezerro'
+                      : allDataForm.category === 'steer' &&
+                          allDataForm.gender === 'male'
+                        ? 'Garrote'
+                        : allDataForm.category === 'steer' &&
+                            allDataForm.gender === 'female'
+                          ? 'Novilha'
+                          : allDataForm.category === 'ox'
+                            ? 'Boi'
+                            : allDataForm.category === 'cow'
+                              ? 'Vaca'
+                              : allDataForm.category === 'old ox'
+                                ? 'Boi velho'
+                                : allDataForm.category === 'old cow'
+                                  ? 'Vaca velha'
+                                  : 'Não informada'}
                 </p>
               </div>
 
@@ -171,9 +235,15 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                 value={allDataForm.motherId ?? ''}
                 onChange={handleInputValues}
                 options={[
-                  { label: 'Comercial', value: 'Comercial' },
+                  { label: 'Comercial', value: 'comercial' },
                   ...animals
-                    .filter((animal) => animal.gender === 'female')
+                    .filter(
+                      (animal) =>
+                        animal.gender === 'female' &&
+                        animal.category !== 'steer' &&
+                        animal.category !== 'neonate' &&
+                        animal.status === 'active'
+                    )
                     .map((animal) => ({
                       label: `Vaca ${animal.manualId}`,
                       value: animal.id,
@@ -190,9 +260,14 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                 value={allDataForm.fatherId ?? ''}
                 onChange={handleInputValues}
                 options={[
-                  { label: 'Comercial', value: 'Comercial' },
+                  { label: 'Comercial', value: 'comercial' },
                   ...animals
-                    .filter((animal) => animal.gender === 'male')
+                    .filter(
+                      (animal) =>
+                        animal.gender === 'male' &&
+                        animal.category.includes('bull') &&
+                        animal.status === 'active'
+                    )
                     .map((animal) => ({
                       label: `Touro ${animal.manualId}`,
                       value: animal.id,
@@ -201,9 +276,15 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                 defaultOption="Escolha o pai"
               />
             </div>
-            <Button className="mt-auto flex justify-self-end" type="submit">
-              Próximo
-            </Button>
+            <div className="flex w-full flex-row justify-end gap-5">
+              <Button
+                className="bg-card text-card-foreground hover:bg-primary-foreground"
+                onClick={() => cleanAllDataForm()}
+              >
+                Cancelar
+              </Button>
+              <Button type="submit">Próximo</Button>
+            </div>
           </section>
         </form>
       </CardContent>
