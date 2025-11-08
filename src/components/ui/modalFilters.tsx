@@ -299,8 +299,8 @@ export const Filters: React.FC<FiltersProps> = ({
 
   return (
     <SheetContent
-      side={'bottom'}
-      className="h-96 space-y-5 overflow-y-auto px-2 pt-5"
+      side={'right'}
+      className="w-11/12 space-y-5 overflow-y-auto px-2 pt-5 md:w-3/5"
     >
       <SheetHeader>
         <SheetTitle>Filtar as informações na tabela</SheetTitle>
