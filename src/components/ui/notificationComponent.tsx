@@ -89,7 +89,7 @@ export const NotificationComponent: React.FC<TableProps> = ({
             </Badge>
           )}
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="flex w-full min-w-0 max-w-72 flex-col justify-end gap-3">
+        <DropdownMenuContent className="bg-background flex w-full min-w-0 max-w-72 flex-col justify-end gap-3">
           {(notificationsUnread ?? []).map(
             (notification: Notification, index: number) => (
               <Link
