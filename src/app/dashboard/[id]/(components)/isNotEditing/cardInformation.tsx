@@ -25,17 +25,19 @@ export const CardInformation: React.FC<InformationProps> = ({ animal }) => {
             {animal?.manualId.substring(1)}
           </span>
         </Card>
-
         <Card className="flex w-max gap-1 rounded-sm px-3 py-1">
           <strong>Status: </strong>
           <span className="flex w-max items-center gap-1">
             {animal?.status === 'active' || animal?.status === 'ativo' ? (
               <>
-                <FaCheckCircle className="inline-block size-3 text-green-400" /> Ativo
+                <FaCheckCircle className="inline-block size-3 text-green-400" />{' '}
+                Ativo
               </>
-            ) : animal?.status === 'inactive' || animal?.status === 'inativo' ? (
+            ) : animal?.status === 'inactive' ||
+              animal?.status === 'inativo' ? (
               <>
-                <MdHighlightOff className="inline-block size-3 text-gray-500" /> Inativo
+                <MdHighlightOff className="inline-block size-3 text-gray-500" />{' '}
+                Inativo
               </>
             ) : animal?.status === 'dead' || animal?.status === 'morto' ? (
               <>
@@ -43,18 +45,17 @@ export const CardInformation: React.FC<InformationProps> = ({ animal }) => {
               </>
             ) : (
               <>
-                <TbMoneybag className="inline-block size-3 text-yellow-600" /> Vendido
+                <TbMoneybag className="inline-block size-3 text-yellow-600" />{' '}
+                Vendido
               </>
             )}
           </span>
         </Card>
-
         <Card className="w-max rounded-sm px-3 py-1">
           <strong>Sexo: </strong>
           <span>{animal?.gender === 'male' ? 'Macho' : 'Fêmea'}</span>
         </Card>
       </section>
-
       <section className="flex w-full max-w-sm flex-wrap gap-2 p-2">
         <Card className="w-max rounded-sm px-3 py-1">
           <strong>Nascimento: </strong>
@@ -64,69 +65,67 @@ export const CardInformation: React.FC<InformationProps> = ({ animal }) => {
               : 'N/A'}
           </span>
         </Card>
-
         <Card className="w-max rounded-sm px-3 py-1">
           <strong>Peso: </strong>
           <span>{animal?.weight} kg</span>
         </Card>
       </section>
-
       <section className="flex w-full max-w-sm flex-wrap gap-2 p-2">
         <Card className="w-max rounded-sm px-3 py-1">
           <strong>Raça: </strong>
           <span>
             {animal?.breed
-              ? `${animal.breed[0].toUpperCase()}${animal.breed.substring(1)}`
+              ? `${animal?.breed[0].toUpperCase()}${animal.breed.substring(1)}`
               : 'N/A'}
           </span>
         </Card>
-
         <Card className="w-max rounded-sm px-3 py-1">
           <strong>Categoria: </strong>
           <span>
             {animal?.category
-              ? animal.category === 'neonate'
+              ? animal?.category === 'neonate'
                 ? 'Neonato'
-                : animal.category === 'calf'
-                ? 'Bezerro'
-                : animal.category === 'steer' && animal.gender === 'male'
-                ? 'Garrote'
-                : animal.category === 'steer' && animal.gender === 'female'
-                ? 'Novilho'
-                : animal.category === 'cow'
-                ? 'Vaca'
-                : animal.category === 'old cow'
-                ? 'Vaca velha'
-                : animal.category === 'ox'
-                ? 'Boi'
-                : animal.category === 'old ox'
-                ? 'Boi velho'
-                : animal.category === 'bull'
-                ? 'Touro'
-                : 'Touro velho'
+                : animal?.category === 'calf'
+                  ? 'Bezerro'
+                  : animal?.category === 'steer' && animal?.gender === 'male'
+                    ? 'Garrote'
+                    : animal?.category === 'steer' &&
+                        animal?.gender === 'female'
+                      ? 'Novilho'
+                      : animal?.category === 'cow'
+                        ? 'Vaca'
+                        : animal?.category === 'old cow'
+                          ? 'Vaca velha'
+                          : animal?.category === 'ox'
+                            ? 'Boi'
+                            : animal?.category === 'old ox'
+                              ? 'Boi Velho'
+                              : animal?.category === 'bull'
+                                ? 'Touro'
+                                : 'Touro velho'
               : 'N/A'}
           </span>
         </Card>
       </section>
-
       <section className="flex w-full max-w-sm flex-wrap gap-2 p-2">
         <Card className="w-max rounded-sm px-3 py-1">
           <strong>Id Mãe: </strong>
           <span>
-            {animal?.mother?.manualId
-              ? animal.mother.manualId[0].toUpperCase() +
-                animal.mother.manualId.substring(1)
-              : ''}
+            {!isNaN(
+              Number(
+                `${animal?.mother?.manualId.toUpperCase()}${animal?.mother?.manualId.substring(1)}}`
+              )
+            ) || 'Comercial'}
           </span>
         </Card>
-
         <Card className="w-max rounded-sm px-3 py-1">
           <strong>Id Pai: </strong>
           <span>
-            {animal?.father?.manualId
-              ? animal.father.manualId[0].toUpperCase() +
-                animal.father.manualId.substring(1)
-              : ''}
+            {!isNaN(
+              Number(
+                `${animal?.father?.manualId.toUpperCase()}${animal?.father?.manualId.substring(1)}}`
+              )
+            ) || 'Comercial'}
           </span>
         </Card>
       </section>
