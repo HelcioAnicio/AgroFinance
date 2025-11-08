@@ -212,11 +212,19 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
                   <option value={(allDataForm.fatherId = 'Comercial')}>
                     Comercial
                   </option>
-                  {allDataForm.fatherId && (
-                    <option value={allDataForm.fatherId}>
-                      Touro {allDataForm.father?.manualId}
-                    </option>
-                  )}
+                  {animals
+                    .filter(
+                      (animal) =>
+                        animal.gender === 'male' &&
+                        animal.status === 'active' &&
+                        animal.category !== 'calf' &&
+                        animal.category !== 'neonate'
+                    )
+                    .map((animal) => (
+                      <option key={animal.id} value={animal.id}>
+                        Touro {animal.manualId}
+                      </option>
+                    ))}
                 </select>
               </div>
             </div>
