@@ -173,7 +173,7 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
                 <select
                   name="motherId"
                   id="motherId"
-                  value={allDataForm.motherId ?? ''}
+                  value={allDataForm.motherId ?? 'Comercial'}
                   onChange={handleInputValues}
                   className="h-20 min-w-24 flex-1 overflow-y-auto scroll-smooth border border-b border-b-primary bg-transparent outline-none"
                 >
@@ -204,7 +204,7 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
                 <select
                   name="fatherId"
                   id="fatherId"
-                  value={allDataForm.fatherId ?? ''}
+                  value={allDataForm.fatherId ?? 'Comercial'}
                   onChange={handleInputValues}
                   className="min-w-24 flex-1 border border-b border-b-primary bg-transparent outline-none"
                 >

@@ -31,7 +31,7 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
             onChange={handleInputValues}
           >
             <option value=""></option>
-            <option value="bullMating">Touro</option>
+            <option value="naturalMating">Monta natural</option>
             <option value="artificialInsemination">
               Inseminação Artifical
             </option>
@@ -57,9 +57,12 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
             <option value="comercial">Comercial</option>
 
             {animals
-              .filter((animal) => animal.gender === 'male')
+              .filter(
+                (animal) =>
+                  animal.gender === 'male' && animal.category.includes('Touro')
+              )
               .map((animal) => (
-                <option key={animal.id} value={animal.id ?? ''}>
+                <option key={animal.id} value={animal.id}>
                   Touro {animal.manualId}
                 </option>
               ))}
@@ -76,11 +79,14 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
             className={`flex[1_1_100px] w-full min-w-20 rounded-t-md border border-b border-b-primary outline-none ${allDataForm.handlingType == 'bullMating' ? 'rounded-t-md bg-gray-300' : 'bg-transparent'}`}
             value={allDataForm.protocol ?? ''}
             onChange={handleInputValues}
-            disabled={allDataForm.handlingType === 'bullMating'}
+            disabled={allDataForm.handlingType === 'naturalMating'}
           >
-            <option disabled value=""></option>
-            <option value="protocol1">Inseminação artificial</option>
-            <option value="protocol2">Inseminação </option>
+            <option disabled value="">
+              Protocolo
+            </option>
+            <option value="3 handlings">3 manejos</option>
+            <option value="4 handlings">4 manejos </option>
+            <option value="mixed">Misto </option>
           </select>
         </div>
       </article>
@@ -138,16 +144,13 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
         </div>
 
         <div className="flex w-full flex-col gap-1">
-          <label
-            className="text-secondary"
-            htmlFor="bullIbodyConditionScoreatf"
-          >
+          <label className="text-secondary" htmlFor="bodyConditionScore">
             ECC (Escore de Condição Corporal):
           </label>
 
           <select
             name="bodyConditionScore"
-            id="bullbodyConditionScoreIatf"
+            id="bodyConditionScore"
             className={
               'min-w-24 max-w-40 flex-1 overflow-y-scroll scroll-smooth border border-b-primary outline-none'
             }
@@ -182,12 +185,15 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
             <option disabled value=""></option>
             <option value="comercial">Comercial</option>
             {animals
-              .filter((animal) => animal.gender === 'male')
+              .filter(
+                (animal) =>
+                  animal.gender === 'male' && animal.category.includes('Touro')
+              )
               .map((animal) => (
                 <option key={animal.id} value={animal.id ?? ''}>
                   Touro {animal.manualId}
                 </option>
-              ))}{' '}
+              ))}
           </select>
         </div>
       </article>

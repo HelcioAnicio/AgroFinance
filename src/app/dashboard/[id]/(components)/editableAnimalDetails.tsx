@@ -125,7 +125,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     delete dataToSubmit.owner;
 
     try {
-      await axios.put(
+      const response = await axios.put(
         `/api/updateAnimals?id=${dataToSubmit.id}`,
         dataToSubmit,
         {
@@ -134,12 +134,16 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
           },
         }
       );
+
       setTimeout(() => {
         toast.success('Animal atualizado com sucesso!');
         setIsEditing(!isEditing);
       }, 2000);
-    } catch {
+      animal = allDataForm;
+      return response;
+    } catch (error) {
       toast.error('Ocorreu um erro ao atualizar o animal.');
+      return error;
     }
   };
 
@@ -150,7 +154,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
       updatedAt: new Date(),
     };
     try {
-      await axios.post(
+      const response = await axios.post(
         '/api/addVaccine',
         { dataOfVaccine: vaccineToSend },
         {
@@ -165,8 +169,10 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
       setTimeout(() => {
         toast.success('Vacina adicionada com sucesso!');
       }, 2000);
-    } catch {
+      return response;
+    } catch (error) {
       toast.error('Ocorreu um erro ao adicionar a vacina.');
+      return error;
     }
   };
 
@@ -175,7 +181,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
       try {
         await axios.delete(`/api/animals/${animal.id}`);
         toast.success('Animal excluído com sucesso!');
-        router.push('/animais');
+        router.push('/dashboard');
       } catch {
         toast.error('Erro ao excluir o animal.');
       }

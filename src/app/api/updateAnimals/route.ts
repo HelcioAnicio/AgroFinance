@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabaseClient';
 import { v4 as uuidv4 } from 'uuid';
 import prisma from '@/lib/useDataBase';
 
@@ -30,11 +29,10 @@ export async function PUT(req: Request) {
     ];
     fieldsToRemove.forEach((field) => delete allDataForm[field]);
 
-    const { data } = await supabase
-      .from('Animal')
-      .update(allDataForm)
-      .eq('id', id)
-      .select('*');
+    const data = await prisma.animal.update({
+      where: { id: allDataForm.id },
+      data: allDataForm,
+    });
 
     const dateNow = new Date();
     const expectedDueDate = new Date(allDataForm.expectedDueDate);
@@ -64,7 +62,6 @@ export async function PUT(req: Request) {
       createNotification,
     });
   } catch (error) {
-    console.error('Erro no handler:', error);
     return NextResponse.json(
       { message: 'Erro interno no servidor', error },
       { status: 500 }
