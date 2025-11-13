@@ -178,9 +178,7 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
                   className="h-20 min-w-24 flex-1 overflow-y-auto scroll-smooth border border-b border-b-primary bg-transparent outline-none"
                 >
                   <option disabled value=""></option>
-                  <option value={(allDataForm.motherId = 'Comercial')}>
-                    Comercial
-                  </option>
+                  <option value="Comercial">Comercial</option>
                   {animals
                     .filter(
                       (animal) =>
@@ -212,11 +210,19 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
                   <option value={(allDataForm.fatherId = 'Comercial')}>
                     Comercial
                   </option>
-                  {allDataForm.fatherId && (
-                    <option value={allDataForm.fatherId}>
-                      Touro {allDataForm.father?.manualId}
-                    </option>
-                  )}
+                  {animals
+                    .filter(
+                      (animal) =>
+                        animal.gender === 'male' &&
+                        animal.status === 'active' &&
+                        (animal.category === 'bull' ||
+                          animal.category === 'old bull')
+                    )
+                    .map((animal) => (
+                      <option key={animal.id} value={animal.id}>
+                        Touro {animal.manualId}
+                      </option>
+                    ))}
                 </select>
               </div>
             </div>

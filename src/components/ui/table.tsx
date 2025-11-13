@@ -302,6 +302,16 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                     (a) => a.id === animal.fatherId
                   );
 
+                  const checkFatherCategory = (): string => {
+                    const category = father?.category;
+                    if (category === 'bull' || category === 'old bull') {
+                      return 'Touro';
+                    } else if (category === 'ox' || category === 'old ox') {
+                      return 'Boi';
+                    } else {
+                      return '';
+                    }
+                  };
                   return (
                     <tr
                       key={animal.id}
@@ -384,7 +394,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                           }}
                         >
                           <span className="flex w-max items-center gap-1 border-b border-foreground">
-                            {`Touro ${father?.manualId}`}
+                            {`${checkFatherCategory()} ${father?.manualId}`}
                             <LiaExternalLinkAltSolid className="inline-block size-4" />
                           </span>
                         </td>
