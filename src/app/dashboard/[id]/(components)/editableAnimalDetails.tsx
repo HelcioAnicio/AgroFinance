@@ -25,6 +25,10 @@ import { FormPevStatus } from './isEditing/formPevStatus';
 import { FormPregnantStatus } from './isEditing/formPregnantStatus';
 import { FormWaitingStatus } from './isEditing/formWaitingStatus';
 import { InputForm } from '@/components/ui/inputForm';
+import { FaCheckCircle } from 'react-icons/fa';
+import { IoSkull } from 'react-icons/io5';
+import { MdHighlightOff } from 'react-icons/md';
+import { TbMoneybag } from 'react-icons/tb';
 
 interface EditableAnimalDetailsProps {
   animal: Animal;
@@ -213,7 +217,24 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                 <Button onClick={() => setIsEditing(!isEditing)}>Editar</Button>
               </>
             ) : (
-              <Button onClick={() => setIsEditing(!isEditing)}>Cancelar</Button>
+              <div className="flex gap-5">
+                <Button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    submitForm(allDataForm);
+                  }}
+                >
+                  Salvar
+                </Button>
+                <Button
+                  onClick={() => setIsEditing(!isEditing)}
+                  variant="ghost"
+                  // className="bg-background text-foreground"
+                >
+                  Cancelar
+                </Button>
+              </div>
             )}
           </div>
         </div>
@@ -232,22 +253,87 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
               <div className="flex flex-wrap items-center gap-2">
                 {animal?.offspringFromMother?.map((offspring) => (
                   <Link href={`/dashboard/${offspring.id}`} key={offspring.id}>
-                    <div className="w-max">
-                      <span>
-                        Id:{' '}
-                        {offspring.manualId.charAt(0).toUpperCase() +
-                          offspring.manualId.slice(1)}
-                      </span>{' '}
-                      {' - '}
-                      <span>
-                        Sexo: {offspring.gender === 'male' ? 'Macho' : 'Fêmea'}
-                      </span>
-                      <Separator className="bg-foreground" />
-                    </div>
+                    <Card className="flex w-max flex-col rounded-sm px-3 py-1">
+                      <div className="flex gap-2">
+                        <strong>Status: </strong>
+                        <span className="flex w-max items-center gap-1">
+                          {offspring?.status === 'active' ||
+                          offspring?.status === 'ativo' ? (
+                            <>
+                              <FaCheckCircle className="inline-block size-3 text-green-400" />{' '}
+                              Ativo
+                            </>
+                          ) : offspring?.status === 'inactive' ||
+                            offspring?.status === 'inativo' ? (
+                            <>
+                              <MdHighlightOff className="inline-block size-3 text-gray-500" />{' '}
+                              Inativo
+                            </>
+                          ) : offspring?.status === 'dead' ||
+                            offspring?.status === 'morto' ? (
+                            <>
+                              <IoSkull className="inline-block size-3 text-black" />{' '}
+                              Morto
+                            </>
+                          ) : (
+                            <>
+                              <TbMoneybag className="inline-block size-3 text-yellow-600" />{' '}
+                              Vendido
+                            </>
+                          )}
+                        </span>
+                      </div>
+                      <div>
+                        <strong>Id: </strong>
+                        <span>
+                          {offspring.manualId.charAt(0).toUpperCase() +
+                            offspring.manualId.slice(1)}{' '}
+                        </span>
+                      </div>
+                      <div>
+                        <strong>Sexo: </strong>
+                        <span>
+                          {offspring.gender === 'male' ? 'Macho' : 'Fêmea'}
+                        </span>
+                      </div>
+                      <div>
+                        <strong>Peso: </strong>
+                        <span>{offspring.weight} Kg</span>
+                      </div>
+                      <div>
+                        <strong>Categoria: </strong>
+                        <span>
+                          {offspring?.category
+                            ? offspring?.category === 'neonate'
+                              ? 'Neonato'
+                              : offspring?.category === 'calf'
+                                ? 'Bezerro'
+                                : offspring?.category === 'steer' &&
+                                    offspring?.gender === 'male'
+                                  ? 'Garrote'
+                                  : offspring?.category === 'steer' &&
+                                      offspring?.gender === 'female'
+                                    ? 'Novilho'
+                                    : offspring?.category === 'cow'
+                                      ? 'Vaca'
+                                      : offspring?.category === 'old cow'
+                                        ? 'Vaca velha'
+                                        : offspring?.category === 'ox'
+                                          ? 'Boi'
+                                          : offspring?.category === 'old ox'
+                                            ? 'Boi Velho'
+                                            : offspring?.category === 'bull'
+                                              ? 'Touro'
+                                              : 'Touro velho'
+                            : 'N/A'}
+                        </span>{' '}
+                      </div>
+                    </Card>
                   </Link>
                 ))}
               </div>
             </CardContent>
+            {/* <Button>Comparar peso dos filhos</Button> */}
           </Card>
         </div>
       ) : (
@@ -334,41 +420,96 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
             </CardContent>
           </Card>
 
-          <Card className="m-auto flex w-full max-w-lg flex-col gap-3 px-2 py-7">
-            <CardHeader className="py-2">
+          <Card className="flex w-full max-w-lg flex-col gap-3 px-2 py-5">
+            <CardHeader>
               <CardTitle className="text-base">Filhos</CardTitle>
             </CardHeader>
-            <CardContent className="">
-              <div className="flex flex-col gap-2">
+            <CardContent className="px-1">
+              <div className="flex flex-wrap items-center gap-2">
                 {animal?.offspringFromMother?.map((offspring) => (
-                  <Link href={`/${offspring.id}`} key={offspring.id}>
-                    <div className="w-max">
-                      <span>
-                        Id:{' '}
-                        {offspring.manualId.charAt(0).toUpperCase() +
-                          offspring.manualId.slice(1)}
-                      </span>{' '}
-                      {' - '}
-                      <span>
-                        Sexo: {offspring.gender === 'male' ? 'Macho' : 'Fêmea'}
-                      </span>
-                      <Separator className="bg-foreground" />
-                    </div>
+                  <Link href={`/dashboard/${offspring.id}`} key={offspring.id}>
+                    <Card className="flex w-max flex-col rounded-sm px-3 py-1">
+                      <div>
+                        <strong>Status: </strong>
+                        <span className="flex w-max items-center gap-1">
+                          {animal?.status === 'active' ||
+                          animal?.status === 'ativo' ? (
+                            <>
+                              <FaCheckCircle className="inline-block size-3 text-green-400" />{' '}
+                              Ativo
+                            </>
+                          ) : animal?.status === 'inactive' ||
+                            animal?.status === 'inativo' ? (
+                            <>
+                              <MdHighlightOff className="inline-block size-3 text-gray-500" />{' '}
+                              Inativo
+                            </>
+                          ) : animal?.status === 'dead' ||
+                            animal?.status === 'morto' ? (
+                            <>
+                              <IoSkull className="inline-block size-3 text-black" />{' '}
+                              Morto
+                            </>
+                          ) : (
+                            <>
+                              <TbMoneybag className="inline-block size-3 text-yellow-600" />{' '}
+                              Vendido
+                            </>
+                          )}
+                        </span>
+                      </div>
+                      <div>
+                        <strong>Id: </strong>
+                        <span>
+                          {offspring.manualId.charAt(0).toUpperCase() +
+                            offspring.manualId.slice(1)}{' '}
+                        </span>
+                      </div>
+                      <div>
+                        <strong>Sexo: </strong>
+                        <span>
+                          {offspring.gender === 'male' ? 'Macho' : 'Fêmea'}
+                        </span>
+                      </div>
+                      <div>
+                        <strong>Peso: </strong>
+                        <span>{offspring.weight} Kg</span>
+                      </div>
+                      <div>
+                        <strong>Categoria: </strong>
+                        <span>
+                          {animal?.category
+                            ? animal?.category === 'neonate'
+                              ? 'Neonato'
+                              : animal?.category === 'calf'
+                                ? 'Bezerro'
+                                : animal?.category === 'steer' &&
+                                    animal?.gender === 'male'
+                                  ? 'Garrote'
+                                  : animal?.category === 'steer' &&
+                                      animal?.gender === 'female'
+                                    ? 'Novilho'
+                                    : animal?.category === 'cow'
+                                      ? 'Vaca'
+                                      : animal?.category === 'old cow'
+                                        ? 'Vaca velha'
+                                        : animal?.category === 'ox'
+                                          ? 'Boi'
+                                          : animal?.category === 'old ox'
+                                            ? 'Boi Velho'
+                                            : animal?.category === 'bull'
+                                              ? 'Touro'
+                                              : 'Touro velho'
+                            : 'N/A'}
+                        </span>{' '}
+                      </div>
+                    </Card>
                   </Link>
                 ))}
               </div>
             </CardContent>
+            {/* <Button>Comparar peso dos filhos</Button> */}
           </Card>
-
-          <Button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              submitForm(allDataForm);
-            }}
-          >
-            Salvar
-          </Button>
         </form>
       )}
       {addVaccine ? (
