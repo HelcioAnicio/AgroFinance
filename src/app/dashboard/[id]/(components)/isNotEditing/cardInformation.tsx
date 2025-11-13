@@ -111,21 +111,21 @@ export const CardInformation: React.FC<InformationProps> = ({ animal }) => {
         <Card className="w-max rounded-sm px-3 py-1">
           <strong>Id Mãe: </strong>
           <span>
-            {!isNaN(
-              Number(
-                `${animal?.mother?.manualId.toUpperCase()}${animal?.mother?.manualId.substring(1)}}`
-              )
-            ) || 'Comercial'}
+            {animal?.mother?.manualId == null
+              ? 'Comercial'
+              : animal?.mother?.manualId == typeof Number
+                ? Number(animal?.mother?.manualId)
+                : `${animal?.mother?.manualId.charAt(0).toUpperCase()}${animal?.mother?.manualId.substring(1)}`}
           </span>
         </Card>
         <Card className="w-max rounded-sm px-3 py-1">
           <strong>Id Pai: </strong>
           <span>
-            {!isNaN(
-              Number(
-                `${animal?.father?.manualId.toUpperCase()}${animal?.father?.manualId.substring(1)}}`
-              )
-            ) || 'Comercial'}
+            {animal?.mother?.manualId == null
+              ? 'Comercial'
+              : animal?.father?.manualId == typeof Number
+                ? Number(animal?.father?.manualId)
+                : `${animal?.father?.manualId.charAt(0).toUpperCase()}${animal?.father?.manualId.substring(1)}`}
           </span>
         </Card>
       </section>
