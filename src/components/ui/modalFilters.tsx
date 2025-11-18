@@ -24,6 +24,7 @@ export const Filters: React.FC<FiltersProps> = ({
   setListAnimals,
 }) => {
   const breedArray = [
+    'Cruzado',
     'Nelore',
     'Angus',
     'Hereford',

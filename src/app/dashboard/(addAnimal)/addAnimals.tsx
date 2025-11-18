@@ -29,6 +29,7 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
   const userEmail = users.find((user) => user.email === session?.user?.email);
 
   const breedArray = [
+    'Cruzado',
     'Nelore',
     'Angus',
     'Hereford',
