@@ -145,12 +145,16 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
         setIsEditing(!isEditing);
       }, 2000);
       animal = allDataForm;
+
       return response;
     } catch (error) {
       toast.error('Ocorreu um erro ao atualizar o animal.');
       return error;
     }
   };
+  // useEffect(() => {
+  //   animal = allDataForm;
+  // }, [allDataForm]);
 
   const submitFormVaccine = async (dataOfVaccine: Vaccine) => {
     const vaccineToSend = {
@@ -184,7 +188,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   const handleDelete = async () => {
     if (window.confirm('Tem certeza que deseja excluir este animal?')) {
       try {
-        await axios.put(`/api/delete?id=${animal.id}`, animal, {
+        await axios.put(`/api/delete?id=${allDataForm.id}`, allDataForm, {
           headers: {
             'Content-Type': 'application/json',
           },
@@ -210,8 +214,8 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
           </button>
           <h1 className="w-full max-w-32 text-center text-xl sm:max-w-none">
             Detalhes do animal{' '}
-            {animal?.manualId.charAt(0).toUpperCase() +
-              animal?.manualId.slice(1)}
+            {allDataForm?.manualId.charAt(0).toUpperCase() +
+              allDataForm?.manualId.slice(1)}
           </h1>
           <div className="flex items-center gap-4 lg:gap-10">
             {isEditing === false ? (
@@ -248,15 +252,15 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
 
       {isEditing === false ? (
         <div className="m-auto flex w-full max-w-lg flex-wrap gap-10 pb-10 pt-5">
-          <CardInformation animal={animal as Animal} />
-          <CardReproduction animal={animal as Animal} />
+          <CardInformation allDataForm={allDataForm as Animal} />
+          <CardReproduction allDataForm={allDataForm as Animal} />
           <Card className="flex w-full max-w-lg flex-col gap-3 px-2 py-5">
             <CardHeader>
               <CardTitle className="text-base">Filhos</CardTitle>
             </CardHeader>
             <CardContent className="px-1">
               <div className="flex flex-wrap items-center gap-2">
-                {animal?.offspringFromMother?.map((offspring) => (
+                {allDataForm?.offspringFromMother?.map((offspring) => (
                   <Link href={`/dashboard/${offspring.id}`} key={offspring.id}>
                     <Card className="flex w-max flex-col rounded-sm px-3 py-1">
                       <div className="flex gap-2">
@@ -431,26 +435,26 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
             </CardHeader>
             <CardContent className="px-1">
               <div className="flex flex-wrap items-center gap-2">
-                {animal?.offspringFromMother?.map((offspring) => (
+                {allDataForm?.offspringFromMother?.map((offspring) => (
                   <Link href={`/dashboard/${offspring.id}`} key={offspring.id}>
                     <Card className="flex w-max flex-col rounded-sm px-3 py-1">
                       <div>
                         <strong>Status: </strong>
                         <span className="flex w-max items-center gap-1">
-                          {animal?.status === 'active' ||
-                          animal?.status === 'ativo' ? (
+                          {allDataForm?.status === 'active' ||
+                          allDataForm?.status === 'ativo' ? (
                             <>
                               <FaCheckCircle className="inline-block size-3 text-green-400" />{' '}
                               Ativo
                             </>
-                          ) : animal?.status === 'inactive' ||
-                            animal?.status === 'inativo' ? (
+                          ) : allDataForm?.status === 'inactive' ||
+                            allDataForm?.status === 'inativo' ? (
                             <>
                               <MdHighlightOff className="inline-block size-3 text-gray-500" />{' '}
                               Inativo
                             </>
-                          ) : animal?.status === 'dead' ||
-                            animal?.status === 'morto' ? (
+                          ) : allDataForm?.status === 'dead' ||
+                            allDataForm?.status === 'morto' ? (
                             <>
                               <IoSkull className="inline-block size-3 text-black" />{' '}
                               Morto
@@ -483,26 +487,26 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                       <div>
                         <strong>Categoria: </strong>
                         <span>
-                          {animal?.category
-                            ? animal?.category === 'neonate'
+                          {allDataForm?.category
+                            ? allDataForm?.category === 'neonate'
                               ? 'Neonato'
-                              : animal?.category === 'calf'
+                              : allDataForm?.category === 'calf'
                                 ? 'Bezerro'
-                                : animal?.category === 'steer' &&
-                                    animal?.gender === 'male'
+                                : allDataForm?.category === 'steer' &&
+                                    allDataForm?.gender === 'male'
                                   ? 'Garrote'
-                                  : animal?.category === 'steer' &&
-                                      animal?.gender === 'female'
+                                  : allDataForm?.category === 'steer' &&
+                                      allDataForm?.gender === 'female'
                                     ? 'Novilho'
-                                    : animal?.category === 'cow'
+                                    : allDataForm?.category === 'cow'
                                       ? 'Vaca'
-                                      : animal?.category === 'old cow'
+                                      : allDataForm?.category === 'old cow'
                                         ? 'Vaca velha'
-                                        : animal?.category === 'ox'
+                                        : allDataForm?.category === 'ox'
                                           ? 'Boi'
-                                          : animal?.category === 'old ox'
+                                          : allDataForm?.category === 'old ox'
                                             ? 'Boi Velho'
-                                            : animal?.category === 'bull'
+                                            : allDataForm?.category === 'bull'
                                               ? 'Touro'
                                               : 'Touro velho'
                             : 'N/A'}
