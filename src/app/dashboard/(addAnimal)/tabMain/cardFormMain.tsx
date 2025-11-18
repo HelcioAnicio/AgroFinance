@@ -57,6 +57,7 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
   };
 
   const breedArray = [
+    'Cruzado',
     'Nelore',
     'Angus',
     'Hereford',

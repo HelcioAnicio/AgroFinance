@@ -7,10 +7,12 @@ import { IoSkull } from 'react-icons/io5';
 import { TbMoneybag } from 'react-icons/tb';
 
 interface InformationProps {
-  animal: Animal | null;
+  allDataForm: Animal | null;
 }
 
-export const CardInformation: React.FC<InformationProps> = ({ animal }) => {
+export const CardInformation: React.FC<InformationProps> = ({
+  allDataForm,
+}) => {
   return (
     <Card className="flex w-full max-w-lg flex-col gap-2 px-2 py-7 sm:flex-row sm:flex-wrap sm:gap-4">
       <CardHeader className="py-2">
@@ -21,25 +23,27 @@ export const CardInformation: React.FC<InformationProps> = ({ animal }) => {
         <Card className="w-max rounded-sm px-3 py-1">
           <strong>Id: </strong>
           <span>
-            {animal?.manualId.charAt(0).toUpperCase()}
-            {animal?.manualId.substring(1)}
+            {allDataForm?.manualId.charAt(0).toUpperCase()}
+            {allDataForm?.manualId.substring(1)}
           </span>
         </Card>
         <Card className="flex w-max gap-1 rounded-sm px-3 py-1">
           <strong>Status: </strong>
           <span className="flex w-max items-center gap-1">
-            {animal?.status === 'active' || animal?.status === 'ativo' ? (
+            {allDataForm?.status === 'active' ||
+            allDataForm?.status === 'ativo' ? (
               <>
                 <FaCheckCircle className="inline-block size-3 text-green-400" />{' '}
                 Ativo
               </>
-            ) : animal?.status === 'inactive' ||
-              animal?.status === 'inativo' ? (
+            ) : allDataForm?.status === 'inactive' ||
+              allDataForm?.status === 'inativo' ? (
               <>
                 <MdHighlightOff className="inline-block size-3 text-gray-500" />{' '}
                 Inativo
               </>
-            ) : animal?.status === 'dead' || animal?.status === 'morto' ? (
+            ) : allDataForm?.status === 'dead' ||
+              allDataForm?.status === 'morto' ? (
               <>
                 <IoSkull className="inline-block size-3 text-black" /> Morto
               </>
@@ -53,54 +57,55 @@ export const CardInformation: React.FC<InformationProps> = ({ animal }) => {
         </Card>
         <Card className="w-max rounded-sm px-3 py-1">
           <strong>Sexo: </strong>
-          <span>{animal?.gender === 'male' ? 'Macho' : 'Fêmea'}</span>
+          <span>{allDataForm?.gender === 'male' ? 'Macho' : 'Fêmea'}</span>
         </Card>
       </section>
       <section className="flex w-full max-w-sm flex-wrap gap-2 p-2">
         <Card className="w-max rounded-sm px-3 py-1">
           <strong>Nascimento: </strong>
           <span>
-            {animal?.birthDate
-              ? new Date(animal.birthDate).toLocaleDateString()
+            {allDataForm?.birthDate
+              ? new Date(allDataForm.birthDate).toLocaleDateString()
               : 'N/A'}
           </span>
         </Card>
         <Card className="w-max rounded-sm px-3 py-1">
           <strong>Peso: </strong>
-          <span>{animal?.weight} kg</span>
+          <span>{allDataForm?.weight} kg</span>
         </Card>
       </section>
       <section className="flex w-full max-w-sm flex-wrap gap-2 p-2">
         <Card className="w-max rounded-sm px-3 py-1">
           <strong>Raça: </strong>
           <span>
-            {animal?.breed
-              ? `${animal?.breed[0].toUpperCase()}${animal.breed.substring(1)}`
+            {allDataForm?.breed
+              ? `${allDataForm?.breed[0].toUpperCase()}${allDataForm.breed.substring(1)}`
               : 'N/A'}
           </span>
         </Card>
         <Card className="w-max rounded-sm px-3 py-1">
           <strong>Categoria: </strong>
           <span>
-            {animal?.category
-              ? animal?.category === 'neonate'
+            {allDataForm?.category
+              ? allDataForm?.category === 'neonate'
                 ? 'Neonato'
-                : animal?.category === 'calf'
+                : allDataForm?.category === 'calf'
                   ? 'Bezerro'
-                  : animal?.category === 'steer' && animal?.gender === 'male'
+                  : allDataForm?.category === 'steer' &&
+                      allDataForm?.gender === 'male'
                     ? 'Garrote'
-                    : animal?.category === 'steer' &&
-                        animal?.gender === 'female'
+                    : allDataForm?.category === 'steer' &&
+                        allDataForm?.gender === 'female'
                       ? 'Novilho'
-                      : animal?.category === 'cow'
+                      : allDataForm?.category === 'cow'
                         ? 'Vaca'
-                        : animal?.category === 'old cow'
+                        : allDataForm?.category === 'old cow'
                           ? 'Vaca velha'
-                          : animal?.category === 'ox'
+                          : allDataForm?.category === 'ox'
                             ? 'Boi'
-                            : animal?.category === 'old ox'
+                            : allDataForm?.category === 'old ox'
                               ? 'Boi Velho'
-                              : animal?.category === 'bull'
+                              : allDataForm?.category === 'bull'
                                 ? 'Touro'
                                 : 'Touro velho'
               : 'N/A'}
@@ -111,21 +116,21 @@ export const CardInformation: React.FC<InformationProps> = ({ animal }) => {
         <Card className="w-max rounded-sm px-3 py-1">
           <strong>Id Mãe: </strong>
           <span>
-            {animal?.mother?.manualId == null
+            {allDataForm?.mother?.manualId == null
               ? 'Comercial'
-              : animal?.mother?.manualId == typeof Number
-                ? Number(animal?.mother?.manualId)
-                : `${animal?.mother?.manualId.charAt(0).toUpperCase()}${animal?.mother?.manualId.substring(1)}`}
+              : allDataForm?.mother?.manualId == typeof Number
+                ? Number(allDataForm?.mother?.manualId)
+                : `${allDataForm?.mother?.manualId.charAt(0).toUpperCase()}${allDataForm?.mother?.manualId.substring(1)}`}
           </span>
         </Card>
         <Card className="w-max rounded-sm px-3 py-1">
           <strong>Id Pai: </strong>
           <span>
-            {animal?.mother?.manualId == null
+            {allDataForm?.mother?.manualId == null
               ? 'Comercial'
-              : animal?.father?.manualId == typeof Number
-                ? Number(animal?.father?.manualId)
-                : `${animal?.father?.manualId.charAt(0).toUpperCase()}${animal?.father?.manualId.substring(1)}`}
+              : allDataForm?.father?.manualId == typeof Number
+                ? Number(allDataForm?.father?.manualId)
+                : `${allDataForm?.father?.manualId.charAt(0).toUpperCase()}${allDataForm?.father?.manualId.substring(1)}`}
           </span>
         </Card>
       </section>
