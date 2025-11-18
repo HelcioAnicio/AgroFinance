@@ -50,6 +50,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   const router = useRouter();
 
   const breedArray = [
+    'Cruzado',
     'Nelore',
     'Angus',
     'Hereford',
@@ -183,7 +184,11 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   const handleDelete = async () => {
     if (window.confirm('Tem certeza que deseja excluir este animal?')) {
       try {
-        await axios.delete(`/api/animals/${animal.id}`);
+        await axios.put(`/api/delete?id=${animal.id}`, animal, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
         toast.success('Animal excluído com sucesso!');
         router.push('/dashboard');
       } catch {
