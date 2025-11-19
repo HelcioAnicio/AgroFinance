@@ -39,7 +39,7 @@ import {
 
 import Link from 'next/link';
 import { toast } from 'sonner';
-import { Card, CardContent } from './card';
+import { Card } from './card';
 
 interface TableProps {
   animals: Animal[];
