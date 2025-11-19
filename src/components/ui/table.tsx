@@ -31,9 +31,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from '@/components/ui/hover-card';
 
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { Card, CardContent } from './card';
 
 interface TableProps {
   animals: Animal[];
@@ -168,7 +174,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
 
   return (
     <main
-      style={{ height: 'calc(100vh - 160px)' }}
+      style={{ height: 'calc(100vh - 170px)' }}
       className="relative m-auto max-w-max pb-5"
     >
       {isLoading ? (
@@ -276,9 +282,38 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
               </div>
             </div>
           </div>
-          <br />
+          <br className="md:hidden" />
+          <div className="my-5 hidden gap-3 md:flex">
+            <Card className="rounded-sm p-2">
+              <HoverCard>
+                <HoverCardTrigger className="cursor-default">
+                  Total de Animais: {animals.length}
+                </HoverCardTrigger>
+                <HoverCardContent className="bg-primary text-background">
+                  Total de animais contabilizando todos os cadastrados,
+                  incluindo neonate.
+                </HoverCardContent>
+              </HoverCard>
+            </Card>
+
+            <Card className="rounded-sm p-2">
+              <HoverCard>
+                <HoverCardTrigger className="cursor-default">
+                  Animais ativos:{' '}
+                  {
+                    animals.filter(
+                      (a) => a.status === 'active' && a.category !== 'neonate'
+                    ).length
+                  }
+                </HoverCardTrigger>
+                <HoverCardContent className="bg-primary text-background">
+                  Total de animais ativos na fazenda.
+                </HoverCardContent>
+              </HoverCard>
+            </Card>
+          </div>
           <div className="h-full w-full overflow-y-auto pb-28 md:pb-10">
-            <table className="m-auto max-w-max border-collapse overflow-x-auto overflow-y-scroll scroll-smooth text-left xl:text-sm">
+            <table className="m-auto max-w-max overflow-x-auto overflow-y-scroll scroll-smooth text-left xl:text-sm">
               <thead className="sticky top-0 z-20 border-collapse bg-primary text-background">
                 <tr>
                   <th className="w-20 px-1 py-2">Status</th>
