@@ -193,8 +193,10 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
             'Content-Type': 'application/json',
           },
         });
-        toast.success('Animal excluído com sucesso!');
         router.push('/dashboard');
+        setTimeout(() => {
+          toast.success('Animal excluído com sucesso!');
+        }, 4000);
       } catch {
         toast.error('Erro ao excluir o animal.');
       }
