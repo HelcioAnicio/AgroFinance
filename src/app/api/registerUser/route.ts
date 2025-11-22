@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabaseClient';
+import prisma from '@/lib/useDataBase';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -6,19 +6,11 @@ export async function POST(request: NextRequest) {
     const json = await request.json();
     const { userRegister } = json;
 
-    const { data, error } = await supabase.from('User').insert([userRegister]);
-
-    if (error) {
-      console.error('Erro do Supabase:', error);
-      return NextResponse.json(
-        { message: 'Erro ao cadastrar usuario', error },
-        { status: 500 }
-      );
-    }
+    const registerNewUser = await prisma.user.create(userRegister);
 
     return NextResponse.json({
       message: 'Usuario cadastrado com sucesso',
-      data,
+      registerNewUser,
     });
   } catch (error) {
     console.error('Erro ao cadastrar usuario:', error);
