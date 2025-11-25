@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { fetchUsers } from '@/lib/fetchData';
-import prisma from '@/lib/useDataBase';
+import prisma from '@/lib/prisma';
 import { v4 as uuidv4 } from 'uuid';
 
 export async function POST(req: NextRequest) {

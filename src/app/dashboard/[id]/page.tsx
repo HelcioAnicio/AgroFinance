@@ -1,6 +1,6 @@
 import React from 'react';
 import { Header } from '@/components/ui/header';
-import { prisma } from '@/lib/useDataBase';
+import { prisma } from '@/lib/prisma';
 import { Animal } from '@/types/animal';
 import EditableAnimalDetails from './(components)/editableAnimalDetails';
 import {
