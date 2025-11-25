@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import type { PrismaConfig } from "prisma";
+import type { PrismaConfig } from "@prisma";
 import { env } from "prisma/config";
 
 
@@ -13,4 +13,5 @@ export default defineConfig({
     directUrl: env('DIRECT_URL'),
   },
 });
+
 
