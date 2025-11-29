@@ -110,9 +110,11 @@ const Register = () => {
     const updateUser = {
       ...userRegister,
       id: uuidv4(),
-      updatedAt: new Date(),
+      updatedAt:
+        new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString(),
     };
 
+    console.log('updateUser: ', updateUser);
     delete updateUser.secondPassword;
 
     try {
@@ -121,14 +123,15 @@ const Register = () => {
         { userRegister: updateUser },
         {
           headers: {
-            'Content-Type': 'aplication/json',
+            'Content-Type': 'application/json',
           },
         }
       );
       setUserRegister({} as DataUserState);
       toast.success('Registrado com sucesso, redirecionando...');
       router.replace('/login');
-    } catch {
+    } catch (error) {
+      console.log('error: ', error);
       toast.error('Erro, verifique os dados preenchidos e tente novamente.');
     }
   };
@@ -158,7 +161,7 @@ const Register = () => {
               />
             </span>
             <input
-              className={`w-full rounded-sm ${inputsError.name ? 'border border-destructive' : 'border-none outline-none'} px-3 py-2 pl-8`}
+              className={`w-full rounded-sm ${inputsError.name ? 'border border-destructive' : 'border-none outline-none'} px-3 py-2 pl-8 text-black`}
               type="text"
               name="name"
               placeholder="Nome"
@@ -174,7 +177,7 @@ const Register = () => {
               />
             </span>
             <input
-              className={`w-full rounded-sm ${inputsError.email ? 'border border-destructive' : 'border-none outline-none'} px-3 py-2 pl-8`}
+              className={`w-full rounded-sm ${inputsError.email ? 'border border-destructive' : 'border-none outline-none'} px-3 py-2 pl-8 text-black`}
               type="email"
               name="email"
               placeholder="E-mail"
@@ -206,7 +209,7 @@ const Register = () => {
               />
             </span>
             <input
-              className={`w-full rounded-sm ${inputsError.password ? 'border border-destructive' : 'border-none outline-none'} px-3 py-2 pl-8`}
+              className={`w-full rounded-sm ${inputsError.password ? 'border border-destructive' : 'border-none outline-none'} px-3 py-2 pl-8 text-black`}
               type={showPassword ? 'text' : 'password'}
               name="password"
               placeholder="Crie sua senha"
@@ -236,7 +239,7 @@ const Register = () => {
               />
             </span>
             <input
-              className={`w-full rounded-sm ${inputsError.secondPassword ? 'border border-destructive' : 'border-none outline-none'} px-3 py-2 pl-8`}
+              className={`w-full rounded-sm ${inputsError.secondPassword ? 'border border-destructive' : 'border-none outline-none'} px-3 py-2 pl-8 text-black`}
               type={confirmPassword ? 'text' : 'password'}
               name="secondPassword"
               placeholder="Digite sua senha novamente"

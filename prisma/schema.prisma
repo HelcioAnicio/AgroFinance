@@ -3,10 +3,11 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl      = env("DIRECT_DATABASE_URL")
 }
+
 
 model User {
   id            String          @id @default(uuid())
@@ -164,4 +165,3 @@ model Notification {
   Animal    Animal   @relation(fields: [animalId], references: [id], onDelete: Cascade, map: "fk_notification_animal")
   User      User     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "fk_notification_user")
 }
-

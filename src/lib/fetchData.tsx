@@ -1,5 +1,5 @@
 // src/lib/fetchData.ts
-import prisma from '@/lib/useDataBase';
+import prisma from '@/lib/prisma';
 import { Animal } from '@/types/animal';
 import { User } from '@/types/user';
 import { Vaccine } from '@/types/vaccine';

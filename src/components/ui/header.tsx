@@ -26,6 +26,7 @@ export const Header: React.FC<TableProps> = ({ notifications }) => {
   }, [status, router]);
 
   const handleLogoutClick = () => {
+    router.replace('/');
     signOut();
   };
 

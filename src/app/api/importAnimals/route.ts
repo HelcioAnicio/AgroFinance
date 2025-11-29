@@ -1,4 +1,4 @@
-import prisma from '@/lib/useDataBase';
+import prisma from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 import { fetchUsers } from '@/lib/fetchData';
@@ -202,8 +202,9 @@ export async function POST(req: Request) {
     for (const animal of validAnimals) {
       try {
         if (
-          animal?.reproductiveStatus === 'pregnant' ||
-          animal?.reproductiveStatus === 'prenha'
+          (animal?.reproductiveStatus === 'pregnant' ||
+            animal?.reproductiveStatus === 'prenha') &&
+          animal.expectedDueDate! >= new Date()
         ) {
           let expectedDute;
 

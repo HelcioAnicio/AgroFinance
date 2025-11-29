@@ -126,7 +126,7 @@ export const CardInformation: React.FC<InformationProps> = ({
         <Card className="w-max rounded-sm px-3 py-1">
           <strong>Id Pai: </strong>
           <span>
-            {allDataForm?.mother?.manualId == null
+            {allDataForm?.father?.manualId == null
               ? 'Comercial'
               : allDataForm?.father?.manualId == typeof Number
                 ? Number(allDataForm?.father?.manualId)
