@@ -32,7 +32,8 @@ export async function POST(req: NextRequest) {
 
     if (
       allDataForm.reproductiveStatus === 'pregnant' &&
-      allDataForm.expectedDueDate !== null
+      allDataForm.expectedDueDate !== null &&
+      allDataForm.expectedDueDate! >= new Date()
     ) {
       const expectedDueDate = new Date(allDataForm.expectedDueDate);
       const notifyAt = expectedDueDate.setMonth(expectedDueDate.getMonth() - 1);

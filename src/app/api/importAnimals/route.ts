@@ -202,8 +202,9 @@ export async function POST(req: Request) {
     for (const animal of validAnimals) {
       try {
         if (
-          animal?.reproductiveStatus === 'pregnant' ||
-          animal?.reproductiveStatus === 'prenha'
+          (animal?.reproductiveStatus === 'pregnant' ||
+            animal?.reproductiveStatus === 'prenha') &&
+          animal.expectedDueDate! >= new Date()
         ) {
           let expectedDute;
 
