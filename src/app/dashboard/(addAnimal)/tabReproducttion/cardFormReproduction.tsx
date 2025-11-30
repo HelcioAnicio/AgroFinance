@@ -7,10 +7,10 @@ import { SelectForm } from '@/components/ui/selectForm';
 import { FormMaleReproductive } from './components/formMaleReproductive';
 import { FormPregnantStatus } from './components/formPregnantStatus';
 import { FormWaitingStatus } from './components/formWaitingStatus';
-import { InputForm } from '@/components/ui/inputForm';
 import { SheetFooter, SheetClose } from '@/components/ui/sheet';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { GoAlertFill } from 'react-icons/go';
 
 interface CardFormReproductionProps {
   animals: Animal[];
@@ -43,15 +43,29 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
 
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
-    if (allDataForm.gender === 'male') {
+    console.log('today: ', today);
+
+    if (
+      allDataForm.gender === 'male' ||
+      allDataForm.reproductiveStatus !== 'pregnant'
+    ) {
       setValidDate(true);
       return;
+    } else {
+      setValidDate(false);
     }
-    if (allDataForm.expectedDueDate && allDataForm.gender === 'female') {
+
+    if (allDataForm.expectedDueDate === null) {
+      toast.error('Data de expectativa de parto precisa ser preenchida.');
+      setValidDate(false);
+      return;
+    } else if (allDataForm.expectedDueDate && allDataForm.gender === 'female') {
       const inputExpectedDueDate = new Date(allDataForm.expectedDueDate)
         .toISOString()
         .split('T')[0];
-      if (inputExpectedDueDate <= today) {
+      console.log('inputExpectedDueDate: ', inputExpectedDueDate);
+
+      if (new Date(inputExpectedDueDate) <= new Date(today)) {
         toast.error('Data de expectativa de parto está errada.');
         setValidDate(false);
       } else {
@@ -59,7 +73,12 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
         return setValidDate(true);
       }
     }
-  }, [setValidDate, allDataForm.expectedDueDate, allDataForm.gender]);
+  }, [
+    setValidDate,
+    allDataForm.reproductiveStatus,
+    allDataForm.expectedDueDate,
+    allDataForm.gender,
+  ]);
 
   return (
     <>
@@ -87,9 +106,9 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
                       defaultOption="Status do animal"
                       options={[
                         { label: 'Vazia', value: 'empty' },
-                        { label: 'Prenha', value: 'pregnant' },
                         { label: 'Em espera', value: 'waiting' },
-                        { label: 'PEV', value: 'pev' },
+                        { label: 'Prenha', value: 'pregnant' },
+                        { label: 'PEV - Parida', value: 'pev' },
                       ]}
                       onChange={handleInputValues}
                       classNameInput={'max-w-32'}
@@ -114,24 +133,13 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
                   )}
 
                   {allDataForm.reproductiveStatus === 'pev' && (
-                    <article className="flex flex-wrap gap-5">
-                      <InputForm
-                        htmlFor="expectedDueDate"
-                        label="Expectativa de parto:"
-                        type="date"
-                        name="expectedDueDate"
-                        id="expectedDueDate"
-                        value={
-                          allDataForm.birthDate
-                            ? new Date(allDataForm.expectedDueDate || '')
-                                .toISOString()
-                                .split('T')[0]
-                            : ''
-                        }
-                        onChange={handleInputValues}
-                        classNameDiv="flex flex-col gap-1"
-                        classNameInput="max-w-40"
-                      />
+                    <article className="mt-4 flex flex-wrap gap-5">
+                      <p className="flex w-4/5 items-center gap-1 text-primary">
+                        <GoAlertFill className="w-20" />
+                        Ao confirmar o animal com o status de PEV, após 40 dias
+                        da data de hoje, a vaca retornará ao status de Vazia
+                        automaticamente.
+                      </p>
                     </article>
                   )}
                 </>
