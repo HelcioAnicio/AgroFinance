@@ -1,29 +1,25 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabaseClient';
+import prisma from '@/lib/prisma';
 
 export async function POST(req: Request) {
   try {
     const json = await req.json();
     const { dataOfVaccine } = json;
-
-    const { data, error } = await supabase
-      .from('Vaccine')
-      .insert(dataOfVaccine);
-
-    if (error) {
-      console.error('Erro do Supabase:', error);
+    console.log('dataOfVaccine: ', dataOfVaccine);
+    if (!dataOfVaccine) {
       return NextResponse.json(
-        { message: 'Erro ao adicionar Vacina', error },
-        { status: 500 }
+        { message: 'Dados do formulário não enviados' },
+        { status: 400 }
       );
     }
+
+    const data = await prisma.vaccine.create(dataOfVaccine);
 
     return NextResponse.json({
       message: 'Vacina atualizado com sucesso',
       data,
     });
   } catch (error) {
-    console.error('Erro no handler:', error);
     return NextResponse.json(
       { message: 'Erro interno no servidor', error },
       { status: 500 }
