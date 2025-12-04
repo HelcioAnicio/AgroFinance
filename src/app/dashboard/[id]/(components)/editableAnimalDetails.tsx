@@ -5,6 +5,7 @@ import { Vaccine } from '@/types/vaccine';
 import { useState } from 'react';
 import Link from 'next/link';
 import axios from 'axios';
+import { v4 as uuidv4 } from 'uuid';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Separator } from '@/components/ui/separator';
@@ -159,8 +160,9 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   const submitFormVaccine = async (dataOfVaccine: Vaccine) => {
     const vaccineToSend = {
       ...dataOfVaccine,
+      id: uuidv4(),
       animalId: animal.id,
-      updatedAt: new Date(),
+      updatedAt: new Date().toLocaleDateString(),
     };
     try {
       const response = await axios.post(
@@ -180,6 +182,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
       }, 2000);
       return response;
     } catch (error) {
+      console.log('error: ', error);
       toast.error('Ocorreu um erro ao adicionar a vacina.');
       return error;
     }
