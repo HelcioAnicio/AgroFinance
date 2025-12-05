@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export async function GET() {
   try {
-    const limite = dayjs().subtract(40, 'day').toDate();
+    const limite = dayjs().add(40, 'day').toDate();
     console.log('limite: ', limite);
 
     const animalsToUpdate = await prisma.animal.findMany({
@@ -66,3 +66,4 @@ export async function GET() {
     );
   }
 }
+
