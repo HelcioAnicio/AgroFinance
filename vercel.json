@@ -1,7 +1,9 @@
 {
-  "functions": {
-    "api/cron/atualizar-status/route.ts": {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "crons": [
+    {
+      "path": "api/cron/atualizar-status/route.ts",
       "schedule": "0 3 * * *"
     }
-  }
+  ]
 }
