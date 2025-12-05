@@ -13,7 +13,13 @@ export async function POST(req: Request) {
       );
     }
 
-    const data = await prisma.vaccine.create(dataOfVaccine);
+    let data;
+    try {
+      data = await prisma.vaccine.create(dataOfVaccine);
+      console.log('createNotification =>', data);
+    } catch (notifError) {
+      console.error('Erro criando notificação:', notifError);
+    }
 
     return NextResponse.json({
       message: 'Vacina atualizado com sucesso',
