@@ -1,6 +1,6 @@
 {
   "functions": {
-    "app/api/cron/atualizar-status/route.ts": {
+    "src/app/api/cron/atualizar-status/route.ts": {
       "schedule": "0 3 * * *"
     }
   }
