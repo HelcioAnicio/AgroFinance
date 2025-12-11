@@ -117,16 +117,16 @@ export const FormLogin: React.FC<FormLoginProps> = ({ fetchedUsers }) => {
               <Image
                 src="/logo.png"
                 alt="Logo - Imagem de um touro e uma ovelha"
-                width={200}
-                height={200}
-                className="size-40 xl:size-56"
+                width={100}
+                height={100}
+                className="size-32 xl:size-40"
               />
 
               <figcaption>Seu agronegócio descomplicado</figcaption>
             </figure>
           </header>
 
-          <main className="h-max w-full rounded-t-3xl bg-secondary px-2 pb-12 sm:rounded-3xl">
+          <main className="h-max w-full rounded-t-3xl bg-secondary px-2 pb-5 sm:rounded-3xl">
             <section>
               <form
                 className="mx-auto flex max-w-64 flex-col items-center gap-4 py-5"
