@@ -42,8 +42,80 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
   const [validDate, setValidDate] = useState(false);
 
   useEffect(() => {
+    if (allDataForm.gender === 'female') {
+      setAllDataForm((prevData) => ({
+        ...prevData,
+        andrological: null,
+      }));
+
+      if (allDataForm.reproductiveStatus === 'empty') {
+        setAllDataForm((prevData) => ({
+          ...prevData,
+          handlingType: null,
+          bullId: null,
+          protocol: null,
+          expectedDueDate: null,
+          fetalGender: null,
+          bullIatf: null,
+          bodyConditionScore: null,
+        }));
+
+        return;
+      } else if (allDataForm.reproductiveStatus === 'waiting') {
+        setAllDataForm((prevData) => ({
+          ...prevData,
+          expectedDueDate: null,
+          fetalGender: null,
+          bullIatf: null,
+        }));
+        return;
+      } else if (allDataForm.reproductiveStatus === 'pev') {
+        setAllDataForm((prevData) => ({
+          ...prevData,
+          handlingType: null,
+          bullId: null,
+          protocol: null,
+          expectedDueDate: null,
+          fetalGender: null,
+          bullIatf: null,
+          bodyConditionScore: null,
+        }));
+        return;
+      }
+    } else if (allDataForm.gender === 'male') {
+      setAllDataForm((prevData) => ({
+        ...prevData,
+        reproductiveStatus: null,
+        handlingType: null,
+        bullId: null,
+        protocol: null,
+        expectedDueDate: null,
+        fetalGender: null,
+        bullIatf: null,
+        bodyConditionScore: null,
+      }));
+    }
+  }, [allDataForm.gender, allDataForm.reproductiveStatus, setAllDataForm]);
+
+  useEffect(() => {
+    if (allDataForm.handlingType === 'naturalMating') {
+      setAllDataForm((prevData) => ({
+        ...prevData,
+        protocol: null,
+        bullIatf: null,
+      }));
+      return;
+    } else if (allDataForm.handlingType === 'artificialInsemination') {
+      setAllDataForm((prevData) => ({
+        ...prevData,
+        bullId: null,
+      }));
+      return;
+    }
+  }, [allDataForm.handlingType, setAllDataForm]);
+
+  useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
-    console.log('today: ', today);
 
     if (
       allDataForm.gender === 'male' ||
@@ -63,7 +135,6 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
       const inputExpectedDueDate = new Date(allDataForm.expectedDueDate)
         .toISOString()
         .split('T')[0];
-      console.log('inputExpectedDueDate: ', inputExpectedDueDate);
 
       if (new Date(inputExpectedDueDate) <= new Date(today)) {
         toast.error('Data de expectativa de parto está errada.');
