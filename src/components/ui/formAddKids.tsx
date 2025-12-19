@@ -11,7 +11,7 @@ interface InterfaceAddDataKids {
   gender: string;
   birthday: string;
   bodyConditionScore: string;
-  bullIatf: string;
+  bullIatfId: string;
 }
 
 interface Animal {
@@ -30,7 +30,7 @@ interface Animal {
   protocol: string | null;
   andrological: string | null;
   expectedDueDate: Date | null;
-  bullIatf: string | null;
+  bullIatfId: string | null;
   bodyConditionScore: number | null;
 }
 
@@ -247,14 +247,14 @@ export const FormAddKids: React.FC<InterfaceComponentFormReproductionProps> = ({
               </div>
 
               <div className="flex w-full flex-col gap-1">
-                <label className="text-secondary" htmlFor="bullIatf">
+                <label className="text-secondary" htmlFor="bullIatfId">
                   Touro utilizado na IATF:
                 </label>
                 <select
-                  name="bullIatf"
-                  id="bullIatf"
+                  name="bullIatfId"
+                  id="bullIatfId"
                   className={`min-w-24 max-w-40 flex-1 border border-b border-b-primary bg-transparent outline-none ${dataKids.handlingType == 'bullMating' && 'bg-gray-400'}`}
-                  value={dataKids.bullIatf ?? ''}
+                  value={dataKids.bullIatfId ?? ''}
                   onChange={handleDataKids}
                 >
                   <option disabled value=""></option>

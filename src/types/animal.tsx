@@ -18,7 +18,7 @@ export interface Animal {
   andrological: string | null;
   expectedDueDate: Date | null;
   fetalGender: string | null;
-  bullIatf: string | null;
+  bullIatfId: string | null;
   bodyConditionScore: number | null;
   observations: string | null;
   ownerId: string;

@@ -96,10 +96,10 @@ export const AddAnimalDesktop: React.FC<AddAnimalProps> = ({
         allDataForm.bullId === 'comercial' || null || undefined
           ? null
           : allDataForm.bullId,
-      bullIatf:
-        allDataForm.bullIatf === 'comercial' || null || undefined
+      bullIatfId:
+        allDataForm.bullIatfId === 'comercial' || null || undefined
           ? null
-          : allDataForm.bullIatf,
+          : allDataForm.bullIatfId,
       updatedAt: new Date(),
     };
 

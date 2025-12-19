@@ -155,10 +155,10 @@ export const CardReproduction: React.FC<ReproductionProps> = ({
                   <Card className="flex w-max flex-wrap gap-2 rounded-sm px-3 py-1">
                     <strong>Touro IATF: </strong>
                     <span>
-                      {allDataForm.bullIatf !== null &&
+                      {allDataForm.bullIatfId !== null &&
                       (allDataForm.handlingType === 'artificialInsemination' ||
                         allDataForm.handlingType === 'allMethods')
-                        ? allDataForm.bullIatf
+                        ? allDataForm.bullIatfId
                         : allDataForm.bullId &&
                             (allDataForm.handlingType === 'naturalMating' ||
                               allDataForm.handlingType === 'allMethods')
