@@ -18,6 +18,8 @@ export async function PUT(req: Request) {
     const fieldsToRemove = [
       'bull',
       'offspringFromBull',
+      'bullIatfRel',
+      'offspringFromBullIatf',
       'father',
       'offspringFromFather',
       'mother',
@@ -26,8 +28,13 @@ export async function PUT(req: Request) {
       'dewormings',
       'diseases',
       'vaccines',
+      'createdAt',
     ];
     fieldsToRemove.forEach((field) => delete allDataForm[field]);
+
+    if (allDataForm.bodyConditionScore !== null) {
+      allDataForm.bodyConditionScore = Number(allDataForm.bodyConditionScore);
+    }
 
     const data = await prisma.animal.update({
       where: { id: allDataForm.id },
@@ -62,6 +69,7 @@ export async function PUT(req: Request) {
       createNotification,
     });
   } catch (error) {
+    console.log(error);
     return NextResponse.json(
       { message: 'Erro interno no servidor', error },
       { status: 500 }

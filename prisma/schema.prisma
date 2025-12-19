@@ -62,7 +62,7 @@ model Animal {
   mother                Animal?        @relation("MotherOffspring", fields: [motherId], references: [id])
   offspringFromMother   Animal[]       @relation("MotherOffspring")
   owner                 User           @relation(fields: [ownerId], references: [id])
-  bullIatfRel           Animal?        @relation("BullIatfHandling", fields: [bullIatfId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_bull_iatf")
+  bullIatfRel           Animal?        @relation("BullIatfHandling", fields: [bullIatfId], references: [id])
   offspringFromBullIatf Animal[]       @relation("BullIatfHandling")
   dewormings            Deworming[]    @relation("AnimalDewormings")
   diseases              Disease[]      @relation("AnimalDiseases")

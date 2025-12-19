@@ -14,12 +14,12 @@ export const CardInformation: React.FC<InformationProps> = ({
   allDataForm,
 }) => {
   return (
-    <Card className="flex w-full max-w-lg flex-col gap-2 px-2 py-7 sm:flex-row sm:flex-wrap sm:gap-4">
+    <Card className="flex w-full max-w-lg flex-col px-2 py-7 sm:flex-row sm:flex-wrap">
       <CardHeader className="py-2">
         <CardTitle className="text-base">Dados básicos</CardTitle>
       </CardHeader>
 
-      <section className="flex w-full max-w-sm flex-wrap gap-2 p-2">
+      <section className="flex w-full max-w-sm flex-wrap gap-x-2 p-2">
         <Card className="w-max rounded-sm px-3 py-1">
           <strong>Id: </strong>
           <span>
@@ -132,6 +132,12 @@ export const CardInformation: React.FC<InformationProps> = ({
                 ? Number(allDataForm?.father?.manualId)
                 : `${allDataForm?.father?.manualId.charAt(0).toUpperCase()}${allDataForm?.father?.manualId.substring(1)}`}
           </span>
+        </Card>
+      </section>
+      <section className="flex w-full max-w-sm flex-wrap gap-2 p-2">
+        <Card className="w-max rounded-sm px-3 py-1">
+          <strong>Observações: </strong>
+          <span>{allDataForm?.observations}</span>
         </Card>
       </section>
     </Card>

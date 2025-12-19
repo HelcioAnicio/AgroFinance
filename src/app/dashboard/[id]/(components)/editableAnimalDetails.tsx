@@ -102,12 +102,12 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     const { name, value, type } = event.target;
     const newValue =
       type === 'number' || type === 'range'
-        ? value === ''
-          ? ''
-          : Number(value)
-        : value;
+        ? parseInt(value)
+        : name === 'bodyConditionScore'
+          ? parseFloat(value)
+          : value;
 
-    setDataOfVaccine((prevData) => ({
+    setAllDataForm((prevData) => ({
       ...prevData,
       [name]: newValue,
     }));
@@ -116,6 +116,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   const submitForm = async (allDataForm: Animal) => {
     const dataToSubmit = {
       ...allDataForm,
+      updatedAt: new Date(),
       motherId:
         allDataForm.motherId === 'Comercial' ? null : allDataForm.motherId,
       fatherId:
@@ -124,6 +125,8 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
 
     delete dataToSubmit.bull;
     delete dataToSubmit.offspringFromBull;
+    delete dataToSubmit.bullIatfRel;
+    delete dataToSubmit.offspringFromBullIatf;
     delete dataToSubmit.father;
     delete dataToSubmit.offspringFromFather;
     delete dataToSubmit.mother;
@@ -153,9 +156,6 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
       return error;
     }
   };
-  // useEffect(() => {
-  //   animal = allDataForm;
-  // }, [allDataForm]);
 
   const submitFormVaccine = async (dataOfVaccine: Vaccine) => {
     const vaccineToSend = {

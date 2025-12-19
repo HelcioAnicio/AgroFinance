@@ -30,6 +30,8 @@ export interface Animal {
   dewormingExpiry: Date | null;
   bull?: Animal;
   offspringFromBull?: Animal[];
+  bullIatfRel?: Animal;
+  offspringFromBullIatf?: Animal[];
   father?: Animal;
   offspringFromFather?: Animal[];
   mother?: Animal;

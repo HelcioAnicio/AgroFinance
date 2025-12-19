@@ -28,6 +28,8 @@ const DetailAnimalId = async ({
     include: {
       bull: true,
       offspringFromBull: true,
+      bullIatfRel: true,
+      offspringFromBullIatf: true,
       father: true,
       offspringFromFather: true,
       mother: true,
