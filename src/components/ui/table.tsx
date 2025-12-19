@@ -181,7 +181,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
         <Loading />
       ) : (
         <>
-          <div className="sticky right-0 top-0 z-50 max-h-[300px] w-full">
+          <div className="sticky right-0 top-0 z-50 max-h-max w-full">
             <div className="relative flex w-full justify-between gap-10 px-1">
               <div className="flex items-center gap-3">
                 <Sheet>
@@ -312,7 +312,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
               </HoverCard>
             </Card>
           </div>
-          <div className="h-full w-full overflow-y-auto pb-28 md:pb-10">
+          <div className="h-full w-full overflow-y-auto pb-28 md:pb-20">
             <table className="m-auto max-w-max overflow-x-auto overflow-y-scroll scroll-smooth text-left xl:text-sm">
               <thead className="sticky top-0 z-20 border-collapse bg-primary text-background">
                 <tr>
