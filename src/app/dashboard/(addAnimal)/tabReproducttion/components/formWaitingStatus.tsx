@@ -76,11 +76,11 @@ export const FormWaitingStatus: React.FC<FormWaitingStatusProps> = ({
         />
 
         <SelectForm
-          htmlFor="bullIatf"
+          htmlFor="bullIatfId"
           label="Touro utilizado na IATF:"
-          name="bullIatf"
-          id="bullIatf"
-          value={allDataForm.bullIatf || ''}
+          name="bullIatfId"
+          id="bullIatfId"
+          value={allDataForm.bullIatfId || ''}
           options={[
             { label: 'Comercial', value: 'comercial' },
             ...animals

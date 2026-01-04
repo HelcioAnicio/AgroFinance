@@ -141,12 +141,12 @@ export async function POST(req: Request) {
       let fatherId: string | null;
       let motherId: string | null;
       let bullId: string | null;
-      let bullIatf: string | null;
+      let bullIatfId: string | null;
 
       fatherId = animal.fatherId;
       motherId = animal.motherId;
       bullId = animal.bullId;
-      bullIatf = animal.bullIatf;
+      bullIatfId = animal.bullIatfId;
 
       if (typeof fatherId === 'string' && fatherId.trim() !== '') {
         const fatherIdManual = fatherId.toLowerCase().trim();
@@ -173,13 +173,13 @@ export async function POST(req: Request) {
           bullId = foundByManual.id;
         } else return null;
       }
-      if (typeof bullIatf === 'string' && bullIatf.trim() !== '') {
-        const bullIatfManual = bullIatf.toLowerCase().trim();
+      if (typeof bullIatfId === 'string' && bullIatfId.trim() !== '') {
+        const bullIatfIdManual = bullIatfId.toLowerCase().trim();
         const foundByManual = animals.find(
-          (a) => a.manualId === bullIatfManual
+          (a) => a.manualId === bullIatfIdManual
         );
         if (foundByManual) {
-          bullIatf = foundByManual.id;
+          bullIatfId = foundByManual.id;
         } else return null;
       }
 
@@ -188,7 +188,7 @@ export async function POST(req: Request) {
         fatherId,
         motherId,
         bullId,
-        bullIatf,
+        bullIatfId,
       };
     });
 

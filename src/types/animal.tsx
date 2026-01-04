@@ -18,7 +18,7 @@ export interface Animal {
   andrological: string | null;
   expectedDueDate: Date | null;
   fetalGender: string | null;
-  bullIatf: string | null;
+  bullIatfId: string | null;
   bodyConditionScore: number | null;
   observations: string | null;
   ownerId: string;
@@ -30,6 +30,8 @@ export interface Animal {
   dewormingExpiry: Date | null;
   bull?: Animal;
   offspringFromBull?: Animal[];
+  bullIatfRel?: Animal;
+  offspringFromBullIatf?: Animal[];
   father?: Animal;
   offspringFromFather?: Animal[];
   mother?: Animal;

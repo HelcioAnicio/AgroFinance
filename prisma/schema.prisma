@@ -3,11 +3,10 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-  directUrl      = env("DIRECT_DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL")
 }
-
 
 model User {
   id            String          @id @default(uuid())
@@ -27,46 +26,48 @@ model User {
 }
 
 model Animal {
-  id                  String         @id @default(dbgenerated("gen_random_uuid()"))
-  manualId            String
-  gender              String
-  birthDate           DateTime
-  weight              Float
-  breed               String
-  category            String         @default("") @map("category")
-  motherId            String?
-  fatherId            String?
-  reproductiveStatus  String?
-  handlingType        String?
-  bullId              String?
-  protocol            String?
-  andrological        String?
-  expectedDueDate     DateTime?
-  fetalGender         String?
-  bullIatf            String?
-  bodyConditionScore  Float?
-  observations        String?
-  ownerId             String
-  createdAt           DateTime       @default(now())
-  updatedAt           DateTime       @updatedAt
-  dewormingDate       DateTime?
-  dewormingExpiry     DateTime?
-  dewormingName       String?
-  status              String         @default("active")
-  vaccineDate         DateTime?
-  vaccineExpiry       DateTime?
-  vaccineName         String?
-  bull                Animal?        @relation("BullHandling", fields: [bullId], references: [id])
-  offspringFromBull   Animal[]       @relation("BullHandling")
-  father              Animal?        @relation("FatherOffspring", fields: [fatherId], references: [id])
-  offspringFromFather Animal[]       @relation("FatherOffspring")
-  mother              Animal?        @relation("MotherOffspring", fields: [motherId], references: [id])
-  offspringFromMother Animal[]       @relation("MotherOffspring")
-  owner               User           @relation(fields: [ownerId], references: [id])
-  dewormings          Deworming[]    @relation("AnimalDewormings")
-  diseases            Disease[]      @relation("AnimalDiseases")
-  Notification        Notification[]
-  vaccines            Vaccine[]      @relation("AnimalVaccines")
+  id                    String         @id @default(dbgenerated("gen_random_uuid()"))
+  manualId              String
+  gender                String
+  birthDate             DateTime
+  weight                Float
+  breed                 String
+  category              String         @default("") @map("category")
+  motherId              String?
+  fatherId              String?
+  reproductiveStatus    String?
+  handlingType          String?
+  bullId                String?
+  protocol              String?
+  andrological          String?
+  expectedDueDate       DateTime?
+  fetalGender           String?
+  bodyConditionScore    Float?
+  observations          String?
+  ownerId               String
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+  dewormingDate         DateTime?
+  dewormingExpiry       DateTime?
+  dewormingName         String?
+  status                String         @default("active")
+  vaccineDate           DateTime?
+  vaccineExpiry         DateTime?
+  vaccineName           String?
+  bullIatfId            String?
+  bull                  Animal?        @relation("BullHandling", fields: [bullId], references: [id])
+  offspringFromBull     Animal[]       @relation("BullHandling")
+  father                Animal?        @relation("FatherOffspring", fields: [fatherId], references: [id])
+  offspringFromFather   Animal[]       @relation("FatherOffspring")
+  mother                Animal?        @relation("MotherOffspring", fields: [motherId], references: [id])
+  offspringFromMother   Animal[]       @relation("MotherOffspring")
+  owner                 User           @relation(fields: [ownerId], references: [id])
+  bullIatfRel           Animal?        @relation("BullIatfHandling", fields: [bullIatfId], references: [id])
+  offspringFromBullIatf Animal[]       @relation("BullIatfHandling")
+  dewormings            Deworming[]    @relation("AnimalDewormings")
+  diseases              Disease[]      @relation("AnimalDiseases")
+  Notification          Notification[]
+  vaccines              Vaccine[]      @relation("AnimalVaccines")
 
   @@unique([manualId, ownerId])
 }

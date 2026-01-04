@@ -171,15 +171,15 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
         </div>
 
         <div className="flex w-full flex-col gap-1">
-          <label className="text-secondary" htmlFor="bullIatf">
+          <label className="text-secondary" htmlFor="bullIatfId">
             Touro utilizado na IATF:
           </label>
           <select
-            name="bullIatf"
-            id="bullIatf"
+            name="bullIatfId"
+            id="bullIatfId"
             className={`min-w-24 max-w-40 flex-1 border border-b border-b-primary outline-none ${allDataForm.handlingType == 'bullMating' ? 'rounded-t-md bg-gray-400' : 'bg-transparent'}`}
             disabled={allDataForm.handlingType === 'bullMating'}
-            value={allDataForm.bullIatf ?? ''}
+            value={allDataForm.bullIatfId ?? ''}
             onChange={handleInputValues}
           >
             <option disabled value=""></option>
