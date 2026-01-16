@@ -101,13 +101,9 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   ) => {
     const { name, value, type } = event.target;
     const newValue =
-      type === 'number' || type === 'range'
-        ? parseInt(value)
-        : name === 'bodyConditionScore'
-          ? parseFloat(value)
-          : value;
+      type === 'number' || type === 'range' ? parseInt(value) : value;
 
-    setAllDataForm((prevData) => ({
+    setDataOfVaccine((prevData) => ({
       ...prevData,
       [name]: newValue,
     }));
@@ -161,10 +157,12 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     const vaccineToSend = {
       ...dataOfVaccine,
       id: uuidv4(),
-      animalId: animal.id,
-      updatedAt: new Date().toISOString().split('T')[0],
-      createdAt: new Date().toISOString().split('T')[0],
+      animalId: dataOfVaccine.animal?.id,
+      updatedAt: new Date(),
+      createdAt: new Date(),
     };
+
+    // delete vaccineToSend.animal;
     try {
       const response = await axios.post(
         '/api/addVaccine',
@@ -183,7 +181,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
       }, 2000);
       return response;
     } catch (error) {
-      console.log('error: ', error);
+      // console.log('error: ', error);
       toast.error('Ocorreu um erro ao adicionar a vacina.');
       return error;
     }
