@@ -207,9 +207,7 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
                   className="min-w-24 flex-1 border border-b border-b-primary bg-transparent outline-none"
                 >
                   <option value="" disabled></option>
-                  <option value={(allDataForm.fatherId = 'Comercial')}>
-                    Comercial
-                  </option>
+                  <option value="Comercial">Comercial</option>
                   {animals
                     .filter(
                       (animal) =>

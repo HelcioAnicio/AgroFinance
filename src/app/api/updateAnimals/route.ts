@@ -42,25 +42,39 @@ export async function PUT(req: Request) {
     });
 
     const dateNow = new Date();
-    const expectedDueDate = new Date(allDataForm.expectedDueDate);
-    const monthOfExpectedDueDate = expectedDueDate.getMonth();
-
     let createNotification;
 
-    if (allDataForm.reproductiveStatus === 'pregnant') {
-      createNotification = await prisma.notification.create({
-        data: {
-          id: uuidv4(),
-          message: `Seu animal ${allDataForm.manualId} está próximo ao parto.`,
-          notifyAt: new Date(
-            expectedDueDate.setMonth(monthOfExpectedDueDate - 1)
-          ),
-          read: false,
-          userId: allDataForm.ownerId,
+    if (
+      allDataForm.reproductiveStatus === 'pregnant' &&
+      allDataForm.expectedDueDate != null &&
+      new Date(allDataForm.expectedDueDate) >= dateNow
+    ) {
+      const expectedDueDate = new Date(allDataForm.expectedDueDate);
+      const monthOfExpectedDueDate = expectedDueDate.getMonth();
+      const notifyAt = new Date(
+        expectedDueDate.setMonth(monthOfExpectedDueDate - 1)
+      );
+
+      const existingBirthNotification = await prisma.notification.findFirst({
+        where: {
           animalId: allDataForm.id,
-          createdAt: dateNow,
+          message: { contains: 'próximo ao parto' },
         },
       });
+
+      if (!existingBirthNotification) {
+        createNotification = await prisma.notification.create({
+          data: {
+            id: uuidv4(),
+            message: `Seu animal ${allDataForm.manualId} está próximo ao parto.`,
+            notifyAt,
+            read: false,
+            userId: allDataForm.ownerId,
+            animalId: allDataForm.id,
+            createdAt: dateNow,
+          },
+        });
+      }
     }
 
     return NextResponse.json({

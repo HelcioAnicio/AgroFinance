@@ -140,6 +140,21 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
         }
       );
 
+      const savedFatherId =
+        allDataForm.fatherId === 'Comercial' ? null : allDataForm.fatherId;
+      const savedMotherId =
+        allDataForm.motherId === 'Comercial' ? null : allDataForm.motherId;
+      setAllDataForm((prev) => ({
+        ...prev,
+        ...allDataForm,
+        father: savedFatherId
+          ? (animals.find((a) => a.id === savedFatherId) ?? prev.father)
+          : undefined,
+        mother: savedMotherId
+          ? (animals.find((a) => a.id === savedMotherId) ?? prev.mother)
+          : undefined,
+      }));
+
       setTimeout(() => {
         toast.success('Animal atualizado com sucesso!');
         setIsEditing(!isEditing);

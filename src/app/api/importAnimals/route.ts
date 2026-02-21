@@ -225,17 +225,26 @@ export async function POST(req: Request) {
             throw new Error('Usuário não encontrado');
           }
 
-          await prisma.notification.create({
-            data: {
-              id: uuidv4(),
-              message: `Seu animal ${animal.manualId} está próximo ao parto.`,
-              notifyAt: notifyAt,
-              read: false,
-              userId: userEmail.id,
+          const existingBirthNotification = await prisma.notification.findFirst({
+            where: {
               animalId: animal.id,
-              createdAt: new Date(),
+              message: { contains: 'próximo ao parto' },
             },
           });
+
+          if (!existingBirthNotification) {
+            await prisma.notification.create({
+              data: {
+                id: uuidv4(),
+                message: `Seu animal ${animal.manualId} está próximo ao parto.`,
+                notifyAt: notifyAt,
+                read: false,
+                userId: userEmail.id,
+                animalId: animal.id,
+                createdAt: new Date(),
+              },
+            });
+          }
         }
       } catch (error) {
         console.log('Erro ao tentar cadastrar', error);
