@@ -93,6 +93,7 @@ model Vaccine {
   expiryDate  DateTime
   id          String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   animal      Animal   @relation("AnimalVaccines", fields: [animalId], references: [id])
+
 }
 
 model Deworming {

@@ -157,12 +157,15 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     const vaccineToSend = {
       ...dataOfVaccine,
       id: uuidv4(),
-      animalId: dataOfVaccine.animal?.id,
+      animalId: allDataForm.id,
+      date: dataOfVaccine.date && new Date(dataOfVaccine.date).toISOString(),
+      expiryDate:
+        dataOfVaccine.expiryDate &&
+        new Date(dataOfVaccine.expiryDate).toISOString(),
       updatedAt: new Date(),
       createdAt: new Date(),
     };
 
-    // delete vaccineToSend.animal;
     try {
       const response = await axios.post(
         '/api/addVaccine',

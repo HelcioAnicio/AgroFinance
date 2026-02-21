@@ -5,49 +5,48 @@ export async function POST(req: Request) {
   try {
     const json = await req.json();
     const { dataOfVaccine } = json;
+    const { animalId, ...rest } = dataOfVaccine;
 
-    console.log('dataOfVaccine: ', dataOfVaccine);
-
-    if (!dataOfVaccine) {
+    if (!dataOfVaccine || !dataOfVaccine.animalId) {
       return NextResponse.json(
-        { message: 'Dados do formulário não enviados' },
+        { message: 'ID do animal não fornecido' },
         { status: 400 }
       );
     }
 
     const createdVaccine = await prisma.vaccine.create({
       data: {
-        ...dataOfVaccine,
-        include: {
-          animal: true,
+        ...rest,
+        animal: {
+          connect: { id: animalId },
         },
       },
     });
 
-    let createNotification = null;
+    // let createNotification = null;
 
-    const ownerIdToUse = createdVaccine.animalId;
+    // const ownerIdToUse = user.id;
 
-    if (ownerIdToUse) {
-      try {
-        createNotification = await prisma.notification.create({
-          data: {
-            message: `A vacina ${createdVaccine.name} do animal vence hoje.`,
-            notifyAt: new Date(createdVaccine.expiryDate),
-            read: false,
-            userId: ownerIdToUse,
-            animalId: createdVaccine.animalId,
-          },
-        });
-      } catch (notifError) {
-        console.error('Erro de criação da notificação:', notifError);
-      }
-    }
+    // if (ownerIdToUse) {
+    //   try {
+    //     createNotification = await prisma.notification.create({
+    //       data: {
+    //         message: `A vacina ${createdVaccine.name} do animal vence hoje.`,
+    //         notifyAt: new Date(createdVaccine.expiryDate),
+    //         read: false,
+    //         userId: ownerIdToUse,
+    //         animalId: createdVaccine.animalId,
+    //       },
+    //     });
+    //   } catch (notifError) {
+    //     console.error('Erro de criação da notificação:', notifError);
+    //   }
+    // }
 
     return NextResponse.json({
       message: 'Vacina adicionada com sucesso',
       vaccine: createdVaccine,
-      notification: createNotification,
+      // notification: createNotification,
     });
   } catch (error) {
     console.error('Erro no servidor:', error);
