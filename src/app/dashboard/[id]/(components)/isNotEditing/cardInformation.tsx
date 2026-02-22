@@ -4,7 +4,11 @@ import { Animal } from '@/types/animal';
 import { MdHighlightOff } from 'react-icons/md';
 import { FaCheckCircle } from 'react-icons/fa';
 import { IoSkull } from 'react-icons/io5';
-import { TbMoneybag } from 'react-icons/tb';
+import {
+  TbMoneybag,
+  TbZoomQuestionFilled,
+  TbTrashXFilled,
+} from 'react-icons/tb';
 
 interface InformationProps {
   allDataForm: Animal | null;
@@ -46,6 +50,16 @@ export const CardInformation: React.FC<InformationProps> = ({
               allDataForm?.status === 'morto' ? (
               <>
                 <IoSkull className="inline-block size-3 text-black" /> Morto
+              </>
+            ) : allDataForm?.status === 'lost' ? (
+              <>
+                <TbZoomQuestionFilled className="inline-block size-3 text-amber-500" />{' '}
+                Perdida
+              </>
+            ) : allDataForm?.status === 'trash' ? (
+              <>
+                <TbTrashXFilled className="inline-block size-3 text-red-500" />{' '}
+                Descarte
               </>
             ) : (
               <>

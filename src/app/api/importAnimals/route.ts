@@ -29,13 +29,19 @@ export async function POST(req: Request) {
       ...item,
       id: uuidv4(),
       status:
-        item.status === 'ativo'
+        item.status === 'ativo' || item.status === 'active'
           ? 'active'
-          : item.status === 'inativo'
+          : item.status === 'inativo' || item.status === 'inactive'
             ? 'inactive'
-            : item.status === 'morto'
+            : item.status === 'morto' || item.status === 'dead'
               ? 'dead'
-              : 'sold',
+              : item.status === 'vendido' || item.status === 'sold'
+                ? 'sold'
+                : item.status === 'perdida' || item.status === 'lost'
+                  ? 'lost'
+                  : item.status === 'descarte' || item.status === 'trash'
+                    ? 'trash'
+                    : 'active',
       manualId: item.manualId?.toLowerCase(),
       gender: item.gender === 'macho' ? 'male' : 'female',
       birthDate:

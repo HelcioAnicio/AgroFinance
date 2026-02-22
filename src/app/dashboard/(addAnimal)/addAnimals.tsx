@@ -73,9 +73,12 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
 
   const submitForm = async (allDataForm: Animal, event?: FormDataEvent) => {
     event?.preventDefault();
+    if (!allDataForm.status) {
+      toast.error('Selecione o status do animal.');
+      return;
+    }
     const dataToSubmit = {
       ...allDataForm,
-      status: 'active',
       id: uuidv4(),
       manualId: allDataForm.manualId.toLowerCase(),
       ownerId: userEmail?.id || '',

@@ -39,21 +39,23 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
                   className="w-full border border-b border-b-primary bg-transparent outline-none"
                 />
               </div>
-              <div className="flex items-end gap-1">
+              <div className="flex flex-col gap-1">
                 <label className="text-secondary" htmlFor="status">
-                  status
+                  Status:
                 </label>
                 <select
                   name="status"
                   id="status"
                   value={allDataForm.status ?? ''}
                   onChange={handleInputValues}
-                  className="w-16 border border-b border-b-primary bg-transparent outline-none"
+                  className="w-full border border-b border-b-primary bg-transparent outline-none"
                 >
                   <option value="active">Ativo</option>
                   <option value="inactive">Inativo</option>
                   <option value="dead">Morto</option>
                   <option value="sold">Vendido</option>
+                  <option value="lost">Perdida</option>
+                  <option value="trash">Descarte</option>
                 </select>
               </div>
             </div>

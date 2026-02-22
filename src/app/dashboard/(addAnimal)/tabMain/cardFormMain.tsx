@@ -158,6 +158,24 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
               />
             </div>
 
+            <SelectForm
+              htmlFor="status"
+              label="Status:"
+              name="status"
+              id="status"
+              value={allDataForm.status ?? ''}
+              onChange={handleInputValues}
+              options={[
+                { label: 'Ativo', value: 'active' },
+                { label: 'Inativo', value: 'inactive' },
+                { label: 'Morto', value: 'dead' },
+                { label: 'Vendido', value: 'sold' },
+                { label: 'Perdida', value: 'lost' },
+                { label: 'Descarte', value: 'trash' },
+              ]}
+              defaultOption="Escolha o status"
+            />
+
             <div className="grid grid-cols-2 gap-4">
               <InputForm
                 classNameInput="max-w-none"

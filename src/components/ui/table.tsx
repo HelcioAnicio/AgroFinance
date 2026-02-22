@@ -16,7 +16,7 @@ import { Loading } from './loading';
 import { FaCheckCircle } from 'react-icons/fa';
 import { IoSkull } from 'react-icons/io5';
 import { LiaExternalLinkAltSolid } from 'react-icons/lia';
-import { TbMoneybag } from 'react-icons/tb';
+import { TbMoneybag, TbZoomQuestionFilled, TbTrashXFilled } from 'react-icons/tb';
 import { MdHighlightOff } from 'react-icons/md';
 import { FaFileArrowDown } from 'react-icons/fa6';
 import { IoDownloadOutline } from 'react-icons/io5';
@@ -372,6 +372,16 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
                             <>
                               <IoSkull className="inline-block size-3 text-black" />{' '}
                               Morto
+                            </>
+                          ) : animal?.status === 'lost' ? (
+                            <>
+                              <TbZoomQuestionFilled className="inline-block size-3 text-amber-500" />{' '}
+                              Perdida
+                            </>
+                          ) : animal?.status === 'trash' ? (
+                            <>
+                              <TbTrashXFilled className="inline-block size-3 text-red-500" />{' '}
+                              Descarte
                             </>
                           ) : (
                             <>

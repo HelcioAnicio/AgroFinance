@@ -29,7 +29,11 @@ import { InputForm } from '@/components/ui/inputForm';
 import { FaCheckCircle } from 'react-icons/fa';
 import { IoSkull } from 'react-icons/io5';
 import { MdHighlightOff } from 'react-icons/md';
-import { TbMoneybag } from 'react-icons/tb';
+import {
+  TbMoneybag,
+  TbZoomQuestionFilled,
+  TbTrashXFilled,
+} from 'react-icons/tb';
 
 interface EditableAnimalDetailsProps {
   animal: Animal;
@@ -306,6 +310,16 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                               <IoSkull className="inline-block size-3 text-black" />{' '}
                               Morto
                             </>
+                          ) : offspring?.status === 'lost' ? (
+                            <>
+                              <TbZoomQuestionFilled className="inline-block size-3 text-amber-500" />{' '}
+                              Perdida
+                            </>
+                          ) : offspring?.status === 'trash' ? (
+                            <>
+                              <TbTrashXFilled className="inline-block size-3 text-red-500" />{' '}
+                              Descarte
+                            </>
                           ) : (
                             <>
                               <TbMoneybag className="inline-block size-3 text-yellow-600" />{' '}
@@ -480,6 +494,16 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                             <>
                               <IoSkull className="inline-block size-3 text-black" />{' '}
                               Morto
+                            </>
+                          ) : allDataForm?.status === 'lost' ? (
+                            <>
+                              <TbZoomQuestionFilled className="inline-block size-3 text-amber-500" />{' '}
+                              Perdida
+                            </>
+                          ) : allDataForm?.status === 'trash' ? (
+                            <>
+                              <TbTrashXFilled className="inline-block size-3 text-red-500" />{' '}
+                              Descarte
                             </>
                           ) : (
                             <>

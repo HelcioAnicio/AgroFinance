@@ -65,8 +65,5 @@ export const fetchVaccines = async (animalId: string): Promise<Vaccine[]> => {
     },
   });
 
-  return vaccines.map((vaccine) => ({
-    ...vaccine,
-    animalId: { id: vaccine.animalId } as Animal,
-  }));
+  return vaccines as Vaccine[];
 };
