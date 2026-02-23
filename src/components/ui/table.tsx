@@ -197,6 +197,20 @@ export const Table: React.FC<TableProps> = ({
     setInputValue(event.target.value);
   };
 
+  const pregnantCowsCount = animals.filter(
+    (animal) =>
+      (animal.category === 'cow' || animal.category === 'old cow') &&
+      (animal.gender === 'female' || animal.gender === 'fêmea') &&
+      animal.reproductiveStatus === 'pregnant'
+  ).length;
+
+  const emptyCowsCount = animals.filter(
+    (animal) =>
+      (animal.category === 'cow' || animal.category === 'old cow') &&
+      (animal.gender === 'female' || animal.gender === 'fêmea') &&
+      animal.reproductiveStatus === 'empty'
+  ).length;
+
   if (dataLoading) {
     return (
       <main
@@ -392,6 +406,28 @@ export const Table: React.FC<TableProps> = ({
                 </HoverCardTrigger>
                 <HoverCardContent className="bg-primary text-background">
                   Total de animais ativos na fazenda.
+                </HoverCardContent>
+              </HoverCard>
+            </Card>
+
+            <Card className="rounded-sm p-2">
+              <HoverCard>
+                <HoverCardTrigger className="cursor-default">
+                  Vacas prenhas: {pregnantCowsCount}
+                </HoverCardTrigger>
+                <HoverCardContent className="bg-primary text-background">
+                  Total de vacas prenhas.
+                </HoverCardContent>
+              </HoverCard>
+            </Card>
+
+            <Card className="rounded-sm p-2">
+              <HoverCard>
+                <HoverCardTrigger className="cursor-default">
+                  Vacas vazias: {emptyCowsCount}
+                </HoverCardTrigger>
+                <HoverCardContent className="bg-primary text-background">
+                  Total de vacas vazias.
                 </HoverCardContent>
               </HoverCard>
             </Card>

@@ -50,24 +50,49 @@ export async function PUT(req: Request) {
       new Date(allDataForm.expectedDueDate) >= dateNow
     ) {
       const expectedDueDate = new Date(allDataForm.expectedDueDate);
-      const monthOfExpectedDueDate = expectedDueDate.getMonth();
-      const notifyAt = new Date(
-        expectedDueDate.setMonth(monthOfExpectedDueDate - 1)
-      );
 
-      const existingBirthNotification = await prisma.notification.findFirst({
-        where: {
-          animalId: allDataForm.id,
-          message: { contains: 'próximo ao parto' },
-        },
-      });
+      const notifyAtOneMonth = new Date(expectedDueDate);
+      notifyAtOneMonth.setMonth(notifyAtOneMonth.getMonth() - 1);
 
-      if (!existingBirthNotification) {
+      const notifyAtFifteenDays = new Date(expectedDueDate);
+      notifyAtFifteenDays.setDate(notifyAtFifteenDays.getDate() - 15);
+
+      const existingBirthNotificationOneMonth =
+        await prisma.notification.findFirst({
+          where: {
+            animalId: allDataForm.id,
+            message: { contains: 'próximo ao parto' },
+          },
+        });
+
+      if (!existingBirthNotificationOneMonth) {
         createNotification = await prisma.notification.create({
           data: {
             id: uuidv4(),
             message: `Seu animal ${allDataForm.manualId} está próximo ao parto.`,
-            notifyAt,
+            notifyAt: notifyAtOneMonth,
+            read: false,
+            userId: allDataForm.ownerId,
+            animalId: allDataForm.id,
+            createdAt: dateNow,
+          },
+        });
+      }
+
+      const existingBirthNotificationFifteenDays =
+        await prisma.notification.findFirst({
+          where: {
+            animalId: allDataForm.id,
+            message: { contains: '15 dias do parto' },
+          },
+        });
+
+      if (!existingBirthNotificationFifteenDays) {
+        await prisma.notification.create({
+          data: {
+            id: uuidv4(),
+            message: `Seu animal ${allDataForm.manualId} está a 15 dias do parto.`,
+            notifyAt: notifyAtFifteenDays,
             read: false,
             userId: allDataForm.ownerId,
             animalId: allDataForm.id,
