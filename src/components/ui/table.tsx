@@ -16,7 +16,11 @@ import { Loading } from './loading';
 import { FaCheckCircle } from 'react-icons/fa';
 import { IoSkull } from 'react-icons/io5';
 import { LiaExternalLinkAltSolid } from 'react-icons/lia';
-import { TbMoneybag, TbZoomQuestionFilled, TbTrashXFilled } from 'react-icons/tb';
+import {
+  TbMoneybag,
+  TbZoomQuestionFilled,
+  TbTrashXFilled,
+} from 'react-icons/tb';
 import { MdHighlightOff } from 'react-icons/md';
 import { FaFileArrowDown } from 'react-icons/fa6';
 import { IoDownloadOutline } from 'react-icons/io5';
@@ -40,13 +44,33 @@ import {
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { Card } from './card';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface TableProps {
   animals: Animal[];
   users: User[];
+  /** Quando true, mostra esqueleto da tabela (botões + linhas) até os dados estarem prontos */
+  dataLoading?: boolean;
 }
 
-export const Table: React.FC<TableProps> = ({ animals, users }) => {
+const TABLE_HEADERS = [
+  'Status',
+  'ID',
+  'Raça',
+  'Sexo',
+  'Mãe',
+  'Pai',
+  'Nascimento',
+  'Categoria',
+  'Peso',
+  '',
+];
+
+export const Table: React.FC<TableProps> = ({
+  animals,
+  users,
+  dataLoading = false,
+}) => {
   const [listAnimals, setListAnimals] = useState<Animal[]>([]);
   const [originalAnimals, setOriginalAnimals] = useState<Animal[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -94,7 +118,8 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
   };
 
   useEffect(() => {
-    const sortedAnimals = animals.sort((a, b) => {
+    if (dataLoading) return;
+    const sortedAnimals = [...animals].sort((a, b) => {
       const aIsNumber = !isNaN(Number(a.manualId));
       const bIsNumber = !isNaN(Number(b.manualId));
 
@@ -109,7 +134,7 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
 
     setOriginalAnimals(sortedAnimals);
     setListAnimals(sortedAnimals);
-  }, [animals]);
+  }, [animals, dataLoading]);
 
   useEffect(() => {
     if (inputValue === '') {
@@ -171,6 +196,65 @@ export const Table: React.FC<TableProps> = ({ animals, users }) => {
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(event.target.value);
   };
+
+  if (dataLoading) {
+    return (
+      <main
+        style={{ height: 'calc(100vh - 170px)' }}
+        className="relative m-auto max-w-max pb-5"
+      >
+        <div className="sticky right-0 top-0 z-50 max-h-max w-full">
+          <div className="relative flex w-full justify-between gap-10 px-1">
+            <div className="flex items-center gap-3">
+              <Skeleton className="size-6 rounded" />
+              <Skeleton className="h-8 w-40 rounded" />
+            </div>
+            <div className="flex flex-col gap-3 md:flex-row">
+              <Skeleton className="h-9 w-32 rounded-md" />
+              <Skeleton className="h-9 w-28 rounded-md" />
+            </div>
+          </div>
+        </div>
+        <br className="md:hidden" />
+        <div className="my-5 hidden gap-3 md:flex">
+          <Skeleton className="h-10 w-40 rounded-sm" />
+          <Skeleton className="h-10 w-32 rounded-sm" />
+        </div>
+        <div className="h-full w-full overflow-y-auto pb-28 md:pb-20">
+          <table className="m-auto max-w-max overflow-x-auto overflow-y-scroll scroll-smooth text-left xl:text-sm">
+            <thead className="sticky top-0 z-20 border-collapse bg-primary text-background">
+              <tr>
+                <th className="w-20 px-1 py-2">Status</th>
+                <th className="px-1 py-2">ID</th>
+                <th className="px-1 py-2">Raça</th>
+                <th className="px-1 py-2">Sexo</th>
+                <th className="px-1 py-2">Mãe</th>
+                <th className="px-1 py-2">Pai</th>
+                <th className="px-1 py-2">Nascimento</th>
+                <th className="px-1 py-2">Categoria</th>
+                <th className="px-1 py-2">Peso</th>
+                <th className="sticky right-0 bg-primary px-1 py-2 text-background"></th>
+              </tr>
+            </thead>
+            <tbody className="overflow-y-auto scroll-smooth">
+              {Array.from({ length: 12 }).map((_, rowIndex) => (
+                <tr
+                  key={rowIndex}
+                  className={rowIndex % 2 === 0 ? 'bg-muted' : ''}
+                >
+                  {TABLE_HEADERS.map((_, colIndex) => (
+                    <td key={colIndex} className="px-1 py-3">
+                      <Skeleton className="h-5 w-full min-w-[60px] rounded" />
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main

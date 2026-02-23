@@ -1,22 +1,18 @@
-import { Header } from '@/components/ui/header';
+import { Suspense } from 'react';
 import { MenuNavegation } from '@/components/ui/menu';
-import { Table } from '@/components/ui/table';
-import { fetchAnimals, fetchNotifications, fetchUsers } from '@/lib/fetchData';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { DashboardHeaderSkeleton } from './_components/dashboardHeaderSkeleton';
+import { DashboardHeaderSection } from './_components/dashboardHeaderSection';
+import { DashboardTableWithData } from './_components/dashboardTableWithData';
 
-const Dashboard = async () => {
-  const session = await getServerSession(authOptions);
-  const users = await fetchUsers();
-  const userEmail = users.find((user) => user.email === session?.user?.email);
-  const notifications = await fetchNotifications(userEmail?.id ?? '');
-
-  const animals = await fetchAnimals(userEmail?.id ?? undefined);
-
+const Dashboard = () => {
   return (
     <div className="h-full overflow-hidden text-xs">
-      <Header notifications={notifications} />
-      <Table animals={animals} users={users} />
+      <Suspense fallback={<DashboardHeaderSkeleton />}>
+        <DashboardHeaderSection />
+      </Suspense>
+
+      <DashboardTableWithData />
+
       <MenuNavegation />
     </div>
   );
