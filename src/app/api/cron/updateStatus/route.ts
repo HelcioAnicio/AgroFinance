@@ -4,8 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export async function GET() {
   try {
-    const limite = dayjs().add(40, 'day').toDate();
-    console.log('limite: ', limite);
+    const limite = dayjs().add(30, 'day').toDate();
 
     const animalsToUpdate = await prisma.animal.findMany({
       where: {
@@ -17,8 +16,6 @@ export async function GET() {
         manualId: true,
       },
     });
-
-    console.log(`Encontrados ${animalsToUpdate.length} animais com status pev`);
 
     const result = await prisma.animal.updateMany({
       where: {
