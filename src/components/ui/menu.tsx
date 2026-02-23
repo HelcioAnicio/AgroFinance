@@ -26,7 +26,7 @@ export const MenuNavegation = () => {
             <p>Financeiro</p>
           </div>
         </Link>
-        <Link href="/">
+        <Link href="/dashboard/profile">
           <div className="relative flex size-16 flex-col items-center gap-1 rounded-full">
             <CgProfile size={35} />
             <p>Perfil</p>
