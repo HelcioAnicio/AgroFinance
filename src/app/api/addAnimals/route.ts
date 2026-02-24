@@ -34,6 +34,7 @@ export async function POST(req: NextRequest) {
 
     const createAnimal = await prisma.$transaction(async (tx) => {
       const animal = await tx.animal.create({ data: animalData });
+      const changedAt = new Date();
 
       await tx.animalWeightHistory.create({
         data: {
@@ -41,6 +42,19 @@ export async function POST(req: NextRequest) {
           weight: Number(animalData.weight),
           recordType: parseWeightRecordType(weightRecordType),
           measuredAt: parseWeightRecordDate(weightRecordDate),
+        },
+      });
+
+      await tx.animalStatusHistory.create({
+        data: {
+          animalId: animal.id,
+          ownerId: animal.ownerId,
+          previousStatus: null,
+          newStatus: animal.status,
+          changedAt,
+          year: changedAt.getFullYear(),
+          month: changedAt.getMonth() + 1,
+          reason: 'animal_creation',
         },
       });
 

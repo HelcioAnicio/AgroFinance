@@ -49,7 +49,7 @@ export async function PUT(req: Request) {
 
     const existingAnimal = await prisma.animal.findUnique({
       where: { id: allDataForm.id },
-      select: { weight: true },
+      select: { weight: true, status: true, ownerId: true },
     });
 
     if (!existingAnimal) {
@@ -64,6 +64,8 @@ export async function PUT(req: Request) {
 
       const hasWeightChanged =
         Number(existingAnimal.weight) !== Number(allDataForm.weight);
+      const hasStatusChanged =
+        String(existingAnimal.status ?? '') !== String(allDataForm.status ?? '');
 
       if (hasWeightChanged) {
         await tx.animalWeightHistory.create({
@@ -72,6 +74,22 @@ export async function PUT(req: Request) {
             weight: Number(updatedAnimal.weight),
             recordType: recordType,
             measuredAt: measuredAt,
+          },
+        });
+      }
+
+      if (hasStatusChanged) {
+        const changedAt = new Date();
+        await tx.animalStatusHistory.create({
+          data: {
+            animalId: updatedAnimal.id,
+            ownerId: updatedAnimal.ownerId,
+            previousStatus: existingAnimal.status,
+            newStatus: updatedAnimal.status,
+            changedAt,
+            year: changedAt.getFullYear(),
+            month: changedAt.getMonth() + 1,
+            reason: 'animal_update',
           },
         });
       }

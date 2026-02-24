@@ -21,9 +21,18 @@ export async function POST(req: Request) {
     );
   }
 
+  if (!userEmail.id) {
+    return NextResponse.json(
+      { success: false, error: 'User id not found' },
+      { status: 400 }
+    );
+  }
+
   try {
     const data = await req.json();
     const items = Array.isArray(data) ? data : [data];
+
+    const ownerId = userEmail.id;
 
     const animals = items.map((item: Animal) => ({
       ...item,
@@ -140,7 +149,7 @@ export async function POST(req: Request) {
                 .split('T')[0]
             )
           : null,
-      ownerId: userEmail.id,
+      ownerId,
     }));
 
     const allAnimalsUpdated = animals.map((animal) => {
@@ -204,6 +213,22 @@ export async function POST(req: Request) {
     });
 
     const validAnimals = allAnimalsUpdated.filter((a) => a !== null);
+    const changedAt = new Date();
+
+    if (validAnimals.length > 0) {
+      await prisma.animalStatusHistory.createMany({
+        data: validAnimals.map((animal) => ({
+          animalId: animal!.id,
+          ownerId: animal!.ownerId ?? ownerId,
+          previousStatus: null,
+          newStatus: animal!.status ?? 'active',
+          changedAt,
+          year: changedAt.getFullYear(),
+          month: changedAt.getMonth() + 1,
+          reason: 'animal_import',
+        })),
+      });
+    }
 
     for (const animal of validAnimals) {
       try {

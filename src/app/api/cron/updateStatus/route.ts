@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 export async function GET() {
   try {
     const limite = dayjs().add(30, 'day').toDate();
+    const changedAt = new Date();
 
     const animalsToUpdate = await prisma.animal.findMany({
       where: {
@@ -25,6 +26,21 @@ export async function GET() {
         reproductiveStatus: 'empty',
       },
     });
+
+    if (animalsToUpdate.length > 0) {
+      await prisma.animalStatusHistory.createMany({
+        data: animalsToUpdate.map((animal) => ({
+          animalId: animal.id,
+          ownerId: animal.ownerId,
+          previousStatus: 'pev',
+          newStatus: 'empty',
+          changedAt,
+          year: changedAt.getFullYear(),
+          month: changedAt.getMonth() + 1,
+          reason: 'cron_reproductive_status_update',
+        })),
+      });
+    }
 
     const notifications = [];
     for (const animal of animalsToUpdate) {

@@ -1,30 +1,30 @@
 'use client';
 
-import { SquareArrowOutUpLeft } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Animal } from '@/types/animal';
-import { User } from '@/types/user';
-import { Sheet, SheetTrigger } from '@/components/ui/sheet';
+import { SquareArrowOutUpLeft } from 'lucide-react';
 import { CirclePlus } from 'lucide-react';
-import { FaFilter } from 'react-icons/fa';
-import { AddAnimal } from '../../app/dashboard/(addAnimal)/addAnimals';
-import { Button } from '@/components/ui/button';
-import React, { useEffect, useState } from 'react';
-import { AddAnimalDesktop } from '@/app/dashboard/(addAnimal)/addAnimalsDesktop';
-import { Filters } from './modalFilters';
-import { Loading } from './loading';
-import { FaCheckCircle } from 'react-icons/fa';
-import { IoSkull } from 'react-icons/io5';
+import { FaFilter, FaCheckCircle } from 'react-icons/fa';
+import { IoSkull, IoDownloadOutline } from 'react-icons/io5';
 import { LiaExternalLinkAltSolid } from 'react-icons/lia';
-import {
-  TbMoneybag,
-  TbZoomQuestionFilled,
-  TbTrashXFilled,
-} from 'react-icons/tb';
 import { MdHighlightOff } from 'react-icons/md';
 import { FaFileArrowDown } from 'react-icons/fa6';
-import { IoDownloadOutline } from 'react-icons/io5';
+import {
+  TbMoneybag,
+  TbTrashXFilled,
+  TbZoomQuestionFilled,
+} from 'react-icons/tb';
 import * as XLSX from 'xlsx';
+import { toast } from 'sonner';
+
+import { Animal } from '@/types/animal';
+import { LivestockStatsYear } from '@/types/livestockStats';
+import { User } from '@/types/user';
+import { AddAnimal } from '../../app/dashboard/(addAnimal)/addAnimals';
+import { AddAnimalDesktop } from '@/app/dashboard/(addAnimal)/addAnimalsDesktop';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import {
   Dialog,
   DialogClose,
@@ -35,30 +35,29 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { Filters } from '@/components/ui/modalFilters';
 import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
 } from '@/components/ui/hover-card';
-
-import Link from 'next/link';
-import { toast } from 'sonner';
-import { Card } from './card';
+import { Loading } from '@/components/ui/loading';
+import { Sheet, SheetTrigger } from '@/components/ui/sheet';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface TableProps {
   animals: Animal[];
   users: User[];
-  /** Quando true, mostra esqueleto da tabela (botões + linhas) até os dados estarem prontos */
+  livestockStats?: LivestockStatsYear[];
   dataLoading?: boolean;
 }
 
 const TABLE_HEADERS = [
   'Status',
   'ID',
-  'Raça',
+  'Raca',
   'Sexo',
-  'Mãe',
+  'Mae',
   'Pai',
   'Nascimento',
   'Categoria',
@@ -66,19 +65,161 @@ const TABLE_HEADERS = [
   '',
 ];
 
+const isFemale = (gender: string) =>
+  gender === 'female' || gender === 'femea' || gender === 'f�mea';
+
+const getStatusNode = (status?: string) => {
+  if (status === 'active' || status === 'ativo') {
+    return (
+      <>
+        <FaCheckCircle className="inline-block size-3 text-green-400" /> Ativo
+      </>
+    );
+  }
+  if (status === 'inactive' || status === 'inativo') {
+    return (
+      <>
+        <MdHighlightOff className="inline-block size-3 text-gray-500" /> Inativo
+      </>
+    );
+  }
+  if (status === 'dead' || status === 'morto') {
+    return (
+      <>
+        <IoSkull className="inline-block size-3 text-black" /> Morto
+      </>
+    );
+  }
+  if (status === 'lost') {
+    return (
+      <>
+        <TbZoomQuestionFilled className="inline-block size-3 text-amber-500" />{' '}
+        Perdida
+      </>
+    );
+  }
+  if (status === 'trash') {
+    return (
+      <>
+        <TbTrashXFilled className="inline-block size-3 text-red-500" /> Descarte
+      </>
+    );
+  }
+
+  return (
+    <>
+      <TbMoneybag className="inline-block size-3 text-yellow-600" /> Vendido
+    </>
+  );
+};
+
+const getCategoryLabel = (animal: Animal) => {
+  if (animal.category === 'neonate') return 'Neonato';
+  if (animal.category === 'calf') return 'Bezerro';
+  if (animal.category === 'steer' && animal.gender === 'male') return 'Garrote';
+  if (animal.category === 'steer' && animal.gender === 'female')
+    return 'Novilho';
+  if (animal.category === 'cow') return 'Vaca';
+  if (animal.category === 'old cow') return 'Vaca velha';
+  if (animal.category === 'ox') return 'Boi';
+  if (animal.category === 'old ox') return 'Boi velho';
+  if (animal.category === 'bull') return 'Touro';
+  if (animal.category === 'old bull') return 'Touro velho';
+  return '-';
+};
+
 export const Table: React.FC<TableProps> = ({
   animals,
   users,
+  livestockStats = [],
   dataLoading = false,
 }) => {
   const [listAnimals, setListAnimals] = useState<Animal[]>([]);
   const [originalAnimals, setOriginalAnimals] = useState<Animal[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-
-  const [inputValue, setInputValue] = useState<string | null>('');
+  const [inputValue, setInputValue] = useState<string>('');
   const [inputFile, setInputFile] = useState<File | null>(null);
+  const [selectedStatsYear, setSelectedStatsYear] = useState<number | null>(
+    null
+  );
+
+  const router = useRouter();
+
+  const availableYears = useMemo(
+    () => livestockStats.map((yearStats) => yearStats.year),
+    [livestockStats]
+  );
+
+  const selectedYearStats = useMemo(() => {
+    if (!selectedStatsYear) return null;
+    return (
+      livestockStats.find((item) => item.year === selectedStatsYear) ?? null
+    );
+  }, [livestockStats, selectedStatsYear]);
+
+  const maxMonthlyValue = useMemo(() => {
+    if (!selectedYearStats) return 1;
+    return Math.max(
+      ...selectedYearStats.months.flatMap((month) => [
+        month.maleBirths,
+        month.femaleBirths,
+        month.deaths,
+      ]),
+      1
+    );
+  }, [selectedYearStats]);
+
+  useEffect(() => {
+    if (dataLoading) return;
+    const sortedAnimals = [...animals].sort((a, b) => {
+      const aIsNumber = !isNaN(Number(a.manualId));
+      const bIsNumber = !isNaN(Number(b.manualId));
+
+      if (!aIsNumber && !bIsNumber)
+        return String(a.manualId).localeCompare(String(b.manualId));
+      if (aIsNumber && bIsNumber)
+        return Number(a.manualId) - Number(b.manualId);
+      return aIsNumber ? 1 : -1;
+    });
+
+    setOriginalAnimals(sortedAnimals);
+    setListAnimals(sortedAnimals);
+  }, [animals, dataLoading]);
+
+  useEffect(() => {
+    if (!inputValue) {
+      setListAnimals(
+        originalAnimals.filter((animal) => animal.category !== 'neonate')
+      );
+      return;
+    }
+
+    const filtered = originalAnimals.filter((animal) =>
+      String(animal.manualId).includes(String(inputValue).toLowerCase())
+    );
+    setListAnimals(filtered);
+  }, [inputValue, originalAnimals]);
+
+  useEffect(() => {
+    if (availableYears.length === 0) {
+      setSelectedStatsYear(null);
+      return;
+    }
+
+    const latestYear = Math.max(...availableYears);
+    setSelectedStatsYear((current) =>
+      current && availableYears.includes(current) ? current : latestYear
+    );
+  }, [availableYears]);
+
+  const handleInputFileValue = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files ? event.target.files[0] : null;
+    setInputFile(file);
+  };
 
   async function handleUpload() {
+    if (!inputFile) return;
+
     const reader = new FileReader();
     reader.onload = async (event) => {
       const data = new Uint8Array(event.target?.result as ArrayBuffer);
@@ -86,7 +227,7 @@ export const Table: React.FC<TableProps> = ({
       const sheetName = workbook.SheetNames[0];
       const sheet = workbook.Sheets[sheetName];
       const json = XLSX.utils.sheet_to_json(sheet);
-      setIsLoading(!isLoading);
+      setIsLoading(true);
 
       try {
         const res = await fetch('/api/importAnimals', {
@@ -96,64 +237,17 @@ export const Table: React.FC<TableProps> = ({
         });
 
         const result = await res.json();
-        if (result.success) {
-          toast.success('Lista cadastrada com sucesso!');
-        } else {
-          toast.error('Erro com a importação');
-        }
+        if (result.success) toast.success('Lista cadastrada com sucesso!');
+        else toast.error('Erro com a importacao');
       } catch {
         toast.error('Erro com o arquivo');
-        setIsLoading(false);
       } finally {
         setIsLoading(false);
       }
     };
 
-    if (inputFile !== null) reader.readAsArrayBuffer(inputFile);
+    reader.readAsArrayBuffer(inputFile);
   }
-
-  const handleInputFileValue = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files ? event.target.files[0] : null;
-    setInputFile(file);
-  };
-
-  useEffect(() => {
-    if (dataLoading) return;
-    const sortedAnimals = [...animals].sort((a, b) => {
-      const aIsNumber = !isNaN(Number(a.manualId));
-      const bIsNumber = !isNaN(Number(b.manualId));
-
-      if (!aIsNumber && !bIsNumber) {
-        return String(a.manualId).localeCompare(String(b.manualId));
-      } else if (aIsNumber && bIsNumber) {
-        return Number(a.manualId) - Number(b.manualId);
-      } else {
-        return aIsNumber ? 1 : -1;
-      }
-    });
-
-    setOriginalAnimals(sortedAnimals);
-    setListAnimals(sortedAnimals);
-  }, [animals, dataLoading]);
-
-  useEffect(() => {
-    if (inputValue === '') {
-      const listWithoutDependents = originalAnimals.filter((animal) => {
-        return animal.category !== 'neonate';
-      });
-      setListAnimals(listWithoutDependents);
-    } else {
-      setListAnimals(originalAnimals);
-      const filtered = originalAnimals.filter((animal) => {
-        const manualId = String(animal.manualId);
-        const input = String(inputValue?.toLowerCase());
-        return manualId.includes(input);
-      });
-      setListAnimals(filtered);
-    }
-  }, [inputValue, originalAnimals]);
-
-  const router = useRouter();
 
   const handleNavigation = (id: string | null) => {
     setIsLoading(true);
@@ -161,53 +255,35 @@ export const Table: React.FC<TableProps> = ({
   };
 
   const handleAnimalAdded = (newAnimal: Animal) => {
-    setListAnimals((prev) => {
-      const updatedListAnimals = [...prev, newAnimal];
-      return updatedListAnimals.sort((a, b) => {
+    const updateAndSort = (prev: Animal[]) => {
+      const updated = [...prev, newAnimal];
+      return updated.sort((a, b) => {
         const aIsNumber = !isNaN(Number(a.manualId));
         const bIsNumber = !isNaN(Number(b.manualId));
 
-        if (!aIsNumber && !bIsNumber) {
+        if (!aIsNumber && !bIsNumber)
           return String(a.manualId).localeCompare(String(b.manualId));
-        } else if (aIsNumber && bIsNumber) {
+        if (aIsNumber && bIsNumber)
           return Number(a.manualId) - Number(b.manualId);
-        } else {
-          return aIsNumber ? 1 : -1;
-        }
+        return aIsNumber ? 1 : -1;
       });
-    });
-    setOriginalAnimals((prev) => {
-      const updatedListAnimals = [...prev, newAnimal];
-      return updatedListAnimals.sort((a, b) => {
-        const aIsNumber = !isNaN(Number(a.manualId));
-        const bIsNumber = !isNaN(Number(b.manualId));
+    };
 
-        if (!aIsNumber && !bIsNumber) {
-          return String(a.manualId).localeCompare(String(b.manualId));
-        } else if (aIsNumber && bIsNumber) {
-          return Number(a.manualId) - Number(b.manualId);
-        } else {
-          return aIsNumber ? 1 : -1;
-        }
-      });
-    });
-  };
-
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(event.target.value);
+    setListAnimals(updateAndSort);
+    setOriginalAnimals(updateAndSort);
   };
 
   const pregnantCowsCount = animals.filter(
     (animal) =>
       (animal.category === 'cow' || animal.category === 'old cow') &&
-      (animal.gender === 'female' || animal.gender === 'fêmea') &&
+      isFemale(animal.gender) &&
       animal.reproductiveStatus === 'pregnant'
   ).length;
 
   const emptyCowsCount = animals.filter(
     (animal) =>
       (animal.category === 'cow' || animal.category === 'old cow') &&
-      (animal.gender === 'female' || animal.gender === 'fêmea') &&
+      isFemale(animal.gender) &&
       animal.reproductiveStatus === 'empty'
   ).length;
 
@@ -238,16 +314,11 @@ export const Table: React.FC<TableProps> = ({
           <table className="m-auto max-w-max overflow-x-auto overflow-y-scroll scroll-smooth text-left xl:text-sm">
             <thead className="sticky top-0 z-20 border-collapse bg-primary text-background">
               <tr>
-                <th className="w-20 px-1 py-2">Status</th>
-                <th className="px-1 py-2">ID</th>
-                <th className="px-1 py-2">Raça</th>
-                <th className="px-1 py-2">Sexo</th>
-                <th className="px-1 py-2">Mãe</th>
-                <th className="px-1 py-2">Pai</th>
-                <th className="px-1 py-2">Nascimento</th>
-                <th className="px-1 py-2">Categoria</th>
-                <th className="px-1 py-2">Peso atual</th>
-                <th className="sticky right-0 bg-primary px-1 py-2 text-background"></th>
+                {TABLE_HEADERS.map((header, index) => (
+                  <th key={`${header}-${index}`} className="px-1 py-2">
+                    {header}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody className="overflow-y-auto scroll-smooth">
@@ -273,7 +344,7 @@ export const Table: React.FC<TableProps> = ({
   return (
     <main
       style={{ height: 'calc(100vh - 170px)' }}
-      className="relative m-auto max-w-max pb-5"
+      className="relative m-auto max-w-[1800px] pb-5"
     >
       {isLoading ? (
         <Loading />
@@ -298,7 +369,7 @@ export const Table: React.FC<TableProps> = ({
                   name="inputSearch"
                   id="inputSearch"
                   placeholder="Pesquisar ID"
-                  onChange={handleInputChange}
+                  onChange={(event) => setInputValue(event.target.value)}
                 />
               </div>
               <div className="flex flex-col gap-3 md:flex-row">
@@ -311,9 +382,8 @@ export const Table: React.FC<TableProps> = ({
                     <DialogHeader>
                       <DialogTitle>Escolha o arquivo para importar</DialogTitle>
                       <DialogDescription>
-                        Para que a importação funcione, use o arquivo modelo no
-                        link abaixo. Transfira os animais para o arquivo, salve
-                        o novo arquivo e importe pelo botão. <br /> <br />
+                        Para a importacao funcionar, use o arquivo modelo no
+                        link abaixo.
                       </DialogDescription>
                     </DialogHeader>
                     <div className="flex gap-2">
@@ -380,16 +450,16 @@ export const Table: React.FC<TableProps> = ({
               </div>
             </div>
           </div>
+
           <br className="md:hidden" />
           <div className="my-5 hidden gap-3 md:flex">
             <Card className="rounded-sm p-2">
               <HoverCard>
                 <HoverCardTrigger className="cursor-default">
-                  Total de Animais: {animals.length}
+                  Total de animais: {animals.length}
                 </HoverCardTrigger>
                 <HoverCardContent className="bg-primary text-background">
-                  Total de animais contabilizando todos os cadastrados,
-                  incluindo neonate.
+                  Total considerando todos os cadastrados, incluindo neonato.
                 </HoverCardContent>
               </HoverCard>
             </Card>
@@ -432,185 +502,266 @@ export const Table: React.FC<TableProps> = ({
               </HoverCard>
             </Card>
           </div>
+
           <div className="h-full w-full overflow-y-auto pb-28 md:pb-20">
-            <table className="m-auto max-w-max overflow-x-auto overflow-y-scroll scroll-smooth text-left xl:text-sm">
-              <thead className="sticky top-0 z-20 border-collapse bg-primary text-background">
-                <tr>
-                  <th className="w-20 px-1 py-2">Status</th>
-                  <th className="px-1 py-2">ID</th>
-                  <th className="px-1 py-2">Raça</th>
-                  <th className="px-1 py-2">Sexo</th>
-                  <th className="px-1 py-2">Mãe</th>
-                  <th className="px-1 py-2">Pai</th>
-                  <th className="px-1 py-2">Nascimento</th>
-                  <th className="px-1 py-2">Categoria</th>
-                  <th className="px-1 py-2">Peso atual</th>
-                  <th className="sticky right-0 bg-primary px-1 py-2 text-background"></th>
-                </tr>
-              </thead>
-              <tbody className="overflow-y-auto scroll-smooth">
-                {listAnimals.map((animal: Animal, index: number) => {
-                  const mother: Animal | undefined = animals.find(
-                    (a) => a.id === animal.motherId
-                  );
-                  const father: Animal | undefined = animals.find(
-                    (a) => a.id === animal.fatherId
-                  );
+            <div className="flex h-full w-full flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div className="w-full lg:max-w-[700px] lg:flex-none">
+                <div className="w-full overflow-x-auto">
+                  <table className="min-w-[900px] overflow-y-scroll scroll-smooth text-left xl:text-sm">
+                    <thead className="sticky top-0 z-20 border-collapse bg-primary text-background">
+                      <tr>
+                        <th className="w-20 px-1 py-2">Status</th>
+                        <th className="px-1 py-2">ID</th>
+                        <th className="px-1 py-2">Raca</th>
+                        <th className="px-1 py-2">Sexo</th>
+                        <th className="px-1 py-2">Mae</th>
+                        <th className="px-1 py-2">Pai</th>
+                        <th className="px-1 py-2">Nascimento</th>
+                        <th className="px-1 py-2">Categoria</th>
+                        <th className="px-1 py-2">Peso atual</th>
+                        <th className="sticky right-0 bg-primary px-1 py-2 text-background"></th>
+                      </tr>
+                    </thead>
+                    <tbody className="overflow-y-auto scroll-smooth">
+                      {listAnimals.map((animal: Animal, index: number) => {
+                        const mother = animals.find(
+                          (a) => a.id === animal.motherId
+                        );
+                        const father = animals.find(
+                          (a) => a.id === animal.fatherId
+                        );
 
-                  const checkFatherCategory = (): string => {
-                    const category = father?.category;
-                    if (category === 'bull' || category === 'old bull') {
-                      return 'Touro';
-                    } else if (category === 'ox' || category === 'old ox') {
-                      return 'Boi';
-                    } else {
-                      return '';
-                    }
-                  };
-                  return (
-                    <tr
-                      key={animal.id}
-                      className={`${index % 2 === 0 ? 'bg-muted' : ''} cursor-pointer`}
-                      onClick={() => handleNavigation(animal.id)}
-                    >
-                      <td className="px-1 py-3 pr-4">
-                        <span className="flex w-max items-center gap-1">
-                          {animal?.status === 'active' ||
-                          animal?.status === 'ativo' ? (
-                            <>
-                              <FaCheckCircle className="inline-block size-3 text-green-400" />{' '}
-                              Ativo
-                            </>
-                          ) : animal?.status === 'inactive' ||
-                            animal?.status === 'inativo' ? (
-                            <>
-                              <MdHighlightOff className="inline-block size-3 text-gray-500" />{' '}
-                              Inativo
-                            </>
-                          ) : animal?.status === 'dead' ||
-                            animal?.status === 'morto' ? (
-                            <>
-                              <IoSkull className="inline-block size-3 text-black" />{' '}
-                              Morto
-                            </>
-                          ) : animal?.status === 'lost' ? (
-                            <>
-                              <TbZoomQuestionFilled className="inline-block size-3 text-amber-500" />{' '}
-                              Perdida
-                            </>
-                          ) : animal?.status === 'trash' ? (
-                            <>
-                              <TbTrashXFilled className="inline-block size-3 text-red-500" />{' '}
-                              Descarte
-                            </>
-                          ) : (
-                            <>
-                              <TbMoneybag className="inline-block size-3 text-yellow-600" />{' '}
-                              Vendido
-                            </>
-                          )}
-                        </span>
-                      </td>
-                      <td className="px-1 py-3">
-                        {animal.manualId.charAt(0).toLocaleUpperCase() +
-                          animal.manualId.slice(1)}
-                      </td>
-                      <td className="px-1 py-3">
-                        {animal.breed.charAt(0).toUpperCase() +
-                          animal.breed.slice(1)}
-                      </td>
-                      <td className="px-1 py-3 pr-4">
-                        {animal.gender === 'male' || animal.gender === 'macho'
-                          ? 'Macho'
-                          : 'Fêmea'}
-                      </td>
-                      {animal.motherId === null ? (
-                        <td className="cursor-default px-1 py-3">
-                          <span className="flex w-max items-center gap-1">
-                            Comercial
-                          </span>
-                        </td>
-                      ) : (
-                        <td
-                          className="px-1 py-3 pr-4 transition duration-300 ease-in-out hover:opacity-50"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            handleNavigation(animal.motherId);
-                          }}
-                        >
-                          <span className="flex w-max items-center gap-1 border-b border-foreground">
-                            {`Vaca ${mother?.manualId}`}
-                            <LiaExternalLinkAltSolid className="inline-block size-4" />
-                          </span>
-                        </td>
-                      )}
-                      {animal.fatherId === null ? (
-                        <td className="cursor-default px-1 py-3">
-                          <span className="flex w-max items-center gap-1">
-                            Comercial
-                          </span>
-                        </td>
-                      ) : (
-                        <td
-                          className="px-1 py-3 pr-4 transition duration-300 ease-in-out hover:opacity-50"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            handleNavigation(animal.fatherId);
-                          }}
-                        >
-                          <span className="flex w-max items-center gap-1 border-b border-foreground">
-                            {`${checkFatherCategory()} ${father?.manualId}`}
-                            <LiaExternalLinkAltSolid className="inline-block size-4" />
-                          </span>
-                        </td>
-                      )}
-                      <td className="px-1 py-3">
-                        {animal.birthDate
-                          ? new Date(animal.birthDate).toLocaleDateString()
-                          : 'N/A'}
-                      </td>
+                        const fatherLabel =
+                          father?.category === 'bull' ||
+                          father?.category === 'old bull'
+                            ? 'Touro'
+                            : father?.category === 'ox' ||
+                                father?.category === 'old ox'
+                              ? 'Boi'
+                              : '';
 
-                      <td className="px-1 py-3 pr-4">
-                        <span className="flex w-max">
-                          {animal.category == 'neonate'
-                            ? 'Neonato'
-                            : animal.category == 'calf'
-                              ? 'Bezerro'
-                              : animal.category == 'steer' &&
-                                  animal.gender == 'male'
-                                ? 'Garrote'
-                                : animal.category == 'steer' &&
-                                    animal.gender == 'female'
-                                  ? 'Novilho'
-                                  : animal.category == 'cow'
-                                    ? 'Vaca'
-                                    : animal.category == 'old cow'
-                                      ? 'Vaca velha'
-                                      : animal.category == 'ox'
-                                        ? 'Boi'
-                                        : animal.category == 'old ox'
-                                          ? 'Boi Velho'
-                                          : animal.category == 'bull'
-                                            ? 'Touro'
-                                            : animal.category == 'old bull' &&
-                                              'Touro velho'}
-                        </span>
-                      </td>
-                      <td className="px-2 py-3">
-                        <span className="flex w-max">{animal.weight} Kg</span>
-                      </td>
-                      <td
-                        className={`sticky right-0 px-1 py-3 ${
-                          index % 2 === 0 ? 'bg-muted' : 'bg-background'
-                        }`}
+                        return (
+                          <tr
+                            key={animal.id}
+                            className={`${index % 2 === 0 ? 'bg-muted' : ''} cursor-pointer`}
+                            onClick={() => handleNavigation(animal.id)}
+                          >
+                            <td className="px-1 py-3 pr-4">
+                              <span className="flex w-max items-center gap-1">
+                                {getStatusNode(animal.status)}
+                              </span>
+                            </td>
+                            <td className="px-1 py-3">
+                              {animal.manualId.charAt(0).toUpperCase() +
+                                animal.manualId.slice(1)}
+                            </td>
+                            <td className="px-1 py-3">
+                              {animal.breed.charAt(0).toUpperCase() +
+                                animal.breed.slice(1)}
+                            </td>
+                            <td className="px-1 py-3 pr-4">
+                              {animal.gender === 'male' ||
+                              animal.gender === 'macho'
+                                ? 'Macho'
+                                : 'Femea'}
+                            </td>
+
+                            {animal.motherId === null ? (
+                              <td className="cursor-default px-1 py-3">
+                                <span className="flex w-max items-center gap-1">
+                                  Comercial
+                                </span>
+                              </td>
+                            ) : (
+                              <td
+                                className="px-1 py-3 pr-4 transition duration-300 ease-in-out hover:opacity-50"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  handleNavigation(animal.motherId);
+                                }}
+                              >
+                                <span className="flex w-max items-center gap-1 border-b border-foreground">
+                                  {`Vaca ${mother?.manualId}`}
+                                  <LiaExternalLinkAltSolid className="inline-block size-4" />
+                                </span>
+                              </td>
+                            )}
+
+                            {animal.fatherId === null ? (
+                              <td className="cursor-default px-1 py-3">
+                                <span className="flex w-max items-center gap-1">
+                                  Comercial
+                                </span>
+                              </td>
+                            ) : (
+                              <td
+                                className="px-1 py-3 pr-4 transition duration-300 ease-in-out hover:opacity-50"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  handleNavigation(animal.fatherId);
+                                }}
+                              >
+                                <span className="flex w-max items-center gap-1 border-b border-foreground">
+                                  {`${fatherLabel} ${father?.manualId}`}
+                                  <LiaExternalLinkAltSolid className="inline-block size-4" />
+                                </span>
+                              </td>
+                            )}
+
+                            <td className="px-1 py-3">
+                              {animal.birthDate
+                                ? new Date(
+                                    animal.birthDate
+                                  ).toLocaleDateString()
+                                : 'N/A'}
+                            </td>
+                            <td className="px-1 py-3 pr-4">
+                              <span className="flex w-max">
+                                {getCategoryLabel(animal)}
+                              </span>
+                            </td>
+                            <td className="px-2 py-3">
+                              <span className="flex w-max">
+                                {animal.weight} Kg
+                              </span>
+                            </td>
+                            <td
+                              className={`sticky right-0 px-1 py-3 ${index % 2 === 0 ? 'bg-muted' : 'bg-background'}`}
+                            >
+                              <SquareArrowOutUpLeft size={20} />
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <aside className="hidden w-full min-w-[200px] max-w-80 rounded-sm border bg-background p-3 lg:block lg:flex-1">
+                <div className="mb-3 flex items-center justify-between gap-2">
+                  <h3 className="text-sm font-semibold">
+                    Natalidade e mortalidade
+                  </h3>
+                  <span className="rounded-full bg-primary/10 px-2 py-1 text-[10px] uppercase tracking-wide text-primary">
+                    Premium em breve
+                  </span>
+                </div>
+
+                {selectedYearStats ? (
+                  <>
+                    <div className="mb-3 flex items-center gap-2">
+                      <label htmlFor="stats-year" className="text-xs">
+                        Ano:
+                      </label>
+                      <select
+                        id="stats-year"
+                        className="rounded-sm border bg-background px-2 py-1 text-xs outline-none"
+                        value={selectedStatsYear ?? ''}
+                        onChange={(event) =>
+                          setSelectedStatsYear(Number(event.target.value))
+                        }
                       >
-                        <SquareArrowOutUpLeft size={20} />
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                        {availableYears
+                          .slice()
+                          .sort((a, b) => b - a)
+                          .map((year) => (
+                            <option key={year} value={year}>
+                              {year}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+
+                    <div className="mb-4 grid grid-cols-2 gap-2 text-[11px]">
+                      <Card className="p-2">
+                        Machos: {selectedYearStats.totalMaleBirths}
+                      </Card>
+                      <Card className="p-2">
+                        Femeas: {selectedYearStats.totalFemaleBirths}
+                      </Card>
+                      <Card className="p-2">
+                        Mortos: {selectedYearStats.totalDeaths}
+                      </Card>
+                      <Card className="p-2">
+                        Mudancas de status:{' '}
+                        {selectedYearStats.totalStatusChanges}
+                      </Card>
+                    </div>
+
+                    <div className="max-h-[58vh] space-y-2 overflow-y-auto pr-1">
+                      {selectedYearStats.months.map((month) => {
+                        const malePercent =
+                          (month.maleBirths / maxMonthlyValue) * 100;
+                        const femalePercent =
+                          (month.femaleBirths / maxMonthlyValue) * 100;
+                        const deathPercent =
+                          (month.deaths / maxMonthlyValue) * 100;
+
+                        return (
+                          <div
+                            key={month.month}
+                            className="rounded-sm border p-2"
+                          >
+                            <div className="mb-1 flex items-center justify-between text-[11px]">
+                              <span className="font-semibold">
+                                {month.label}
+                              </span>
+                              <span>Status: {month.statusChanges}</span>
+                            </div>
+
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2 text-[10px]">
+                                <span className="w-12">Machos</span>
+                                <div className="h-2 flex-1 rounded bg-muted">
+                                  <div
+                                    className="h-2 rounded bg-blue-500"
+                                    style={{ width: `${malePercent}%` }}
+                                  />
+                                </div>
+                                <span className="w-4 text-right">
+                                  {month.maleBirths}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-2 text-[10px]">
+                                <span className="w-12">Femeas</span>
+                                <div className="h-2 flex-1 rounded bg-muted">
+                                  <div
+                                    className="h-2 rounded bg-pink-500"
+                                    style={{ width: `${femalePercent}%` }}
+                                  />
+                                </div>
+                                <span className="w-4 text-right">
+                                  {month.femaleBirths}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-2 text-[10px]">
+                                <span className="w-12">Mortes</span>
+                                <div className="h-2 flex-1 rounded bg-muted">
+                                  <div
+                                    className="h-2 rounded bg-gray-700"
+                                    style={{ width: `${deathPercent}%` }}
+                                  />
+                                </div>
+                                <span className="w-4 text-right">
+                                  {month.deaths}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    Sem dados para exibir o grafico.
+                  </p>
+                )}
+              </aside>
+            </div>
           </div>
         </>
       )}
