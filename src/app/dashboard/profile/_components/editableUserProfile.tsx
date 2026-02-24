@@ -4,16 +4,12 @@ import { useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { signOut } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Trash2 } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 type ProfileUser = {
   id: string;
@@ -28,6 +24,7 @@ interface EditableUserProfileProps {
 }
 
 const EditableUserProfile: React.FC<EditableUserProfileProps> = ({ user }) => {
+  const { data } = useSession();
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [form, setForm] = useState<ProfileUser>(user);
@@ -105,13 +102,16 @@ const EditableUserProfile: React.FC<EditableUserProfileProps> = ({ user }) => {
           <div className="flex items-center gap-4 lg:gap-10">
             {!isEditing ? (
               <>
-                <button onClick={handleDeleteAccount} aria-label="Excluir conta">
+                <button
+                  onClick={handleDeleteAccount}
+                  aria-label="Excluir conta"
+                >
                   <Trash2 className="text-red-500" />
                 </button>
                 <Button onClick={() => setIsEditing(true)}>Editar dados</Button>
               </>
             ) : (
-              <div className="flex gap-5">
+              <div className="flex flex-col-reverse gap-5">
                 <Button type="button" onClick={handleSave}>
                   Salvar
                 </Button>
@@ -126,23 +126,24 @@ const EditableUserProfile: React.FC<EditableUserProfileProps> = ({ user }) => {
       </section>
 
       <div className="m-auto flex w-full max-w-lg flex-col gap-6 pb-10 pt-5">
-        <Card className="border-amber-500/40 bg-amber-500/5 px-2 py-4">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Aviso</CardTitle>
-          </CardHeader>
-          <CardContent className="px-1 text-sm text-muted-foreground">
-            Sua conta será monitorada. Se você não fizer nenhuma alteração (em
-            animais ou no seu perfil) dentro de 6 meses, a conta poderá ser
-            excluída automaticamente. (Ainda não está ativo — apenas aviso.)
-          </CardContent>
-        </Card>
-
         {!isEditing ? (
           <Card className="px-2 py-5">
-            <CardHeader className="pb-2">
+            <CardHeader className="pb-10">
               <CardTitle className="text-base">Seus dados</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-3 px-1 text-sm">
+              <div className="flex items-end">
+                <strong>Imagem (URL): </strong>
+                <Avatar className="size-32">
+                  <AvatarImage
+                    src={data?.user?.image ?? undefined}
+                    alt="Image from google profile"
+                  />
+                  <AvatarFallback className="text-foreground">
+                    {data?.user?.name?.charAt(0)}{' '}
+                  </AvatarFallback>
+                </Avatar>
+              </div>
               <div>
                 <strong>Nome: </strong>
                 <span>{form.name}</span>
@@ -155,10 +156,6 @@ const EditableUserProfile: React.FC<EditableUserProfileProps> = ({ user }) => {
                 <strong>CNPJ/CPF: </strong>
                 <span>{form.cnpj ?? '—'}</span>
               </div>
-              <div>
-                <strong>Imagem (URL): </strong>
-                <span className="break-all">{form.image ?? '—'}</span>
-              </div>
             </CardContent>
           </Card>
         ) : (
@@ -168,6 +165,18 @@ const EditableUserProfile: React.FC<EditableUserProfileProps> = ({ user }) => {
                 <CardTitle className="text-base">Editar dados</CardTitle>
               </CardHeader>
               <CardContent className="flex flex-col gap-4 px-1">
+                <div className="flex flex-col gap-1">
+                  <label className="text-secondary" htmlFor="image">
+                    Imagem (URL):
+                  </label>
+                  <input
+                    className="w-full border border-b border-b-primary bg-transparent outline-none"
+                    id="image"
+                    name="image"
+                    value={form.image ?? ''}
+                    onChange={handleChange}
+                  />
+                </div>
                 <div className="flex flex-col gap-1">
                   <label className="text-secondary" htmlFor="name">
                     Nome:
@@ -186,7 +195,7 @@ const EditableUserProfile: React.FC<EditableUserProfileProps> = ({ user }) => {
                     E-mail:
                   </label>
                   <input
-                    className="w-full border border-b border-b-primary bg-transparent outline-none opacity-70"
+                    className="w-full border border-b border-b-primary bg-transparent opacity-70 outline-none"
                     id="email"
                     name="email"
                     value={form.email ?? ''}
@@ -207,27 +216,23 @@ const EditableUserProfile: React.FC<EditableUserProfileProps> = ({ user }) => {
                     onChange={handleChange}
                   />
                 </div>
-
-                <div className="flex flex-col gap-1">
-                  <label className="text-secondary" htmlFor="image">
-                    Imagem (URL):
-                  </label>
-                  <input
-                    className="w-full border border-b border-b-primary bg-transparent outline-none"
-                    id="image"
-                    name="image"
-                    value={form.image ?? ''}
-                    onChange={handleChange}
-                  />
-                </div>
               </CardContent>
             </Card>
           </form>
         )}
+        <Card className="border-amber-500/40 bg-amber-500/5 px-2 py-4">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Aviso</CardTitle>
+          </CardHeader>
+          <CardContent className="px-1 text-sm text-muted-foreground">
+            Sua conta será monitorada. Se você não fizer nenhuma alteração (em
+            animais ou no seu perfil) dentro de 6 meses, a conta poderá ser
+            excluída automaticamente. (Ainda não está ativo — apenas aviso.)
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
 };
 
 export default EditableUserProfile;
-

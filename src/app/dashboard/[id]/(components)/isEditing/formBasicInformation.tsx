@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Animal } from '@/types/animal';
+import { weightRecordOptions } from '@/lib/weightHistory';
 
 interface FormBasicInformationProps {
   allDataForm: Animal;
@@ -83,13 +84,50 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
 
               <div>
                 <label className="text-secondary" htmlFor="weight">
-                  Peso:
+                  Peso atual:
                 </label>
                 <input
                   type="number"
                   name="weight"
                   id="weight"
                   value={allDataForm.weight ?? ''}
+                  onChange={handleInputValues}
+                  className="w-full border border-b border-b-primary bg-transparent outline-none"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-secondary" htmlFor="weightRecordType">
+                  Tipo pesagem:
+                </label>
+                <select
+                  name="weightRecordType"
+                  id="weightRecordType"
+                  value={allDataForm.weightRecordType ?? 'OTHER'}
+                  onChange={handleInputValues}
+                  className="w-full border border-b border-b-primary bg-transparent outline-none"
+                >
+                  {weightRecordOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-secondary" htmlFor="weightRecordDate">
+                  Data da pesagem:
+                </label>
+                <input
+                  type="date"
+                  name="weightRecordDate"
+                  id="weightRecordDate"
+                  value={
+                    allDataForm.weightRecordDate
+                      ? new Date(allDataForm.weightRecordDate)
+                          .toISOString()
+                          .split('T')[0]
+                      : new Date().toISOString().split('T')[0]
+                  }
                   onChange={handleInputValues}
                   className="w-full border border-b border-b-primary bg-transparent outline-none"
                 />

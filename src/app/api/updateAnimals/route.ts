@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 import prisma from '@/lib/prisma';
+import {
+  parseWeightRecordDate,
+  parseWeightRecordType,
+} from '@/lib/weightHistory';
 
 export async function PUT(req: Request) {
   try {
@@ -28,17 +32,51 @@ export async function PUT(req: Request) {
       'dewormings',
       'diseases',
       'vaccines',
+      'weightHistories',
       'createdAt',
     ];
     fieldsToRemove.forEach((field) => delete allDataForm[field]);
+
+    const recordType = parseWeightRecordType(allDataForm.weightRecordType);
+    const measuredAt = parseWeightRecordDate(allDataForm.weightRecordDate);
+
+    delete allDataForm.weightRecordType;
+    delete allDataForm.weightRecordDate;
 
     if (allDataForm.bodyConditionScore !== null) {
       allDataForm.bodyConditionScore = Number(allDataForm.bodyConditionScore);
     }
 
-    const data = await prisma.animal.update({
+    const existingAnimal = await prisma.animal.findUnique({
       where: { id: allDataForm.id },
-      data: allDataForm,
+      select: { weight: true },
+    });
+
+    if (!existingAnimal) {
+      return NextResponse.json({ message: 'Animal não encontrado' }, { status: 404 });
+    }
+
+    const data = await prisma.$transaction(async (tx) => {
+      const updatedAnimal = await tx.animal.update({
+        where: { id: allDataForm.id },
+        data: allDataForm,
+      });
+
+      const hasWeightChanged =
+        Number(existingAnimal.weight) !== Number(allDataForm.weight);
+
+      if (hasWeightChanged) {
+        await tx.animalWeightHistory.create({
+          data: {
+            animalId: updatedAnimal.id,
+            weight: Number(updatedAnimal.weight),
+            recordType: recordType,
+            measuredAt: measuredAt,
+          },
+        });
+      }
+
+      return updatedAnimal;
     });
 
     const dateNow = new Date();

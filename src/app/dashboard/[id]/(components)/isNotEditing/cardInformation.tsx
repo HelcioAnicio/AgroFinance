@@ -84,7 +84,7 @@ export const CardInformation: React.FC<InformationProps> = ({
           </span>
         </Card>
         <Card className="w-max rounded-sm px-3 py-1">
-          <strong>Peso: </strong>
+          <strong>Peso atual: </strong>
           <span>{allDataForm?.weight} kg</span>
         </Card>
       </section>

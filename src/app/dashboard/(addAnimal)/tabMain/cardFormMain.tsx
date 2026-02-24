@@ -8,6 +8,7 @@ import { InputForm } from '@/components/ui/inputForm';
 import { RadioForm } from '@/components/ui/radioForm';
 import { SelectForm } from '@/components/ui/selectForm';
 import { toast } from 'sonner';
+import { weightRecordOptions } from '@/lib/weightHistory';
 
 interface CardFormMainProps {
   allDataForm: Animal;
@@ -77,7 +78,6 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
     'Red Poll',
   ];
 
-  const [category, setCategory] = useState<string>('');
   const [isReproductive, setIsReproductive] = useState<boolean>(false);
 
   const cleanAllDataForm = () => {
@@ -119,7 +119,6 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
       }
 
       if (allDataForm.category !== newCategory) {
-        setCategory(newCategory);
         setAllDataForm((prev) => ({ ...prev, category: newCategory }));
       }
     }
@@ -255,6 +254,32 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                 name="weight"
                 id="weight"
                 value={allDataForm.weight?.toString() ?? ''}
+                onChange={handleInputValues}
+              />
+              <SelectForm
+                htmlFor="weightRecordType"
+                label="Tipo pesagem:"
+                name="weightRecordType"
+                id="weightRecordType"
+                value={allDataForm.weightRecordType ?? 'OTHER'}
+                onChange={handleInputValues}
+                options={weightRecordOptions}
+                defaultOption="Escolha o tipo"
+              />
+              <InputForm
+                classNameInput="max-w-none"
+                htmlFor="weightRecordDate"
+                label="Data da pesagem:"
+                type="date"
+                name="weightRecordDate"
+                id="weightRecordDate"
+                value={
+                  allDataForm.weightRecordDate
+                    ? new Date(allDataForm.weightRecordDate)
+                        .toISOString()
+                        .split('T')[0]
+                    : new Date().toISOString().split('T')[0]
+                }
                 onChange={handleInputValues}
               />
 

@@ -1,5 +1,17 @@
 import { User } from './user';
 
+export type WeightRecordType = 'PN' | 'PS' | 'PD' | 'PA' | 'OTHER';
+
+export interface AnimalWeightHistory {
+  id: string;
+  animalId: string;
+  weight: number;
+  recordType: WeightRecordType;
+  measuredAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface Animal {
   id: string;
   status: string;
@@ -37,6 +49,9 @@ export interface Animal {
   mother?: Animal;
   offspringFromMother?: Animal[];
   owner?: User;
+  weightHistories?: AnimalWeightHistory[];
+  weightRecordType?: WeightRecordType;
+  weightRecordDate?: string | Date | null;
   // dewormings?: Deworming[];
   // diseases?: Disease[];
   // vaccines?: Vaccine[];

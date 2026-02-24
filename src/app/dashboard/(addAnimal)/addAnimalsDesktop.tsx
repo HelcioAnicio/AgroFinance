@@ -28,7 +28,10 @@ export const AddAnimalDesktop: React.FC<AddAnimalProps> = ({
   onAnimalAdded,
 }) => {
   const [tabValue, setTabValue] = useState('principais');
-  const [allDataForm, setAllDataForm] = useState<Animal>({} as Animal);
+  const [allDataForm, setAllDataForm] = useState<Animal>({
+    weightRecordType: 'OTHER',
+    weightRecordDate: new Date().toISOString().split('T')[0],
+  } as Animal);
   const { data: session } = useSession();
   const userEmail = users.find((user) => user.email === session?.user?.email);
 
@@ -104,6 +107,9 @@ export const AddAnimalDesktop: React.FC<AddAnimalProps> = ({
           ? null
           : allDataForm.bullIatfId,
       updatedAt: new Date(),
+      weightRecordType: allDataForm.weightRecordType ?? 'OTHER',
+      weightRecordDate:
+        allDataForm.weightRecordDate ?? new Date().toISOString().split('T')[0],
     };
 
     try {
@@ -117,7 +123,10 @@ export const AddAnimalDesktop: React.FC<AddAnimalProps> = ({
         }
       );
 
-      setAllDataForm({} as Animal);
+      setAllDataForm({
+        weightRecordType: 'OTHER',
+        weightRecordDate: new Date().toISOString().split('T')[0],
+      } as Animal);
       toast.success('Animal cadastrado com sucesso!');
       onAnimalAdded(dataToSubmit);
     } catch {

@@ -4,6 +4,10 @@ import { authOptions } from '@/lib/auth';
 import { fetchUsers } from '@/lib/fetchData';
 import prisma from '@/lib/prisma';
 import { v4 as uuidv4 } from 'uuid';
+import {
+  parseWeightRecordDate,
+  parseWeightRecordType,
+} from '@/lib/weightHistory';
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -26,7 +30,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const createAnimal = await prisma.animal.create({ data: allDataForm });
+    const { weightRecordDate, weightRecordType, ...animalData } = allDataForm;
+
+    const createAnimal = await prisma.$transaction(async (tx) => {
+      const animal = await tx.animal.create({ data: animalData });
+
+      await tx.animalWeightHistory.create({
+        data: {
+          animalId: animal.id,
+          weight: Number(animalData.weight),
+          recordType: parseWeightRecordType(weightRecordType),
+          measuredAt: parseWeightRecordDate(weightRecordDate),
+        },
+      });
+
+      return animal;
+    });
 
     let createNotification;
 

@@ -68,8 +68,30 @@ model Animal {
   diseases              Disease[]      @relation("AnimalDiseases")
   Notification          Notification[]
   vaccines              Vaccine[]      @relation("AnimalVaccines")
+  weightHistories       AnimalWeightHistory[]
 
   @@unique([manualId, ownerId])
+}
+
+enum WeightRecordType {
+  PN
+  PS
+  PD
+  PA
+  OTHER
+}
+
+model AnimalWeightHistory {
+  id         String           @id @default(dbgenerated("gen_random_uuid()"))
+  animalId   String
+  weight     Float
+  recordType WeightRecordType @default(OTHER)
+  measuredAt DateTime
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+  animal     Animal           @relation(fields: [animalId], references: [id], onDelete: Cascade)
+
+  @@index([animalId, measuredAt])
 }
 
 model Disease {

@@ -62,7 +62,7 @@ const TABLE_HEADERS = [
   'Pai',
   'Nascimento',
   'Categoria',
-  'Peso',
+  'Peso atual',
   '',
 ];
 
@@ -246,7 +246,7 @@ export const Table: React.FC<TableProps> = ({
                 <th className="px-1 py-2">Pai</th>
                 <th className="px-1 py-2">Nascimento</th>
                 <th className="px-1 py-2">Categoria</th>
-                <th className="px-1 py-2">Peso</th>
+                <th className="px-1 py-2">Peso atual</th>
                 <th className="sticky right-0 bg-primary px-1 py-2 text-background"></th>
               </tr>
             </thead>
@@ -444,7 +444,7 @@ export const Table: React.FC<TableProps> = ({
                   <th className="px-1 py-2">Pai</th>
                   <th className="px-1 py-2">Nascimento</th>
                   <th className="px-1 py-2">Categoria</th>
-                  <th className="px-1 py-2">Peso</th>
+                  <th className="px-1 py-2">Peso atual</th>
                   <th className="sticky right-0 bg-primary px-1 py-2 text-background"></th>
                 </tr>
               </thead>
