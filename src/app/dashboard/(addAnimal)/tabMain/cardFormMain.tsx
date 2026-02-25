@@ -80,6 +80,15 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
 
   const [isReproductive, setIsReproductive] = useState<boolean>(false);
 
+  const statusLabels = {
+    active: 'Ativado',
+    inactive: 'Inativado',
+    dead: 'Morto',
+    sold: 'Vendido',
+    lost: 'Perdido',
+    trash: 'Descartado',
+  };
+
   const cleanAllDataForm = () => {
     setTabValue('principais');
     setAllDataForm({} as Animal);
@@ -179,7 +188,7 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
               />
             </div>
 
-            <div className="flex items-end justify-between gap-4">
+            <div className="flex items-end gap-4">
               <SelectForm
                 htmlFor="status"
                 label="Status:"
@@ -197,6 +206,25 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                 ]}
                 defaultOption="Escolha o status"
               />
+              {allDataForm.status && allDataForm.status !== 'active' && (
+                <InputForm
+                  classNameDiv="flex flex-col"
+                  classNameInput="max-w-none"
+                  htmlFor="statusChangeDate"
+                  label={`Data que foi ${statusLabels[allDataForm.status as keyof typeof statusLabels] || 'alterado'}:`}
+                  type="date"
+                  name="statusChangeDate"
+                  id="statusChangeDate"
+                  value={
+                    allDataForm.statusChangeDate
+                      ? new Date(allDataForm.statusChangeDate)
+                          .toISOString()
+                          .split('T')[0]
+                      : ''
+                  }
+                  onChange={handleInputValues}
+                />
+              )}
 
               <div className="flex flex-col items-start gap-1 text-xs">
                 <span className="text-secondary">Reprodutivo:</span>

@@ -119,6 +119,11 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   };
 
   const submitForm = async (allDataForm: Animal) => {
+    if (allDataForm.status !== 'active' && !allDataForm.statusChangeDate) {
+      toast.error('Informe a data da alteração de status.');
+      return;
+    }
+
     const dataToSubmit = {
       ...allDataForm,
       updatedAt: new Date(),

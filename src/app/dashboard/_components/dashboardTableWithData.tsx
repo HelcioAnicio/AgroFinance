@@ -10,7 +10,9 @@ export function DashboardTableWithData() {
   const [dataLoading, setDataLoading] = useState(true);
   const [animals, setAnimals] = useState<Animal[]>([]);
   const [users, setUsers] = useState<User[]>([]);
-  const [livestockStats, setLivestockStats] = useState<LivestockStatsYear[]>([]);
+  const [livestockStats, setLivestockStats] = useState<LivestockStatsYear[]>(
+    []
+  );
 
   const loadData = useCallback(async () => {
     setDataLoading(true);

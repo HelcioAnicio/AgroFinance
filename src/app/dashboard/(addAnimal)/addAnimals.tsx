@@ -80,6 +80,10 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
       toast.error('Selecione o status do animal.');
       return;
     }
+    if (allDataForm.status !== 'active' && !allDataForm.statusChangeDate) {
+      toast.error('Informe a data da alteração de status.');
+      return;
+    }
     const dataToSubmit = {
       ...allDataForm,
       id: uuidv4(),
@@ -103,6 +107,10 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
           ? null
           : allDataForm.bullIatfId,
       updatedAt: new Date(),
+      statusChangeDate:
+        allDataForm.status === 'active'
+          ? null
+          : allDataForm.statusChangeDate ?? null,
       weightRecordType: allDataForm.weightRecordType ?? 'OTHER',
       weightRecordDate:
         allDataForm.weightRecordDate ?? new Date().toISOString().split('T')[0],

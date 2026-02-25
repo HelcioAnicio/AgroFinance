@@ -13,6 +13,16 @@ export async function POST(req: Request) {
   function excelDateToJSDate(serial: number) {
     return new Date((serial - 25569) * 86400 * 1000); // 25569 = 1970-01-01 offset
   }
+  function parseImportDate(value: unknown): Date | null {
+    if (!value) return null;
+    if (value instanceof Date) return value;
+    if (typeof value === 'number') return excelDateToJSDate(value);
+    if (typeof value === 'string') {
+      const parsed = new Date(value);
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+    return null;
+  }
 
   if (!session || !userEmail) {
     return NextResponse.json(
@@ -34,10 +44,17 @@ export async function POST(req: Request) {
 
     const ownerId = userEmail.id;
 
-    const animals = items.map((item: Animal) => ({
-      ...item,
-      id: uuidv4(),
-      status:
+    const statusChangedAtById = new Map<string, Date>();
+
+    const animals = items.map((item: Animal) => {
+      const id = uuidv4();
+      const birthDate =
+        typeof item.birthDate === 'number'
+          ? new Date(excelDateToJSDate(item.birthDate).toISOString().split('T')[0])
+          : item.birthDate
+            ? new Date(item.birthDate)
+            : null;
+      const normalizedStatus =
         item.status === 'ativo' || item.status === 'active'
           ? 'active'
           : item.status === 'inativo' || item.status === 'inactive'
@@ -50,12 +67,27 @@ export async function POST(req: Request) {
                   ? 'lost'
                   : item.status === 'descarte' || item.status === 'trash'
                     ? 'trash'
-                    : 'active',
+                    : 'active';
+      const importedStatusChangeDate = parseImportDate(
+        (item as unknown as Record<string, unknown>).statusChangeDate ??
+          (item as unknown as Record<string, unknown>).status_change_date ??
+          (item as unknown as Record<string, unknown>).dataAlteracaoStatus
+      );
+      const changedAt =
+        normalizedStatus === 'active'
+          ? birthDate ?? new Date()
+          : importedStatusChangeDate ?? new Date();
+
+      statusChangedAtById.set(id, changedAt);
+
+      return {
+      ...item,
+      id,
+      status:
+        normalizedStatus,
       manualId: item.manualId?.toLowerCase(),
       gender: item.gender === 'macho' ? 'male' : 'female',
-      birthDate:
-        typeof item.birthDate === 'number' &&
-        new Date(excelDateToJSDate(item.birthDate).toISOString().split('T')[0]),
+      birthDate: birthDate,
       breed: item.breed?.toLowerCase(),
       category:
         item.category === 'dependente'
@@ -150,7 +182,8 @@ export async function POST(req: Request) {
             )
           : null,
       ownerId,
-    }));
+    };
+    });
 
     const allAnimalsUpdated = animals.map((animal) => {
       let fatherId: string | null;
@@ -213,8 +246,6 @@ export async function POST(req: Request) {
     });
 
     const validAnimals = allAnimalsUpdated.filter((a) => a !== null);
-    const changedAt = new Date();
-
     if (validAnimals.length > 0) {
       await prisma.animalStatusHistory.createMany({
         data: validAnimals.map((animal) => ({
@@ -222,9 +253,10 @@ export async function POST(req: Request) {
           ownerId: animal!.ownerId ?? ownerId,
           previousStatus: null,
           newStatus: animal!.status ?? 'active',
-          changedAt,
-          year: changedAt.getFullYear(),
-          month: changedAt.getMonth() + 1,
+          changedAt: statusChangedAtById.get(animal!.id) ?? new Date(),
+          year: (statusChangedAtById.get(animal!.id) ?? new Date()).getFullYear(),
+          month:
+            (statusChangedAtById.get(animal!.id) ?? new Date()).getMonth() + 1,
           reason: 'animal_import',
         })),
       });

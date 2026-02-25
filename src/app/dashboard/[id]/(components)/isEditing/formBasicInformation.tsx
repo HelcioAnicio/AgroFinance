@@ -59,6 +59,27 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
                   <option value="trash">Descarte</option>
                 </select>
               </div>
+              {allDataForm.status && allDataForm.status !== 'active' && (
+                <div>
+                  <label className="text-secondary" htmlFor="statusChangeDate">
+                    Data alteração status:
+                  </label>
+                  <input
+                    type="date"
+                    name="statusChangeDate"
+                    id="statusChangeDate"
+                    value={
+                      allDataForm.statusChangeDate
+                        ? new Date(allDataForm.statusChangeDate)
+                            .toISOString()
+                            .split('T')[0]
+                        : ''
+                    }
+                    onChange={handleInputValues}
+                    className="w-full border border-b border-b-primary bg-transparent outline-none"
+                  />
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">

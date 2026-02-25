@@ -39,9 +39,11 @@ export async function PUT(req: Request) {
 
     const recordType = parseWeightRecordType(allDataForm.weightRecordType);
     const measuredAt = parseWeightRecordDate(allDataForm.weightRecordDate);
+    const statusChangeDate = allDataForm.statusChangeDate;
 
     delete allDataForm.weightRecordType;
     delete allDataForm.weightRecordDate;
+    delete allDataForm.statusChangeDate;
 
     if (allDataForm.bodyConditionScore !== null) {
       allDataForm.bodyConditionScore = Number(allDataForm.bodyConditionScore);
@@ -79,7 +81,12 @@ export async function PUT(req: Request) {
       }
 
       if (hasStatusChanged) {
-        const changedAt = new Date();
+        const changedAt =
+          updatedAnimal.status === 'active'
+            ? new Date(updatedAnimal.birthDate)
+            : statusChangeDate
+              ? new Date(statusChangeDate)
+              : new Date();
         await tx.animalStatusHistory.create({
           data: {
             animalId: updatedAnimal.id,
@@ -92,6 +99,30 @@ export async function PUT(req: Request) {
             reason: 'animal_update',
           },
         });
+      } else if (statusChangeDate && updatedAnimal.status !== 'active') {
+        const changedAt = new Date(statusChangeDate);
+        const latestStatusHistory = await tx.animalStatusHistory.findFirst({
+          where: {
+            animalId: updatedAnimal.id,
+            newStatus: updatedAnimal.status,
+          },
+          orderBy: {
+            changedAt: 'desc',
+          },
+          select: { id: true },
+        });
+
+        if (latestStatusHistory) {
+          await tx.animalStatusHistory.update({
+            where: { id: latestStatusHistory.id },
+            data: {
+              changedAt,
+              year: changedAt.getFullYear(),
+              month: changedAt.getMonth() + 1,
+              reason: 'status_date_adjustment',
+            },
+          });
+        }
       }
 
       return updatedAnimal;

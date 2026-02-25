@@ -52,6 +52,7 @@ export interface Animal {
   weightHistories?: AnimalWeightHistory[];
   weightRecordType?: WeightRecordType;
   weightRecordDate?: string | Date | null;
+  statusChangeDate?: string | Date | null;
   // dewormings?: Deworming[];
   // diseases?: Disease[];
   // vaccines?: Vaccine[];

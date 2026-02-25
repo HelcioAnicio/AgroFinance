@@ -102,6 +102,37 @@ function isDeadStatus(status?: string | null): boolean {
   return value === 'dead' || value === 'morto';
 }
 
+function normalizeStatus(status?: string | null): string {
+  if (!status) return 'unknown';
+  const value = status.toLowerCase();
+
+  if (value === 'ativo') return 'active';
+  if (value === 'inativo') return 'inactive';
+  if (value === 'morto') return 'dead';
+  if (value === 'perdida') return 'lost';
+  if (value === 'descarte') return 'trash';
+  if (value === 'vendido') return 'sold';
+
+  return value;
+}
+
+function statusLabel(status: string): string {
+  const labels: Record<string, string> = {
+    active: 'Ativo',
+    inactive: 'Inativo',
+    dead: 'Morto',
+    lost: 'Perdido',
+    trash: 'Descarte',
+    sold: 'Vendido',
+    empty: 'Vazia',
+    pregnant: 'Prenha',
+    waiting: 'Em espera',
+    pev: 'PEV',
+  };
+
+  return labels[status] ?? status;
+}
+
 function buildYear(year: number): LivestockStatsYear {
   return {
     year,
@@ -117,6 +148,7 @@ function buildYear(year: number): LivestockStatsYear {
       femaleBirths: 0,
       deaths: 0,
       statusChanges: 0,
+      statusBreakdown: [],
     })),
   };
 }
@@ -144,14 +176,22 @@ export const fetchLivestockStats = async (
         newStatus: true,
         year: true,
         month: true,
+        changedAt: true,
       },
     }),
   ]);
 
   const yearsMap = new Map<number, LivestockStatsYear>();
+  const monthStatusMap = new Map<string, Map<string, number>>();
+
   const getYear = (year: number) => {
     if (!yearsMap.has(year)) yearsMap.set(year, buildYear(year));
     return yearsMap.get(year)!;
+  };
+  const getMonthStatusCounter = (year: number, month: number) => {
+    const key = `${year}-${month}`;
+    if (!monthStatusMap.has(key)) monthStatusMap.set(key, new Map());
+    return monthStatusMap.get(key)!;
   };
 
   for (const animal of animals) {
@@ -181,10 +221,17 @@ export const fetchLivestockStats = async (
 
     const yearRef = getYear(history.year);
     const monthRef = yearRef.months[history.month - 1];
+    const normalizedStatus = normalizeStatus(history.newStatus);
+
     monthRef.statusChanges += 1;
     yearRef.totalStatusChanges += 1;
+    const monthCounter = getMonthStatusCounter(history.year, history.month);
+    monthCounter.set(
+      normalizedStatus,
+      (monthCounter.get(normalizedStatus) ?? 0) + 1
+    );
 
-    if (isDeadStatus(history.newStatus)) {
+    if (isDeadStatus(normalizedStatus)) {
       monthRef.deaths += 1;
       yearRef.totalDeaths += 1;
       deadFromHistory.add(history.animalId);
@@ -201,6 +248,21 @@ export const fetchLivestockStats = async (
     const monthRef = yearRef.months[month];
     monthRef.deaths += 1;
     yearRef.totalDeaths += 1;
+  }
+
+  for (const [year, yearRef] of yearsMap.entries()) {
+    for (const monthRef of yearRef.months) {
+      const counter =
+        monthStatusMap.get(`${year}-${monthRef.month}`) ??
+        new Map<string, number>();
+      monthRef.statusBreakdown = Array.from(counter.entries())
+        .map(([status, total]) => ({
+          status,
+          label: statusLabel(status),
+          total,
+        }))
+        .sort((a, b) => b.total - a.total);
+    }
   }
 
   return Array.from(yearsMap.values()).sort((a, b) => a.year - b.year);

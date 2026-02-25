@@ -66,7 +66,7 @@ const TABLE_HEADERS = [
 ];
 
 const isFemale = (gender: string) =>
-  gender === 'female' || gender === 'femea' || gender === 'f�mea';
+  gender === 'female' || gender === 'femea' || gender === 'fêmea';
 
 const getStatusNode = (status?: string) => {
   if (status === 'active' || status === 'ativo') {
@@ -126,6 +126,23 @@ const getCategoryLabel = (animal: Animal) => {
   if (animal.category === 'bull') return 'Touro';
   if (animal.category === 'old bull') return 'Touro velho';
   return '-';
+};
+
+const getStatusBarColor = (status: string) => {
+  const colors: Record<string, string> = {
+    active: 'bg-green-500',
+    inactive: 'bg-gray-500',
+    dead: 'bg-black',
+    sold: 'bg-yellow-600',
+    lost: 'bg-amber-500',
+    trash: 'bg-red-500',
+    empty: 'bg-slate-500',
+    pregnant: 'bg-fuchsia-500',
+    waiting: 'bg-indigo-500',
+    pev: 'bg-cyan-500',
+  };
+
+  return colors[status] ?? 'bg-primary';
 };
 
 export const Table: React.FC<TableProps> = ({
@@ -342,10 +359,7 @@ export const Table: React.FC<TableProps> = ({
   }
 
   return (
-    <main
-      style={{ height: 'calc(100vh - 170px)' }}
-      className="relative m-auto max-w-[1800px] pb-5"
-    >
+    <main className="relative m-auto flex h-[calc(100vh-170px)] w-full max-w-[1800px] flex-col overflow-x-auto overflow-y-hidden">
       {isLoading ? (
         <Loading />
       ) : (
@@ -503,11 +517,11 @@ export const Table: React.FC<TableProps> = ({
             </Card>
           </div>
 
-          <div className="h-full w-full overflow-y-auto pb-28 md:pb-20">
-            <div className="flex h-full w-full flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-              <div className="w-full lg:max-w-[700px] lg:flex-none">
-                <div className="w-full overflow-x-auto">
-                  <table className="min-w-[900px] overflow-y-scroll scroll-smooth text-left xl:text-sm">
+          <div className="min-h-0 w-full pb-28 md:pb-20 lg:pb-0">
+            <div className="flex h-full min-h-0 w-full flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div className="min-h-0 w-full max-w-xl">
+                <div className="h-full w-full overflow-auto">
+                  <table className="min-w-[900px] scroll-smooth text-left xl:text-sm">
                     <thead className="sticky top-0 z-20 border-collapse bg-primary text-background">
                       <tr>
                         <th className="w-20 px-1 py-2">Status</th>
@@ -638,12 +652,12 @@ export const Table: React.FC<TableProps> = ({
                 </div>
               </div>
 
-              <aside className="hidden w-full min-w-[200px] max-w-80 rounded-sm border bg-background p-3 lg:block lg:flex-1">
+              <aside className="hidden h-full w-full min-w-[400px] max-w-80 rounded-sm border bg-background p-3 lg:block lg:flex-1">
                 <div className="mb-3 flex items-center justify-between gap-2">
                   <h3 className="text-sm font-semibold">
                     Natalidade e mortalidade
                   </h3>
-                  <span className="rounded-full bg-primary/10 px-2 py-1 text-[10px] uppercase tracking-wide text-primary">
+                  <span className="rounded-sm bg-primary/10 px-2 py-1 text-[10px] uppercase tracking-wide text-primary">
                     Premium em breve
                   </span>
                 </div>
@@ -673,23 +687,23 @@ export const Table: React.FC<TableProps> = ({
                       </select>
                     </div>
 
-                    <div className="mb-4 grid grid-cols-2 gap-2 text-[11px]">
-                      <Card className="p-2">
+                    <div className="mb-4 flex flex-wrap gap-2 text-xs">
+                      <Card className="rounded-sm p-1 px-3">
                         Machos: {selectedYearStats.totalMaleBirths}
                       </Card>
-                      <Card className="p-2">
+                      <Card className="rounded-sm p-1 px-3">
                         Femeas: {selectedYearStats.totalFemaleBirths}
                       </Card>
-                      <Card className="p-2">
+                      <Card className="rounded-sm p-1 px-3">
                         Mortos: {selectedYearStats.totalDeaths}
                       </Card>
-                      <Card className="p-2">
+                      <Card className="rounded-sm p-1 px-3">
                         Mudancas de status:{' '}
                         {selectedYearStats.totalStatusChanges}
                       </Card>
                     </div>
 
-                    <div className="max-h-[58vh] space-y-2 overflow-y-auto pr-1">
+                    <div className="max-h-[58vh] space-y-2 overflow-y-auto pr-1 text-xs">
                       {selectedYearStats.months.map((month) => {
                         const malePercent =
                           (month.maleBirths / maxMonthlyValue) * 100;
@@ -697,6 +711,16 @@ export const Table: React.FC<TableProps> = ({
                           (month.femaleBirths / maxMonthlyValue) * 100;
                         const deathPercent =
                           (month.deaths / maxMonthlyValue) * 100;
+                        const monthStatuses = month.statusBreakdown.filter(
+                          (statusItem) =>
+                            statusItem.total > 0 && statusItem.status !== 'dead'
+                        );
+                        const maxMonthStatus = Math.max(
+                          ...monthStatuses.map(
+                            (statusItem) => statusItem.total
+                          ),
+                          1
+                        );
 
                         return (
                           <div
@@ -707,7 +731,7 @@ export const Table: React.FC<TableProps> = ({
                               <span className="font-semibold">
                                 {month.label}
                               </span>
-                              <span>Status: {month.statusChanges}</span>
+                              <span>Alteracoes: {month.statusChanges}</span>
                             </div>
 
                             <div className="space-y-1">
@@ -749,6 +773,33 @@ export const Table: React.FC<TableProps> = ({
                                   {month.deaths}
                                 </span>
                               </div>
+
+                              {monthStatuses.map((statusItem) => {
+                                const percent =
+                                  (statusItem.total / maxMonthStatus) * 100;
+
+                                return (
+                                  <div
+                                    key={`${month.month}-${statusItem.status}`}
+                                    className="flex items-center gap-2 text-[10px]"
+                                  >
+                                    <span className="w-12 truncate">
+                                      {statusItem.label}
+                                    </span>
+                                    <div className="h-2 flex-1 rounded bg-muted">
+                                      <div
+                                        className={`h-2 rounded ${getStatusBarColor(
+                                          statusItem.status
+                                        )}`}
+                                        style={{ width: `${percent}%` }}
+                                      />
+                                    </div>
+                                    <span className="w-4 text-right">
+                                      {statusItem.total}
+                                    </span>
+                                  </div>
+                                );
+                              })}
                             </div>
                           </div>
                         );

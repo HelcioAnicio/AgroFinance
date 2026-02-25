@@ -30,11 +30,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { weightRecordDate, weightRecordType, ...animalData } = allDataForm;
+    const { weightRecordDate, weightRecordType, statusChangeDate, ...animalData } =
+      allDataForm;
 
     const createAnimal = await prisma.$transaction(async (tx) => {
       const animal = await tx.animal.create({ data: animalData });
-      const changedAt = new Date();
+      const changedAt =
+        animal.status === 'active'
+          ? new Date(animal.birthDate)
+          : statusChangeDate
+            ? new Date(statusChangeDate)
+            : new Date();
 
       await tx.animalWeightHistory.create({
         data: {
