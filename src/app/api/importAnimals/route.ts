@@ -13,6 +13,16 @@ export async function POST(req: Request) {
   function excelDateToJSDate(serial: number) {
     return new Date((serial - 25569) * 86400 * 1000); // 25569 = 1970-01-01 offset
   }
+  function parseImportDate(value: unknown): Date | null {
+    if (!value) return null;
+    if (value instanceof Date) return value;
+    if (typeof value === 'number') return excelDateToJSDate(value);
+    if (typeof value === 'string') {
+      const parsed = new Date(value);
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+    return null;
+  }
 
   if (!session || !userEmail) {
     return NextResponse.json(
@@ -21,26 +31,63 @@ export async function POST(req: Request) {
     );
   }
 
+  if (!userEmail.id) {
+    return NextResponse.json(
+      { success: false, error: 'User id not found' },
+      { status: 400 }
+    );
+  }
+
   try {
     const data = await req.json();
     const items = Array.isArray(data) ? data : [data];
 
-    const animals = items.map((item: Animal) => ({
-      ...item,
-      id: uuidv4(),
-      status:
-        item.status === 'ativo'
+    const ownerId = userEmail.id;
+
+    const statusChangedAtById = new Map<string, Date>();
+
+    const animals = items.map((item: Animal) => {
+      const id = uuidv4();
+      const birthDate =
+        typeof item.birthDate === 'number'
+          ? new Date(excelDateToJSDate(item.birthDate).toISOString().split('T')[0])
+          : item.birthDate
+            ? new Date(item.birthDate)
+            : null;
+      const normalizedStatus =
+        item.status === 'ativo' || item.status === 'active'
           ? 'active'
-          : item.status === 'inativo'
+          : item.status === 'inativo' || item.status === 'inactive'
             ? 'inactive'
-            : item.status === 'morto'
+            : item.status === 'morto' || item.status === 'dead'
               ? 'dead'
-              : 'sold',
+              : item.status === 'vendido' || item.status === 'sold'
+                ? 'sold'
+                : item.status === 'perdida' || item.status === 'lost'
+                  ? 'lost'
+                  : item.status === 'descarte' || item.status === 'trash'
+                    ? 'trash'
+                    : 'active';
+      const importedStatusChangeDate = parseImportDate(
+        (item as unknown as Record<string, unknown>).statusChangeDate ??
+          (item as unknown as Record<string, unknown>).status_change_date ??
+          (item as unknown as Record<string, unknown>).dataAlteracaoStatus
+      );
+      const changedAt =
+        normalizedStatus === 'active'
+          ? birthDate ?? new Date()
+          : importedStatusChangeDate ?? new Date();
+
+      statusChangedAtById.set(id, changedAt);
+
+      return {
+      ...item,
+      id,
+      status:
+        normalizedStatus,
       manualId: item.manualId?.toLowerCase(),
       gender: item.gender === 'macho' ? 'male' : 'female',
-      birthDate:
-        typeof item.birthDate === 'number' &&
-        new Date(excelDateToJSDate(item.birthDate).toISOString().split('T')[0]),
+      birthDate: birthDate,
       breed: item.breed?.toLowerCase(),
       category:
         item.category === 'dependente'
@@ -134,8 +181,9 @@ export async function POST(req: Request) {
                 .split('T')[0]
             )
           : null,
-      ownerId: userEmail.id,
-    }));
+      ownerId,
+    };
+    });
 
     const allAnimalsUpdated = animals.map((animal) => {
       let fatherId: string | null;
@@ -198,6 +246,21 @@ export async function POST(req: Request) {
     });
 
     const validAnimals = allAnimalsUpdated.filter((a) => a !== null);
+    if (validAnimals.length > 0) {
+      await prisma.animalStatusHistory.createMany({
+        data: validAnimals.map((animal) => ({
+          animalId: animal!.id,
+          ownerId: animal!.ownerId ?? ownerId,
+          previousStatus: null,
+          newStatus: animal!.status ?? 'active',
+          changedAt: statusChangedAtById.get(animal!.id) ?? new Date(),
+          year: (statusChangedAtById.get(animal!.id) ?? new Date()).getFullYear(),
+          month:
+            (statusChangedAtById.get(animal!.id) ?? new Date()).getMonth() + 1,
+          reason: 'animal_import',
+        })),
+      });
+    }
 
     for (const animal of validAnimals) {
       try {
@@ -225,17 +288,26 @@ export async function POST(req: Request) {
             throw new Error('Usuário não encontrado');
           }
 
-          await prisma.notification.create({
-            data: {
-              id: uuidv4(),
-              message: `Seu animal ${animal.manualId} está próximo ao parto.`,
-              notifyAt: notifyAt,
-              read: false,
-              userId: userEmail.id,
+          const existingBirthNotification = await prisma.notification.findFirst({
+            where: {
               animalId: animal.id,
-              createdAt: new Date(),
+              message: { contains: 'próximo ao parto' },
             },
           });
+
+          if (!existingBirthNotification) {
+            await prisma.notification.create({
+              data: {
+                id: uuidv4(),
+                message: `Seu animal ${animal.manualId} está próximo ao parto.`,
+                notifyAt: notifyAt,
+                read: false,
+                userId: userEmail.id,
+                animalId: animal.id,
+                createdAt: new Date(),
+              },
+            });
+          }
         }
       } catch (error) {
         console.log('Erro ao tentar cadastrar', error);

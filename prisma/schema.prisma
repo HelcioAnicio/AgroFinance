@@ -22,6 +22,7 @@ model User {
   animals       Animal[]
   Authenticator Authenticator[]
   Notification  Notification[]
+  animalStatusHistories AnimalStatusHistory[]
   sessions      Session[]
 }
 
@@ -68,8 +69,51 @@ model Animal {
   diseases              Disease[]      @relation("AnimalDiseases")
   Notification          Notification[]
   vaccines              Vaccine[]      @relation("AnimalVaccines")
+  weightHistories       AnimalWeightHistory[]
+  statusHistories       AnimalStatusHistory[]
 
   @@unique([manualId, ownerId])
+}
+
+model AnimalStatusHistory {
+  id             String   @id @default(dbgenerated("gen_random_uuid()"))
+  animalId       String
+  ownerId        String
+  previousStatus String?
+  newStatus      String
+  reason         String?
+  changedAt      DateTime @default(now())
+  year           Int
+  month          Int
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  animal         Animal   @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  owner          User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId, year, month])
+  @@index([animalId, changedAt])
+  @@map("animal_status_history")
+}
+
+enum WeightRecordType {
+  PN
+  PS
+  PD
+  PA
+  OTHER
+}
+
+model AnimalWeightHistory {
+  id         String           @id @default(dbgenerated("gen_random_uuid()"))
+  animalId   String
+  weight     Float
+  recordType WeightRecordType @default(OTHER)
+  measuredAt DateTime
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+  animal     Animal           @relation(fields: [animalId], references: [id], onDelete: Cascade)
+
+  @@index([animalId, measuredAt])
 }
 
 model Disease {
@@ -93,6 +137,7 @@ model Vaccine {
   expiryDate  DateTime
   id          String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   animal      Animal   @relation("AnimalVaccines", fields: [animalId], references: [id])
+
 }
 
 model Deworming {

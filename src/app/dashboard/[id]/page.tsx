@@ -35,6 +35,11 @@ const DetailAnimalId = async ({
       mother: true,
       offspringFromMother: true,
       owner: true,
+      weightHistories: {
+        orderBy: {
+          measuredAt: 'desc',
+        },
+      },
     },
   });
   const vaccines = await fetchVaccines(animal?.id as string);

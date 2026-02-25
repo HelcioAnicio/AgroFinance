@@ -8,6 +8,7 @@ import { InputForm } from '@/components/ui/inputForm';
 import { RadioForm } from '@/components/ui/radioForm';
 import { SelectForm } from '@/components/ui/selectForm';
 import { toast } from 'sonner';
+import { weightRecordOptions } from '@/lib/weightHistory';
 
 interface CardFormMainProps {
   allDataForm: Animal;
@@ -51,11 +52,6 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
     }
   };
 
-  const cleanAllDataForm = () => {
-    setTabValue('principais');
-    setAllDataForm({} as Animal);
-  };
-
   const breedArray = [
     'Cruzado',
     'Nelore',
@@ -82,7 +78,23 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
     'Red Poll',
   ];
 
-  const [category, setCategory] = useState<string>('');
+  const [isReproductive, setIsReproductive] = useState<boolean>(false);
+
+  const statusLabels = {
+    active: 'Ativado',
+    inactive: 'Inativado',
+    dead: 'Morto',
+    sold: 'Vendido',
+    lost: 'Perdido',
+    trash: 'Descartado',
+  };
+
+  const cleanAllDataForm = () => {
+    setTabValue('principais');
+    setAllDataForm({} as Animal);
+    setIsReproductive(false);
+  };
+
   useEffect(() => {
     if (allDataForm.birthDate) {
       const birthDate = new Date(allDataForm.birthDate);
@@ -90,30 +102,48 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
         (new Date().getFullYear() - birthDate.getFullYear()) * 12 +
         new Date().getMonth() -
         birthDate.getMonth();
+
+      let newCategory: string;
+
       if (ageInMonths <= 8 && allDataForm.birthDate !== null) {
-        setCategory('neonate');
+        newCategory = 'neonate';
       } else if (ageInMonths <= 12) {
-        setCategory('calf');
+        newCategory = 'calf';
       } else if (ageInMonths <= 24) {
-        setCategory(allDataForm.gender === 'male' ? 'steer' : 'steer');
+        newCategory = 'steer';
       } else if (ageInMonths <= 36) {
-        setCategory(allDataForm.gender === 'male' ? 'steer' : 'cow');
+        newCategory = allDataForm.gender === 'male' ? 'steer' : 'cow';
       } else if (ageInMonths >= 37 && ageInMonths <= 120) {
-        setCategory(allDataForm.gender === 'male' ? 'ox' : 'cow');
+        if (allDataForm.gender === 'male') {
+          newCategory = isReproductive ? 'bull' : 'ox';
+        } else {
+          newCategory = 'cow';
+        }
       } else {
-        setCategory(allDataForm.gender === 'male' ? 'old ox' : 'old cow');
+        if (allDataForm.gender === 'male') {
+          newCategory = isReproductive ? 'old bull' : 'old ox';
+        } else {
+          newCategory = 'old cow';
+        }
       }
-      if (allDataForm.category !== category) {
-        setAllDataForm((prev) => ({ ...prev, category }));
+
+      if (allDataForm.category !== newCategory) {
+        setAllDataForm((prev) => ({ ...prev, category: newCategory }));
       }
     }
   }, [
-    category,
     allDataForm.birthDate,
     allDataForm.gender,
     allDataForm.category,
+    isReproductive,
     setAllDataForm,
   ]);
+
+  useEffect(() => {
+    if (allDataForm.gender !== 'male' && isReproductive) {
+      setIsReproductive(false);
+    }
+  }, [allDataForm.gender, isReproductive]);
 
   return (
     <Card className="min-h-80">
@@ -158,6 +188,73 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
               />
             </div>
 
+            <div className="flex items-end gap-4">
+              <SelectForm
+                htmlFor="status"
+                label="Status:"
+                name="status"
+                id="status"
+                value={allDataForm.status ?? ''}
+                onChange={handleInputValues}
+                options={[
+                  { label: 'Ativo', value: 'active' },
+                  { label: 'Inativo', value: 'inactive' },
+                  { label: 'Morto', value: 'dead' },
+                  { label: 'Vendido', value: 'sold' },
+                  { label: 'Perdida', value: 'lost' },
+                  { label: 'Descarte', value: 'trash' },
+                ]}
+                defaultOption="Escolha o status"
+              />
+              {allDataForm.status && allDataForm.status !== 'active' && (
+                <InputForm
+                  classNameDiv="flex flex-col"
+                  classNameInput="max-w-none"
+                  htmlFor="statusChangeDate"
+                  label={`Data que foi ${statusLabels[allDataForm.status as keyof typeof statusLabels] || 'alterado'}:`}
+                  type="date"
+                  name="statusChangeDate"
+                  id="statusChangeDate"
+                  value={
+                    allDataForm.statusChangeDate
+                      ? new Date(allDataForm.statusChangeDate)
+                          .toISOString()
+                          .split('T')[0]
+                      : ''
+                  }
+                  onChange={handleInputValues}
+                />
+              )}
+
+              <div className="flex flex-col items-start gap-1 text-xs">
+                <span className="text-secondary">Reprodutivo:</span>
+                <label className="flex items-center gap-1">
+                  <input
+                    type="checkbox"
+                    id="isReproductive"
+                    name="isReproductive"
+                    checked={isReproductive}
+                    onChange={(event) =>
+                      setIsReproductive(event.target.checked)
+                    }
+                    disabled={
+                      !allDataForm.gender || allDataForm.gender !== 'male'
+                    }
+                    className="h-4 w-4"
+                  />
+                  <span
+                    className={
+                      !allDataForm.gender || allDataForm.gender !== 'male'
+                        ? 'text-muted-foreground'
+                        : ''
+                    }
+                  >
+                    Reprodutivo
+                  </span>
+                </label>
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <InputForm
                 classNameInput="max-w-none"
@@ -185,6 +282,32 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                 name="weight"
                 id="weight"
                 value={allDataForm.weight?.toString() ?? ''}
+                onChange={handleInputValues}
+              />
+              <SelectForm
+                htmlFor="weightRecordType"
+                label="Tipo pesagem:"
+                name="weightRecordType"
+                id="weightRecordType"
+                value={allDataForm.weightRecordType ?? 'OTHER'}
+                onChange={handleInputValues}
+                options={weightRecordOptions}
+                defaultOption="Escolha o tipo"
+              />
+              <InputForm
+                classNameInput="max-w-none"
+                htmlFor="weightRecordDate"
+                label="Data da pesagem:"
+                type="date"
+                name="weightRecordDate"
+                id="weightRecordDate"
+                value={
+                  allDataForm.weightRecordDate
+                    ? new Date(allDataForm.weightRecordDate)
+                        .toISOString()
+                        .split('T')[0]
+                    : new Date().toISOString().split('T')[0]
+                }
                 onChange={handleInputValues}
               />
 
@@ -224,7 +347,11 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                                 ? 'Boi velho'
                                 : allDataForm.category === 'old cow'
                                   ? 'Vaca velha'
-                                  : 'Não informada'}
+                                  : allDataForm.category === 'bull'
+                                    ? 'Touro'
+                                    : allDataForm.category === 'old bull'
+                                      ? 'Touro velho'
+                                      : 'Não informada'}
                 </p>
               </div>
 

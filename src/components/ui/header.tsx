@@ -32,7 +32,7 @@ export const Header: React.FC<TableProps> = ({ notifications }) => {
 
   return (
     <header className="flex w-full items-center justify-between p-2">
-      <div className="w-1/3">
+      <div className="flex w-1/3 items-center gap-5">
         <Link href={'/dashboard'}>
           <Image
             priority={true}
@@ -48,18 +48,20 @@ export const Header: React.FC<TableProps> = ({ notifications }) => {
       <nav className="flex w-full flex-col items-end gap-4">
         {status === 'authenticated' && (
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1">
-              {data?.user?.name}
-              <Avatar className="size-8">
-                <AvatarImage
-                  src={data?.user?.image ?? undefined}
-                  alt="Image from google profile"
-                />
-                <AvatarFallback className="text-foreground">
-                  {data?.user?.name?.charAt(0)}{' '}
-                </AvatarFallback>
-              </Avatar>
-            </div>
+            <Link href={'/dashboard/profile'}>
+              <div className="flex items-center gap-1">
+                {data?.user?.name}
+                <Avatar className="size-8">
+                  <AvatarImage
+                    src={data?.user?.image ?? undefined}
+                    alt="Image from google profile"
+                  />
+                  <AvatarFallback className="text-foreground">
+                    {data?.user?.name?.charAt(0)}{' '}
+                  </AvatarFallback>
+                </Avatar>
+              </div>
+            </Link>
             <Button className="p-1" onClick={handleLogoutClick}>
               Sair
             </Button>

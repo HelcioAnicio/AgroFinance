@@ -24,7 +24,10 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
   onAnimalAdded,
 }) => {
   const [tabValue, setTabValue] = useState('principais');
-  const [allDataForm, setAllDataForm] = useState<Animal>({} as Animal);
+  const [allDataForm, setAllDataForm] = useState<Animal>({
+    weightRecordType: 'OTHER',
+    weightRecordDate: new Date().toISOString().split('T')[0],
+  } as Animal);
   const { data: session } = useSession();
   const userEmail = users.find((user) => user.email === session?.user?.email);
 
@@ -73,9 +76,16 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
 
   const submitForm = async (allDataForm: Animal, event?: FormDataEvent) => {
     event?.preventDefault();
+    if (!allDataForm.status) {
+      toast.error('Selecione o status do animal.');
+      return;
+    }
+    if (allDataForm.status !== 'active' && !allDataForm.statusChangeDate) {
+      toast.error('Informe a data da alteração de status.');
+      return;
+    }
     const dataToSubmit = {
       ...allDataForm,
-      status: 'active',
       id: uuidv4(),
       manualId: allDataForm.manualId.toLowerCase(),
       ownerId: userEmail?.id || '',
@@ -97,6 +107,13 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
           ? null
           : allDataForm.bullIatfId,
       updatedAt: new Date(),
+      statusChangeDate:
+        allDataForm.status === 'active'
+          ? null
+          : allDataForm.statusChangeDate ?? null,
+      weightRecordType: allDataForm.weightRecordType ?? 'OTHER',
+      weightRecordDate:
+        allDataForm.weightRecordDate ?? new Date().toISOString().split('T')[0],
     };
 
     try {
@@ -109,7 +126,10 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
           },
         }
       );
-      setAllDataForm({} as Animal);
+      setAllDataForm({
+        weightRecordType: 'OTHER',
+        weightRecordDate: new Date().toISOString().split('T')[0],
+      } as Animal);
       toast.success('Animal cadastrado com sucesso!');
       onAnimalAdded(dataToSubmit);
     } catch {

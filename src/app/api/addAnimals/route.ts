@@ -4,6 +4,10 @@ import { authOptions } from '@/lib/auth';
 import { fetchUsers } from '@/lib/fetchData';
 import prisma from '@/lib/prisma';
 import { v4 as uuidv4 } from 'uuid';
+import {
+  parseWeightRecordDate,
+  parseWeightRecordType,
+} from '@/lib/weightHistory';
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -26,7 +30,42 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const createAnimal = await prisma.animal.create({ data: allDataForm });
+    const { weightRecordDate, weightRecordType, statusChangeDate, ...animalData } =
+      allDataForm;
+
+    const createAnimal = await prisma.$transaction(async (tx) => {
+      const animal = await tx.animal.create({ data: animalData });
+      const changedAt =
+        animal.status === 'active'
+          ? new Date(animal.birthDate)
+          : statusChangeDate
+            ? new Date(statusChangeDate)
+            : new Date();
+
+      await tx.animalWeightHistory.create({
+        data: {
+          animalId: animal.id,
+          weight: Number(animalData.weight),
+          recordType: parseWeightRecordType(weightRecordType),
+          measuredAt: parseWeightRecordDate(weightRecordDate),
+        },
+      });
+
+      await tx.animalStatusHistory.create({
+        data: {
+          animalId: animal.id,
+          ownerId: animal.ownerId,
+          previousStatus: null,
+          newStatus: animal.status,
+          changedAt,
+          year: changedAt.getFullYear(),
+          month: changedAt.getMonth() + 1,
+          reason: 'animal_creation',
+        },
+      });
+
+      return animal;
+    });
 
     let createNotification;
 
@@ -36,29 +75,49 @@ export async function POST(req: NextRequest) {
       allDataForm.expectedDueDate! >= new Date()
     ) {
       const expectedDueDate = new Date(allDataForm.expectedDueDate);
-      const notifyAt = expectedDueDate.setMonth(expectedDueDate.getMonth() - 1);
+
+      const notifyAtOneMonth = new Date(expectedDueDate);
+      notifyAtOneMonth.setMonth(notifyAtOneMonth.getMonth() - 1);
+
+      const notifyAtFifteenDays = new Date(expectedDueDate);
+      notifyAtFifteenDays.setDate(notifyAtFifteenDays.getDate() - 15);
 
       const animalIdToUse = createAnimal.id;
       const ownerIdToUse = createAnimal.ownerId ?? allDataForm.ownerId;
+
       try {
-        console.log('Creating notification for', {
+        console.log('Creating notifications for', {
           animalIdToUse,
           ownerIdToUse,
-          notifyAt,
+          notifyAtOneMonth,
+          notifyAtFifteenDays,
         });
+
         createNotification = await prisma.notification.create({
           data: {
             id: uuidv4(),
             message: `Seu animal ${createAnimal.manualId} está próximo ao parto.`,
-            notifyAt: new Date(notifyAt),
+            notifyAt: notifyAtOneMonth,
             read: false,
             userId: ownerIdToUse,
             animalId: animalIdToUse,
           },
         });
-        console.log('createNotification =>', createNotification);
+
+        await prisma.notification.create({
+          data: {
+            id: uuidv4(),
+            message: `Seu animal ${createAnimal.manualId} está a 15 dias do parto.`,
+            notifyAt: notifyAtFifteenDays,
+            read: false,
+            userId: ownerIdToUse,
+            animalId: animalIdToUse,
+          },
+        });
+
+        console.log('createNotification (1 mês antes) =>', createNotification);
       } catch (notifError) {
-        console.error('Erro criando notificação:', notifError);
+        console.error('Erro criando notificações:', notifError);
       }
     }
 

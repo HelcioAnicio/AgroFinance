@@ -55,6 +55,8 @@ export const Filters: React.FC<FiltersProps> = ({
       inactive: false,
       dead: false,
       sold: false,
+      lost: false,
+      trash: false,
     },
     gender: {
       male: false,
@@ -257,6 +259,8 @@ export const Filters: React.FC<FiltersProps> = ({
         inactive: false,
         dead: false,
         sold: false,
+        lost: false,
+        trash: false,
       },
       gender: {
         male: false,
@@ -348,6 +352,26 @@ export const Filters: React.FC<FiltersProps> = ({
               type="checkbox"
               value="sold"
               checked={typeFilters.status.sold}
+              onChange={updateListAndInput}
+            />
+            <RadioForm
+              label="Perdida"
+              htmlFor="status.lost"
+              id="status.lost"
+              name="status.lost"
+              type="checkbox"
+              value="lost"
+              checked={typeFilters.status.lost}
+              onChange={updateListAndInput}
+            />
+            <RadioForm
+              label="Descarte"
+              htmlFor="status.trash"
+              id="status.trash"
+              name="status.trash"
+              type="checkbox"
+              value="trash"
+              checked={typeFilters.status.trash}
               onChange={updateListAndInput}
             />
           </div>

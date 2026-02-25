@@ -1,6 +1,6 @@
 'use client';
 
-import { Animal } from '@/types/animal';
+import { Animal, AnimalWeightHistory } from '@/types/animal';
 import { Vaccine } from '@/types/vaccine';
 import { useState } from 'react';
 import Link from 'next/link';
@@ -29,7 +29,12 @@ import { InputForm } from '@/components/ui/inputForm';
 import { FaCheckCircle } from 'react-icons/fa';
 import { IoSkull } from 'react-icons/io5';
 import { MdHighlightOff } from 'react-icons/md';
-import { TbMoneybag } from 'react-icons/tb';
+import {
+  TbMoneybag,
+  TbZoomQuestionFilled,
+  TbTrashXFilled,
+} from 'react-icons/tb';
+import { weightRecordTypeLabel } from '@/lib/weightHistory';
 
 interface EditableAnimalDetailsProps {
   animal: Animal;
@@ -43,7 +48,11 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   animals,
   vaccines,
 }) => {
-  const [allDataForm, setAllDataForm] = useState<Animal>(animal);
+  const [allDataForm, setAllDataForm] = useState<Animal>({
+    ...animal,
+    weightRecordType: 'OTHER',
+    weightRecordDate: new Date().toISOString().split('T')[0],
+  });
   const [dataOfVaccine, setDataOfVaccine] = useState<Vaccine>({} as Vaccine);
   const [isEditing, setIsEditing] = useState(false);
   const [addVaccine, setAddVaccine] = useState(false);
@@ -101,22 +110,26 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   ) => {
     const { name, value, type } = event.target;
     const newValue =
-      type === 'number' || type === 'range'
-        ? parseInt(value)
-        : name === 'bodyConditionScore'
-          ? parseFloat(value)
-          : value;
+      type === 'number' || type === 'range' ? parseInt(value) : value;
 
-    setAllDataForm((prevData) => ({
+    setDataOfVaccine((prevData) => ({
       ...prevData,
       [name]: newValue,
     }));
   };
 
   const submitForm = async (allDataForm: Animal) => {
+    if (allDataForm.status !== 'active' && !allDataForm.statusChangeDate) {
+      toast.error('Informe a data da alteração de status.');
+      return;
+    }
+
     const dataToSubmit = {
       ...allDataForm,
       updatedAt: new Date(),
+      weightRecordType: allDataForm.weightRecordType ?? 'OTHER',
+      weightRecordDate:
+        allDataForm.weightRecordDate ?? new Date().toISOString().split('T')[0],
       motherId:
         allDataForm.motherId === 'Comercial' ? null : allDataForm.motherId,
       fatherId:
@@ -144,8 +157,24 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
         }
       );
 
+      const savedFatherId =
+        allDataForm.fatherId === 'Comercial' ? null : allDataForm.fatherId;
+      const savedMotherId =
+        allDataForm.motherId === 'Comercial' ? null : allDataForm.motherId;
+      setAllDataForm((prev) => ({
+        ...prev,
+        ...allDataForm,
+        father: savedFatherId
+          ? (animals.find((a) => a.id === savedFatherId) ?? prev.father)
+          : undefined,
+        mother: savedMotherId
+          ? (animals.find((a) => a.id === savedMotherId) ?? prev.mother)
+          : undefined,
+      }));
+
       setTimeout(() => {
         toast.success('Animal atualizado com sucesso!');
+        router.refresh();
         setIsEditing(!isEditing);
       }, 2000);
       animal = allDataForm;
@@ -161,10 +190,15 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     const vaccineToSend = {
       ...dataOfVaccine,
       id: uuidv4(),
-      animalId: animal.id,
-      updatedAt: new Date().toISOString().split('T')[0],
-      createdAt: new Date().toISOString().split('T')[0],
+      animalId: allDataForm.id,
+      date: dataOfVaccine.date && new Date(dataOfVaccine.date).toISOString(),
+      expiryDate:
+        dataOfVaccine.expiryDate &&
+        new Date(dataOfVaccine.expiryDate).toISOString(),
+      updatedAt: new Date(),
+      createdAt: new Date(),
     };
+
     try {
       const response = await axios.post(
         '/api/addVaccine',
@@ -183,7 +217,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
       }, 2000);
       return response;
     } catch (error) {
-      console.log('error: ', error);
+      // console.log('error: ', error);
       toast.error('Ocorreu um erro ao adicionar a vacina.');
       return error;
     }
@@ -260,6 +294,40 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
         <div className="m-auto flex w-full max-w-lg flex-wrap gap-10 pb-10 pt-5">
           <CardInformation allDataForm={allDataForm as Animal} />
           <CardReproduction allDataForm={allDataForm as Animal} />
+          <Card className="flex w-full max-w-lg flex-col gap-2 px-2 py-5">
+            <CardHeader>
+              <CardTitle className="text-base">Histórico de peso</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-2 px-1">
+              {allDataForm.weightHistories?.length ? (
+                allDataForm.weightHistories.map(
+                  (history: AnimalWeightHistory) => (
+                    <Card
+                      className="rounded-sm px-3 py-2"
+                      key={history.id}
+                    >
+                      <div>
+                        <strong>Tipo: </strong>
+                        <span>{weightRecordTypeLabel(history.recordType)}</span>
+                      </div>
+                      <div>
+                        <strong>Peso: </strong>
+                        <span>{history.weight} Kg</span>
+                      </div>
+                      <div>
+                        <strong>Data: </strong>
+                        <span>
+                          {new Date(history.measuredAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </Card>
+                  )
+                )
+              ) : (
+                <span>Nenhum histórico de peso registrado.</span>
+              )}
+            </CardContent>
+          </Card>
           <Card className="flex w-full max-w-lg flex-col gap-3 px-2 py-5">
             <CardHeader>
               <CardTitle className="text-base">Filhos</CardTitle>
@@ -289,6 +357,16 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                             <>
                               <IoSkull className="inline-block size-3 text-black" />{' '}
                               Morto
+                            </>
+                          ) : offspring?.status === 'lost' ? (
+                            <>
+                              <TbZoomQuestionFilled className="inline-block size-3 text-amber-500" />{' '}
+                              Perdida
+                            </>
+                          ) : offspring?.status === 'trash' ? (
+                            <>
+                              <TbTrashXFilled className="inline-block size-3 text-red-500" />{' '}
+                              Descarte
                             </>
                           ) : (
                             <>
@@ -464,6 +542,16 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                             <>
                               <IoSkull className="inline-block size-3 text-black" />{' '}
                               Morto
+                            </>
+                          ) : allDataForm?.status === 'lost' ? (
+                            <>
+                              <TbZoomQuestionFilled className="inline-block size-3 text-amber-500" />{' '}
+                              Perdida
+                            </>
+                          ) : allDataForm?.status === 'trash' ? (
+                            <>
+                              <TbTrashXFilled className="inline-block size-3 text-red-500" />{' '}
+                              Descarte
                             </>
                           ) : (
                             <>
