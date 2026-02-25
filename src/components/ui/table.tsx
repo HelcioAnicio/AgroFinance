@@ -307,7 +307,7 @@ export const Table: React.FC<TableProps> = ({
   if (dataLoading) {
     return (
       <main
-        style={{ height: 'calc(100vh - 170px)' }}
+        style={{ height: 'calc(100vh-170px)' }}
         className="relative m-auto max-w-max pb-5"
       >
         <div className="sticky right-0 top-0 z-50 max-h-max w-full">
@@ -359,7 +359,7 @@ export const Table: React.FC<TableProps> = ({
   }
 
   return (
-    <main className="relative m-auto flex h-[calc(100vh-170px)] w-full max-w-[1800px] flex-col overflow-x-auto overflow-y-hidden">
+    <main className="relative m-auto flex h-[calc(100vh-100px)] w-full max-w-[1800px] flex-col overflow-x-auto overflow-y-hidden lg:h-full">
       {isLoading ? (
         <Loading />
       ) : (
@@ -518,12 +518,12 @@ export const Table: React.FC<TableProps> = ({
           </div>
 
           <div className="min-h-0 w-full pb-28 md:pb-20 lg:pb-0">
-            <div className="flex h-full min-h-0 w-full flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-              <div className="min-h-0 w-full max-w-xl">
-                <div className="h-full w-full overflow-auto">
-                  <table className="min-w-[900px] scroll-smooth text-left xl:text-sm">
-                    <thead className="sticky top-0 z-20 border-collapse bg-primary text-background">
-                      <tr>
+            <div className="flex h-[calc(100vh-110px)] w-full flex-col gap-4 overflow-hidden lg:flex-row lg:items-start lg:justify-between">
+              <div className="flex h-full w-full max-w-5xl flex-col overflow-hidden rounded-sm border pb-40">
+                <div className="overflow-auto scroll-smooth">
+                  <table className="relative w-full min-w-[900px] text-left xl:text-sm">
+                    <thead className="sticky left-0 top-0 z-20 border-collapse bg-primary text-background">
+                      <tr className="">
                         <th className="w-20 px-1 py-2">Status</th>
                         <th className="px-1 py-2">ID</th>
                         <th className="px-1 py-2">Raca</th>
@@ -651,7 +651,6 @@ export const Table: React.FC<TableProps> = ({
                   </table>
                 </div>
               </div>
-
               <aside className="hidden h-full w-full min-w-[400px] max-w-80 rounded-sm border bg-background p-3 lg:block lg:flex-1">
                 <div className="mb-3 flex items-center justify-between gap-2">
                   <h3 className="text-sm font-semibold">
