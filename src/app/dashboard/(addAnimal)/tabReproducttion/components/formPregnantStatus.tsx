@@ -9,14 +9,12 @@ interface FormPregnantStatusProps {
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
   animals: Animal[];
-  scores: number[];
 }
 
 export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
   allDataForm,
   handleInputValues,
   animals,
-  scores,
 }) => {
   return (
     <>
@@ -129,20 +127,6 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
         />
 
         <SelectForm
-          htmlFor="bodyConditionScore"
-          label="ECC (Escore de Condição Corporal):"
-          name="bodyConditionScore"
-          id="bodyConditionScore"
-          value={allDataForm.bodyConditionScore || ''}
-          options={scores.map((score) => ({
-            label: `ECC - ${score}`,
-            value: score,
-          }))}
-          onChange={handleInputValues}
-          classNameInput={'max-w-40'}
-        />
-
-        <SelectForm
           htmlFor="bullIatfId"
           label="Touro utilizado na IATF:"
           name="bullIatfId"
@@ -167,3 +151,4 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
     </>
   );
 };
+

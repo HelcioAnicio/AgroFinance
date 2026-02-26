@@ -78,6 +78,10 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
     'Red Poll',
   ];
 
+  const scores = [
+    1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 2.75, 3, 3.25, 3.5, 3.75, 4, 5,
+  ];
+
   const [isReproductive, setIsReproductive] = useState<boolean>(false);
 
   const statusLabels = {
@@ -164,68 +168,30 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
               onChange={handleInputValues}
             />
 
-            <div className="flex items-center gap-2">
-              <span className="text-secondary">Sexo:</span>
-              <RadioForm
-                htmlFor="female"
-                label="Fêmea"
-                type="radio"
-                name="gender"
-                id="female"
-                value="female"
-                checked={allDataForm.gender === 'female'}
-                onChange={handleInputValues}
-              />
-              <RadioForm
-                htmlFor="male"
-                label="Macho"
-                type="radio"
-                name="gender"
-                id="male"
-                value="male"
-                checked={allDataForm.gender === 'male'}
-                onChange={handleInputValues}
-              />
-            </div>
-
-            <div className="flex items-end gap-4">
-              <SelectForm
-                htmlFor="status"
-                label="Status:"
-                name="status"
-                id="status"
-                value={allDataForm.status ?? ''}
-                onChange={handleInputValues}
-                options={[
-                  { label: 'Ativo', value: 'active' },
-                  { label: 'Inativo', value: 'inactive' },
-                  { label: 'Morto', value: 'dead' },
-                  { label: 'Vendido', value: 'sold' },
-                  { label: 'Perdida', value: 'lost' },
-                  { label: 'Descarte', value: 'trash' },
-                ]}
-                defaultOption="Escolha o status"
-              />
-              {allDataForm.status && allDataForm.status !== 'active' && (
-                <InputForm
-                  classNameDiv="flex flex-col"
-                  classNameInput="max-w-none"
-                  htmlFor="statusChangeDate"
-                  label={`Data que foi ${statusLabels[allDataForm.status as keyof typeof statusLabels] || 'alterado'}:`}
-                  type="date"
-                  name="statusChangeDate"
-                  id="statusChangeDate"
-                  value={
-                    allDataForm.statusChangeDate
-                      ? new Date(allDataForm.statusChangeDate)
-                          .toISOString()
-                          .split('T')[0]
-                      : ''
-                  }
+            <div className="flex items-center gap-5">
+              <div className="flex items-center gap-2">
+                <span className="text-secondary">Sexo:</span>
+                <RadioForm
+                  htmlFor="female"
+                  label="Fêmea"
+                  type="radio"
+                  name="gender"
+                  id="female"
+                  value="female"
+                  checked={allDataForm.gender === 'female'}
                   onChange={handleInputValues}
                 />
-              )}
-
+                <RadioForm
+                  htmlFor="male"
+                  label="Macho"
+                  type="radio"
+                  name="gender"
+                  id="male"
+                  value="male"
+                  checked={allDataForm.gender === 'male'}
+                  onChange={handleInputValues}
+                />
+              </div>
               <div className="flex flex-col items-start gap-1 text-xs">
                 <span className="text-secondary">Reprodutivo:</span>
                 <label className="flex items-center gap-1">
@@ -253,6 +219,58 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                   </span>
                 </label>
               </div>
+            </div>
+
+            <div className="flex items-end gap-4">
+              <SelectForm
+                htmlFor="status"
+                label="Status:"
+                name="status"
+                id="status"
+                value={allDataForm.status ?? ''}
+                onChange={handleInputValues}
+                options={[
+                  { label: 'Ativo', value: 'active' },
+                  { label: 'Inativo', value: 'inactive' },
+                  { label: 'Morto', value: 'dead' },
+                  { label: 'Vendido', value: 'sold' },
+                  { label: 'Perdida', value: 'lost' },
+                  { label: 'Descarte', value: 'trash' },
+                ]}
+                defaultOption="Escolha o status"
+              />
+              {allDataForm.status && allDataForm.status !== 'active' && (
+                <InputForm
+                  classNameDiv="flex flex-col"
+                  classNameInput="max-w-none"
+                  htmlFor="statusChangeDate"
+                  label={`Quando foi ${statusLabels[allDataForm.status as keyof typeof statusLabels] || 'alterado'}:`}
+                  type="date"
+                  name="statusChangeDate"
+                  id="statusChangeDate"
+                  value={
+                    allDataForm.statusChangeDate
+                      ? new Date(allDataForm.statusChangeDate)
+                          .toISOString()
+                          .split('T')[0]
+                      : ''
+                  }
+                  onChange={handleInputValues}
+                />
+              )}
+              <SelectForm
+                htmlFor="bodyConditionScore"
+                label="ECC:"
+                name="bodyConditionScore"
+                id="bodyConditionScore"
+                value={allDataForm.bodyConditionScore ?? ''}
+                onChange={handleInputValues}
+                options={scores.map((score) => ({
+                  label: `ECC - ${score}`,
+                  value: score,
+                }))}
+                defaultOption="Escolha o ECC"
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">

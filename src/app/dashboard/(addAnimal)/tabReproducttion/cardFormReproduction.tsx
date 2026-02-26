@@ -31,10 +31,6 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
   setTabValue,
   setAllDataForm,
 }) => {
-  const scores = [
-    1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 2.75, 3, 3.25, 3.5, 3.75, 4, 5,
-  ];
-
   const cleanAllDataForm = () => {
     setTabValue('principais');
     setAllDataForm({} as Animal);
@@ -57,7 +53,6 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
           expectedDueDate: null,
           fetalGender: null,
           bullIatfId: null,
-          bodyConditionScore: null,
         }));
 
         return;
@@ -78,7 +73,6 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
           expectedDueDate: null,
           fetalGender: null,
           bullIatfId: null,
-          bodyConditionScore: null,
         }));
         return;
       }
@@ -92,7 +86,6 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
         expectedDueDate: null,
         fetalGender: null,
         bullIatfId: null,
-        bodyConditionScore: null,
       }));
     }
   }, [allDataForm.gender, allDataForm.reproductiveStatus, setAllDataForm]);
@@ -189,7 +182,6 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
                   {allDataForm.reproductiveStatus === 'pregnant' && (
                     <FormPregnantStatus
                       animals={animals}
-                      scores={scores}
                       allDataForm={allDataForm}
                       handleInputValues={handleInputValues}
                     />

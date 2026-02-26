@@ -302,10 +302,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
               {allDataForm.weightHistories?.length ? (
                 allDataForm.weightHistories.map(
                   (history: AnimalWeightHistory) => (
-                    <Card
-                      className="rounded-sm px-3 py-2"
-                      key={history.id}
-                    >
+                    <Card className="rounded-sm px-3 py-2" key={history.id}>
                       <div>
                         <strong>Tipo: </strong>
                         <span>{weightRecordTypeLabel(history.recordType)}</span>
@@ -441,6 +438,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
             animal={animal as Animal}
             animals={animals}
             breedArray={breedArray}
+            scores={scores}
           />
 
           <Card className="h-full px-2 py-7">
@@ -487,7 +485,6 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                         handleInputValues={handleInputValues}
                         animal={animal as Animal}
                         animals={animals}
-                        scores={scores}
                       />
                     )}
 

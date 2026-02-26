@@ -7,14 +7,12 @@ interface FormPregnantStatusProps {
   ) => void;
   animals: Animal[];
   animal: Animal | null;
-  scores: number[];
 }
 
 export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
   allDataForm,
   handleInputValues,
   animals,
-  scores,
 }) => {
   return (
     <>
@@ -141,33 +139,6 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
             onChange={handleInputValues}
             className="w-full max-w-40 border border-b border-b-primary bg-transparent outline-none"
           />
-        </div>
-
-        <div className="flex w-full flex-col gap-1">
-          <label className="text-secondary" htmlFor="bodyConditionScore">
-            ECC (Escore de Condição Corporal):
-          </label>
-
-          <select
-            name="bodyConditionScore"
-            id="bodyConditionScore"
-            className={
-              'min-w-24 max-w-40 flex-1 overflow-y-scroll scroll-smooth border border-b-primary outline-none'
-            }
-            value={allDataForm.bodyConditionScore ?? ''}
-            onChange={handleInputValues}
-            style={{
-              overflowY: 'scroll',
-              maxHeight: '100px',
-            }}
-          >
-            <option disabled value=""></option>
-            {scores.map((score, index) => (
-              <option key={index} value={score}>
-                ECC - {score}
-              </option>
-            ))}
-          </select>
         </div>
 
         <div className="flex w-full flex-col gap-1">
