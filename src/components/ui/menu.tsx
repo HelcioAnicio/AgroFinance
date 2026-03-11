@@ -8,13 +8,13 @@ export const MenuNavegation = () => {
   return (
     <footer className="fixed bottom-0 z-30 h-16 w-full rounded-t-3xl bg-primary lg:hidden">
       <section className="relative z-20 mx-auto mt-2 flex max-w-xs justify-between px-5 text-primary-foreground">
-        <Link href="/">
+        <Link href="/dashboard">
           <div className="relative -mt-4 flex size-16 scale-125 flex-col items-center gap-1 rounded-full bg-primary text-black">
             <GiCow size={35} />
             <p>Animal</p>
           </div>
         </Link>
-        <Link href="/">
+        <Link href="/dashboard/reproduction/external-bulls">
           <div className="relative flex size-16 flex-col items-center gap-1 rounded-full">
             <IoMaleFemaleSharp size={35} />
             <p>Reprodução</p>

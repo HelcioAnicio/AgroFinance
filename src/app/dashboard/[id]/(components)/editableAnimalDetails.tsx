@@ -2,6 +2,7 @@
 
 import { Animal, AnimalWeightHistory } from '@/types/animal';
 import { Vaccine } from '@/types/vaccine';
+import { ExternalBull } from '@/types/externalBull';
 import { useState } from 'react';
 import Link from 'next/link';
 import axios from 'axios';
@@ -35,10 +36,16 @@ import {
   TbTrashXFilled,
 } from 'react-icons/tb';
 import { weightRecordTypeLabel } from '@/lib/weightHistory';
+import {
+  buildExternalBullValue,
+  extractExternalBullId,
+  isExternalBullValue,
+} from '@/lib/externalBull';
 
 interface EditableAnimalDetailsProps {
   animal: Animal;
   animals: Animal[];
+  externalBulls: ExternalBull[];
   vaccines: Vaccine[];
   vaccine: Vaccine;
 }
@@ -46,10 +53,17 @@ interface EditableAnimalDetailsProps {
 const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   animal,
   animals,
+  externalBulls,
   vaccines,
 }) => {
   const [allDataForm, setAllDataForm] = useState<Animal>({
     ...animal,
+    bullId: animal.externalBullId
+      ? buildExternalBullValue(animal.externalBullId)
+      : animal.bullId,
+    bullIatfId: animal.externalBullIatfId
+      ? buildExternalBullValue(animal.externalBullIatfId)
+      : animal.bullIatfId,
     weightRecordType: 'OTHER',
     weightRecordDate: new Date().toISOString().split('T')[0],
   });
@@ -134,6 +148,27 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
         allDataForm.motherId === 'Comercial' ? null : allDataForm.motherId,
       fatherId:
         allDataForm.fatherId === 'Comercial' ? null : allDataForm.fatherId,
+      bullId:
+        allDataForm.bullId === 'comercial' ||
+        allDataForm.bullId === 'Comercial' ||
+        isExternalBullValue(allDataForm.bullId)
+          ? null
+          : allDataForm.bullId,
+      bullIatfId:
+        allDataForm.bullIatfId === 'comercial' ||
+        allDataForm.bullIatfId === 'Comercial' ||
+        isExternalBullValue(allDataForm.bullIatfId)
+          ? null
+          : allDataForm.bullIatfId,
+      externalBullId:
+        allDataForm.bullId === 'comercial' || allDataForm.bullId === 'Comercial'
+          ? null
+          : extractExternalBullId(allDataForm.bullId),
+      externalBullIatfId:
+        allDataForm.bullIatfId === 'comercial' ||
+        allDataForm.bullIatfId === 'Comercial'
+          ? null
+          : extractExternalBullId(allDataForm.bullIatfId),
     };
 
     delete dataToSubmit.bull;
@@ -480,22 +515,24 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                     </article>
 
                     {allDataForm.reproductiveStatus === 'pregnant' && (
-                      <FormPregnantStatus
-                        allDataForm={allDataForm}
-                        handleInputValues={handleInputValues}
-                        animal={animal as Animal}
-                        animals={animals}
-                      />
-                    )}
+                    <FormPregnantStatus
+                      allDataForm={allDataForm}
+                      handleInputValues={handleInputValues}
+                      animal={animal as Animal}
+                      animals={animals}
+                      externalBulls={externalBulls}
+                    />
+                  )}
 
                     {allDataForm.reproductiveStatus === 'waiting' && (
-                      <FormWaitingStatus
-                        allDataForm={allDataForm}
-                        handleInputValues={handleInputValues}
-                        animal={animal as Animal}
-                        animals={animals}
-                      />
-                    )}
+                    <FormWaitingStatus
+                      allDataForm={allDataForm}
+                      handleInputValues={handleInputValues}
+                      animal={animal as Animal}
+                      animals={animals}
+                      externalBulls={externalBulls}
+                    />
+                  )}
 
                     {allDataForm.reproductiveStatus === 'pev' && (
                       <FormPevStatus

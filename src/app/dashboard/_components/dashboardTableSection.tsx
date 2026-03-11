@@ -1,7 +1,7 @@
 import { cache } from 'react';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { fetchUsers, fetchAnimals } from '@/lib/fetchData';
+import { fetchUsers, fetchAnimals, fetchExternalBulls } from '@/lib/fetchData';
 import { Table } from '@/components/ui/table';
 
 const getCachedSession = cache(() => getServerSession(authOptions));
@@ -14,6 +14,7 @@ export async function DashboardTableSection() {
   ]);
   const userEmail = users.find((user) => user.email === session?.user?.email);
   const animals = await fetchAnimals(userEmail?.id ?? undefined);
+  const externalBulls = await fetchExternalBulls(userEmail?.id ?? undefined);
 
-  return <Table animals={animals} users={users} />;
+  return <Table animals={animals} users={users} externalBulls={externalBulls} />;
 }

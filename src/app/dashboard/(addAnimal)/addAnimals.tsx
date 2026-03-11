@@ -7,19 +7,23 @@ import { CardFormReproduction } from './tabReproducttion/cardFormReproduction';
 import React, { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { Animal } from '@/types/animal';
+import { ExternalBull } from '@/types/externalBull';
 import { User } from '@/types/user';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
 import axios from 'axios';
+import { extractExternalBullId, isExternalBullValue } from '@/lib/externalBull';
 
 interface AddAnimalProps {
   animals: Animal[];
+  externalBulls: ExternalBull[];
   users: User[];
   onAnimalAdded: (animal: Animal) => void;
 }
 
 export const AddAnimal: React.FC<AddAnimalProps> = ({
   animals,
+  externalBulls,
   users,
   onAnimalAdded,
 }) => {
@@ -99,13 +103,27 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
       fatherId:
         allDataForm.fatherId === 'comercial' ? null : allDataForm.fatherId,
       bullId:
-        allDataForm.bullId === 'comercial' || null || undefined
+        allDataForm.bullId === 'comercial' ||
+        isExternalBullValue(allDataForm.bullId) ||
+        null ||
+        undefined
           ? null
           : allDataForm.bullId,
       bullIatfId:
-        allDataForm.bullIatfId === 'comercial' || null || undefined
+        allDataForm.bullIatfId === 'comercial' ||
+        isExternalBullValue(allDataForm.bullIatfId) ||
+        null ||
+        undefined
           ? null
           : allDataForm.bullIatfId,
+      externalBullId:
+        allDataForm.bullId === 'comercial'
+          ? null
+          : extractExternalBullId(allDataForm.bullId),
+      externalBullIatfId:
+        allDataForm.bullIatfId === 'comercial'
+          ? null
+          : extractExternalBullId(allDataForm.bullIatfId),
       updatedAt: new Date(),
       statusChangeDate:
         allDataForm.status === 'active'
@@ -165,6 +183,7 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
         <TabsContent value="reproducao">
           <CardFormReproduction
             animals={animals}
+            externalBulls={externalBulls}
             handleInputValues={handleInputValues}
             allDataForm={allDataForm}
             submitForm={submitForm}

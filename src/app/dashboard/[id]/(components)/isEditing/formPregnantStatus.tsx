@@ -1,4 +1,6 @@
 import { Animal } from '@/types/animal';
+import { ExternalBull } from '@/types/externalBull';
+import { buildExternalBullValue } from '@/lib/externalBull';
 
 interface FormPregnantStatusProps {
   allDataForm: Animal;
@@ -6,6 +8,7 @@ interface FormPregnantStatusProps {
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
   animals: Animal[];
+  externalBulls: ExternalBull[];
   animal: Animal | null;
 }
 
@@ -13,7 +16,14 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
   allDataForm,
   handleInputValues,
   animals,
+  externalBulls,
 }) => {
+  const internalBullOptions = animals.filter(
+    (animal) =>
+      animal.gender === 'male' &&
+      (animal.category === 'bull' || animal.category === 'old bull')
+  );
+
   return (
     <>
       <article className="flex flex-wrap gap-5">
@@ -54,16 +64,20 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
             <option disabled value=""></option>
             <option value="comercial">Comercial</option>
 
-            {animals
-              .filter(
-                (animal) =>
-                  animal.gender === 'male' && animal.category.includes('Touro')
-              )
-              .map((animal) => (
+            {internalBullOptions.map((animal) => (
                 <option key={animal.id} value={animal.id}>
                   Touro {animal.manualId}
                 </option>
               ))}
+            {externalBulls.map((externalBull) => (
+              <option
+                key={externalBull.id}
+                value={buildExternalBullValue(externalBull.id)}
+              >
+                Externo - {externalBull.name} ({externalBull.dosesAvailable}{' '}
+                doses)
+              </option>
+            ))}
           </select>
         </div>
 
@@ -155,16 +169,20 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
           >
             <option disabled value=""></option>
             <option value="comercial">Comercial</option>
-            {animals
-              .filter(
-                (animal) =>
-                  animal.gender === 'male' && animal.category.includes('Touro')
-              )
-              .map((animal) => (
+            {internalBullOptions.map((animal) => (
                 <option key={animal.id} value={animal.id ?? ''}>
                   Touro {animal.manualId}
                 </option>
               ))}
+            {externalBulls.map((externalBull) => (
+              <option
+                key={externalBull.id}
+                value={buildExternalBullValue(externalBull.id)}
+              >
+                Externo - {externalBull.name} ({externalBull.dosesAvailable}{' '}
+                doses)
+              </option>
+            ))}
           </select>
         </div>
       </article>

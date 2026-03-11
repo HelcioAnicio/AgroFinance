@@ -5,6 +5,7 @@ import {
   parseWeightRecordDate,
   parseWeightRecordType,
 } from '@/lib/weightHistory';
+import { decrementExternalBullDosesForUsageDelta } from '@/lib/externalBullDoses';
 
 export async function PUT(req: Request) {
   try {
@@ -29,6 +30,8 @@ export async function PUT(req: Request) {
       'mother',
       'offspringFromMother',
       'owner',
+      'externalBull',
+      'externalBullIatfRel',
       'dewormings',
       'diseases',
       'vaccines',
@@ -51,7 +54,13 @@ export async function PUT(req: Request) {
 
     const existingAnimal = await prisma.animal.findUnique({
       where: { id: allDataForm.id },
-      select: { weight: true, status: true, ownerId: true },
+      select: {
+        weight: true,
+        status: true,
+        ownerId: true,
+        externalBullId: true,
+        externalBullIatfId: true,
+      },
     });
 
     if (!existingAnimal) {
@@ -59,6 +68,13 @@ export async function PUT(req: Request) {
     }
 
     const data = await prisma.$transaction(async (tx) => {
+      await decrementExternalBullDosesForUsageDelta(
+        tx,
+        existingAnimal.ownerId,
+        [existingAnimal.externalBullId, existingAnimal.externalBullIatfId],
+        [allDataForm.externalBullId, allDataForm.externalBullIatfId]
+      );
+
       const updatedAnimal = await tx.animal.update({
         where: { id: allDataForm.id },
         data: allDataForm,
@@ -195,6 +211,19 @@ export async function PUT(req: Request) {
       createNotification,
     });
   } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message.startsWith('EXTERNAL_BULL_DOSES_UNAVAILABLE')
+    ) {
+      return NextResponse.json(
+        {
+          message:
+            'Não há doses suficientes para o touro externo selecionado.',
+        },
+        { status: 400 }
+      );
+    }
+
     console.log(error);
     return NextResponse.json(
       { message: 'Erro interno no servidor', error },

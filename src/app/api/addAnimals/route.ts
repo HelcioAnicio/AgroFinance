@@ -8,6 +8,7 @@ import {
   parseWeightRecordDate,
   parseWeightRecordType,
 } from '@/lib/weightHistory';
+import { decrementExternalBullDosesForUsageDelta } from '@/lib/externalBullDoses';
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -16,7 +17,8 @@ export async function POST(req: NextRequest) {
 
   const users = await fetchUsers();
   const user = users.find((u) => u.email === session.user?.email);
-  if (!user)
+  const ownerId = user?.id;
+  if (!user || !ownerId)
     return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
   try {
@@ -35,6 +37,13 @@ export async function POST(req: NextRequest) {
 
     const createAnimal = await prisma.$transaction(async (tx) => {
       const animal = await tx.animal.create({ data: animalData });
+
+      await decrementExternalBullDosesForUsageDelta(
+        tx,
+        ownerId,
+        [],
+        [animalData.externalBullId, animalData.externalBullIatfId]
+      );
       const changedAt =
         animal.status === 'active'
           ? new Date(animal.birthDate)
@@ -127,6 +136,19 @@ export async function POST(req: NextRequest) {
       createNotification,
     });
   } catch (error: unknown) {
+    if (
+      error instanceof Error &&
+      error.message.startsWith('EXTERNAL_BULL_DOSES_UNAVAILABLE')
+    ) {
+      return NextResponse.json(
+        {
+          message:
+            'Não há doses suficientes para o touro externo selecionado.',
+        },
+        { status: 400 }
+      );
+    }
+
     console.error('Erro ao cadastrar animal:', error);
     return NextResponse.json(
       { message: 'Erro ao cadastrar animal', error: String(error) },

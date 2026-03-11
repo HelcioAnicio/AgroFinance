@@ -1,4 +1,5 @@
 import { User } from './user';
+import { ExternalBull } from './externalBull';
 
 export type WeightRecordType = 'PN' | 'PS' | 'PD' | 'PA' | 'OTHER';
 
@@ -31,6 +32,8 @@ export interface Animal {
   expectedDueDate: Date | null;
   fetalGender: string | null;
   bullIatfId: string | null;
+  externalBullId: string | null;
+  externalBullIatfId: string | null;
   bodyConditionScore: number | null;
   observations: string | null;
   ownerId: string;
@@ -43,6 +46,8 @@ export interface Animal {
   bull?: Animal;
   offspringFromBull?: Animal[];
   bullIatfRel?: Animal;
+  externalBull?: ExternalBull;
+  externalBullIatfRel?: ExternalBull;
   offspringFromBullIatf?: Animal[];
   father?: Animal;
   offspringFromFather?: Animal[];

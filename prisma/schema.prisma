@@ -23,6 +23,7 @@ model User {
   Authenticator Authenticator[]
   Notification  Notification[]
   animalStatusHistories AnimalStatusHistory[]
+  externalBulls ExternalBull[]
   sessions      Session[]
 }
 
@@ -56,6 +57,8 @@ model Animal {
   vaccineExpiry         DateTime?
   vaccineName           String?
   bullIatfId            String?
+  externalBullId        String?
+  externalBullIatfId    String?
   bull                  Animal?        @relation("BullHandling", fields: [bullId], references: [id])
   offspringFromBull     Animal[]       @relation("BullHandling")
   father                Animal?        @relation("FatherOffspring", fields: [fatherId], references: [id])
@@ -65,6 +68,8 @@ model Animal {
   owner                 User           @relation(fields: [ownerId], references: [id])
   bullIatfRel           Animal?        @relation("BullIatfHandling", fields: [bullIatfId], references: [id])
   offspringFromBullIatf Animal[]       @relation("BullIatfHandling")
+  externalBull          ExternalBull?  @relation("ExternalBullHandling", fields: [externalBullId], references: [id])
+  externalBullIatfRel   ExternalBull?  @relation("ExternalBullIatfHandling", fields: [externalBullIatfId], references: [id])
   dewormings            Deworming[]    @relation("AnimalDewormings")
   diseases              Disease[]      @relation("AnimalDiseases")
   Notification          Notification[]
@@ -73,6 +78,23 @@ model Animal {
   statusHistories       AnimalStatusHistory[]
 
   @@unique([manualId, ownerId])
+}
+
+model ExternalBull {
+  id               String   @id @default(dbgenerated("gen_random_uuid()"))
+  name             String
+  breed            String
+  batches          String[]
+  sourceCompany    String
+  dosesAvailable   Int
+  ownerId          String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  owner            User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  usedInHandling   Animal[] @relation("ExternalBullHandling")
+  usedInIatf       Animal[] @relation("ExternalBullIatfHandling")
+
+  @@index([ownerId])
 }
 
 model AnimalStatusHistory {

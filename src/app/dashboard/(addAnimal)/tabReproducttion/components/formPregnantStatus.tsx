@@ -2,6 +2,8 @@ import { SelectForm } from '@/components/ui/selectForm';
 import { RadioForm } from '@/components/ui/radioForm';
 import { InputForm } from '@/components/ui/inputForm';
 import { Animal } from '@/types/animal';
+import { ExternalBull } from '@/types/externalBull';
+import { buildExternalBullValue } from '@/lib/externalBull';
 
 interface FormPregnantStatusProps {
   allDataForm: Animal;
@@ -9,13 +11,31 @@ interface FormPregnantStatusProps {
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
   animals: Animal[];
+  externalBulls: ExternalBull[];
 }
 
 export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
   allDataForm,
   handleInputValues,
   animals,
+  externalBulls,
 }) => {
+  const internalBullOptions = animals
+    .filter(
+      (animal) =>
+        animal.gender === 'male' &&
+        (animal.category === 'bull' || animal.category === 'old bull')
+    )
+    .map((animal) => ({
+      label: `Touro ${animal.manualId}`,
+      value: animal.id,
+    }));
+
+  const externalBullOptions = externalBulls.map((externalBull) => ({
+    label: `Externo - ${externalBull.name} (${externalBull.dosesAvailable} doses)`,
+    value: buildExternalBullValue(externalBull.id),
+  }));
+
   return (
     <>
       <article className="flex flex-wrap gap-5">
@@ -48,15 +68,8 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
           defaultOption="Escolha o touro"
           options={[
             { label: 'Comercial', value: 'comercial' },
-            ...animals
-              .filter(
-                (animal) =>
-                  animal.gender === 'male' && animal.category.includes('Touro')
-              )
-              .map((animal) => ({
-                label: `Touro ${animal.manualId}`,
-                value: animal.id,
-              })),
+            ...internalBullOptions,
+            ...externalBullOptions,
           ]}
           onChange={handleInputValues}
           disabled={allDataForm.handlingType === 'artificialInsemination'}
@@ -134,15 +147,8 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
           value={allDataForm.bullIatfId || ''}
           options={[
             { label: 'Comercial', value: 'comercial' },
-            ...animals
-              .filter(
-                (animal) =>
-                  animal.gender === 'male' && animal.category.includes('Touro')
-              )
-              .map((animal) => ({
-                label: `Touro ${animal.manualId}`,
-                value: animal.id,
-              })),
+            ...internalBullOptions,
+            ...externalBullOptions,
           ]}
           onChange={handleInputValues}
           disabled={allDataForm.handlingType === 'naturalMating'}
