@@ -76,6 +76,7 @@ model Animal {
   vaccines              Vaccine[]      @relation("AnimalVaccines")
   weightHistories       AnimalWeightHistory[]
   statusHistories       AnimalStatusHistory[]
+  reproductionManagements ReproductionManagement[]
 
   @@unique([manualId, ownerId])
 }
@@ -232,4 +233,27 @@ model Notification {
   createdAt DateTime @default(now()) @db.Timestamp(6)
   Animal    Animal   @relation(fields: [animalId], references: [id], onDelete: Cascade, map: "fk_notification_animal")
   User      User     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "fk_notification_user")
+}
+
+model ReproductionManagement {
+  id            String   @id @default(dbgenerated("gen_random_uuid()"))
+  animalId      String
+  stage         String   // D0, Manejo, Insemination, DG
+  date          DateTime
+  protocolo     Boolean? // for D0 and subsequent
+  implant       String?  // for D0
+  obs           String?
+  ecc           Float?
+  touroId       String?  // for Insemination, can be Animal.id or ExternalBull.id
+  touroType     String?  // 'internal' or 'external'
+  partida       String?  // for Insemination
+  cio           String?  // for Insemination
+  ressinc       Boolean? // for DG
+  ressincCount  Int      @default(0)
+  ressincHistory Json?   // array of {date: string, obs: string}
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  animal        Animal   @relation(fields: [animalId], references: [id], onDelete: Cascade)
+
+  @@index([animalId, stage])
 }

@@ -32,8 +32,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { weightRecordDate, weightRecordType, statusChangeDate, ...animalData } =
-      allDataForm;
+    const {
+      weightRecordDate,
+      weightRecordType,
+      statusChangeDate,
+      ...animalData
+    } = allDataForm;
 
     const createAnimal = await prisma.$transaction(async (tx) => {
       const animal = await tx.animal.create({ data: animalData });
@@ -142,8 +146,7 @@ export async function POST(req: NextRequest) {
     ) {
       return NextResponse.json(
         {
-          message:
-            'Não há doses suficientes para o touro externo selecionado.',
+          message: 'Não há doses suficientes para o touro externo selecionado.',
         },
         { status: 400 }
       );

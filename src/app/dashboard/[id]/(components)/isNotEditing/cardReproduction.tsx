@@ -10,7 +10,9 @@ export const CardReproduction: React.FC<ReproductionProps> = ({
   allDataForm,
 }) => {
   const bullMatingLabel =
-    allDataForm?.bull?.manualId ?? allDataForm?.externalBull?.name ?? 'Comercial';
+    allDataForm?.bull?.manualId ??
+    allDataForm?.externalBull?.name ??
+    'Comercial';
 
   const bullIatfLabel =
     allDataForm?.bullIatfRel?.manualId ??

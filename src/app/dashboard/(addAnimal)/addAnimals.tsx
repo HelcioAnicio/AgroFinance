@@ -128,7 +128,7 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
       statusChangeDate:
         allDataForm.status === 'active'
           ? null
-          : allDataForm.statusChangeDate ?? null,
+          : (allDataForm.statusChangeDate ?? null),
       weightRecordType: allDataForm.weightRecordType ?? 'OTHER',
       weightRecordDate:
         allDataForm.weightRecordDate ?? new Date().toISOString().split('T')[0],

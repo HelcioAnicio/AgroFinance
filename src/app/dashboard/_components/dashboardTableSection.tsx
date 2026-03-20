@@ -16,5 +16,7 @@ export async function DashboardTableSection() {
   const animals = await fetchAnimals(userEmail?.id ?? undefined);
   const externalBulls = await fetchExternalBulls(userEmail?.id ?? undefined);
 
-  return <Table animals={animals} users={users} externalBulls={externalBulls} />;
+  return (
+    <Table animals={animals} users={users} externalBulls={externalBulls} />
+  );
 }

@@ -1,12 +1,10 @@
 import React from 'react';
-import { Header } from '@/components/ui/header';
 import { prisma } from '@/lib/prisma';
 import { Animal } from '@/types/animal';
 import EditableAnimalDetails from './(components)/editableAnimalDetails';
 import {
   fetchAnimals,
   fetchExternalBulls,
-  fetchNotifications,
   fetchUsers,
   fetchVaccines,
 } from '@/lib/fetchData';
@@ -49,11 +47,8 @@ const DetailAnimalId = async ({
   const vaccines = await fetchVaccines(animal?.id as string);
   const vaccine = vaccines;
 
-  const notifications = await fetchNotifications(userEmail?.id ?? '');
-
   return (
     <>
-      <Header notifications={notifications} />
       <EditableAnimalDetails
         animal={animal as Animal}
         animals={animals}

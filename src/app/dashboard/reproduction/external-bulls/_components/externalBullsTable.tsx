@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { InputForm } from '@/components/ui/inputForm';
 import { toast } from 'sonner';
+import { SelectForm } from '@/components/ui/selectForm';
 
 type ExternalBullForm = {
   id: string | null;
@@ -52,6 +53,31 @@ export function ExternalBullsTable() {
   const [errors, setErrors] = useState<
     Partial<Record<keyof ExternalBullForm, string>>
   >({});
+  const breedArray = [
+    'Cruzado',
+    'Nelore',
+    'Angus',
+    'Hereford',
+    'Brangus',
+    'Brahman',
+    'Tabapuã',
+    'Charolês',
+    'Senepol',
+    'Simental',
+    'Guzerá',
+    'Holandesa',
+    'Jersey',
+    'Girolando',
+    'Gir Leiteiro',
+    'Pardo-Suíço',
+    'Ayrshire',
+    'Guernsey',
+    'Simbrasil',
+    'Sindi',
+    'Indubrasil',
+    'Canchim',
+    'Red Poll',
+  ];
   const [isSaving, setIsSaving] = useState(false);
 
   const isEditing = useMemo(() => Boolean(form.id), [form.id]);
@@ -172,20 +198,22 @@ export function ExternalBullsTable() {
             value={form.name}
             onChange={(event) => handleInputChange('name', event.target.value)}
           />
-          <InputForm
+          <SelectForm
             htmlFor="breed"
-            label="Raça"
-            type="text"
+            label="Raça:"
             name="breed"
             id="breed"
-            value={form.breed}
-            onChange={(event) =>
-              handleInputChange('breed', event.target.value)
-            }
+            value={form.breed ?? ''}
+            onChange={(event) => handleInputChange('breed', event.target.value)}
+            options={breedArray.map((breed) => ({
+              label: breed,
+              value: breed,
+            }))}
+            defaultOption="Escolha a raça"
           />
           <InputForm
             htmlFor="batches"
-            label="Partida(s)"
+            label="Partida(s):"
             type="text"
             name="batches"
             id="batches"
@@ -269,7 +297,9 @@ export function ExternalBullsTable() {
                 >
                   <td className="px-2 py-2">{externalBull.name}</td>
                   <td className="px-2 py-2">{externalBull.breed}</td>
-                  <td className="px-2 py-2">{externalBull.batches.join(', ')}</td>
+                  <td className="px-2 py-2">
+                    {externalBull.batches.join(', ')}
+                  </td>
                   <td className="px-2 py-2">{externalBull.sourceCompany}</td>
                   <td className="px-2 py-2">{externalBull.dosesAvailable}</td>
                   <td className="px-2 py-2">

@@ -64,7 +64,10 @@ export async function PUT(req: Request) {
     });
 
     if (!existingAnimal) {
-      return NextResponse.json({ message: 'Animal não encontrado' }, { status: 404 });
+      return NextResponse.json(
+        { message: 'Animal não encontrado' },
+        { status: 404 }
+      );
     }
 
     const data = await prisma.$transaction(async (tx) => {
@@ -83,7 +86,8 @@ export async function PUT(req: Request) {
       const hasWeightChanged =
         Number(existingAnimal.weight) !== Number(allDataForm.weight);
       const hasStatusChanged =
-        String(existingAnimal.status ?? '') !== String(allDataForm.status ?? '');
+        String(existingAnimal.status ?? '') !==
+        String(allDataForm.status ?? '');
 
       if (hasWeightChanged) {
         await tx.animalWeightHistory.create({
@@ -217,8 +221,7 @@ export async function PUT(req: Request) {
     ) {
       return NextResponse.json(
         {
-          message:
-            'Não há doses suficientes para o touro externo selecionado.',
+          message: 'Não há doses suficientes para o touro externo selecionado.',
         },
         { status: 400 }
       );

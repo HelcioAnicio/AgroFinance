@@ -65,10 +65,10 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
             <option value="comercial">Comercial</option>
 
             {internalBullOptions.map((animal) => (
-                <option key={animal.id} value={animal.id}>
-                  Touro {animal.manualId}
-                </option>
-              ))}
+              <option key={animal.id} value={animal.id}>
+                Touro {animal.manualId}
+              </option>
+            ))}
             {externalBulls.map((externalBull) => (
               <option
                 key={externalBull.id}
@@ -170,10 +170,10 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
             <option disabled value=""></option>
             <option value="comercial">Comercial</option>
             {internalBullOptions.map((animal) => (
-                <option key={animal.id} value={animal.id ?? ''}>
-                  Touro {animal.manualId}
-                </option>
-              ))}
+              <option key={animal.id} value={animal.id ?? ''}>
+                Touro {animal.manualId}
+              </option>
+            ))}
             {externalBulls.map((externalBull) => (
               <option
                 key={externalBull.id}

@@ -30,7 +30,7 @@ export function DashboardTableSkeleton() {
               {Array.from({ length: 10 }).map((_, i) => (
                 <Skeleton
                   key={i}
-                  className="h-10 flex-1 min-w-[80px] rounded-none last:min-w-[60px]"
+                  className="h-10 min-w-[80px] flex-1 rounded-none last:min-w-[60px]"
                 />
               ))}
             </div>
@@ -42,7 +42,7 @@ export function DashboardTableSkeleton() {
                 {Array.from({ length: 10 }).map((_, colIndex) => (
                   <Skeleton
                     key={colIndex}
-                    className="m-1 h-8 flex-1 min-w-[70px] rounded last:min-w-[50px]"
+                    className="m-1 h-8 min-w-[70px] flex-1 rounded last:min-w-[50px]"
                   />
                 ))}
               </div>

@@ -515,24 +515,24 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                     </article>
 
                     {allDataForm.reproductiveStatus === 'pregnant' && (
-                    <FormPregnantStatus
-                      allDataForm={allDataForm}
-                      handleInputValues={handleInputValues}
-                      animal={animal as Animal}
-                      animals={animals}
-                      externalBulls={externalBulls}
-                    />
-                  )}
+                      <FormPregnantStatus
+                        allDataForm={allDataForm}
+                        handleInputValues={handleInputValues}
+                        animal={animal as Animal}
+                        animals={animals}
+                        externalBulls={externalBulls}
+                      />
+                    )}
 
                     {allDataForm.reproductiveStatus === 'waiting' && (
-                    <FormWaitingStatus
-                      allDataForm={allDataForm}
-                      handleInputValues={handleInputValues}
-                      animal={animal as Animal}
-                      animals={animals}
-                      externalBulls={externalBulls}
-                    />
-                  )}
+                      <FormWaitingStatus
+                        allDataForm={allDataForm}
+                        handleInputValues={handleInputValues}
+                        animal={animal as Animal}
+                        animals={animals}
+                        externalBulls={externalBulls}
+                      />
+                    )}
 
                     {allDataForm.reproductiveStatus === 'pev' && (
                       <FormPevStatus

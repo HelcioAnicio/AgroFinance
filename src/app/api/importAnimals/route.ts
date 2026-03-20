@@ -50,7 +50,9 @@ export async function POST(req: Request) {
       const id = uuidv4();
       const birthDate =
         typeof item.birthDate === 'number'
-          ? new Date(excelDateToJSDate(item.birthDate).toISOString().split('T')[0])
+          ? new Date(
+              excelDateToJSDate(item.birthDate).toISOString().split('T')[0]
+            )
           : item.birthDate
             ? new Date(item.birthDate)
             : null;
@@ -75,114 +77,117 @@ export async function POST(req: Request) {
       );
       const changedAt =
         normalizedStatus === 'active'
-          ? birthDate ?? new Date()
-          : importedStatusChangeDate ?? new Date();
+          ? (birthDate ?? new Date())
+          : (importedStatusChangeDate ?? new Date());
 
       statusChangedAtById.set(id, changedAt);
 
       return {
-      ...item,
-      id,
-      status:
-        normalizedStatus,
-      manualId: item.manualId?.toLowerCase(),
-      gender: item.gender === 'macho' ? 'male' : 'female',
-      birthDate: birthDate,
-      breed: item.breed?.toLowerCase(),
-      category:
-        item.category === 'dependente'
-          ? 'neonate'
-          : item.category === 'bezerro'
-            ? 'calf'
-            : item.category === 'novilho' || item.category === 'garrote'
-              ? 'steer'
-              : item.category === 'vaca'
-                ? 'cow'
-                : item.category === 'vaca velha'
-                  ? 'old cow'
-                  : item.category === 'boi'
-                    ? 'ox'
-                    : item.category === 'boi velho'
-                      ? 'old ox'
-                      : 'bull',
-      reproductiveStatus:
-        item.reproductiveStatus === 'vazio'
-          ? 'empty'
-          : item.reproductiveStatus === 'prenha'
-            ? 'pregnant'
-            : item.reproductiveStatus === 'espera'
-              ? 'waiting'
-              : item.reproductiveStatus === 'pev'
-                ? 'pev'
+        ...item,
+        id,
+        status: normalizedStatus,
+        manualId: item.manualId?.toLowerCase(),
+        gender: item.gender === 'macho' ? 'male' : 'female',
+        birthDate: birthDate,
+        breed: item.breed?.toLowerCase(),
+        category:
+          item.category === 'dependente'
+            ? 'neonate'
+            : item.category === 'bezerro'
+              ? 'calf'
+              : item.category === 'novilho' || item.category === 'garrote'
+                ? 'steer'
+                : item.category === 'vaca'
+                  ? 'cow'
+                  : item.category === 'vaca velha'
+                    ? 'old cow'
+                    : item.category === 'boi'
+                      ? 'ox'
+                      : item.category === 'boi velho'
+                        ? 'old ox'
+                        : 'bull',
+        reproductiveStatus:
+          item.reproductiveStatus === 'vazio'
+            ? 'empty'
+            : item.reproductiveStatus === 'prenha'
+              ? 'pregnant'
+              : item.reproductiveStatus === 'espera'
+                ? 'waiting'
+                : item.reproductiveStatus === 'pev'
+                  ? 'pev'
+                  : null,
+        handlingType:
+          item.handlingType === 'monta natural'
+            ? 'handlingType'
+            : item.handlingType === 'inseminação artificial'
+              ? 'artificialInsemination'
+              : item.handlingType === 'todos os metodos'
+                ? 'allMethods'
                 : null,
-      handlingType:
-        item.handlingType === 'monta natural'
-          ? 'handlingType'
-          : item.handlingType === 'inseminação artificial'
-            ? 'artificialInsemination'
-            : item.handlingType === 'todos os metodos'
-              ? 'allMethods'
+        protocol:
+          item.protocol === '3 manejos'
+            ? '3 handlings'
+            : item.protocol === '4 manejos'
+              ? '4 handlings'
+              : item.protocol === 'misto'
+                ? 'mixed'
+                : null,
+        andrological:
+          item.andrological === 'positivo'
+            ? 'positive'
+            : item.andrological === 'negativo'
+              ? 'negative'
+              : item.andrological === 'não realizado'
+                ? 'notDone'
+                : null,
+        fetalGender:
+          item.fetalGender === 'macho'
+            ? 'male'
+            : item.andrological === 'femea'
+              ? 'female'
               : null,
-      protocol:
-        item.protocol === '3 manejos'
-          ? '3 handlings'
-          : item.protocol === '4 manejos'
-            ? '4 handlings'
-            : item.protocol === 'misto'
-              ? 'mixed'
-              : null,
-      andrological:
-        item.andrological === 'positivo'
-          ? 'positive'
-          : item.andrological === 'negativo'
-            ? 'negative'
-            : item.andrological === 'não realizado'
-              ? 'notDone'
-              : null,
-      fetalGender:
-        item.fetalGender === 'macho'
-          ? 'male'
-          : item.andrological === 'femea'
-            ? 'female'
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        expectedDueDate:
+          typeof item.expectedDueDate === 'number'
+            ? new Date(
+                excelDateToJSDate(item.expectedDueDate)
+                  .toISOString()
+                  .split('T')[0]
+              )
             : null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      expectedDueDate:
-        typeof item.expectedDueDate === 'number'
-          ? new Date(
-              excelDateToJSDate(item.expectedDueDate)
-                .toISOString()
-                .split('T')[0]
-            )
-          : null,
-      vaccineDate:
-        typeof item.vaccineDate === 'number'
-          ? new Date(
-              excelDateToJSDate(item.vaccineDate).toISOString().split('T')[0]
-            )
-          : null,
-      vaccineExpiry:
-        typeof item.vaccineExpiry === 'number'
-          ? new Date(
-              excelDateToJSDate(item.vaccineExpiry).toISOString().split('T')[0]
-            )
-          : null,
-      dewormingDate:
-        typeof item.dewormingDate === 'number'
-          ? new Date(
-              excelDateToJSDate(item.dewormingDate).toISOString().split('T')[0]
-            )
-          : null,
-      dewormingExpiry:
-        typeof item.dewormingExpiry === 'number'
-          ? new Date(
-              excelDateToJSDate(item.dewormingExpiry)
-                .toISOString()
-                .split('T')[0]
-            )
-          : null,
-      ownerId,
-    };
+        vaccineDate:
+          typeof item.vaccineDate === 'number'
+            ? new Date(
+                excelDateToJSDate(item.vaccineDate).toISOString().split('T')[0]
+              )
+            : null,
+        vaccineExpiry:
+          typeof item.vaccineExpiry === 'number'
+            ? new Date(
+                excelDateToJSDate(item.vaccineExpiry)
+                  .toISOString()
+                  .split('T')[0]
+              )
+            : null,
+        dewormingDate:
+          typeof item.dewormingDate === 'number'
+            ? new Date(
+                excelDateToJSDate(item.dewormingDate)
+                  .toISOString()
+                  .split('T')[0]
+              )
+            : null,
+        dewormingExpiry:
+          typeof item.dewormingExpiry === 'number'
+            ? new Date(
+                excelDateToJSDate(item.dewormingExpiry)
+                  .toISOString()
+                  .split('T')[0]
+              )
+            : null,
+        ownerId,
+      };
     });
 
     const allAnimalsUpdated = animals.map((animal) => {
@@ -254,7 +259,9 @@ export async function POST(req: Request) {
           previousStatus: null,
           newStatus: animal!.status ?? 'active',
           changedAt: statusChangedAtById.get(animal!.id) ?? new Date(),
-          year: (statusChangedAtById.get(animal!.id) ?? new Date()).getFullYear(),
+          year: (
+            statusChangedAtById.get(animal!.id) ?? new Date()
+          ).getFullYear(),
           month:
             (statusChangedAtById.get(animal!.id) ?? new Date()).getMonth() + 1,
           reason: 'animal_import',
@@ -288,12 +295,14 @@ export async function POST(req: Request) {
             throw new Error('Usuário não encontrado');
           }
 
-          const existingBirthNotification = await prisma.notification.findFirst({
-            where: {
-              animalId: animal.id,
-              message: { contains: 'próximo ao parto' },
-            },
-          });
+          const existingBirthNotification = await prisma.notification.findFirst(
+            {
+              where: {
+                animalId: animal.id,
+                message: { contains: 'próximo ao parto' },
+              },
+            }
+          );
 
           if (!existingBirthNotification) {
             await prisma.notification.create({

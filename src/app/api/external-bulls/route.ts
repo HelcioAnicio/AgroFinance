@@ -38,7 +38,9 @@ function validateExternalBullInput(input: {
   if (!sourceCompany) errors.push('Empresa de origem é obrigatória.');
   if (batches.length === 0) errors.push('Informe ao menos uma partida.');
   if (!Number.isInteger(dosesAvailable) || dosesAvailable < 0) {
-    errors.push('Quantidade de doses deve ser um número inteiro maior ou igual a zero.');
+    errors.push(
+      'Quantidade de doses deve ser um número inteiro maior ou igual a zero.'
+    );
   }
 
   return {
