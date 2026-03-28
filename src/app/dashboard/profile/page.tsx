@@ -1,7 +1,5 @@
-import { Header } from '@/components/ui/header';
-import { authOptions } from '@/lib/auth';
-import { fetchNotifications } from '@/lib/fetchData';
 import { prisma } from '@/lib/prisma';
+import { authOptions } from '@/lib/auth';
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import EditableUserProfile from './_components/editableUserProfile';
@@ -18,14 +16,7 @@ const ProfilePage = async () => {
 
   if (!user) redirect('/login');
 
-  const notifications = await fetchNotifications(user.id);
-
-  return (
-    <>
-      <Header notifications={notifications} />
-      <EditableUserProfile user={user} />
-    </>
-  );
+  return <EditableUserProfile user={user} />;
 };
 
 export default ProfilePage;

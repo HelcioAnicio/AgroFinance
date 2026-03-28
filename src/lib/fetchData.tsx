@@ -5,6 +5,7 @@ import { LivestockStatsYear } from '@/types/livestockStats';
 import { User } from '@/types/user';
 import { Vaccine } from '@/types/vaccine';
 import { Notification } from '@/types/notification';
+import { ExternalBull } from '@/types/externalBull';
 
 export const fetchAnimals = async (ownerId?: string): Promise<Animal[]> => {
   try {
@@ -67,6 +68,23 @@ export const fetchVaccines = async (animalId: string): Promise<Vaccine[]> => {
   });
 
   return vaccines as Vaccine[];
+};
+
+export const fetchExternalBulls = async (
+  ownerId?: string
+): Promise<ExternalBull[]> => {
+  if (!ownerId) return [];
+
+  const externalBulls = await prisma.externalBull.findMany({
+    where: {
+      ownerId,
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+  });
+
+  return externalBulls as ExternalBull[];
 };
 
 const MONTH_LABELS = [

@@ -1,11 +1,10 @@
 import React from 'react';
-import { Header } from '@/components/ui/header';
 import { prisma } from '@/lib/prisma';
 import { Animal } from '@/types/animal';
 import EditableAnimalDetails from './(components)/editableAnimalDetails';
 import {
   fetchAnimals,
-  fetchNotifications,
+  fetchExternalBulls,
   fetchUsers,
   fetchVaccines,
 } from '@/lib/fetchData';
@@ -23,6 +22,7 @@ const DetailAnimalId = async ({
   const session = await getServerSession(authOptions);
   const userEmail = users.find((user) => user.email === session?.user?.email);
   const animals = await fetchAnimals(userEmail?.id ?? undefined);
+  const externalBulls = await fetchExternalBulls(userEmail?.id ?? undefined);
   const animal = await prisma.animal.findUnique({
     where: { id },
     include: {
@@ -30,6 +30,8 @@ const DetailAnimalId = async ({
       offspringFromBull: true,
       bullIatfRel: true,
       offspringFromBullIatf: true,
+      externalBull: true,
+      externalBullIatfRel: true,
       father: true,
       offspringFromFather: true,
       mother: true,
@@ -45,14 +47,12 @@ const DetailAnimalId = async ({
   const vaccines = await fetchVaccines(animal?.id as string);
   const vaccine = vaccines;
 
-  const notifications = await fetchNotifications(userEmail?.id ?? '');
-
   return (
     <>
-      <Header notifications={notifications} />
       <EditableAnimalDetails
         animal={animal as Animal}
         animals={animals}
+        externalBulls={externalBulls}
         vaccines={vaccines}
         vaccine={vaccine as unknown as Vaccine}
       />

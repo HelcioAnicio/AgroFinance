@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Animal } from '@/types/animal';
+import { ExternalBull } from '@/types/externalBull';
 import { SelectForm } from '@/components/ui/selectForm';
 import { FormMaleReproductive } from './components/formMaleReproductive';
 import { FormPregnantStatus } from './components/formPregnantStatus';
@@ -14,6 +15,7 @@ import { GoAlertFill } from 'react-icons/go';
 
 interface CardFormReproductionProps {
   animals: Animal[];
+  externalBulls: ExternalBull[];
   allDataForm: Animal;
   handleInputValues: (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -25,16 +27,13 @@ interface CardFormReproductionProps {
 
 export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
   animals,
+  externalBulls,
   allDataForm,
   handleInputValues,
   submitForm,
   setTabValue,
   setAllDataForm,
 }) => {
-  const scores = [
-    1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 2.75, 3, 3.25, 3.5, 3.75, 4, 5,
-  ];
-
   const cleanAllDataForm = () => {
     setTabValue('principais');
     setAllDataForm({} as Animal);
@@ -57,7 +56,6 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
           expectedDueDate: null,
           fetalGender: null,
           bullIatfId: null,
-          bodyConditionScore: null,
         }));
 
         return;
@@ -78,7 +76,6 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
           expectedDueDate: null,
           fetalGender: null,
           bullIatfId: null,
-          bodyConditionScore: null,
         }));
         return;
       }
@@ -92,7 +89,6 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
         expectedDueDate: null,
         fetalGender: null,
         bullIatfId: null,
-        bodyConditionScore: null,
       }));
     }
   }, [allDataForm.gender, allDataForm.reproductiveStatus, setAllDataForm]);
@@ -189,7 +185,7 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
                   {allDataForm.reproductiveStatus === 'pregnant' && (
                     <FormPregnantStatus
                       animals={animals}
-                      scores={scores}
+                      externalBulls={externalBulls}
                       allDataForm={allDataForm}
                       handleInputValues={handleInputValues}
                     />
@@ -200,6 +196,7 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
                       allDataForm={allDataForm}
                       handleInputValues={handleInputValues}
                       animals={animals}
+                      externalBulls={externalBulls}
                     />
                   )}
 

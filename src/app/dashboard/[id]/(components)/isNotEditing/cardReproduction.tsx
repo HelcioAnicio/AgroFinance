@@ -9,6 +9,16 @@ interface ReproductionProps {
 export const CardReproduction: React.FC<ReproductionProps> = ({
   allDataForm,
 }) => {
+  const bullMatingLabel =
+    allDataForm?.bull?.manualId ??
+    allDataForm?.externalBull?.name ??
+    'Comercial';
+
+  const bullIatfLabel =
+    allDataForm?.bullIatfRel?.manualId ??
+    allDataForm?.externalBullIatfRel?.name ??
+    'Comercial';
+
   return (
     <>
       <Card className="flex w-full max-w-lg flex-col gap-1 px-2 py-7">
@@ -66,39 +76,23 @@ export const CardReproduction: React.FC<ReproductionProps> = ({
                     <section className="flex flex-wrap gap-5">
                       <Card className="w-max rounded-sm px-3 py-1">
                         <strong>Touro Monta: </strong>
-                        <span>
-                          {allDataForm.bullId !== null
-                            ? allDataForm?.bull?.manualId
-                            : 'Comercial'}
-                        </span>
+                        <span>{bullMatingLabel}</span>
                       </Card>
                     </section>
                   ) : allDataForm?.handlingType === 'artificialInsemination' ? (
                     <Card className="w-max rounded-sm px-3 py-1">
                       <strong>Touro Iatf: </strong>
-                      <span>
-                        {allDataForm?.bullIatfId === null
-                          ? 'N/A'
-                          : allDataForm?.bullIatfRel?.manualId}
-                      </span>
+                      <span>{bullIatfLabel}</span>
                     </Card>
                   ) : (
                     <section className="flex flex-wrap gap-5">
                       <Card className="w-max rounded-sm px-3 py-1">
                         <strong>Touro Monta: </strong>
-                        <span>
-                          {allDataForm.bullId !== null
-                            ? allDataForm?.bull?.manualId
-                            : 'Comercial'}
-                        </span>
+                        <span>{bullMatingLabel}</span>
                       </Card>
                       <Card className="w-max rounded-sm px-3 py-1">
                         <strong>Touro Iatf: </strong>
-                        <span>
-                          {allDataForm?.bullIatfId === null
-                            ? 'N/A'
-                            : allDataForm?.bullIatfRel?.manualId}
-                        </span>
+                        <span>{bullIatfLabel}</span>
                       </Card>
                     </section>
                   )}
@@ -153,38 +147,22 @@ export const CardReproduction: React.FC<ReproductionProps> = ({
                   ) : allDataForm.handlingType === 'naturalMating' ? (
                     <Card className="flex w-max flex-wrap gap-2 rounded-sm px-3 py-1">
                       <strong>Touro Monta: </strong>
-                      <span>
-                        {allDataForm.bullId
-                          ? allDataForm.bull?.manualId
-                          : 'Comercial'}
-                      </span>
+                      <span>{bullMatingLabel}</span>
                     </Card>
                   ) : allDataForm.handlingType === 'artificialInsemination' ? (
                     <Card className="flex w-max flex-wrap gap-2 rounded-sm px-3 py-1">
                       <strong>Touro Iatf: </strong>
-                      <span>
-                        {allDataForm.bullIatfId
-                          ? allDataForm?.bullIatfRel?.manualId
-                          : 'Comercial'}
-                      </span>
+                      <span>{bullIatfLabel}</span>
                     </Card>
                   ) : (
                     <section className="flex flex-wrap gap-5">
                       <Card className="flex w-max flex-wrap gap-2 rounded-sm px-3 py-1">
                         <strong>Touro Monta: </strong>
-                        <span>
-                          {allDataForm.bullId
-                            ? allDataForm.bull?.manualId
-                            : 'Comercial'}
-                        </span>
+                        <span>{bullMatingLabel}</span>
                       </Card>
                       <Card className="flex w-max flex-wrap gap-2 rounded-sm px-3 py-1">
                         <strong>Touro Iatf: </strong>
-                        <span>
-                          {allDataForm.bullIatfId
-                            ? allDataForm?.bullIatfRel?.manualId
-                            : 'Comercial'}
-                        </span>
+                        <span>{bullIatfLabel}</span>
                       </Card>
                     </section>
                   )}

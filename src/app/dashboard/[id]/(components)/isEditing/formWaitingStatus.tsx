@@ -1,4 +1,6 @@
 import { Animal } from '@/types/animal';
+import { ExternalBull } from '@/types/externalBull';
+import { buildExternalBullValue } from '@/lib/externalBull';
 
 interface FormWaitingStatusProps {
   allDataForm: Animal;
@@ -6,6 +8,7 @@ interface FormWaitingStatusProps {
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
   animals: Animal[];
+  externalBulls: ExternalBull[];
   animal: Animal | null;
 }
 
@@ -13,7 +16,14 @@ export const FormWaitingStatus: React.FC<FormWaitingStatusProps> = ({
   allDataForm,
   handleInputValues,
   animals,
+  externalBulls,
 }) => {
+  const internalBullOptions = animals.filter(
+    (animal) =>
+      animal.gender === 'male' &&
+      (animal.category === 'bull' || animal.category === 'old bull')
+  );
+
   return (
     <>
       <article className="flex flex-wrap gap-5">
@@ -54,9 +64,18 @@ export const FormWaitingStatus: React.FC<FormWaitingStatusProps> = ({
             <option disabled value=""></option>
             <option value="comercial">Comercial</option>
 
-            {animals.map((animal) => (
-              <option key={animal.id} value={animal.manualId ?? ''}>
+            {internalBullOptions.map((animal) => (
+              <option key={animal.id} value={animal.id}>
                 Touro {animal.manualId}
+              </option>
+            ))}
+            {externalBulls.map((externalBull) => (
+              <option
+                key={externalBull.id}
+                value={buildExternalBullValue(externalBull.id)}
+              >
+                Externo - {externalBull.name} ({externalBull.dosesAvailable}{' '}
+                doses)
               </option>
             ))}
           </select>

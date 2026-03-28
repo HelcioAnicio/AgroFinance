@@ -10,6 +10,7 @@ interface FormBasicInformationProps {
   breedArray: string[];
   animal: Animal | null;
   animals: Animal[];
+  scores: number[];
 }
 
 export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
@@ -17,6 +18,7 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
   handleInputValues,
   breedArray,
   animals,
+  scores,
 }) => {
   return (
     <>
@@ -116,6 +118,26 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
                   className="w-full border border-b border-b-primary bg-transparent outline-none"
                 />
               </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-secondary" htmlFor="bodyConditionScore">
+                  ECC (Escore de Condi��o Corporal):
+                </label>
+                <select
+                  name="bodyConditionScore"
+                  id="bodyConditionScore"
+                  value={allDataForm.bodyConditionScore ?? ''}
+                  onChange={handleInputValues}
+                  className="w-full border border-b border-b-primary bg-transparent outline-none"
+                >
+                  <option value="">Escolha o ECC</option>
+                  {scores.map((score, index) => (
+                    <option key={index} value={score}>
+                      ECC - {score}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <div className="flex flex-col gap-1">
                 <label className="text-secondary" htmlFor="weightRecordType">
                   Tipo pesagem:

@@ -10,6 +10,9 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { NotificationComponent } from './notificationComponent';
 import { Notification } from '@/types/notification';
+import { CgProfile } from 'react-icons/cg';
+import { FaRegMoneyBillAlt } from 'react-icons/fa';
+import { IoMaleFemaleSharp } from 'react-icons/io5';
 
 interface TableProps {
   notifications: Notification[];
@@ -32,18 +35,57 @@ export const Header: React.FC<TableProps> = ({ notifications }) => {
 
   return (
     <header className="flex w-full items-center justify-between p-2">
-      <div className="flex w-1/3 items-center gap-5">
-        <Link href={'/dashboard'}>
-          <Image
-            priority={true}
-            src="/logo.png"
-            alt="Logo - Imagem de um touro e uma ovelha"
-            width={100}
-            height={100}
-            className="size-16"
-          />
-        </Link>
-      </div>
+      <nav className="flex w-full">
+        <ul className="flex items-center gap-8">
+          <li>
+            <Link href={'/dashboard'}>
+              <Image
+                priority={true}
+                src="/logo.png"
+                alt="Logo - Imagem de um touro e uma ovelha"
+                width={100}
+                height={100}
+                className="size-16"
+              />
+            </Link>
+          </li>
+          {/* <li>
+            <Link
+              href={'/dashboard/reproduction/management'}
+              className="relative flex items-center gap-1 transition-all duration-300 after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-foreground after:transition-all after:duration-300 hover:text-secondary hover:after:w-full"
+            >
+              <IoMaleFemaleSharp size={20} />
+              Manejo
+            </Link>
+          </li> */}
+          <li>
+            <Link
+              href={'/dashboard/reproduction/'}
+              className="relative hidden lg:flex items-center gap-1 transition-all duration-300 after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-foreground after:transition-all after:duration-300 hover:text-secondary hover:after:w-full"
+            >
+              <IoMaleFemaleSharp size={20} />
+              Reprodução
+            </Link>
+          </li>
+          <li>
+            <Link
+              href={'/'}
+              className="after:duration-300after:left-0 relative hidden lg:flex items-center gap-1 transition-all duration-300 after:absolute after:-bottom-1 after:h-px after:w-0 after:bg-foreground after:transition-all hover:text-secondary hover:after:w-full"
+            >
+              <FaRegMoneyBillAlt size={20} /> Financeiro
+            </Link>
+          </li>
+          <li>
+            <Link
+              href={'/dashboard/profile'}
+              className="relative hidden lg:flex items-center gap-1 transition-all duration-300 after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-foreground after:transition-all after:duration-300 hover:text-secondary hover:after:w-full"
+            >
+              <CgProfile size={20} />
+              Perfil
+            </Link>
+          </li>
+        </ul>
+      </nav>
 
       <nav className="flex w-full flex-col items-end gap-4">
         {status === 'authenticated' && (

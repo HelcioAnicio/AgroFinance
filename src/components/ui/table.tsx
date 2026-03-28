@@ -19,6 +19,7 @@ import * as XLSX from 'xlsx';
 import { toast } from 'sonner';
 
 import { Animal } from '@/types/animal';
+import { ExternalBull } from '@/types/externalBull';
 import { LivestockStatsYear } from '@/types/livestockStats';
 import { User } from '@/types/user';
 import { AddAnimal } from '../../app/dashboard/(addAnimal)/addAnimals';
@@ -48,6 +49,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 interface TableProps {
   animals: Animal[];
   users: User[];
+  externalBulls: ExternalBull[];
   livestockStats?: LivestockStatsYear[];
   dataLoading?: boolean;
 }
@@ -148,6 +150,7 @@ const getStatusBarColor = (status: string) => {
 export const Table: React.FC<TableProps> = ({
   animals,
   users,
+  externalBulls,
   livestockStats = [],
   dataLoading = false,
 }) => {
@@ -447,6 +450,7 @@ export const Table: React.FC<TableProps> = ({
                   </SheetTrigger>
                   <AddAnimal
                     animals={animals}
+                    externalBulls={externalBulls}
                     users={users}
                     onAnimalAdded={handleAnimalAdded}
                   />
@@ -457,6 +461,7 @@ export const Table: React.FC<TableProps> = ({
                   </DialogTrigger>
                   <AddAnimalDesktop
                     animals={animals}
+                    externalBulls={externalBulls}
                     users={users}
                     onAnimalAdded={handleAnimalAdded}
                   />

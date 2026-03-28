@@ -5,11 +5,13 @@ import { Table } from '@/components/ui/table';
 import { Animal } from '@/types/animal';
 import { LivestockStatsYear } from '@/types/livestockStats';
 import { User } from '@/types/user';
+import { ExternalBull } from '@/types/externalBull';
 
 export function DashboardTableWithData() {
   const [dataLoading, setDataLoading] = useState(true);
   const [animals, setAnimals] = useState<Animal[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  const [externalBulls, setExternalBulls] = useState<ExternalBull[]>([]);
   const [livestockStats, setLivestockStats] = useState<LivestockStatsYear[]>(
     []
   );
@@ -25,12 +27,14 @@ export function DashboardTableWithData() {
         animals: Animal[];
         users: User[];
         livestockStats: LivestockStatsYear[];
+        externalBulls: ExternalBull[];
       } = await res.json();
 
       if (!cancelled) {
         setAnimals(data.animals ?? []);
         setUsers(data.users ?? []);
         setLivestockStats(data.livestockStats ?? []);
+        setExternalBulls(data.externalBulls ?? []);
         setDataLoading(false);
       }
     } catch {
@@ -38,6 +42,7 @@ export function DashboardTableWithData() {
         setAnimals([]);
         setUsers([]);
         setLivestockStats([]);
+        setExternalBulls([]);
         setDataLoading(false);
       }
     }
@@ -67,6 +72,7 @@ export function DashboardTableWithData() {
     <Table
       animals={animals}
       users={users}
+      externalBulls={externalBulls}
       livestockStats={livestockStats}
       dataLoading={dataLoading}
     />

@@ -23,6 +23,7 @@ model User {
   Authenticator Authenticator[]
   Notification  Notification[]
   animalStatusHistories AnimalStatusHistory[]
+  externalBulls ExternalBull[]
   sessions      Session[]
 }
 
@@ -56,6 +57,8 @@ model Animal {
   vaccineExpiry         DateTime?
   vaccineName           String?
   bullIatfId            String?
+  externalBullId        String?
+  externalBullIatfId    String?
   bull                  Animal?        @relation("BullHandling", fields: [bullId], references: [id])
   offspringFromBull     Animal[]       @relation("BullHandling")
   father                Animal?        @relation("FatherOffspring", fields: [fatherId], references: [id])
@@ -65,14 +68,34 @@ model Animal {
   owner                 User           @relation(fields: [ownerId], references: [id])
   bullIatfRel           Animal?        @relation("BullIatfHandling", fields: [bullIatfId], references: [id])
   offspringFromBullIatf Animal[]       @relation("BullIatfHandling")
+  externalBull          ExternalBull?  @relation("ExternalBullHandling", fields: [externalBullId], references: [id])
+  externalBullIatfRel   ExternalBull?  @relation("ExternalBullIatfHandling", fields: [externalBullIatfId], references: [id])
   dewormings            Deworming[]    @relation("AnimalDewormings")
   diseases              Disease[]      @relation("AnimalDiseases")
   Notification          Notification[]
   vaccines              Vaccine[]      @relation("AnimalVaccines")
   weightHistories       AnimalWeightHistory[]
   statusHistories       AnimalStatusHistory[]
+  reproductionManagements ReproductionManagement[]
 
   @@unique([manualId, ownerId])
+}
+
+model ExternalBull {
+  id               String   @id @default(dbgenerated("gen_random_uuid()"))
+  name             String
+  breed            String
+  batches          String[]
+  sourceCompany    String
+  dosesAvailable   Int
+  ownerId          String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  owner            User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  usedInHandling   Animal[] @relation("ExternalBullHandling")
+  usedInIatf       Animal[] @relation("ExternalBullIatfHandling")
+
+  @@index([ownerId])
 }
 
 model AnimalStatusHistory {
@@ -210,4 +233,27 @@ model Notification {
   createdAt DateTime @default(now()) @db.Timestamp(6)
   Animal    Animal   @relation(fields: [animalId], references: [id], onDelete: Cascade, map: "fk_notification_animal")
   User      User     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "fk_notification_user")
+}
+
+model ReproductionManagement {
+  id            String   @id @default(dbgenerated("gen_random_uuid()"))
+  animalId      String
+  stage         String   // D0, Manejo, Insemination, DG
+  date          DateTime
+  protocolo     Boolean? // for D0 and subsequent
+  implant       String?  // for D0
+  obs           String?
+  ecc           Float?
+  touroId       String?  // for Insemination, can be Animal.id or ExternalBull.id
+  touroType     String?  // 'internal' or 'external'
+  partida       String?  // for Insemination
+  cio           String?  // for Insemination
+  ressinc       Boolean? // for DG
+  ressincCount  Int      @default(0)
+  ressincHistory Json?   // array of {date: string, obs: string}
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  animal        Animal   @relation(fields: [animalId], references: [id], onDelete: Cascade)
+
+  @@index([animalId, stage])
 }
