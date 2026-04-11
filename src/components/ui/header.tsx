@@ -69,7 +69,7 @@ export const Header: React.FC<TableProps> = ({ notifications }) => {
           </li>
           <li>
             <Link
-              href={'/'}
+              href={'/dashboard/financial'}
               className="after:duration-300after:left-0 relative flex items-center gap-1 transition-all duration-300 after:absolute after:-bottom-1 after:h-px after:w-0 after:bg-foreground after:transition-all hover:text-secondary hover:after:w-full"
             >
               <FaRegMoneyBillAlt size={20} /> Financeiro

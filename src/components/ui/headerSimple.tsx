@@ -24,35 +24,37 @@ export const HeaderSimple = () => {
   };
 
   return (
-    <header className="flex w-full items-center justify-between p-2">
-      <div className="w-1/3">
-        <Link href={'/dashboard'}>
-          <Image
-            priority={true}
-            src="/logo.png"
-            alt="Logo - Imagem de um touro e uma ovelha"
-            width={100}
-            height={100}
-            className="size-16"
-          />
-        </Link>
-      </div>
+    <header className="m-auto flex w-dvw max-w-5xl items-center justify-between p-2">
+      <nav className="flex w-full justify-between gap-4">
+        <div className="w-1/3">
+          <Link href={'/dashboard'}>
+            <Image
+              priority={true}
+              src="/logo.png"
+              alt="Logo - Imagem de um touro e uma ovelha"
+              width={100}
+              height={100}
+              className="size-16"
+            />
+          </Link>
+        </div>
 
-      <nav className="flex w-full flex-col items-end gap-4">
         {status === 'authenticated' && (
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1">
-              {data?.user?.name}
-              <Avatar className="size-8">
-                <AvatarImage
-                  src={data?.user?.image ?? undefined}
-                  alt="Image from google profile"
-                />
-                <AvatarFallback className="text-foreground">
-                  {data?.user?.name?.charAt(0)}{' '}
-                </AvatarFallback>
-              </Avatar>
-            </div>
+            <Link href={'/dashboard/profile'}>
+              <div className="flex items-center gap-1">
+                {data?.user?.name}
+                <Avatar className="size-8">
+                  <AvatarImage
+                    src={data?.user?.image ?? undefined}
+                    alt="Image from google profile"
+                  />
+                  <AvatarFallback className="text-foreground">
+                    {data?.user?.name?.charAt(0)}{' '}
+                  </AvatarFallback>
+                </Avatar>
+              </div>
+            </Link>
             <Button className="p-1" onClick={handleLogoutClick}>
               Sair
             </Button>
@@ -68,11 +70,40 @@ export const HeaderSimple = () => {
         )}
 
         {status === 'unauthenticated' && (
-          <div className="m-auto flex w-full max-w-screen-lg justify-end py-4">
+          // <nav
+          //   aria-label="Navegacao principal"
+          //   className="hidden items-center gap-6 px-2 text-sm font-medium text-slate-600 md:flex"
+          // >
+          <div className="flex items-center gap-6 px-2 text-sm font-medium lg:gap-10">
+            <a
+              href="#funcionalidades"
+              className="hidden transition hover:text-[#2f5b25] md:flex"
+            >
+              Funcionalidades
+            </a>
+            <a
+              href="#inteligencia"
+              className="hidden transition hover:text-[#2f5b25] md:flex"
+            >
+              Inteligencia
+            </a>
+            <a
+              href="#rentabilidade"
+              className="hidden transition hover:text-[#2f5b25] md:flex"
+            >
+              O Futuro
+            </a>
+            <Link
+              href="/login"
+              className="hidden transition hover:text-[#2f5b25] md:flex"
+            >
+              Blog
+            </Link>
             <Button>
-              <Link href="/login">Login</Link>{' '}
+              <Link href="/login">Login</Link>
             </Button>
           </div>
+          // </nav>
         )}
       </nav>
     </header>
