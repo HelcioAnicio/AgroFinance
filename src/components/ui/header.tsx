@@ -61,7 +61,7 @@ export const Header: React.FC<TableProps> = ({ notifications }) => {
           <li>
             <Link
               href={'/dashboard/reproduction/'}
-              className="relative flex items-center gap-1 transition-all duration-300 after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-foreground after:transition-all after:duration-300 hover:text-secondary hover:after:w-full"
+              className="relative hidden items-center gap-1 transition-all duration-300 after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-foreground after:transition-all after:duration-300 hover:text-secondary hover:after:w-full lg:flex"
             >
               <IoMaleFemaleSharp size={20} />
               Reprodução
@@ -78,7 +78,7 @@ export const Header: React.FC<TableProps> = ({ notifications }) => {
           <li>
             <Link
               href={'/dashboard/profile'}
-              className="relative flex items-center gap-1 transition-all duration-300 after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-foreground after:transition-all after:duration-300 hover:text-secondary hover:after:w-full"
+              className="relative hidden items-center gap-1 transition-all duration-300 after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-foreground after:transition-all after:duration-300 hover:text-secondary hover:after:w-full lg:flex"
             >
               <CgProfile size={20} />
               Perfil
