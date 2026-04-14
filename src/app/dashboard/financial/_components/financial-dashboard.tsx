@@ -8,7 +8,6 @@ import {
   Plus,
   Wallet,
 } from 'lucide-react';
-import { supabase } from '@/lib/supabaseClient';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -121,6 +120,29 @@ function getDayLabel(dateString: string) {
   return DAY_FORMATTER.format(date);
 }
 
+const TRANSACTIONS_API = '/api/transactions';
+
+async function fetchTransactions(
+  userId: string,
+  start?: string,
+  end?: string
+): Promise<FinancialTransaction[]> {
+  const params = new URLSearchParams({ userId });
+
+  if (start) params.set('start', start);
+  if (end) params.set('end', end);
+
+  const response = await fetch(`${TRANSACTIONS_API}?${params.toString()}`);
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => null);
+    const message = data?.message ?? 'Nao foi possivel carregar o financeiro.';
+    throw new Error(message);
+  }
+
+  return (await response.json()) as FinancialTransaction[];
+}
+
 export function FinancialDashboard({
   userId,
   userName,
@@ -150,40 +172,29 @@ export function FinancialDashboard({
 
       const { start, end } = getMonthBounds(monthKey);
 
-      const [monthlyResult, allResult] = await Promise.all([
-        supabase
-          .from('transactions')
-          .select('*')
-          .eq('user_id', userId)
-          .gte('date', start)
-          .lte('date', end)
-          .order('date', { ascending: false }),
-        supabase
-          .from('transactions')
-          .select('*')
-          .eq('user_id', userId)
-          .order('date', { ascending: false }),
-      ]);
+      try {
+        const [monthlyTransactions, allTransactions] = await Promise.all([
+          fetchTransactions(userId, start, end),
+          fetchTransactions(userId),
+        ]);
 
-      if (!isMounted) return;
+        if (!isMounted) return;
 
-      if (monthlyResult.error || allResult.error) {
+        setMonthlyTransactions(monthlyTransactions);
+        setAllTransactions(allTransactions);
+      } catch (fetchError) {
+        if (!isMounted) return;
+
         setError(
-          monthlyResult.error?.message ??
-            allResult.error?.message ??
-            'Nao foi possivel carregar o financeiro.'
+          fetchError instanceof Error
+            ? fetchError.message
+            : 'Nao foi possivel carregar o financeiro.'
         );
         setMonthlyTransactions([]);
         setAllTransactions([]);
+      } finally {
         setIsLoading(false);
-        return;
       }
-
-      setMonthlyTransactions(
-        (monthlyResult.data as FinancialTransaction[]) ?? []
-      );
-      setAllTransactions((allResult.data as FinancialTransaction[]) ?? []);
-      setIsLoading(false);
     }
 
     loadTransactions();
@@ -255,33 +266,13 @@ export function FinancialDashboard({
   async function refreshCurrentMonth() {
     const { start, end } = getMonthBounds(monthKey);
 
-    const [monthlyResult, allResult] = await Promise.all([
-      supabase
-        .from('transactions')
-        .select('*')
-        .eq('user_id', userId)
-        .gte('date', start)
-        .lte('date', end)
-        .order('date', { ascending: false }),
-      supabase
-        .from('transactions')
-        .select('*')
-        .eq('user_id', userId)
-        .order('date', { ascending: false }),
+    const [monthlyTransactions, allTransactions] = await Promise.all([
+      fetchTransactions(userId, start, end),
+      fetchTransactions(userId),
     ]);
 
-    if (monthlyResult.error || allResult.error) {
-      throw new Error(
-        monthlyResult.error?.message ??
-          allResult.error?.message ??
-          'Nao foi possivel atualizar os dados.'
-      );
-    }
-
-    setMonthlyTransactions(
-      (monthlyResult.data as FinancialTransaction[]) ?? []
-    );
-    setAllTransactions((allResult.data as FinancialTransaction[]) ?? []);
+    setMonthlyTransactions(monthlyTransactions);
+    setAllTransactions(allTransactions);
   }
 
   function handleTypeChange(value: TransactionType) {
@@ -305,26 +296,41 @@ export function FinancialDashboard({
         return;
       }
 
-      const { error: insertError } = await supabase
-        .from('transactions')
-        .insert({
-          user_id: userId,
-          type: formState.type,
-          category: formState.category,
-          amount,
-          date: formState.date,
-          description: formState.description.trim() || null,
-          status: formState.status,
+      try {
+        const response = await fetch(TRANSACTIONS_API, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            user_id: userId,
+            type: formState.type,
+            category: formState.category,
+            amount,
+            date: formState.date,
+            description: formState.description.trim() || null,
+            status: formState.status,
+          }),
         });
 
-      if (insertError) {
-        setError(insertError.message);
-        return;
-      }
+        const data = await response.json();
 
-      await refreshCurrentMonth();
-      setFormState(createInitialFormState());
-      setIsDialogOpen(false);
+        if (!response.ok) {
+          const message =
+            data?.message ?? 'Nao foi possivel adicionar o lancamento.';
+          throw new Error(message);
+        }
+
+        await refreshCurrentMonth();
+        setFormState(createInitialFormState());
+        setIsDialogOpen(false);
+      } catch (error) {
+        setError(
+          error instanceof Error
+            ? error.message
+            : 'Nao foi possivel adicionar o lancamento.'
+        );
+      }
     });
   }
 
@@ -557,9 +563,6 @@ export function FinancialDashboard({
               do seu usuario e o recorte mensal selecionado.
             </span>
           </div>
-          <Badge className="w-fit rounded-full bg-white text-slate-700 hover:bg-white">
-            Supabase em tempo real
-          </Badge>
         </div>
       </section>
 
@@ -652,8 +655,8 @@ export function FinancialDashboard({
 
       <section className="grid gap-6 xl:grid-cols-[1.5fr_0.85fr]">
         <div className="rounded-3xl border bg-white p-5 shadow-sm md:p-6">
-          <div className="mb-6 flex flex-col gap-4 border-b border-slate-100 pb-5 lg:flex-row lg:items-center lg:justify-between">
-            <div className="space-y-1">
+          <div className="mb-6 flex flex-col gap-4 border-b border-slate-100 pb-5 lg:flex-row lg:flex-wrap lg:items-center lg:justify-between">
+            <div className="w-full space-y-1">
               <div className="flex items-center gap-2">
                 <CalendarDays className="h-5 w-5 text-primary" />
                 <h2 className="text-2xl font-semibold text-slate-950">
@@ -675,7 +678,7 @@ export function FinancialDashboard({
                   type="month"
                   value={monthKey}
                   onChange={(event) => setMonthKey(event.target.value)}
-                  className="h-11 rounded-xl border-slate-200"
+                  className="h-11 w-max rounded-xl border-slate-200"
                 />
               </div>
 
@@ -850,19 +853,10 @@ export function FinancialDashboard({
           </div>
 
           <div className="rounded-3xl border border-primary/10 bg-primary/5 p-5 shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary">
-              Estrutura Supabase
+            <p>
+              O filtro mensal segue o intervalo entre primeiro e ultimo dia do
+              mes, sempre amarrado ao usuario autenticado.
             </p>
-            <div className="mt-4 space-y-3 text-sm text-slate-700">
-              <p>
-                `id`, `user_id`, `type`, `category`, `amount`, `date`,
-                `description`, `status`
-              </p>
-              <p>
-                O filtro mensal segue o intervalo entre primeiro e ultimo dia do
-                mes, sempre amarrado ao usuario autenticado.
-              </p>
-            </div>
           </div>
         </aside>
       </section>
