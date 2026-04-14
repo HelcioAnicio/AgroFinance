@@ -20,7 +20,7 @@ export const MenuNavegation = () => {
             <p>Reprodução</p>
           </div>
         </Link>
-        <Link href="/">
+        <Link href="/dashboard/financial">
           <div className="relative flex size-16 flex-col items-center gap-1 rounded-full">
             <FaRegMoneyBillAlt size={35} />
             <p>Financeiro</p>

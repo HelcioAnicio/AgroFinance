@@ -24,6 +24,7 @@ model User {
   Notification  Notification[]
   animalStatusHistories AnimalStatusHistory[]
   externalBulls ExternalBull[]
+  transactions  Transaction[]
   sessions      Session[]
 }
 
@@ -124,6 +125,13 @@ enum WeightRecordType {
   PD
   PA
   OTHER
+}
+
+enum TransactionType {
+  income
+  expense
+
+  @@map("transaction_type")
 }
 
 model AnimalWeightHistory {
@@ -233,6 +241,25 @@ model Notification {
   createdAt DateTime @default(now()) @db.Timestamp(6)
   Animal    Animal   @relation(fields: [animalId], references: [id], onDelete: Cascade, map: "fk_notification_animal")
   User      User     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "fk_notification_user")
+}
+
+model Transaction {
+  id          String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String          @map("userId")
+  type        TransactionType
+  category    String
+  amount      Decimal         @db.Decimal(14, 2)
+  date        DateTime        @db.Date
+  description String?
+  status      Boolean         @default(false)
+  createdAt   DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime        @default(now()) @map("updated_at") @db.Timestamptz(6)
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "transactions_user_id_idx")
+  @@index([userId, date(sort: Desc)], map: "transactions_user_id_date_idx")
+  @@index([userId, type], map: "transactions_user_id_type_idx")
+  @@map("transactions")
 }
 
 model ReproductionManagement {

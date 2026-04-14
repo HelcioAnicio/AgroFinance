@@ -61,7 +61,7 @@ export const Header: React.FC<TableProps> = ({ notifications }) => {
           <li>
             <Link
               href={'/dashboard/reproduction/'}
-              className="relative hidden lg:flex items-center gap-1 transition-all duration-300 after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-foreground after:transition-all after:duration-300 hover:text-secondary hover:after:w-full"
+              className="relative hidden items-center gap-1 transition-all duration-300 after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-foreground after:transition-all after:duration-300 hover:text-secondary hover:after:w-full lg:flex"
             >
               <IoMaleFemaleSharp size={20} />
               Reprodução
@@ -69,8 +69,8 @@ export const Header: React.FC<TableProps> = ({ notifications }) => {
           </li>
           <li>
             <Link
-              href={'/'}
-              className="after:duration-300after:left-0 relative hidden lg:flex items-center gap-1 transition-all duration-300 after:absolute after:-bottom-1 after:h-px after:w-0 after:bg-foreground after:transition-all hover:text-secondary hover:after:w-full"
+              href={'/dashboard/financial'}
+              className="after:duration-300after:left-0 relative flex items-center gap-1 transition-all duration-300 after:absolute after:-bottom-1 after:h-px after:w-0 after:bg-foreground after:transition-all hover:text-secondary hover:after:w-full"
             >
               <FaRegMoneyBillAlt size={20} /> Financeiro
             </Link>
@@ -78,7 +78,7 @@ export const Header: React.FC<TableProps> = ({ notifications }) => {
           <li>
             <Link
               href={'/dashboard/profile'}
-              className="relative hidden lg:flex items-center gap-1 transition-all duration-300 after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-foreground after:transition-all after:duration-300 hover:text-secondary hover:after:w-full"
+              className="relative hidden items-center gap-1 transition-all duration-300 after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-foreground after:transition-all after:duration-300 hover:text-secondary hover:after:w-full lg:flex"
             >
               <CgProfile size={20} />
               Perfil
