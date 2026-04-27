@@ -118,7 +118,7 @@ function parseImportDate(value: unknown): Date | null {
     if (!raw) return null;
 
     const brMatch = raw.match(
-      /^(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})(?:\s+(\d{1,2}):(\d{2}))?$/
+      /^(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})(?:\s+(\d{1,2}):(\d{2}))?$/
     );
     if (brMatch) {
       const day = Number(brMatch[1]);
