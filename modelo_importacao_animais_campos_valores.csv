@@ -1,0 +1,35 @@
+﻿campo;aliases_aceitos_na_planilha;tipo;obrigatorio_para_criar_novo_animal;valores_permitidos_ou_regra;exemplo
+manualId;manualId|idManual|id|brinco|numero;texto;sim;identificador unico do animal (sera normalizado para minusculo);A123
+status;status|situacao;enum;nao;canonico: active|inactive|dead|sold|lost|trash. Aceita: ativo/active,inativo/inactive,morto/dead,vendido/sold,perdida/perdido/lost,descarte/trash;active
+gender;gender|sexo;enum;sim;canonico: male|female. Aceita: macho/male/m,femea/female/f;female
+birthDate;birthDate|dataNascimento;data;sim;data valida (dd/mm/aaaa, dd-mm-aaaa, data excel ou formato de data reconhecido);21/03/2025
+weight;weight|peso;numero;sim;numero decimal (aceita virgula ou ponto);312.5
+breed;breed|raca;texto;sim;texto livre (sistema salva em minusculo);nelore
+category;category|categoria;enum;nao;canonico: neonate|calf|steer|cow|old cow|ox|old ox|bull. Aceita: dependente/neonate,bezerro/calf,novilho/garrote/steer,vaca/cow,vaca velha/old cow,boi/ox,boi velho/old ox,touro/bull;cow
+reproductiveStatus;reproductiveStatus|statusReprodutivo;enum;nao;canonico: empty|pregnant|waiting|pev. Aceita: vazio/empty,prenha/pregnant,espera/waiting,pev;pregnant
+handlingType;handlingType|tipoManejo;enum;nao;canonico: naturalMating|artificialInsemination|allMethods. Aceita: monta natural/natural mating,inseminacao artificial/artificial insemination,todos os metodos/all methods;artificialInsemination
+protocol;protocol|protocolo;enum;nao;canonico: 3 handlings|4 handlings|mixed. Aceita: 3 manejos/3 handlings,4 manejos/4 handlings,misto/mixed;3 handlings
+andrological;andrological|andrologico;enum;nao;canonico: positive|negative|notDone. Aceita: positivo/positive,negativo/negative,nao realizado/not done/notdone;positive
+expectedDueDate;expectedDueDate|dataPrevistaParto;data;nao;data valida;15/11/2026
+fetalGender;fetalGender|sexoFeto;enum;nao;mesmas regras de gender (male|female);male
+bodyConditionScore;bodyConditionScore|ecc;numero;nao;numero decimal;3.25
+observations;observations|observacoes|obs;texto;nao;texto livre;Lote 7
+externalBullId;externalBullId;texto;nao;ID textual do touro externo (uuid/id existente);f6f7de90-0000-0000-0000-000000000000
+externalBullIatfId;externalBullIatfId;texto;nao;ID textual do touro externo para IATF (uuid/id existente);f6f7de90-1111-1111-1111-111111111111
+vaccineName;vaccineName|nomeVacina;texto;nao;texto livre;Aftosa
+vaccineDate;vaccineDate|dataVacina;data;nao;data valida;10/03/2026
+vaccineExpiry;vaccineExpiry|vencimentoVacina;data;nao;data valida;10/03/2027
+dewormingName;dewormingName|nomeVermifugo;texto;nao;texto livre;Ivermectina
+dewormingDate;dewormingDate|dataVermifugo;data;nao;data valida;05/02/2026
+dewormingExpiry;dewormingExpiry|vencimentoVermifugo;data;nao;data valida;05/08/2026
+statusChangeDate;statusChangeDate|status_change_date|dataAlteracaoStatus;data;nao;se status=active o sistema usa birthDate; para outros status usa data informada ou data atual;01/04/2026
+fatherId;fatherId|paiId|idPai;texto;nao;manualId do pai ja existente/importado (normalizado para minusculo);touro-01
+motherId;motherId|maeId|idMae;texto;nao;manualId da mae ja existente/importada (normalizado para minusculo);vaca-09
+bullId;bullId|touroId|idTouro;texto;nao;manualId do touro de cobertura (normalizado para minusculo);touro-cob-3
+bullIatfId;bullIatfId|touroIatfId|idTouroIatf;texto;nao;manualId do touro IATF (normalizado para minusculo);touro-iatf-2
+weightRecordDate;weightRecordDate|dataPeso|dataPesagem;data;nao;data padrao do peso atual e de historico sem data explicita;27/04/2026
+weightRecordType;weightRecordType|tipoPeso;enum;nao;PN|PS|PD|PA. Qualquer outro valor vira OTHER;PN
+weightHistories;weightHistories|historicoPeso|pesos|weightHistory;lista estruturada;nao;itens separados por ';' ou quebra de linha. Formato item: peso|data|tipo (ou peso@data@tipo). tipo segue weightRecordType;280|10/01/2026|PN;300|10/03/2026|PS
+vaccines;vaccines|vacinas|vaccineHistory;lista estruturada;nao;itens separados por ';' ou quebra de linha. Formato item: nome|data|vencimento|descricao (ou '@');Aftosa|10/01/2026|10/01/2027|dose anual
+dewormings;dewormings|vermifugos|historicoVermifugo;lista estruturada;nao;itens separados por ';' ou quebra de linha. Formato item: nome|data (ou '@');Ivermectina|12/02/2026
+managements;managements|manejos|historicoManejo;lista estruturada;nao;itens separados por ';' ou quebra de linha. Formato item: etapa|data|obs|ecc|protocolo. etapa aceita D0,Manejo,Insemination,DG (tambem manejo/management,inseminacao/insemination). protocolo aceita true/1/sim/yes e false/0/nao/no;D0|01/02/2026|Inicio protocolo|3.0|sim

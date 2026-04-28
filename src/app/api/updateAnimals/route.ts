@@ -15,7 +15,7 @@ export async function PUT(req: Request) {
 
     if (!id) {
       return NextResponse.json(
-        { message: 'ID não fornecido' },
+        { message: 'ID nao fornecido' },
         { status: 400 }
       );
     }
@@ -55,8 +55,12 @@ export async function PUT(req: Request) {
     const existingAnimal = await prisma.animal.findUnique({
       where: { id: allDataForm.id },
       select: {
+        id: true,
+        manualId: true,
         weight: true,
         status: true,
+        reproductiveStatus: true,
+        expectedDueDate: true,
         ownerId: true,
         externalBullId: true,
         externalBullIatfId: true,
@@ -65,7 +69,7 @@ export async function PUT(req: Request) {
 
     if (!existingAnimal) {
       return NextResponse.json(
-        { message: 'Animal não encontrado' },
+        { message: 'Animal nao encontrado' },
         { status: 404 }
       );
     }
@@ -150,14 +154,27 @@ export async function PUT(req: Request) {
 
     const dateNow = new Date();
     let createNotification;
+    const previousReproductiveStatus = String(
+      existingAnimal.reproductiveStatus ?? ''
+    ).toLowerCase();
+    const currentReproductiveStatus = String(
+      data.reproductiveStatus ?? allDataForm.reproductiveStatus ?? ''
+    ).toLowerCase();
+    const expectedDueDateValue =
+      data.expectedDueDate ?? allDataForm.expectedDueDate;
+    const expectedDueDate = expectedDueDateValue
+      ? new Date(expectedDueDateValue)
+      : null;
+    const changedToEmptyBeforePev =
+      previousReproductiveStatus === 'pregnant' &&
+      currentReproductiveStatus === 'empty' &&
+      existingAnimal.expectedDueDate != null;
 
     if (
-      allDataForm.reproductiveStatus === 'pregnant' &&
-      allDataForm.expectedDueDate != null &&
-      new Date(allDataForm.expectedDueDate) >= dateNow
+      currentReproductiveStatus === 'pregnant' &&
+      expectedDueDate != null &&
+      expectedDueDate >= dateNow
     ) {
-      const expectedDueDate = new Date(allDataForm.expectedDueDate);
-
       const notifyAtOneMonth = new Date(expectedDueDate);
       notifyAtOneMonth.setMonth(notifyAtOneMonth.getMonth() - 1);
 
@@ -167,20 +184,29 @@ export async function PUT(req: Request) {
       const existingBirthNotificationOneMonth =
         await prisma.notification.findFirst({
           where: {
-            animalId: allDataForm.id,
-            message: { contains: 'próximo ao parto' },
+            animalId: data.id,
+            message: { contains: 'proximo ao parto' },
           },
         });
 
-      if (!existingBirthNotificationOneMonth) {
+      if (existingBirthNotificationOneMonth) {
+        createNotification = await prisma.notification.update({
+          where: { id: existingBirthNotificationOneMonth.id },
+          data: {
+            message: 'Seu animal ' + data.manualId + ' esta proximo ao parto.',
+            notifyAt: notifyAtOneMonth,
+            read: false,
+          },
+        });
+      } else {
         createNotification = await prisma.notification.create({
           data: {
             id: uuidv4(),
-            message: `Seu animal ${allDataForm.manualId} está próximo ao parto.`,
+            message: 'Seu animal ' + data.manualId + ' esta proximo ao parto.',
             notifyAt: notifyAtOneMonth,
             read: false,
-            userId: allDataForm.ownerId,
-            animalId: allDataForm.id,
+            userId: data.ownerId,
+            animalId: data.id,
             createdAt: dateNow,
           },
         });
@@ -189,24 +215,63 @@ export async function PUT(req: Request) {
       const existingBirthNotificationFifteenDays =
         await prisma.notification.findFirst({
           where: {
-            animalId: allDataForm.id,
+            animalId: data.id,
             message: { contains: '15 dias do parto' },
           },
         });
 
-      if (!existingBirthNotificationFifteenDays) {
+      if (existingBirthNotificationFifteenDays) {
+        await prisma.notification.update({
+          where: { id: existingBirthNotificationFifteenDays.id },
+          data: {
+            message:
+              'Seu animal ' + data.manualId + ' esta a 15 dias do parto.',
+            notifyAt: notifyAtFifteenDays,
+            read: false,
+          },
+        });
+      } else {
         await prisma.notification.create({
           data: {
             id: uuidv4(),
-            message: `Seu animal ${allDataForm.manualId} está a 15 dias do parto.`,
+            message:
+              'Seu animal ' + data.manualId + ' esta a 15 dias do parto.',
             notifyAt: notifyAtFifteenDays,
             read: false,
-            userId: allDataForm.ownerId,
-            animalId: allDataForm.id,
+            userId: data.ownerId,
+            animalId: data.id,
             createdAt: dateNow,
           },
         });
       }
+    }
+
+    if (changedToEmptyBeforePev) {
+      await prisma.$transaction(async (tx) => {
+        await tx.notification.deleteMany({
+          where: {
+            animalId: data.id,
+            userId: data.ownerId,
+            OR: [
+              { message: { contains: 'proximo ao parto' } },
+              { message: { contains: '15 dias do parto' } },
+            ],
+          },
+        });
+
+        await tx.animalStatusHistory.create({
+          data: {
+            animalId: data.id,
+            ownerId: data.ownerId,
+            previousStatus: existingAnimal.reproductiveStatus,
+            newStatus: 'empty',
+            changedAt: dateNow,
+            year: dateNow.getFullYear(),
+            month: dateNow.getMonth() + 1,
+            reason: 'reproductive_loss_before_pev',
+          },
+        });
+      });
     }
 
     return NextResponse.json({
@@ -221,7 +286,7 @@ export async function PUT(req: Request) {
     ) {
       return NextResponse.json(
         {
-          message: 'Não há doses suficientes para o touro externo selecionado.',
+          message: 'Nao ha doses suficientes para o touro externo selecionado.',
         },
         { status: 400 }
       );

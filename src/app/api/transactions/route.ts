@@ -96,3 +96,83 @@ export async function POST(request: Request) {
 
   return NextResponse.json(toFinancialTransaction(createdTransaction));
 }
+
+export async function PATCH(request: Request) {
+  const body = await request.json();
+
+  const {
+    id,
+    user_id: userId,
+    type,
+    category,
+    amount,
+    date,
+    description,
+    status,
+  } = body as {
+    id: string;
+    user_id: string;
+    type?: 'income' | 'expense';
+    category?: string;
+    amount?: number;
+    date?: string;
+    description?: string | null;
+    status?: boolean;
+  };
+
+  if (!id || !userId) {
+    return NextResponse.json(
+      { message: 'Informe o id e o user_id do lancamento.' },
+      { status: 400 }
+    );
+  }
+
+  const transaction = await prisma.transaction.findFirst({
+    where: {
+      id,
+      userId,
+    },
+  });
+
+  if (!transaction) {
+    return NextResponse.json(
+      { message: 'Lancamento nao encontrado para este usuario.' },
+      { status: 404 }
+    );
+  }
+
+  const data: Prisma.TransactionUpdateInput = {};
+
+  if (typeof type === 'string') data.type = type;
+  if (typeof category === 'string' && category.trim()) {
+    data.category = category.trim();
+  }
+  if (typeof amount === 'number') {
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return NextResponse.json(
+        { message: 'Informe um valor valido para o lancamento.' },
+        { status: 400 }
+      );
+    }
+    data.amount = amount;
+  }
+  if (typeof date === 'string' && date) data.date = new Date(date);
+  if (description === null || typeof description === 'string') {
+    data.description = description ? description.trim() : null;
+  }
+  if (typeof status === 'boolean') data.status = status;
+
+  if (Object.keys(data).length === 0) {
+    return NextResponse.json(
+      { message: 'Nenhum campo valido para atualizacao foi informado.' },
+      { status: 400 }
+    );
+  }
+
+  const updatedTransaction = await prisma.transaction.update({
+    where: { id },
+    data,
+  });
+
+  return NextResponse.json(toFinancialTransaction(updatedTransaction));
+}
