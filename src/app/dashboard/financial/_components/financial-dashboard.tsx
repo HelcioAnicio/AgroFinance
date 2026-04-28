@@ -5,6 +5,7 @@ import {
   ArrowDownRight,
   ArrowUpRight,
   CalendarDays,
+  Pencil,
   Plus,
   Wallet,
 } from 'lucide-react';
@@ -156,6 +157,8 @@ export function FinancialDashboard({
     FinancialTransaction[]
   >([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingTransaction, setEditingTransaction] =
+    useState<FinancialTransaction | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [formState, setFormState] = useState<TransactionFormState>(
@@ -219,29 +222,67 @@ export function FinancialDashboard({
   }, [categoryFilter, monthlyTransactions]);
 
   const summary = useMemo(() => {
-    const monthIncome = monthlyTransactions
+    const monthPaidTransactions = monthlyTransactions.filter(
+      (transaction) => transaction.status
+    );
+    const monthPendingTransactions = monthlyTransactions.filter(
+      (transaction) => !transaction.status
+    );
+    const allPaidTransactions = allTransactions.filter(
+      (transaction) => transaction.status
+    );
+    const allPendingTransactions = allTransactions.filter(
+      (transaction) => !transaction.status
+    );
+
+    const monthIncome = monthPaidTransactions
       .filter((transaction) => transaction.type === 'income')
       .reduce((total, transaction) => total + Number(transaction.amount), 0);
 
-    const monthExpense = monthlyTransactions
+    const monthExpense = monthPaidTransactions
       .filter((transaction) => transaction.type === 'expense')
       .reduce((total, transaction) => total + Number(transaction.amount), 0);
 
-    const totalBalance = allTransactions.reduce((total, transaction) => {
+    const totalBalance = allPaidTransactions.reduce((total, transaction) => {
       const signal = transaction.type === 'income' ? 1 : -1;
       return total + Number(transaction.amount) * signal;
     }, 0);
+
+    const monthPendingAmount = monthPendingTransactions.reduce(
+      (total, transaction) => {
+        const signal = transaction.type === 'income' ? 1 : -1;
+        return total + Number(transaction.amount) * signal;
+      },
+      0
+    );
+
+    const totalPendingAmount = allPendingTransactions.reduce(
+      (total, transaction) => {
+        const signal = transaction.type === 'income' ? 1 : -1;
+        return total + Number(transaction.amount) * signal;
+      },
+      0
+    );
 
     return {
       monthIncome,
       monthExpense,
       monthBalance: monthIncome - monthExpense,
       totalBalance,
-      pendingCount: monthlyTransactions.filter(
-        (transaction) => !transaction.status
-      ).length,
+      pendingCount: monthPendingTransactions.length,
+      monthPendingAmount,
+      totalPendingAmount,
     };
   }, [allTransactions, monthlyTransactions]);
+
+  const filteredTotalAmount = useMemo(() => {
+    return filteredTransactions
+      .filter((transaction) => transaction.status)
+      .reduce((total, transaction) => {
+        const signal = transaction.type === 'income' ? 1 : -1;
+        return total + Number(transaction.amount) * signal;
+      }, 0);
+  }, [filteredTransactions]);
 
   const groupedTransactions = useMemo(() => {
     const groups = new Map<string, FinancialTransaction[]>();
@@ -262,6 +303,12 @@ export function FinancialDashboard({
   const monthLabel = getMonthBounds(monthKey).label;
   const activeCategories =
     formState.type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+  const dialogCategories = Array.from(
+    new Set([
+      ...activeCategories,
+      ...(formState.category ? [formState.category] : []),
+    ])
+  );
 
   async function refreshCurrentMonth() {
     const { start, end } = getMonthBounds(monthKey);
@@ -284,6 +331,33 @@ export function FinancialDashboard({
     }));
   }
 
+  function openCreateDialog() {
+    setEditingTransaction(null);
+    setFormState(createInitialFormState());
+    setIsDialogOpen(true);
+  }
+
+  function openEditDialog(transaction: FinancialTransaction) {
+    setEditingTransaction(transaction);
+    setFormState({
+      type: transaction.type,
+      category: transaction.category,
+      amount: String(Number(transaction.amount)),
+      date: transaction.date,
+      description: transaction.description ?? '',
+      status: transaction.status,
+    });
+    setIsDialogOpen(true);
+  }
+
+  function handleDialogOpenChange(open: boolean) {
+    setIsDialogOpen(open);
+    if (!open) {
+      setEditingTransaction(null);
+      setFormState(createInitialFormState());
+    }
+  }
+
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
@@ -297,46 +371,55 @@ export function FinancialDashboard({
       }
 
       try {
+        const method = editingTransaction ? 'PATCH' : 'POST';
+        const payload = {
+          ...(editingTransaction ? { id: editingTransaction.id } : {}),
+          user_id: userId,
+          type: formState.type,
+          category: formState.category,
+          amount,
+          date: formState.date,
+          description: formState.description.trim() || null,
+          status: formState.status,
+        };
         const response = await fetch(TRANSACTIONS_API, {
-          method: 'POST',
+          method,
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            user_id: userId,
-            type: formState.type,
-            category: formState.category,
-            amount,
-            date: formState.date,
-            description: formState.description.trim() || null,
-            status: formState.status,
-          }),
+          body: JSON.stringify(payload),
         });
 
         const data = await response.json();
 
         if (!response.ok) {
           const message =
-            data?.message ?? 'Nao foi possivel adicionar o lancamento.';
+            data?.message ??
+            (editingTransaction
+              ? 'Nao foi possivel atualizar o lancamento.'
+              : 'Nao foi possivel adicionar o lancamento.');
           throw new Error(message);
         }
 
         await refreshCurrentMonth();
         setFormState(createInitialFormState());
+        setEditingTransaction(null);
         setIsDialogOpen(false);
       } catch (error) {
         setError(
           error instanceof Error
             ? error.message
-            : 'Nao foi possivel adicionar o lancamento.'
+            : editingTransaction
+              ? 'Nao foi possivel atualizar o lancamento.'
+              : 'Nao foi possivel adicionar o lancamento.'
         );
       }
     });
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-6 md:px-6 lg:px-8">
-      <section className="flex flex-col gap-5 rounded-3xl border border-primary/10 bg-gradient-to-br from-white via-white to-muted/40 p-6 shadow-sm">
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-5 md:px-6 lg:px-8">
+      <section className="flex flex-col gap-4 rounded-3xl border border-primary/10 bg-gradient-to-br from-white via-white to-muted/40 p-5 shadow-sm md:p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-2">
             <Badge
@@ -346,19 +429,22 @@ export function FinancialDashboard({
               Controle Financeiro
             </Badge>
             <div className="space-y-1">
-              <h1 className="text-3xl font-semibold tracking-tight text-slate-950 md:text-5xl">
+              <h1 className="text-2xl font-semibold tracking-tight text-slate-950 md:text-3xl">
                 Financeiro
               </h1>
-              <p className="max-w-2xl text-sm text-slate-600 md:text-base">
+              <p className="max-w-2xl text-xs text-slate-600 md:text-sm">
                 Fluxo de caixa rural com foco em competencia mensal, receitas do
                 rebanho e custos operacionais.
               </p>
             </div>
           </div>
 
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <Dialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
             <DialogTrigger asChild>
-              <Button className="h-12 rounded-2xl bg-[#556b2f] px-5 text-base text-white hover:bg-[#445624]">
+              <Button
+                onClick={openCreateDialog}
+                className="h-10 rounded-2xl bg-[#556b2f] px-4 text-sm text-white hover:bg-[#445624]"
+              >
                 <Plus className="mr-2 h-4 w-4" />
                 Novo Lancamento
               </Button>
@@ -372,10 +458,12 @@ export function FinancialDashboard({
                 }`}
               >
                 <DialogHeader className="pr-8">
-                  <DialogTitle className="text-2xl text-slate-950">
-                    Novo lancamento
+                  <DialogTitle className="text-xl text-slate-950">
+                    {editingTransaction
+                      ? 'Editar lancamento'
+                      : 'Novo lancamento'}
                   </DialogTitle>
-                  <DialogDescription className="text-slate-600">
+                  <DialogDescription className="text-sm text-slate-600">
                     Um formulario unico para entradas e saidas, com foco no
                     contexto agropecuario.
                   </DialogDescription>
@@ -434,11 +522,11 @@ export function FinancialDashboard({
                           }))
                         }
                       >
-                        <SelectTrigger className="h-11 rounded-xl border-slate-200">
+                        <SelectTrigger className="h-10 rounded-xl border-slate-200">
                           <SelectValue placeholder="Selecione uma categoria" />
                         </SelectTrigger>
                         <SelectContent>
-                          {activeCategories.map((category) => (
+                          {dialogCategories.map((category) => (
                             <SelectItem key={category} value={category}>
                               {category}
                             </SelectItem>
@@ -461,7 +549,7 @@ export function FinancialDashboard({
                             amount: event.target.value,
                           }))
                         }
-                        className="h-11 rounded-xl border-slate-200"
+                        className="h-10 rounded-xl border-slate-200"
                       />
                     </div>
 
@@ -478,7 +566,7 @@ export function FinancialDashboard({
                             date: event.target.value,
                           }))
                         }
-                        className="h-11 rounded-xl border-slate-200"
+                        className="h-10 rounded-xl border-slate-200"
                       />
                     </div>
 
@@ -494,7 +582,7 @@ export function FinancialDashboard({
                             status: !current.status,
                           }))
                         }
-                        className={`flex h-11 w-full items-center justify-between rounded-xl border px-4 text-sm ${
+                        className={`flex h-10 w-full items-center justify-between rounded-xl border px-4 text-sm ${
                           formState.status
                             ? 'border-emerald-300 bg-emerald-50 text-emerald-800'
                             : 'border-amber-300 bg-amber-50 text-amber-800'
@@ -533,7 +621,7 @@ export function FinancialDashboard({
                       type="button"
                       variant="outline"
                       className="rounded-xl"
-                      onClick={() => setIsDialogOpen(false)}
+                      onClick={() => handleDialogOpenChange(false)}
                     >
                       Cancelar
                     </Button>
@@ -546,7 +634,11 @@ export function FinancialDashboard({
                           : 'bg-rose-600 hover:bg-rose-700'
                       }`}
                     >
-                      {isPending ? 'Salvando...' : 'Salvar lancamento'}
+                      {isPending
+                        ? 'Salvando...'
+                        : editingTransaction
+                          ? 'Salvar alteracoes'
+                          : 'Salvar lancamento'}
                     </Button>
                   </div>
                 </form>
@@ -555,7 +647,7 @@ export function FinancialDashboard({
           </Dialog>
         </div>
 
-        <div className="flex flex-col gap-3 rounded-2xl border border-primary/10 bg-primary/5 p-4 text-sm text-slate-700 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-3 rounded-2xl border border-primary/10 bg-primary/5 p-3 text-xs text-slate-700 md:flex-row md:items-center md:justify-between md:text-sm">
           <div className="flex items-center gap-2">
             <Wallet className="h-4 w-4 text-primary" />
             <span>
@@ -567,13 +659,13 @@ export function FinancialDashboard({
       </section>
 
       <section className="grid gap-4 xl:grid-cols-[1.15fr_1.15fr_1fr]">
-        <article className="rounded-3xl border border-emerald-200 bg-white p-6 shadow-sm">
-          <div className="mb-5 flex items-start justify-between">
+        <article className="rounded-3xl border border-emerald-200 bg-white p-5 shadow-sm">
+          <div className="mb-4 flex items-start justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
                 Total Entradas do Mes
               </p>
-              <p className="mt-4 text-3xl font-semibold text-emerald-700 md:text-4xl">
+              <p className="mt-3 text-2xl font-semibold text-emerald-700 md:text-3xl">
                 {CURRENCY_FORMATTER.format(summary.monthIncome)}
               </p>
             </div>
@@ -581,19 +673,19 @@ export function FinancialDashboard({
               <ArrowUpRight className="h-5 w-5" />
             </span>
           </div>
-          <p className="text-sm text-slate-600">
+          <p className="text-xs text-slate-600 md:text-sm">
             Receitas do mes de {monthLabel}, com destaque para venda de gado,
             leite e safra.
           </p>
         </article>
 
-        <article className="rounded-3xl border border-rose-200 bg-white p-6 shadow-sm">
-          <div className="mb-5 flex items-start justify-between">
+        <article className="rounded-3xl border border-rose-200 bg-white p-5 shadow-sm">
+          <div className="mb-4 flex items-start justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
                 Total Saidas do Mes
               </p>
-              <p className="mt-4 text-3xl font-semibold text-rose-700 md:text-4xl">
+              <p className="mt-3 text-2xl font-semibold text-rose-700 md:text-3xl">
                 {CURRENCY_FORMATTER.format(summary.monthExpense)}
               </p>
             </div>
@@ -601,18 +693,18 @@ export function FinancialDashboard({
               <ArrowDownRight className="h-5 w-5" />
             </span>
           </div>
-          <p className="text-sm text-slate-600">
+          <p className="text-xs text-slate-600 md:text-sm">
             Custos operacionais e manutencao apurados no mesmo periodo.
           </p>
         </article>
 
-        <article className="rounded-3xl border border-sky-200 bg-white p-6 shadow-sm">
-          <div className="mb-5 flex items-start justify-between">
+        <article className="rounded-3xl border border-sky-200 bg-white p-5 shadow-sm">
+          <div className="mb-4 flex items-start justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
                 Saldo Atual
               </p>
-              <p className="mt-4 text-3xl font-semibold text-slate-950 md:text-4xl">
+              <p className="mt-3 text-2xl font-semibold text-slate-950 md:text-3xl">
                 {CURRENCY_FORMATTER.format(summary.totalBalance)}
               </p>
             </div>
@@ -641,12 +733,16 @@ export function FinancialDashboard({
                 }}
               />
             </div>
-            <div className="flex flex-wrap items-center gap-2 text-sm text-slate-600">
+            <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600 md:text-sm">
               <Badge variant="outline" className="rounded-full">
                 Saldo do mes: {CURRENCY_FORMATTER.format(summary.monthBalance)}
               </Badge>
               <Badge variant="outline" className="rounded-full">
                 Pendentes: {summary.pendingCount}
+              </Badge>
+              <Badge variant="outline" className="rounded-full">
+                Valor pendente (mes):{' '}
+                {CURRENCY_FORMATTER.format(summary.monthPendingAmount)}
               </Badge>
             </div>
           </div>
@@ -659,11 +755,11 @@ export function FinancialDashboard({
             <div className="w-full space-y-1">
               <div className="flex items-center gap-2">
                 <CalendarDays className="h-5 w-5 text-primary" />
-                <h2 className="text-2xl font-semibold text-slate-950">
+                <h2 className="text-xl font-semibold text-slate-950 md:text-2xl">
                   Extrato do Mes
                 </h2>
               </div>
-              <p className="text-sm text-slate-600">
+              <p className="text-xs text-slate-600 md:text-sm">
                 Listagem mensal agrupada por dia, seguindo a competencia
                 selecionada.
               </p>
@@ -678,7 +774,7 @@ export function FinancialDashboard({
                   type="month"
                   value={monthKey}
                   onChange={(event) => setMonthKey(event.target.value)}
-                  className="h-11 w-max rounded-xl border-slate-200"
+                  className="h-10 w-max rounded-xl border-slate-200 text-sm"
                 />
               </div>
 
@@ -686,22 +782,18 @@ export function FinancialDashboard({
                 <label className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
                   Categoria
                 </label>
-                <Select
+                <select
                   value={categoryFilter}
-                  onValueChange={setCategoryFilter}
+                  onChange={(event) => setCategoryFilter(event.target.value)}
+                  className="h-10 w-full rounded-xl border border-slate-200 bg-background px-3 text-sm text-slate-700 outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
                 >
-                  <SelectTrigger className="h-11 rounded-xl border-slate-200">
-                    <SelectValue placeholder="Filtrar categoria" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas</SelectItem>
-                    {categories.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  <option value="all">Todas</option>
+                  {categories.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
           </div>
@@ -768,10 +860,10 @@ export function FinancialDashboard({
                           <div className="min-w-0">
                             <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
                               <div className="space-y-1">
-                                <h3 className="text-base font-semibold text-slate-950">
+                                <h3 className="text-sm font-semibold text-slate-950 md:text-base">
                                   {transaction.category}
                                 </h3>
-                                <p className="text-sm text-slate-600">
+                                <p className="text-xs text-slate-600 md:text-sm">
                                   {transaction.description ||
                                     'Sem descricao adicional.'}
                                 </p>
@@ -793,13 +885,22 @@ export function FinancialDashboard({
                                 >
                                   {transaction.status ? 'Pago' : 'Pendente'}
                                 </Badge>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  className="h-7 rounded-full px-2 text-xs"
+                                  onClick={() => openEditDialog(transaction)}
+                                >
+                                  <Pencil className="mr-1 h-3.5 w-3.5" />
+                                  Editar
+                                </Button>
                               </div>
                             </div>
                           </div>
 
                           <div className="flex flex-col items-start justify-between gap-2 md:items-end">
                             <p
-                              className={`text-lg font-semibold ${
+                              className={`text-base font-semibold md:text-lg ${
                                 isIncome ? 'text-emerald-700' : 'text-rose-700'
                               }`}
                             >
@@ -808,7 +909,7 @@ export function FinancialDashboard({
                                 Number(transaction.amount)
                               )}
                             </p>
-                            <p className="text-sm text-slate-500">
+                            <p className="text-xs text-slate-500 md:text-sm">
                               Competencia:{' '}
                               {new Date(
                                 `${transaction.date}T12:00:00`
@@ -832,28 +933,50 @@ export function FinancialDashboard({
             </p>
             <div className="mt-4 space-y-3">
               <div className="rounded-2xl bg-slate-50 p-4">
-                <p className="text-sm text-slate-500">Periodo selecionado</p>
-                <p className="mt-1 text-lg font-semibold capitalize text-slate-950">
+                <p className="text-xs text-slate-500 md:text-sm">
+                  Periodo selecionado
+                </p>
+                <p className="mt-1 text-base font-semibold capitalize text-slate-950 md:text-lg">
                   {monthLabel}
                 </p>
               </div>
               <div className="rounded-2xl bg-slate-50 p-4">
-                <p className="text-sm text-slate-500">Fluxo do mes</p>
-                <p className="mt-1 text-lg font-semibold text-slate-950">
+                <p className="text-xs text-slate-500 md:text-sm">
+                  Fluxo do mes (pagos)
+                </p>
+                <p className="mt-1 text-base font-semibold text-slate-950 md:text-lg">
                   {CURRENCY_FORMATTER.format(summary.monthBalance)}
                 </p>
               </div>
               <div className="rounded-2xl bg-slate-50 p-4">
-                <p className="text-sm text-slate-500">Lancamentos filtrados</p>
-                <p className="mt-1 text-lg font-semibold text-slate-950">
+                <p className="text-xs text-slate-500 md:text-sm">
+                  Total filtrado por categoria
+                </p>
+                <p className="mt-1 text-base font-semibold text-slate-950 md:text-lg">
+                  {CURRENCY_FORMATTER.format(filteredTotalAmount)}
+                </p>
+              </div>
+              <div className="rounded-2xl bg-slate-50 p-4">
+                <p className="text-xs text-slate-500 md:text-sm">
+                  Lancamentos filtrados
+                </p>
+                <p className="mt-1 text-base font-semibold text-slate-950 md:text-lg">
                   {filteredTransactions.length}
+                </p>
+              </div>
+              <div className="rounded-2xl bg-amber-50 p-4">
+                <p className="text-xs text-amber-700 md:text-sm">
+                  Valor pendente total
+                </p>
+                <p className="mt-1 text-base font-semibold text-amber-800 md:text-lg">
+                  {CURRENCY_FORMATTER.format(summary.totalPendingAmount)}
                 </p>
               </div>
             </div>
           </div>
 
           <div className="rounded-3xl border border-primary/10 bg-primary/5 p-5 shadow-sm">
-            <p>
+            <p className="text-xs text-slate-700 md:text-sm">
               O filtro mensal segue o intervalo entre primeiro e ultimo dia do
               mes, sempre amarrado ao usuario autenticado.
             </p>
