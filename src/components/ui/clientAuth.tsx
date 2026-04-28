@@ -14,10 +14,11 @@ const ClientAuth: React.FC<ClientAuthProps> = ({ children }) => {
 
   useEffect(() => {
     if (status === 'unauthenticated') {
-      router.replace('/');
       router.push('/');
-    } else if (status === 'authenticated') {
+    }
+    if (status === 'authenticated') {
       router.replace('/dashboard');
+      router.push('/dashboard');
     }
   }, [status, router]);
 

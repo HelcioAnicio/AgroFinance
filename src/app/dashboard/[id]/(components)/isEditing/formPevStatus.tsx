@@ -1,4 +1,5 @@
 import { Animal } from '@/types/animal';
+import { GoAlertFill } from 'react-icons/go';
 
 interface FormPevStatusProps {
   allDataForm: Animal;
@@ -8,32 +9,16 @@ interface FormPevStatusProps {
   animals: Animal[];
 }
 
-export const FormPevStatus: React.FC<FormPevStatusProps> = ({
-  allDataForm,
-  handleInputValues,
-}) => {
+export const FormPevStatus: React.FC<FormPevStatusProps> = () => {
   return (
     <>
-      <article className="flex flex-wrap gap-5">
-        <div className="flex flex-col gap-1">
-          <label className="text-secondary" htmlFor="expectedDueDate">
-            Data de expctativa de parto:
-          </label>
-          <input
-            type="date"
-            name="expectedDueDate"
-            id="expectedDueDate"
-            value={
-              allDataForm.expectedDueDate
-                ? new Date(allDataForm.expectedDueDate)
-                    .toISOString()
-                    .split('T')[0]
-                : ''
-            }
-            onChange={handleInputValues}
-            className="w-full max-w-40 border border-b border-b-primary bg-transparent outline-none"
-          />
-        </div>
+      <article className="mt-4 flex flex-wrap gap-5">
+        <p className="flex w-4/5 items-center gap-1 text-primary">
+          <GoAlertFill className="w-20" />
+          Ao confirmar o animal com o status de PEV, após 40 dias da data de
+          hoje, a vaca retornará ao status de Vazia automaticamente, e será
+          notificado.
+        </p>
       </article>
     </>
   );
