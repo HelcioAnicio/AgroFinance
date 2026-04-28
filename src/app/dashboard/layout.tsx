@@ -2,12 +2,21 @@ import { MenuNavegation } from '@/components/ui/menu';
 import { Suspense } from 'react';
 import { DashboardHeaderSkeleton } from './_components/dashboardHeaderSkeleton';
 import { DashboardHeaderSection } from './_components/dashboardHeaderSection';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { redirect } from 'next/navigation';
 
 export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await getServerSession(authOptions);
+
+  if (!session) {
+    redirect('/');
+  }
+
   return (
     <div className="min-h-screen">
       <Suspense fallback={<DashboardHeaderSkeleton />}>
