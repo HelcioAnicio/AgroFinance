@@ -52,6 +52,19 @@ export async function PUT(req: Request) {
       allDataForm.bodyConditionScore = Number(allDataForm.bodyConditionScore);
     }
 
+    if (allDataForm.expectedDueDate === '') {
+      allDataForm.expectedDueDate = null;
+    } else if (allDataForm.expectedDueDate != null) {
+      const parsedExpectedDueDate = new Date(allDataForm.expectedDueDate);
+      if (Number.isNaN(parsedExpectedDueDate.getTime())) {
+        return NextResponse.json(
+          { message: 'Data prevista para o parto invalida.' },
+          { status: 400 }
+        );
+      }
+      allDataForm.expectedDueDate = parsedExpectedDueDate;
+    }
+
     const existingAnimal = await prisma.animal.findUnique({
       where: { id: allDataForm.id },
       select: {

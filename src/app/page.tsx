@@ -1,5 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import { getServerSession } from 'next-auth';
+import { redirect } from 'next/navigation';
 import {
   ArrowRight,
   BarChart3,
@@ -12,6 +14,7 @@ import {
 } from 'lucide-react';
 import { HeaderSimple } from '@/components/ui/headerSimple';
 import { Button } from '@/components/ui/button';
+import { authOptions } from '@/lib/auth';
 
 const modules = [
   {
@@ -66,7 +69,13 @@ const highlights = [
 
 const techStack = ['Next.js', 'Tailwind CSS', 'Supabase'];
 
-export default function Home() {
+export default async function Home() {
+  const session = await getServerSession(authOptions);
+
+  if (session) {
+    redirect('/dashboard');
+  }
+
   return (
     <>
       <HeaderSimple />

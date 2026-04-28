@@ -6,24 +6,12 @@ import { signOut, useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 
 export const HeaderSimple = () => {
   const { status, data } = useSession();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/');
-    }
-    if (status === 'authenticated') {
-      router.push('/dashboard');
-    }
-  }, [status, router]);
 
   const handleLogoutClick = () => {
-    signOut();
+    signOut({ callbackUrl: '/' });
   };
 
   return (
