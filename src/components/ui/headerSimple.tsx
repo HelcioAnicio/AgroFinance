@@ -17,6 +17,9 @@ export const HeaderSimple = () => {
     if (status === 'unauthenticated') {
       router.push('/');
     }
+    if (status === 'authenticated') {
+      router.push('/dashboard');
+    }
   }, [status, router]);
 
   const handleLogoutClick = () => {

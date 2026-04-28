@@ -26,6 +26,9 @@ export const Header: React.FC<TableProps> = ({ notifications }) => {
     if (status === 'unauthenticated') {
       router.push('/');
     }
+    if (status === 'authenticated') {
+      router.push('/dashboard');
+    }
   }, [status, router]);
 
   const handleLogoutClick = () => {
