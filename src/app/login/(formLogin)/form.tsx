@@ -55,12 +55,6 @@ export const FormLogin: React.FC<FormLoginProps> = ({ fetchedUsers }) => {
     }));
   };
 
-  const executeTimeout = (time: number) => {
-    return setTimeout(() => {
-      setScreenLoading(!screenLoading);
-    }, time);
-  };
-
   const handleLoginCredentials = async (event: SyntheticEvent) => {
     event.preventDefault();
 
@@ -68,7 +62,7 @@ export const FormLogin: React.FC<FormLoginProps> = ({ fetchedUsers }) => {
       email: dataLoginUser.email,
       password: dataLoginUser.password,
       redirect: false,
-      callbackUrl: '/',
+      callbackUrl: '/dashboard',
     });
 
     if (result?.error && userEmail?.email !== dataLoginUser.email) {
@@ -81,8 +75,8 @@ export const FormLogin: React.FC<FormLoginProps> = ({ fetchedUsers }) => {
       return;
     } else {
       toast.success('Sucesso no login, aguarde o carregamento...');
-      executeTimeout(1);
-      executeTimeout(7000);
+      setScreenLoading(true);
+      router.replace('/dashboard');
       return;
     }
   };
@@ -97,9 +91,7 @@ export const FormLogin: React.FC<FormLoginProps> = ({ fetchedUsers }) => {
 
   useEffect(() => {
     if (status === 'authenticated') {
-      setTimeout(() => {
-        router.replace('/dashboard');
-      }, 5000);
+      router.replace('/dashboard');
     }
   }, [status, router]);
 
