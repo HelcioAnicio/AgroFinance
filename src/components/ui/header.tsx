@@ -6,8 +6,6 @@ import { signOut, useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { NotificationComponent } from './notificationComponent';
 import { Notification } from '@/types/notification';
 import { CgProfile } from 'react-icons/cg';
@@ -20,20 +18,9 @@ interface TableProps {
 
 export const Header: React.FC<TableProps> = ({ notifications }) => {
   const { status, data } = useSession();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/');
-    }
-    if (status === 'authenticated') {
-      router.push('/dashboard');
-    }
-  }, [status, router]);
 
   const handleLogoutClick = () => {
-    router.replace('/');
-    signOut();
+    signOut({ callbackUrl: '/' });
   };
 
   return (
