@@ -120,7 +120,7 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
               </div>
               <div className="flex flex-col gap-1">
                 <label className="text-secondary" htmlFor="bodyConditionScore">
-                  ECC (Escore de Condi��o Corporal):
+                  ECC (Escore de Condição Corporal):
                 </label>
                 <select
                   name="bodyConditionScore"

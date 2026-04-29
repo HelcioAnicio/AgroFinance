@@ -39,7 +39,7 @@ export const FormWaitingStatus: React.FC<FormWaitingStatusProps> = ({
             onChange={handleInputValues}
           >
             <option disabled value=""></option>
-            <option value="bullMating">Touro</option>
+            <option value="naturalMating">Monta natural</option>
             <option value="artificialInsemination">
               Inseminação Artifical
             </option>
@@ -56,7 +56,7 @@ export const FormWaitingStatus: React.FC<FormWaitingStatusProps> = ({
           <select
             name="bullId"
             id="bullId"
-            className={`min-w-24 flex-1 border border-b border-b-primary bg-transparent outline-none ${allDataForm.handlingType == 'bullMating' && 'bg-gray-300'}`}
+            className={`min-w-24 flex-1 border border-b border-b-primary bg-transparent outline-none ${allDataForm.handlingType === 'naturalMating' && 'bg-gray-300'}`}
             disabled={allDataForm.handlingType === 'artificialInsemination'}
             value={allDataForm.bullId ?? ''}
             onChange={handleInputValues}
@@ -88,14 +88,47 @@ export const FormWaitingStatus: React.FC<FormWaitingStatusProps> = ({
           <select
             name="protocol"
             id="protocol"
-            className={`flex[1_1_100px] w-full min-w-20 rounded-t-md border border-b border-b-primary bg-transparent outline-none ${allDataForm.handlingType === 'bullMating' && 'bg-gray-300'}`}
+            className={`flex[1_1_100px] w-full min-w-20 rounded-t-md border border-b border-b-primary bg-transparent outline-none ${allDataForm.handlingType === 'naturalMating' && 'bg-gray-300'}`}
             value={allDataForm.protocol ?? ''}
             onChange={handleInputValues}
-            disabled={allDataForm.handlingType === 'bullMating'}
+            disabled={allDataForm.handlingType === 'naturalMating'}
           >
             <option disabled value=""></option>
             <option value="protocol1">Inseminação artificial</option>
             <option value="protocol2">Inseminação </option>
+          </select>
+        </div>
+      </article>
+
+      <article className="flex w-full justify-between gap-2">
+        <div className="flex w-full flex-col gap-1">
+          <label className="text-secondary" htmlFor="bullIatfId">
+            Touro utilizado na IATF:
+          </label>
+          <select
+            name="bullIatfId"
+            id="bullIatfId"
+            className={`min-w-24 flex-1 border border-b border-b-primary bg-transparent outline-none ${allDataForm.handlingType === 'naturalMating' && 'bg-gray-300'}`}
+            disabled={allDataForm.handlingType === 'naturalMating'}
+            value={allDataForm.bullIatfId ?? ''}
+            onChange={handleInputValues}
+          >
+            <option disabled value=""></option>
+            <option value="comercial">Comercial</option>
+            {internalBullOptions.map((animal) => (
+              <option key={animal.id} value={animal.id}>
+                Touro {animal.manualId}
+              </option>
+            ))}
+            {externalBulls.map((externalBull) => (
+              <option
+                key={externalBull.id}
+                value={buildExternalBullValue(externalBull.id)}
+              >
+                Externo - {externalBull.name} ({externalBull.dosesAvailable}{' '}
+                doses)
+              </option>
+            ))}
           </select>
         </div>
       </article>

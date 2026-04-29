@@ -3,6 +3,59 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
+function normalizeStatus(status: unknown): string {
+  return typeof status === 'string' ? status.trim().toLowerCase() : '';
+}
+
+function buildPregnancySourceUpdate(params: {
+  touroId?: string | null;
+  touroType?: string | null;
+}) {
+  const touroId = params.touroId ?? null;
+  const touroType = params.touroType ?? null;
+
+  if (!touroId || !touroType) return {};
+
+  if (touroType === 'internal') {
+    return {
+      handlingType: 'naturalMating',
+      fatherId: touroId,
+      bullId: touroId,
+      externalBullId: null,
+      bullIatfId: null,
+      externalBullIatfId: null,
+    };
+  }
+
+  if (touroType === 'external') {
+    return {
+      handlingType: 'artificialInsemination',
+      fatherId: null,
+      bullId: null,
+      externalBullId: null,
+      bullIatfId: null,
+      externalBullIatfId: touroId,
+    };
+  }
+
+  return {};
+}
+
+async function getLatestInseminationSource(animalId: string) {
+  const latestInsemination = await prisma.reproductionManagement.findFirst({
+    where: { animalId, stage: 'Insemination' },
+    select: { touroId: true, touroType: true },
+    orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
+  });
+
+  if (!latestInsemination) return {};
+
+  return buildPregnancySourceUpdate({
+    touroId: latestInsemination.touroId,
+    touroType: latestInsemination.touroType,
+  });
+}
+
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -137,21 +190,42 @@ export async function POST(request: NextRequest) {
     });
 
     // Update animal's ECC and reproductive status if applicable
+    const animalUpdateData: Record<string, unknown> = {};
+
     if (ecc !== undefined) {
-      await prisma.animal.update({
-        where: { id: animalId },
-        data: { bodyConditionScore: ecc },
-      });
+      animalUpdateData.bodyConditionScore = ecc;
+    }
+
+    if (typeof obs === 'string') {
+      animalUpdateData.observations = obs;
     }
 
     if (stage === 'DG' && body.newReproductiveStatus) {
+      const normalizedStatus = normalizeStatus(body.newReproductiveStatus);
+      animalUpdateData.reproductiveStatus = body.newReproductiveStatus;
+
+      if (normalizedStatus === 'pregnant') {
+        const pregnancySourceUpdate = await getLatestInseminationSource(animalId);
+        Object.assign(animalUpdateData, pregnancySourceUpdate);
+      } else {
+        Object.assign(animalUpdateData, {
+          handlingType: null,
+          bullId: null,
+          externalBullId: null,
+          bullIatfId: null,
+          externalBullIatfId: null,
+        });
+      }
+    }
+
+    if (Object.keys(animalUpdateData).length > 0) {
       await prisma.animal.update({
         where: { id: animalId },
-        data: { reproductiveStatus: body.newReproductiveStatus },
+        data: animalUpdateData,
       });
 
       // Create notification if pregnant
-      if (body.newReproductiveStatus === 'pregnant') {
+      if (normalizeStatus(body.newReproductiveStatus) === 'pregnant') {
         await prisma.notification.create({
           data: {
             message: `Animal ${animal.manualId} is now pregnant`,
@@ -209,14 +283,43 @@ export async function PUT(request: NextRequest) {
 
     const stage = updates.stage ?? management.stage;
     const statusToUpdate = newReproductiveStatus;
+    const animalUpdateData: Record<string, unknown> = {};
+
+    if (updates.ecc !== undefined) {
+      animalUpdateData.bodyConditionScore = updates.ecc;
+    }
+
+    if (typeof updates.obs === 'string') {
+      animalUpdateData.observations = updates.obs;
+    }
 
     if (stage === 'DG' && statusToUpdate) {
+      const normalizedStatus = normalizeStatus(statusToUpdate);
+      animalUpdateData.reproductiveStatus = statusToUpdate;
+
+      if (normalizedStatus === 'pregnant') {
+        const pregnancySourceUpdate = await getLatestInseminationSource(
+          management.animalId
+        );
+        Object.assign(animalUpdateData, pregnancySourceUpdate);
+      } else {
+        Object.assign(animalUpdateData, {
+          handlingType: null,
+          bullId: null,
+          externalBullId: null,
+          bullIatfId: null,
+          externalBullIatfId: null,
+        });
+      }
+    }
+
+    if (Object.keys(animalUpdateData).length > 0) {
       await prisma.animal.update({
         where: { id: management.animalId },
-        data: { reproductiveStatus: statusToUpdate },
+        data: animalUpdateData,
       });
 
-      if (statusToUpdate === 'pregnant') {
+      if (normalizeStatus(statusToUpdate) === 'pregnant') {
         const animal = await prisma.animal.findUnique({
           where: { id: management.animalId },
         });

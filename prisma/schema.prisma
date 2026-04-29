@@ -23,6 +23,7 @@ model User {
   Authenticator Authenticator[]
   Notification  Notification[]
   animalStatusHistories AnimalStatusHistory[]
+  calfLossHistories AnimalCalfLossHistory[]
   externalBulls ExternalBull[]
   transactions  Transaction[]
   sessions      Session[]
@@ -77,6 +78,8 @@ model Animal {
   vaccines              Vaccine[]      @relation("AnimalVaccines")
   weightHistories       AnimalWeightHistory[]
   statusHistories       AnimalStatusHistory[]
+  calfLossHistories     AnimalCalfLossHistory[] @relation("AnimalCalfLossMother")
+  calfLossFatherHistories AnimalCalfLossHistory[] @relation("AnimalCalfLossFather")
   reproductionManagements ReproductionManagement[]
 
   @@unique([manualId, ownerId])
@@ -95,8 +98,33 @@ model ExternalBull {
   owner            User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   usedInHandling   Animal[] @relation("ExternalBullHandling")
   usedInIatf       Animal[] @relation("ExternalBullIatfHandling")
+  calfLossHistories AnimalCalfLossHistory[]
 
   @@index([ownerId])
+}
+
+model AnimalCalfLossHistory {
+  id              String       @id @default(dbgenerated("gen_random_uuid()"))
+  animalId        String
+  ownerId         String
+  previousStatus  String?
+  newStatus       String
+  expectedDueDate DateTime?
+  lossDate        DateTime
+  reason          String?
+  fatherType      String
+  fatherAnimalId  String?
+  externalBullId  String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  animal          Animal       @relation("AnimalCalfLossMother", fields: [animalId], references: [id], onDelete: Cascade)
+  owner           User         @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  fatherAnimal    Animal?      @relation("AnimalCalfLossFather", fields: [fatherAnimalId], references: [id], onDelete: SetNull)
+  externalBull    ExternalBull? @relation(fields: [externalBullId], references: [id], onDelete: SetNull)
+
+  @@index([animalId, lossDate])
+  @@index([ownerId, createdAt])
+  @@map("animal_calf_loss_history")
 }
 
 model AnimalStatusHistory {
