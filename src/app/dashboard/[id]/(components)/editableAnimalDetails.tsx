@@ -3,7 +3,7 @@
 import { Animal, AnimalWeightHistory } from '@/types/animal';
 import { Vaccine } from '@/types/vaccine';
 import { ExternalBull } from '@/types/externalBull';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
@@ -42,6 +42,14 @@ import {
   isExternalBullValue,
 } from '@/lib/externalBull';
 
+interface CalfLossDraft {
+  confirmed: boolean | null;
+  lossDate: string;
+  reason: string;
+  fatherType: 'internal' | 'external' | '';
+  fatherId: string;
+}
+
 interface EditableAnimalDetailsProps {
   animal: Animal;
   animals: Animal[];
@@ -71,7 +79,35 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [addVaccine, setAddVaccine] = useState(false);
   const [listVaccines, setListVaccines] = useState<Vaccine[]>(vaccines);
+  const [calfLossDraft, setCalfLossDraft] = useState<CalfLossDraft>({
+    confirmed: null,
+    lossDate: new Date().toISOString().split('T')[0],
+    reason: '',
+    fatherType: '',
+    fatherId: '',
+  });
   const router = useRouter();
+  const previousReproductiveStatus = String(
+    animal.reproductiveStatus ?? ''
+  ).toLowerCase();
+  const currentReproductiveStatus = String(
+    allDataForm.reproductiveStatus ?? ''
+  ).toLowerCase();
+  const dueDate = allDataForm.expectedDueDate
+    ? new Date(allDataForm.expectedDueDate)
+    : null;
+  const isPevEarlyBeforeDueDate =
+    currentReproductiveStatus === 'pev' &&
+    dueDate != null &&
+    dueDate.getTime() - Date.now() >= 1000 * 60 * 60 * 24 * 60;
+  const shouldAskCalfLoss =
+    previousReproductiveStatus === 'pregnant' &&
+    (currentReproductiveStatus === 'empty' || isPevEarlyBeforeDueDate);
+  const internalBullOptions = animals.filter(
+    (item) =>
+      item.gender === 'male' &&
+      (item.category === 'bull' || item.category === 'old bull')
+  );
 
   const breedArray = [
     'Cruzado',
@@ -119,6 +155,89 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     }));
   };
 
+  useEffect(() => {
+    if (allDataForm.gender === 'female') {
+      setAllDataForm((prevData) => ({
+        ...prevData,
+        andrological: null,
+      }));
+
+      if (allDataForm.reproductiveStatus === 'empty') {
+        setAllDataForm((prevData) => ({
+          ...prevData,
+          handlingType: null,
+          bullId: null,
+          externalBullId: null,
+          protocol: null,
+          expectedDueDate: null,
+          fetalGender: null,
+          bullIatfId: null,
+          externalBullIatfId: null,
+        }));
+        return;
+      }
+
+      if (allDataForm.reproductiveStatus === 'waiting') {
+        setAllDataForm((prevData) => ({
+          ...prevData,
+          expectedDueDate: null,
+          fetalGender: null,
+        }));
+        return;
+      }
+
+      if (allDataForm.reproductiveStatus === 'pev') {
+        setAllDataForm((prevData) => ({
+          ...prevData,
+          handlingType: null,
+          bullId: null,
+          externalBullId: null,
+          protocol: null,
+          expectedDueDate: null,
+          fetalGender: null,
+          bullIatfId: null,
+          externalBullIatfId: null,
+        }));
+      }
+    }
+
+    if (allDataForm.gender === 'male') {
+      setAllDataForm((prevData) => ({
+        ...prevData,
+        reproductiveStatus: null,
+        handlingType: null,
+        bullId: null,
+        externalBullId: null,
+        protocol: null,
+        expectedDueDate: null,
+        fetalGender: null,
+        bullIatfId: null,
+        externalBullIatfId: null,
+      }));
+    }
+  }, [allDataForm.gender, allDataForm.reproductiveStatus]);
+
+  useEffect(() => {
+    if (allDataForm.handlingType === 'naturalMating') {
+      setAllDataForm((prevData) => ({
+        ...prevData,
+        protocol: null,
+        bullIatfId: null,
+        externalBullIatfId: null,
+      }));
+      return;
+    }
+
+    if (allDataForm.handlingType === 'artificialInsemination') {
+      setAllDataForm((prevData) => ({
+        ...prevData,
+        bullId: null,
+        externalBullId: null,
+      }));
+      return;
+    }
+  }, [allDataForm.handlingType]);
+
   const handleInputValuesVaccine = (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -136,6 +255,26 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     if (allDataForm.status !== 'active' && !allDataForm.statusChangeDate) {
       toast.error('Informe a data da alteração de status.');
       return;
+    }
+
+    if (shouldAskCalfLoss && calfLossDraft.confirmed === null) {
+      toast.error('Informe se houve perda de cria/bezerro antes de salvar.');
+      return;
+    }
+
+    if (shouldAskCalfLoss && calfLossDraft.confirmed) {
+      if (!calfLossDraft.lossDate) {
+        toast.error('Informe a data da perda.');
+        return;
+      }
+      if (!calfLossDraft.reason.trim()) {
+        toast.error('Informe o motivo da perda.');
+        return;
+      }
+      if (!calfLossDraft.fatherType || !calfLossDraft.fatherId) {
+        toast.error('Informe se o pai e interno ou externo e selecione o pai.');
+        return;
+      }
     }
 
     const dataToSubmit = {
@@ -169,6 +308,23 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
         allDataForm.bullIatfId === 'Comercial'
           ? null
           : extractExternalBullId(allDataForm.bullIatfId),
+      calfLossEvent:
+        shouldAskCalfLoss && calfLossDraft.confirmed
+          ? {
+              confirmed: true,
+              lossDate: calfLossDraft.lossDate,
+              reason: calfLossDraft.reason.trim(),
+              fatherType: calfLossDraft.fatherType,
+              fatherAnimalId:
+                calfLossDraft.fatherType === 'internal'
+                  ? calfLossDraft.fatherId
+                  : null,
+              externalBullId:
+                calfLossDraft.fatherType === 'external'
+                  ? calfLossDraft.fatherId
+                  : null,
+            }
+          : { confirmed: false },
     };
 
     delete dataToSubmit.bull;
@@ -540,6 +696,169 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                         handleInputValues={handleInputValues}
                         animals={animals}
                       />
+                    )}
+
+                    {shouldAskCalfLoss && (
+                      <Card className="mt-4 border-amber-500 px-3 py-4">
+                        <CardTitle className="mb-3 text-sm">
+                          Houve perda de cria/bezerro?
+                        </CardTitle>
+                        <div className="flex flex-col gap-3">
+                          <div className="flex gap-4">
+                            <label className="flex items-center gap-1">
+                              <input
+                                type="radio"
+                                name="calfLossConfirmed"
+                                checked={calfLossDraft.confirmed === true}
+                                onChange={() =>
+                                  setCalfLossDraft((prev) => ({
+                                    ...prev,
+                                    confirmed: true,
+                                  }))
+                                }
+                              />
+                              Sim
+                            </label>
+                            <label className="flex items-center gap-1">
+                              <input
+                                type="radio"
+                                name="calfLossConfirmed"
+                                checked={calfLossDraft.confirmed === false}
+                                onChange={() =>
+                                  setCalfLossDraft((prev) => ({
+                                    ...prev,
+                                    confirmed: false,
+                                  }))
+                                }
+                              />
+                              Nao
+                            </label>
+                          </div>
+
+                          {calfLossDraft.confirmed && (
+                            <>
+                              <InputForm
+                                htmlFor="lossDate"
+                                label="Data da perda:"
+                                type="date"
+                                name="lossDate"
+                                id="lossDate"
+                                value={calfLossDraft.lossDate}
+                                onChange={(event) =>
+                                  setCalfLossDraft((prev) => ({
+                                    ...prev,
+                                    lossDate: event.target.value,
+                                  }))
+                                }
+                              />
+                              <InputForm
+                                htmlFor="lossReason"
+                                label="Motivo da perda:"
+                                type="text"
+                                name="lossReason"
+                                id="lossReason"
+                                value={calfLossDraft.reason}
+                                onChange={(event) =>
+                                  setCalfLossDraft((prev) => ({
+                                    ...prev,
+                                    reason: event.target.value,
+                                  }))
+                                }
+                              />
+
+                              <article className="flex flex-col gap-1">
+                                <label
+                                  className="text-secondary"
+                                  htmlFor="fatherType"
+                                >
+                                  Pai da cria:
+                                </label>
+                                <select
+                                  id="fatherType"
+                                  className="w-36 border border-b border-b-primary bg-transparent outline-none"
+                                  value={calfLossDraft.fatherType}
+                                  onChange={(event) =>
+                                    setCalfLossDraft((prev) => ({
+                                      ...prev,
+                                      fatherType: event.target.value as
+                                        | 'internal'
+                                        | 'external'
+                                        | '',
+                                      fatherId: '',
+                                    }))
+                                  }
+                                >
+                                  <option value=""></option>
+                                  <option value="internal">
+                                    Animal da fazenda
+                                  </option>
+                                  <option value="external">
+                                    Touro externo
+                                  </option>
+                                </select>
+                              </article>
+
+                              {calfLossDraft.fatherType === 'internal' && (
+                                <article className="flex flex-col gap-1">
+                                  <label
+                                    className="text-secondary"
+                                    htmlFor="fatherInternalId"
+                                  >
+                                    Selecione o pai interno:
+                                  </label>
+                                  <select
+                                    id="fatherInternalId"
+                                    className="w-full max-w-52 border border-b border-b-primary bg-transparent outline-none"
+                                    value={calfLossDraft.fatherId}
+                                    onChange={(event) =>
+                                      setCalfLossDraft((prev) => ({
+                                        ...prev,
+                                        fatherId: event.target.value,
+                                      }))
+                                    }
+                                  >
+                                    <option value=""></option>
+                                    {internalBullOptions.map((bull) => (
+                                      <option key={bull.id} value={bull.id}>
+                                        Touro {bull.manualId}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </article>
+                              )}
+
+                              {calfLossDraft.fatherType === 'external' && (
+                                <article className="flex flex-col gap-1">
+                                  <label
+                                    className="text-secondary"
+                                    htmlFor="fatherExternalId"
+                                  >
+                                    Selecione o pai externo:
+                                  </label>
+                                  <select
+                                    id="fatherExternalId"
+                                    className="w-full max-w-52 border border-b border-b-primary bg-transparent outline-none"
+                                    value={calfLossDraft.fatherId}
+                                    onChange={(event) =>
+                                      setCalfLossDraft((prev) => ({
+                                        ...prev,
+                                        fatherId: event.target.value,
+                                      }))
+                                    }
+                                  >
+                                    <option value=""></option>
+                                    {externalBulls.map((bull) => (
+                                      <option key={bull.id} value={bull.id}>
+                                        {bull.name}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </article>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </Card>
                     )}
                   </>
                 )}

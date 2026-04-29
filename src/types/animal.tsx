@@ -13,6 +13,24 @@ export interface AnimalWeightHistory {
   updatedAt: Date;
 }
 
+export interface AnimalCalfLossHistory {
+  id: string;
+  animalId: string;
+  ownerId: string;
+  previousStatus: string | null;
+  newStatus: string;
+  expectedDueDate: Date | null;
+  lossDate: Date;
+  reason: string | null;
+  fatherType: string;
+  fatherAnimalId: string | null;
+  externalBullId: string | null;
+  fatherAnimal?: Animal;
+  externalBull?: ExternalBull;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface Animal {
   id: string;
   status: string;
@@ -55,6 +73,7 @@ export interface Animal {
   offspringFromMother?: Animal[];
   owner?: User;
   weightHistories?: AnimalWeightHistory[];
+  calfLossHistories?: AnimalCalfLossHistory[];
   weightRecordType?: WeightRecordType;
   weightRecordDate?: string | Date | null;
   statusChangeDate?: string | Date | null;

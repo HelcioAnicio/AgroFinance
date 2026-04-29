@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -89,12 +89,7 @@ const ReproductionManagementPage = () => {
     return dates;
   };
 
-  useEffect(() => {
-    fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [managementsRes, animalsRes, bullsRes] = await Promise.all([
         fetch('/api/reproduction-management'),
@@ -122,7 +117,27 @@ const ReproductionManagementPage = () => {
     } catch (error) {
       console.error('Error fetching data:', error);
     }
-  };
+  }, [currentStage]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  useEffect(() => {
+    const onFocus = () => {
+      fetchData();
+    };
+    const intervalId = window.setInterval(() => {
+      fetchData();
+    }, 30000);
+
+    window.addEventListener('focus', onFocus);
+
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      window.clearInterval(intervalId);
+    };
+  }, [fetchData]);
 
   const translateCategory = (category = '') => {
     const c = category.toLowerCase();
@@ -340,6 +355,20 @@ const ReproductionManagementPage = () => {
 
   const renderForm = () => {
     const filteredAnimals = getFilteredAnimals();
+    const selectedAnimal = animals.find((a) => a.id === formData.animalId);
+    const internalSire = animals.find(
+      (a) =>
+        a.id === selectedAnimal?.bullId ||
+        a.id === selectedAnimal?.bullIatfId ||
+        a.id === selectedAnimal?.fatherId
+    );
+    const externalSire = externalBulls.find(
+      (bull) =>
+        bull.id === selectedAnimal?.externalBullId ||
+        bull.id === selectedAnimal?.externalBullIatfId
+    );
+    const sireLabel =
+      internalSire?.manualId ?? externalSire?.name ?? 'N/A';
 
     if (currentStage === 'DG') {
       return (
@@ -384,6 +413,14 @@ const ReproductionManagementPage = () => {
                       ecc: selected?.bodyConditionScore
                         ? String(selected.bodyConditionScore)
                         : '',
+                      obs: selected?.observations ?? '',
+                      newReproductiveStatus:
+                        selected?.reproductiveStatus &&
+                        ['pregnant', 'empty', 'open'].includes(
+                          selected.reproductiveStatus
+                        )
+                          ? selected.reproductiveStatus
+                          : '',
                     });
                   }}
                 >
@@ -414,6 +451,23 @@ const ReproductionManagementPage = () => {
               {formData.animalId && (
                 <div className="space-y-2">
                   <h4 className="font-medium">Informações atuais:</h4>
+                  <div className="text-sm text-gray-600">
+                    Status: {selectedAnimal?.reproductiveStatus || 'N/A'} | ECC:{' '}
+                    {selectedAnimal?.bodyConditionScore ?? 'N/A'} | Obs:{' '}
+                    {selectedAnimal?.observations || 'N/A'}
+                  </div>
+                  {selectedAnimal?.reproductiveStatus === 'pregnant' && (
+                    <div className="text-sm text-gray-600">
+                      Tipo:{' '}
+                      {selectedAnimal?.handlingType === 'naturalMating'
+                        ? 'Monta'
+                        : selectedAnimal?.handlingType ===
+                            'artificialInsemination'
+                          ? 'Inseminação'
+                          : 'N/A'}{' '}
+                      | Pai: {sireLabel}
+                    </div>
+                  )}
                   {(() => {
                     const animalManagements = managements.filter(
                       (m) => m.animalId === formData.animalId
@@ -549,6 +603,14 @@ const ReproductionManagementPage = () => {
                     ecc: selected?.bodyConditionScore
                       ? String(selected.bodyConditionScore)
                       : '',
+                    obs: selected?.observations ?? '',
+                    newReproductiveStatus:
+                      selected?.reproductiveStatus &&
+                      ['pregnant', 'empty', 'open'].includes(
+                        selected.reproductiveStatus
+                      )
+                        ? selected.reproductiveStatus
+                        : '',
                   });
                 }}
               >

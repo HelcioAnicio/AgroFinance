@@ -163,7 +163,7 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
             name="bullIatfId"
             id="bullIatfId"
             className={`min-w-24 max-w-40 flex-1 border border-b border-b-primary outline-none ${allDataForm.handlingType == 'bullMating' ? 'rounded-t-md bg-gray-400' : 'bg-transparent'}`}
-            disabled={allDataForm.handlingType === 'bullMating'}
+            disabled={allDataForm.handlingType === 'naturalMating'}
             value={allDataForm.bullIatfId ?? ''}
             onChange={handleInputValues}
           >

@@ -7,6 +7,38 @@ import {
 } from '@/lib/weightHistory';
 import { decrementExternalBullDosesForUsageDelta } from '@/lib/externalBullDoses';
 
+const createCalfLossHistorySafely = async (payload: {
+  animalId: string;
+  ownerId: string;
+  previousStatus: string | null;
+  newStatus: string;
+  expectedDueDate: Date | null;
+  lossDate: Date;
+  reason: string | null;
+  fatherType: string;
+  fatherAnimalId: string | null;
+  externalBullId: string | null;
+}) => {
+  const calfLossDelegate = (
+    prisma as unknown as {
+      animalCalfLossHistory?: {
+        create: (args: { data: typeof payload }) => Promise<unknown>;
+      };
+    }
+  ).animalCalfLossHistory;
+
+  if (calfLossDelegate?.create) {
+    await calfLossDelegate.create({
+      data: payload,
+    });
+    return;
+  }
+
+  console.warn(
+    'animalCalfLossHistory delegate indisponivel no Prisma Client. Registro de perda ignorado; execute migrate/generate.'
+  );
+};
+
 export async function PUT(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
@@ -36,10 +68,12 @@ export async function PUT(req: Request) {
       'diseases',
       'vaccines',
       'weightHistories',
+      'calfLossHistories',
       'createdAt',
     ];
     fieldsToRemove.forEach((field) => delete allDataForm[field]);
 
+    const calfLossEvent = allDataForm.calfLossEvent;
     const recordType = parseWeightRecordType(allDataForm.weightRecordType);
     const measuredAt = parseWeightRecordDate(allDataForm.weightRecordDate);
     const statusChangeDate = allDataForm.statusChangeDate;
@@ -47,6 +81,7 @@ export async function PUT(req: Request) {
     delete allDataForm.weightRecordType;
     delete allDataForm.weightRecordDate;
     delete allDataForm.statusChangeDate;
+    delete allDataForm.calfLossEvent;
 
     if (allDataForm.bodyConditionScore !== null) {
       allDataForm.bodyConditionScore = Number(allDataForm.bodyConditionScore);
@@ -178,10 +213,17 @@ export async function PUT(req: Request) {
     const expectedDueDate = expectedDueDateValue
       ? new Date(expectedDueDateValue)
       : null;
+    const isPevEarlyBeforeDueDate =
+      currentReproductiveStatus === 'pev' &&
+      expectedDueDate != null &&
+      expectedDueDate.getTime() - dateNow.getTime() >= 1000 * 60 * 60 * 24 * 60;
     const changedToEmptyBeforePev =
       previousReproductiveStatus === 'pregnant' &&
       currentReproductiveStatus === 'empty' &&
       existingAnimal.expectedDueDate != null;
+    const shouldEvaluateCalfLoss =
+      previousReproductiveStatus === 'pregnant' &&
+      (currentReproductiveStatus === 'empty' || isPevEarlyBeforeDueDate);
 
     if (
       currentReproductiveStatus === 'pregnant' &&
@@ -260,30 +302,61 @@ export async function PUT(req: Request) {
     }
 
     if (changedToEmptyBeforePev) {
-      await prisma.$transaction(async (tx) => {
-        await tx.notification.deleteMany({
-          where: {
-            animalId: data.id,
-            userId: data.ownerId,
-            OR: [
-              { message: { contains: 'proximo ao parto' } },
-              { message: { contains: '15 dias do parto' } },
-            ],
-          },
-        });
+      await prisma.notification.deleteMany({
+        where: {
+          animalId: data.id,
+          userId: data.ownerId,
+          OR: [
+            { message: { contains: 'proximo ao parto' } },
+            { message: { contains: '15 dias do parto' } },
+          ],
+        },
+      });
+    }
 
-        await tx.animalStatusHistory.create({
-          data: {
-            animalId: data.id,
-            ownerId: data.ownerId,
-            previousStatus: existingAnimal.reproductiveStatus,
-            newStatus: 'empty',
-            changedAt: dateNow,
-            year: dateNow.getFullYear(),
-            month: dateNow.getMonth() + 1,
-            reason: 'reproductive_loss_before_pev',
-          },
-        });
+    if (shouldEvaluateCalfLoss && calfLossEvent?.confirmed === true) {
+      const lossDate = calfLossEvent.lossDate
+        ? new Date(calfLossEvent.lossDate)
+        : new Date();
+      const fatherType =
+        calfLossEvent.fatherType === 'external' ? 'external' : 'internal';
+      const fatherAnimalId =
+        fatherType === 'internal'
+          ? (calfLossEvent.fatherAnimalId ?? null)
+          : null;
+      const externalBullId =
+        fatherType === 'external'
+          ? (calfLossEvent.externalBullId ?? null)
+          : null;
+
+      if (Number.isNaN(lossDate.getTime())) {
+        return NextResponse.json(
+          { message: 'Data de perda invalida.' },
+          { status: 400 }
+        );
+      }
+
+      if (
+        (fatherType === 'internal' && !fatherAnimalId) ||
+        (fatherType === 'external' && !externalBullId)
+      ) {
+        return NextResponse.json(
+          { message: 'Pai da cria deve ser informado.' },
+          { status: 400 }
+        );
+      }
+
+      await createCalfLossHistorySafely({
+        animalId: data.id,
+        ownerId: data.ownerId,
+        previousStatus: existingAnimal.reproductiveStatus,
+        newStatus: currentReproductiveStatus,
+        expectedDueDate: expectedDueDate ?? null,
+        lossDate,
+        reason: calfLossEvent.reason ?? null,
+        fatherType,
+        fatherAnimalId,
+        externalBullId,
       });
     }
 

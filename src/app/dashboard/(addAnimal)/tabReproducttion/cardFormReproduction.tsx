@@ -52,10 +52,12 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
           ...prevData,
           handlingType: null,
           bullId: null,
+          externalBullId: null,
           protocol: null,
           expectedDueDate: null,
           fetalGender: null,
           bullIatfId: null,
+          externalBullIatfId: null,
         }));
 
         return;
@@ -64,7 +66,6 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
           ...prevData,
           expectedDueDate: null,
           fetalGender: null,
-          bullIatfId: null,
         }));
         return;
       } else if (allDataForm.reproductiveStatus === 'pev') {
@@ -72,10 +73,12 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
           ...prevData,
           handlingType: null,
           bullId: null,
+          externalBullId: null,
           protocol: null,
           expectedDueDate: null,
           fetalGender: null,
           bullIatfId: null,
+          externalBullIatfId: null,
         }));
         return;
       }
@@ -85,10 +88,12 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
         reproductiveStatus: null,
         handlingType: null,
         bullId: null,
+        externalBullId: null,
         protocol: null,
         expectedDueDate: null,
         fetalGender: null,
         bullIatfId: null,
+        externalBullIatfId: null,
       }));
     }
   }, [allDataForm.gender, allDataForm.reproductiveStatus, setAllDataForm]);
@@ -99,12 +104,14 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
         ...prevData,
         protocol: null,
         bullIatfId: null,
+        externalBullIatfId: null,
       }));
       return;
     } else if (allDataForm.handlingType === 'artificialInsemination') {
       setAllDataForm((prevData) => ({
         ...prevData,
         bullId: null,
+        externalBullId: null,
       }));
       return;
     }

@@ -42,6 +42,15 @@ const DetailAnimalId = async ({
           measuredAt: 'desc',
         },
       },
+      calfLossHistories: {
+        include: {
+          fatherAnimal: true,
+          externalBull: true,
+        },
+        orderBy: {
+          lossDate: 'desc',
+        },
+      },
     },
   });
   const vaccines = await fetchVaccines(animal?.id as string);
