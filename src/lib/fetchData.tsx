@@ -37,6 +37,16 @@ export const fetchUsers = async (): Promise<User[]> => {
   return await prisma.user.findMany();
 };
 
+export const fetchUserByEmail = async (
+  email?: string | null
+): Promise<User | null> => {
+  if (!email) return null;
+
+  return await prisma.user.findUnique({
+    where: { email },
+  });
+};
+
 export const fetchNotifications = async (
   ownerId: string
 ): Promise<Notification[]> => {
@@ -47,6 +57,9 @@ export const fetchNotifications = async (
   const notifications = await prisma.notification.findMany({
     where: {
       userId: ownerId,
+    },
+    orderBy: {
+      notifyAt: 'desc',
     },
   });
 

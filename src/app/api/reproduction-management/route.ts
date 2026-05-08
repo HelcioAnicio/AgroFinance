@@ -205,7 +205,8 @@ export async function POST(request: NextRequest) {
       animalUpdateData.reproductiveStatus = body.newReproductiveStatus;
 
       if (normalizedStatus === 'pregnant') {
-        const pregnancySourceUpdate = await getLatestInseminationSource(animalId);
+        const pregnancySourceUpdate =
+          await getLatestInseminationSource(animalId);
         Object.assign(animalUpdateData, pregnancySourceUpdate);
       } else {
         Object.assign(animalUpdateData, {

@@ -71,23 +71,26 @@ const ReproductionManagementPage = () => {
     return `${year}-${month}-${day}`;
   };
 
-  const computeStageDates = (managements: ReproductionManagement[]) => {
-    const dates: Record<string, string> = {
-      D0: '',
-      Manejo: '',
-      Insemination: '',
-      DG: '',
-    };
+  const computeStageDates = useCallback(
+    (managements: ReproductionManagement[]) => {
+      const dates: Record<string, string> = {
+        D0: '',
+        Manejo: '',
+        Insemination: '',
+        DG: '',
+      };
 
-    managements.forEach((m) => {
-      const dateStr = toLocalDateString(m.date);
-      if (!dates[m.stage] || dateStr > dates[m.stage]) {
-        dates[m.stage] = dateStr;
-      }
-    });
+      managements.forEach((m) => {
+        const dateStr = toLocalDateString(m.date);
+        if (!dates[m.stage] || dateStr > dates[m.stage]) {
+          dates[m.stage] = dateStr;
+        }
+      });
 
-    return dates;
-  };
+      return dates;
+    },
+    []
+  );
 
   const fetchData = useCallback(async () => {
     try {
@@ -117,26 +120,10 @@ const ReproductionManagementPage = () => {
     } catch (error) {
       console.error('Error fetching data:', error);
     }
-  }, [currentStage]);
+  }, [computeStageDates, currentStage]);
 
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
-
-  useEffect(() => {
-    const onFocus = () => {
-      fetchData();
-    };
-    const intervalId = window.setInterval(() => {
-      fetchData();
-    }, 30000);
-
-    window.addEventListener('focus', onFocus);
-
-    return () => {
-      window.removeEventListener('focus', onFocus);
-      window.clearInterval(intervalId);
-    };
   }, [fetchData]);
 
   const translateCategory = (category = '') => {
@@ -367,8 +354,7 @@ const ReproductionManagementPage = () => {
         bull.id === selectedAnimal?.externalBullId ||
         bull.id === selectedAnimal?.externalBullIatfId
     );
-    const sireLabel =
-      internalSire?.manualId ?? externalSire?.name ?? 'N/A';
+    const sireLabel = internalSire?.manualId ?? externalSire?.name ?? 'N/A';
 
     if (currentStage === 'DG') {
       return (
