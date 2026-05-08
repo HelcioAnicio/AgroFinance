@@ -44,9 +44,24 @@ export const fetchNotifications = async (
     throw new Error('ownerId is required');
   }
 
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - 547);
+
+  await prisma.notification.deleteMany({
+    where: {
+      userId: ownerId,
+      notifyAt: {
+        lt: cutoffDate,
+      },
+    },
+  });
+
   const notifications = await prisma.notification.findMany({
     where: {
       userId: ownerId,
+    },
+    orderBy: {
+      notifyAt: 'desc',
     },
   });
 

@@ -6,7 +6,6 @@ import { ExternalBull } from '@/types/externalBull';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import axios from 'axios';
-import { v4 as uuidv4 } from 'uuid';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Separator } from '@/components/ui/separator';
@@ -20,7 +19,7 @@ import {
 import { CardInformation } from './isNotEditing/cardInformation';
 import { CardReproduction } from './isNotEditing/cardReproduction';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Trash2 } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
 import { FormBasicInformation } from './isEditing/formBasicInformation';
 import { FormMaleReproductive } from './isEditing/formMaleReproductive';
 import { FormPevStatus } from './isEditing/formPevStatus';
@@ -41,6 +40,16 @@ import {
   extractExternalBullId,
   isExternalBullValue,
 } from '@/lib/externalBull';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Deworming, Disease } from '@/types/sanitary';
 
 interface CalfLossDraft {
   confirmed: boolean | null;
@@ -56,6 +65,16 @@ interface EditableAnimalDetailsProps {
   externalBulls: ExternalBull[];
   vaccines: Vaccine[];
   vaccine: Vaccine;
+}
+
+type SanitaryType = 'vaccine' | 'deworming' | 'disease';
+
+interface SanitaryFormState {
+  type: SanitaryType;
+  name: string;
+  description: string;
+  date: string;
+  expiryDate: string;
 }
 
 const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
@@ -75,10 +94,22 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     weightRecordType: 'OTHER',
     weightRecordDate: new Date().toISOString().split('T')[0],
   });
-  const [dataOfVaccine, setDataOfVaccine] = useState<Vaccine>({} as Vaccine);
   const [isEditing, setIsEditing] = useState(false);
-  const [addVaccine, setAddVaccine] = useState(false);
+  const [openSanitaryModal, setOpenSanitaryModal] = useState(false);
+  const [sanitaryForm, setSanitaryForm] = useState<SanitaryFormState>({
+    type: 'vaccine',
+    name: '',
+    description: '',
+    date: new Date().toISOString().split('T')[0],
+    expiryDate: '',
+  });
   const [listVaccines, setListVaccines] = useState<Vaccine[]>(vaccines);
+  const [listDewormings, setListDewormings] = useState<Deworming[]>(
+    animal.dewormings ?? []
+  );
+  const [listDiseases, setListDiseases] = useState<Disease[]>(
+    animal.diseases ?? []
+  );
   const [calfLossDraft, setCalfLossDraft] = useState<CalfLossDraft>({
     confirmed: null,
     lossDate: new Date().toISOString().split('T')[0],
@@ -107,6 +138,45 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     (item) =>
       item.gender === 'male' &&
       (item.category === 'bull' || item.category === 'old bull')
+  );
+  const totalBirths = allDataForm?.offspringFromMother?.length ?? 0;
+  const totalLosses = allDataForm?.calfLossHistories?.length ?? 0;
+  const totalPregnancies =
+    totalBirths +
+    totalLosses +
+    (currentReproductiveStatus === 'pregnant' ? 1 : 0);
+  const efficiencyRate =
+    totalPregnancies > 0
+      ? ((totalBirths / totalPregnancies) * 100).toFixed(1)
+      : '0.0';
+  const sanitaryRecords = [
+    ...listVaccines.map((item) => ({
+      id: item.id,
+      typeLabel: 'Vacina',
+      name: item.name ?? 'N/A',
+      description: item.description ?? null,
+      date: item.date,
+      expiryDate: item.expiryDate,
+    })),
+    ...listDewormings.map((item) => ({
+      id: item.id,
+      typeLabel: 'Vermifugação',
+      name: item.name,
+      description: null,
+      date: item.date,
+      expiryDate: null,
+    })),
+    ...listDiseases.map((item) => ({
+      id: item.id,
+      typeLabel: 'Doença',
+      name: item.name,
+      description: item.description,
+      date: item.date,
+      expiryDate: null,
+    })),
+  ].sort(
+    (a, b) =>
+      new Date(b.date ?? 0).getTime() - new Date(a.date ?? 0).getTime()
   );
 
   const breedArray = [
@@ -238,16 +308,13 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     }
   }, [allDataForm.handlingType]);
 
-  const handleInputValuesVaccine = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  const handleSanitaryInput = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    const { name, value, type } = event.target;
-    const newValue =
-      type === 'number' || type === 'range' ? parseInt(value) : value;
-
-    setDataOfVaccine((prevData) => ({
-      ...prevData,
-      [name]: newValue,
+    const { name, value } = event.target;
+    setSanitaryForm((prev) => ({
+      ...prev,
+      [name]: value,
     }));
   };
 
@@ -377,39 +444,53 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     }
   };
 
-  const submitFormVaccine = async (dataOfVaccine: Vaccine) => {
-    const vaccineToSend = {
-      ...dataOfVaccine,
-      id: uuidv4(),
-      animalId: allDataForm.id,
-      date: dataOfVaccine.date && new Date(dataOfVaccine.date).toISOString(),
-      expiryDate:
-        dataOfVaccine.expiryDate &&
-        new Date(dataOfVaccine.expiryDate).toISOString(),
-      updatedAt: new Date(),
-      createdAt: new Date(),
-    };
+  const submitSanitaryRecord = async () => {
+    if (!sanitaryForm.name.trim() || !sanitaryForm.date) {
+      toast.error('Preencha nome e data do registro sanitário.');
+      return;
+    }
 
     try {
       const response = await axios.post(
-        '/api/addVaccine',
-        { dataOfVaccine: vaccineToSend },
+        '/api/addSanitary',
+        {
+          type: sanitaryForm.type,
+          animalId: allDataForm.id,
+          name: sanitaryForm.name.trim(),
+          description: sanitaryForm.description.trim() || null,
+          date: sanitaryForm.date,
+          expiryDate: sanitaryForm.expiryDate || null,
+        },
         {
           headers: {
             'Content-Type': 'application/json',
           },
         }
       );
-      updatedListVaccines();
-      setAddVaccine(false);
-      setDataOfVaccine({} as Vaccine);
-      setTimeout(() => {
-        toast.success('Vacina adicionada com sucesso!');
-      }, 2000);
+
+      const savedData = response.data?.data;
+      if (sanitaryForm.type === 'vaccine' && savedData) {
+        setListVaccines((prev) => [savedData as Vaccine, ...prev]);
+      }
+      if (sanitaryForm.type === 'deworming' && savedData) {
+        setListDewormings((prev) => [savedData as Deworming, ...prev]);
+      }
+      if (sanitaryForm.type === 'disease' && savedData) {
+        setListDiseases((prev) => [savedData as Disease, ...prev]);
+      }
+
+      setOpenSanitaryModal(false);
+      setSanitaryForm({
+        type: 'vaccine',
+        name: '',
+        description: '',
+        date: new Date().toISOString().split('T')[0],
+        expiryDate: '',
+      });
+      toast.success('Registro sanitário adicionado com sucesso!');
       return response;
     } catch (error) {
-      // console.log('error: ', error);
-      toast.error('Ocorreu um erro ao adicionar a vacina.');
+      toast.error('Ocorreu um erro ao adicionar o registro sanitário.');
       return error;
     }
   };
@@ -432,10 +513,6 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     }
   };
 
-  const updatedListVaccines = () => {
-    setListVaccines((prevVaccines) => [...prevVaccines, dataOfVaccine]);
-  };
-
   return (
     <div className="pb-14">
       <section className="sticky top-0 bg-background">
@@ -454,6 +531,15 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                 <button onClick={handleDelete}>
                   <Trash2 className="text-red-500" />
                 </button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setOpenSanitaryModal(true)}
+                  className="gap-1"
+                >
+                  <Plus className="size-4" />
+                  <span className="hidden sm:inline">Adicionar sanitário</span>
+                </Button>
                 <Button onClick={() => setIsEditing(!isEditing)}>Editar</Button>
               </>
             ) : (
@@ -482,7 +568,19 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
       </section>
 
       {isEditing === false ? (
-        <div className="m-auto flex w-full max-w-lg flex-wrap gap-10 pb-10 pt-5">
+        <div className="m-auto grid w-full max-w-6xl grid-cols-1 gap-6 pb-10 pt-5 lg:grid-cols-2">
+          <Card className="lg:col-span-2">
+            <CardContent className="px-4 py-3">
+              <p className="text-sm text-muted-foreground">
+                Última atualização do animal:{' '}
+                <strong>
+                  {allDataForm?.updatedAt
+                    ? new Date(allDataForm.updatedAt).toLocaleString()
+                    : 'N/A'}
+                </strong>
+              </p>
+            </CardContent>
+          </Card>
           <CardInformation allDataForm={allDataForm as Animal} />
           <CardReproduction allDataForm={allDataForm as Animal} />
           <Card className="flex w-full max-w-lg flex-col gap-2 px-2 py-5">
@@ -513,6 +611,49 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                 )
               ) : (
                 <span>Nenhum histórico de peso registrado.</span>
+              )}
+            </CardContent>
+          </Card>
+          <Card className="flex w-full max-w-lg flex-col gap-2 px-2 py-5">
+            <CardHeader>
+              <CardTitle className="text-base">Eficiência reprodutiva</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 px-1">
+              <p>
+                <strong>Prenhezes:</strong> {totalPregnancies}
+              </p>
+              <p>
+                <strong>Nascimentos:</strong> {totalBirths}
+              </p>
+              <p>
+                <strong>Perdas:</strong> {totalLosses}
+              </p>
+              <p>
+                <strong>Eficiência:</strong> {efficiencyRate}%
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="flex w-full max-w-lg flex-col gap-2 px-2 py-5">
+            <CardHeader>
+              <CardTitle className="text-base">
+                Histórico de perda de cria
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 px-1">
+              {allDataForm.calfLossHistories?.length ? (
+                allDataForm.calfLossHistories.map((history) => (
+                  <Card key={history.id} className="rounded-sm px-3 py-2">
+                    <p>
+                      <strong>Data:</strong>{' '}
+                      {new Date(history.lossDate).toLocaleDateString()}
+                    </p>
+                    <p>
+                      <strong>Motivo:</strong> {history.reason || 'N/A'}
+                    </p>
+                  </Card>
+                ))
+              ) : (
+                <span>Nenhuma perda registrada.</span>
               )}
             </CardContent>
           </Card>
@@ -621,7 +762,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
         <form
           action=""
           method="post"
-          className="m-auto flex max-w-lg flex-col gap-5 p-3"
+          className="m-auto grid w-full max-w-6xl grid-cols-1 gap-5 p-3 lg:grid-cols-2"
         >
           <FormBasicInformation
             allDataForm={allDataForm}
@@ -866,7 +1007,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
             </CardContent>
           </Card>
 
-          <Card className="flex w-full max-w-lg flex-col gap-3 px-2 py-5">
+          <Card className="flex w-full flex-col gap-3 px-2 py-5 lg:col-span-2">
             <CardHeader>
               <CardTitle className="text-base">Filhos</CardTitle>
             </CardHeader>
@@ -968,130 +1109,161 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
           </Card>
         </form>
       )}
-      {addVaccine ? (
-        <Card className="m-auto flex w-full max-w-lg flex-col gap-10 px-2 py-7">
-          <CardHeader className="py-2">
-            <CardTitle className="flex items-center justify-between text-base">
-              Vacinas
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-1 py-2">
-            <form action="" method="post" className="flex flex-col gap-4">
-              <InputForm
-                htmlFor={'name'}
-                label={'Nome da vacina: '}
-                type={'text'}
-                name={'name'}
-                id={'name'}
-                value={dataOfVaccine.name ?? ''}
-                onChange={handleInputValuesVaccine}
+      <Card className="m-auto mt-4 flex w-full max-w-6xl flex-col gap-6 px-2 py-4">
+        <CardHeader className="py-2">
+          <CardTitle className="text-base">Registros sanitários</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+          {sanitaryRecords.length > 0 ? (
+            sanitaryRecords.map((record) => (
+              <Card key={`${record.typeLabel}-${record.id}`} className="px-3 py-2">
+                <p>
+                  <strong>Tipo:</strong> {record.typeLabel}
+                </p>
+                <p>
+                  <strong>Nome:</strong> {record.name}
+                </p>
+                <p>
+                  <strong>Descrição:</strong> {record.description || 'N/A'}
+                </p>
+                <p>
+                  <strong>Data:</strong>{' '}
+                  {record.date
+                    ? new Date(record.date).toLocaleDateString()
+                    : 'N/A'}
+                </p>
+                <p>
+                  <strong>Vencimento:</strong>{' '}
+                  {record.expiryDate
+                    ? new Date(record.expiryDate).toLocaleDateString()
+                    : 'Não informado'}
+                </p>
+              </Card>
+            ))
+          ) : (
+            <span>Nenhum registro sanitário cadastrado.</span>
+          )}
+        </CardContent>
+      </Card>
+
+      <Dialog open={openSanitaryModal} onOpenChange={setOpenSanitaryModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Adicionar registro sanitário</DialogTitle>
+            <DialogDescription>
+              Selecione o tipo e preencha os campos em português.
+            </DialogDescription>
+          </DialogHeader>
+          <Tabs
+            value={sanitaryForm.type}
+            onValueChange={(value) =>
+              setSanitaryForm((prev) => ({
+                ...prev,
+                type: value as SanitaryType,
+                name: '',
+                description: '',
+                date: new Date().toISOString().split('T')[0],
+                expiryDate: '',
+              }))
+            }
+          >
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="vaccine">Vacina</TabsTrigger>
+              <TabsTrigger value="deworming">Vermífugo</TabsTrigger>
+              <TabsTrigger value="disease">Doença</TabsTrigger>
+            </TabsList>
+            <TabsContent value="vaccine" className="space-y-3">
+              <input
+                className="w-full rounded-sm border px-2 py-1"
+                name="name"
+                placeholder="Nome da vacina"
+                value={sanitaryForm.name}
+                onChange={handleSanitaryInput}
               />
-              <InputForm
-                classNameInput="w-full max-w-80"
-                classNameDiv="flex w-full "
-                htmlFor={'description'}
-                label={'Descrição: '}
-                type={'text'}
-                name={'description'}
-                id={'description'}
-                value={dataOfVaccine.description ?? ''}
-                onChange={handleInputValuesVaccine}
+              <input
+                className="w-full rounded-sm border px-2 py-1"
+                name="description"
+                placeholder="Descrição"
+                value={sanitaryForm.description}
+                onChange={handleSanitaryInput}
               />
-              <InputForm
-                htmlFor={'date'}
-                label={'Aplicado dia: '}
-                type={'date'}
-                name={'date'}
-                id={'date'}
-                value={
-                  dataOfVaccine.date
-                    ? new Date(dataOfVaccine.date).toISOString().split('T')[0]
-                    : ''
-                }
-                onChange={handleInputValuesVaccine}
+              <input
+                className="w-full rounded-sm border px-2 py-1"
+                type="date"
+                name="date"
+                value={sanitaryForm.date}
+                onChange={handleSanitaryInput}
               />
-              <InputForm
-                htmlFor={'expiryDate'}
-                label={'Data de expiração: '}
-                type={'date'}
-                name={'expiryDate'}
-                id={'expiryDate'}
-                value={
-                  dataOfVaccine.expiryDate
-                    ? new Date(dataOfVaccine.expiryDate)
-                        .toISOString()
-                        .split('T')[0]
-                    : ''
-                }
-                onChange={handleInputValuesVaccine}
+              <input
+                className="w-full rounded-sm border px-2 py-1"
+                type="date"
+                name="expiryDate"
+                value={sanitaryForm.expiryDate}
+                onChange={handleSanitaryInput}
               />
-            </form>
-          </CardContent>
-          <CardFooter className="flex justify-end gap-2">
-            <Button
-              className="bg-transparent text-foreground hover:bg-muted"
-              onClick={() => setAddVaccine(false)}
-            >
+            </TabsContent>
+            <TabsContent value="deworming" className="space-y-3">
+              <input
+                className="w-full rounded-sm border px-2 py-1"
+                name="name"
+                placeholder="Nome do vermífugo"
+                value={sanitaryForm.name}
+                onChange={handleSanitaryInput}
+              />
+              <input
+                className="w-full rounded-sm border px-2 py-1"
+                type="date"
+                name="date"
+                value={sanitaryForm.date}
+                onChange={handleSanitaryInput}
+              />
+              <input
+                className="w-full rounded-sm border px-2 py-1"
+                type="date"
+                name="expiryDate"
+                value={sanitaryForm.expiryDate}
+                onChange={handleSanitaryInput}
+              />
+            </TabsContent>
+            <TabsContent value="disease" className="space-y-3">
+              <input
+                className="w-full rounded-sm border px-2 py-1"
+                name="name"
+                placeholder="Nome da doença"
+                value={sanitaryForm.name}
+                onChange={handleSanitaryInput}
+              />
+              <input
+                className="w-full rounded-sm border px-2 py-1"
+                name="description"
+                placeholder="Descrição"
+                value={sanitaryForm.description}
+                onChange={handleSanitaryInput}
+              />
+              <input
+                className="w-full rounded-sm border px-2 py-1"
+                type="date"
+                name="date"
+                value={sanitaryForm.date}
+                onChange={handleSanitaryInput}
+              />
+              <input
+                className="w-full rounded-sm border px-2 py-1"
+                type="date"
+                name="expiryDate"
+                value={sanitaryForm.expiryDate}
+                onChange={handleSanitaryInput}
+              />
+            </TabsContent>
+          </Tabs>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setOpenSanitaryModal(false)}>
               Cancelar
             </Button>
-            <Button onClick={() => submitFormVaccine(dataOfVaccine)}>
-              Salvar
-            </Button>
-          </CardFooter>
-        </Card>
-      ) : (
-        <Card className="m-auto flex w-full max-w-lg flex-col gap-6 px-2">
-          <CardHeader className="py-2">
-            <CardTitle className="flex justify-between text-base">
-              {listVaccines && listVaccines.length > 0 ? (
-                <CardHeader className="py-2">
-                  <CardTitle className="flex justify-between text-base">
-                    Vacinas
-                  </CardTitle>
-                </CardHeader>
-              ) : (
-                ''
-              )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-10">
-            {listVaccines.map((vaccineItem, index) => (
-              <div key={index} className="flex flex-col gap-5">
-                <Card className="w-full max-w-max rounded-sm px-3 py-1">
-                  <strong>Name: </strong>
-                  <span>{vaccineItem.name}</span>
-                </Card>
-                <Card className="w-full max-w-max rounded-sm px-3 py-1">
-                  <strong>Descrição: </strong>
-                  <span className="">{vaccineItem.description}</span>
-                </Card>
-                <Card className="w-full max-w-max rounded-sm px-3 py-1">
-                  <strong>Data aplicado: </strong>
-                  <span>
-                    {vaccineItem.date
-                      ? new Date(vaccineItem.date).toLocaleDateString()
-                      : 'N/'}
-                  </span>
-                </Card>
-                <Card className="w-full max-w-max rounded-sm px-3 py-1">
-                  <strong>Data de expiração: </strong>
-                  <span>
-                    {vaccineItem.expiryDate
-                      ? new Date(vaccineItem.expiryDate).toLocaleDateString()
-                      : 'N/'}
-                  </span>
-                </Card>
-                <Separator className="mt-2 border border-secondary" />
-              </div>
-            ))}
-          </CardContent>
-          <CardFooter className="flex justify-end gap-2">
-            <Button onClick={() => setAddVaccine(true)}>
-              Adicionar Vacinas
-            </Button>
-          </CardFooter>
-        </Card>
-      )}
+            <Button onClick={submitSanitaryRecord}>Salvar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

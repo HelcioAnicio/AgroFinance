@@ -51,6 +51,21 @@ const DetailAnimalId = async ({
           lossDate: 'desc',
         },
       },
+      dewormings: {
+        orderBy: {
+          date: 'desc',
+        },
+      },
+      diseases: {
+        orderBy: {
+          date: 'desc',
+        },
+      },
+      vaccines: {
+        orderBy: {
+          date: 'desc',
+        },
+      },
     },
   });
   const vaccines = await fetchVaccines(animal?.id as string);

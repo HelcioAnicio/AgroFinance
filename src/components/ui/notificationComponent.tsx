@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
+import { Check, Trash2 } from 'lucide-react';
 
 interface TableProps {
   notifications: Notification[];
@@ -47,17 +48,26 @@ export const NotificationComponent: React.FC<TableProps> = ({
 
   const handleStateRead = async (notificationClicked: Notification) => {
     try {
-      await axios.put(
-        `/api/updateNotificationRead?id=${notificationClicked.id}`,
-        notificationClicked,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
+      await axios.put(`/api/updateNotificationRead?id=${notificationClicked.id}`);
+      setListNotifications((prev) =>
+        prev.map((item) =>
+          item.id === notificationClicked.id ? { ...item, read: true } : item
+        )
       );
     } catch {
       toast.error('Erro ao tentar marcar como lido');
+    }
+  };
+
+  const handleDeleteNotification = async (notificationId: string) => {
+    try {
+      await axios.delete(`/api/updateNotificationRead?id=${notificationId}`);
+      setListNotifications((prev) =>
+        prev.filter((item) => item.id !== notificationId)
+      );
+      toast.success('Notificacao excluida');
+    } catch {
+      toast.error('Erro ao tentar excluir notificacao');
     }
   };
 
@@ -90,24 +100,51 @@ export const NotificationComponent: React.FC<TableProps> = ({
           )}
         </DropdownMenuTrigger>
         <DropdownMenuContent className="flex w-full min-w-0 max-w-72 flex-col justify-end gap-3">
-          {(notificationsUnread ?? []).map(
-            (notification: Notification, index: number) => (
+          {(notificationsUnread ?? []).map((notification: Notification) => (
+            <DropdownMenuItem
+              key={notification.id}
+              className={`flex w-full items-center justify-between gap-2 text-xs ${notification.read === false ? 'bg-secondary text-background hover:bg-secondary' : 'bg-background hover:bg-background'}`}
+            >
               <Link
                 href={`dashboard/${notification.animalId}`}
-                key={index}
+                className="flex min-w-0 flex-1 items-center gap-2"
                 onClick={() => handleStateRead(notification)}
               >
-                <DropdownMenuItem
-                  className={`w-full cursor-pointer text-xs ${notification.read === false ? 'bg-secondary text-background hover:bg-secondary' : 'bg-background hover:bg-background'}`}
-                >
-                  {notification && (
-                    <span className="h-2 w-2 rounded-full bg-background"></span>
-                  )}
-                  {notification.message}
-                </DropdownMenuItem>
+                {notification.read === false && (
+                  <span className="h-2 w-2 rounded-full bg-background"></span>
+                )}
+                <span className="truncate">{notification.message}</span>
               </Link>
-            )
-          )}
+              <div className="flex items-center gap-1">
+                {!notification.read && (
+                  <button
+                    type="button"
+                    aria-label="Marcar notificacao como lida"
+                    onClick={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      void handleStateRead(notification);
+                    }}
+                    className="rounded-sm p-1 transition-colors hover:bg-primary/20"
+                  >
+                    <Check className="size-4" />
+                  </button>
+                )}
+                <button
+                  type="button"
+                  aria-label="Excluir notificacao"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    void handleDeleteNotification(notification.id);
+                  }}
+                  className="rounded-sm p-1 transition-colors hover:bg-destructive/20"
+                >
+                  <Trash2 className="size-4" />
+                </button>
+              </div>
+            </DropdownMenuItem>
+          ))}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

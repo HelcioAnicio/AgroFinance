@@ -1,5 +1,6 @@
 import { User } from './user';
 import { ExternalBull } from './externalBull';
+import { Deworming, Disease } from './sanitary';
 
 export type WeightRecordType = 'PN' | 'PS' | 'PD' | 'PA' | 'OTHER';
 
@@ -55,6 +56,8 @@ export interface Animal {
   bodyConditionScore: number | null;
   observations: string | null;
   ownerId: string;
+  createdAt: Date;
+  updatedAt: Date;
   vaccineName: string | null;
   vaccineDate: Date | null;
   vaccineExpiry: Date | null;
@@ -77,7 +80,7 @@ export interface Animal {
   weightRecordType?: WeightRecordType;
   weightRecordDate?: string | Date | null;
   statusChangeDate?: string | Date | null;
-  // dewormings?: Deworming[];
-  // diseases?: Disease[];
+  dewormings?: Deworming[];
+  diseases?: Disease[];
   // vaccines?: Vaccine[];
 }

@@ -18,7 +18,7 @@ export const CardInformation: React.FC<InformationProps> = ({
   allDataForm,
 }) => {
   return (
-    <Card className="flex w-full max-w-lg flex-col px-2 py-7 sm:flex-row sm:flex-wrap">
+    <Card className="flex w-full flex-col px-2 py-7 sm:flex-row sm:flex-wrap">
       <CardHeader className="py-2">
         <CardTitle className="text-base">Dados básicos</CardTitle>
       </CardHeader>

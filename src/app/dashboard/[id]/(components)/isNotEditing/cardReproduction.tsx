@@ -18,15 +18,14 @@ export const CardReproduction: React.FC<ReproductionProps> = ({
     allDataForm?.bullIatfRel?.manualId ??
     allDataForm?.externalBullIatfRel?.name ??
     'Comercial';
-  const calfLossHistories = allDataForm?.calfLossHistories ?? [];
 
   return (
     <>
-      <Card className="flex w-full max-w-lg flex-col gap-1 px-2 py-7">
+      <Card className="flex w-full flex-col gap-1 px-2 py-7">
         <CardHeader className="py-2">
           <CardTitle className="text-base">Dados Reprodutivos</CardTitle>
         </CardHeader>
-        <CardContent className="flex w-full max-w-lg flex-col gap-2 px-1 py-2 sm:gap-7">
+        <CardContent className="flex w-full flex-col gap-2 px-1 py-2 sm:gap-7">
           {allDataForm?.gender === 'male' && (
             <Card className="flex w-max flex-wrap gap-2 rounded-sm px-3 py-1">
               <strong>Andrologico: </strong>
@@ -185,31 +184,6 @@ export const CardReproduction: React.FC<ReproductionProps> = ({
                   <p>
                     O animal não foi preenchido corretamente, falta informação.
                   </p>
-                </section>
-              )}
-              {calfLossHistories.length > 0 && (
-                <section className="flex flex-col gap-2">
-                  <strong>Historico de perda de cria:</strong>
-                  {calfLossHistories.map((history) => (
-                    <Card
-                      key={history.id}
-                      className="flex flex-col gap-1 rounded-sm px-3 py-2"
-                    >
-                      <span>
-                        <strong>Data:</strong>{' '}
-                        {new Date(history.lossDate).toLocaleDateString()}
-                      </span>
-                      <span>
-                        <strong>Motivo:</strong> {history.reason || 'N/A'}
-                      </span>
-                      <span>
-                        <strong>Pai:</strong>{' '}
-                        {history.fatherType === 'external'
-                          ? `Externo - ${history.externalBull?.name ?? 'N/A'}`
-                          : `Fazenda - ${history.fatherAnimal?.manualId ?? 'N/A'}`}
-                      </span>
-                    </Card>
-                  ))}
                 </section>
               )}
             </>
