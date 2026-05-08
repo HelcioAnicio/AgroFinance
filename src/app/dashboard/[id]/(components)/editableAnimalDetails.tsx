@@ -9,17 +9,11 @@ import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Separator } from '@/components/ui/separator';
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CardInformation } from './isNotEditing/cardInformation';
 import { CardReproduction } from './isNotEditing/cardReproduction';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Pencil, Plus, Trash2 } from 'lucide-react';
 import { FormBasicInformation } from './isEditing/formBasicInformation';
 import { FormMaleReproductive } from './isEditing/formMaleReproductive';
 import { FormPevStatus } from './isEditing/formPevStatus';
@@ -175,8 +169,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
       expiryDate: null,
     })),
   ].sort(
-    (a, b) =>
-      new Date(b.date ?? 0).getTime() - new Date(a.date ?? 0).getTime()
+    (a, b) => new Date(b.date ?? 0).getTime() - new Date(a.date ?? 0).getTime()
   );
 
   const breedArray = [
@@ -513,10 +506,13 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     }
   };
 
+  const sanitaryFieldClass =
+    'w-full border border-b border-b-primary bg-transparent outline-none';
+
   return (
     <div className="pb-14">
-      <section className="sticky top-0 bg-background">
-        <div className="flex items-center justify-between px-2 py-3">
+      <section className="sticky top-0 z-40 bg-background">
+        <div className="flex items-start justify-between gap-2 px-2 py-3 sm:items-center">
           <button onClick={handleBack}>
             <ArrowLeft />
           </button>
@@ -525,22 +521,31 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
             {allDataForm?.manualId.charAt(0).toUpperCase() +
               allDataForm?.manualId.slice(1)}
           </h1>
-          <div className="flex items-center gap-4 lg:gap-10">
+          <div className="flex items-start gap-3 sm:items-center lg:gap-10">
             {isEditing === false ? (
               <>
-                <button onClick={handleDelete}>
+                <button className="mt-2 sm:mt-0" onClick={handleDelete}>
                   <Trash2 className="text-red-500" />
                 </button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setOpenSanitaryModal(true)}
-                  className="gap-1"
-                >
-                  <Plus className="size-4" />
-                  <span className="hidden sm:inline">Adicionar sanitário</span>
-                </Button>
-                <Button onClick={() => setIsEditing(!isEditing)}>Editar</Button>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4 lg:gap-10">
+                  <Button
+                    type="button"
+                    onClick={() => setIsEditing(!isEditing)}
+                    className="order-1 gap-1 px-3 sm:order-2"
+                  >
+                    <Pencil className="size-4" />
+                    Editar
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setOpenSanitaryModal(true)}
+                    className="order-2 gap-1 px-3 sm:order-1"
+                  >
+                    <Plus className="size-4" />
+                    Sanitário
+                  </Button>
+                </div>
               </>
             ) : (
               <div className="flex gap-5">
@@ -616,7 +621,9 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
           </Card>
           <Card className="flex w-full max-w-lg flex-col gap-2 px-2 py-5">
             <CardHeader>
-              <CardTitle className="text-base">Eficiência reprodutiva</CardTitle>
+              <CardTitle className="text-base">
+                Eficiência reprodutiva
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 px-1">
               <p>
@@ -1116,7 +1123,10 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
         <CardContent className="grid grid-cols-1 gap-3 lg:grid-cols-2">
           {sanitaryRecords.length > 0 ? (
             sanitaryRecords.map((record) => (
-              <Card key={`${record.typeLabel}-${record.id}`} className="px-3 py-2">
+              <Card
+                key={`${record.typeLabel}-${record.id}`}
+                className="px-3 py-2"
+              >
                 <p>
                   <strong>Tipo:</strong> {record.typeLabel}
                 </p>
@@ -1173,87 +1183,151 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
               <TabsTrigger value="disease">Doença</TabsTrigger>
             </TabsList>
             <TabsContent value="vaccine" className="space-y-3">
-              <input
-                className="w-full rounded-sm border px-2 py-1"
-                name="name"
-                placeholder="Nome da vacina"
-                value={sanitaryForm.name}
-                onChange={handleSanitaryInput}
-              />
-              <input
-                className="w-full rounded-sm border px-2 py-1"
-                name="description"
-                placeholder="Descrição"
-                value={sanitaryForm.description}
-                onChange={handleSanitaryInput}
-              />
-              <input
-                className="w-full rounded-sm border px-2 py-1"
-                type="date"
-                name="date"
-                value={sanitaryForm.date}
-                onChange={handleSanitaryInput}
-              />
-              <input
-                className="w-full rounded-sm border px-2 py-1"
-                type="date"
-                name="expiryDate"
-                value={sanitaryForm.expiryDate}
-                onChange={handleSanitaryInput}
-              />
+              <div>
+                <label className="text-secondary" htmlFor="vaccine-name">
+                  Nome da vacina:
+                </label>
+                <input
+                  className={sanitaryFieldClass}
+                  id="vaccine-name"
+                  name="name"
+                  value={sanitaryForm.name}
+                  onChange={handleSanitaryInput}
+                />
+              </div>
+              <div>
+                <label className="text-secondary" htmlFor="vaccine-description">
+                  Descrição:
+                </label>
+                <input
+                  className={sanitaryFieldClass}
+                  id="vaccine-description"
+                  name="description"
+                  value={sanitaryForm.description}
+                  onChange={handleSanitaryInput}
+                />
+              </div>
+              <div>
+                <label className="text-secondary" htmlFor="vaccine-date">
+                  Data da aplicação:
+                </label>
+                <input
+                  className={sanitaryFieldClass}
+                  id="vaccine-date"
+                  type="date"
+                  name="date"
+                  value={sanitaryForm.date}
+                  onChange={handleSanitaryInput}
+                />
+              </div>
+              <div>
+                <label className="text-secondary" htmlFor="vaccine-expiryDate">
+                  Data de vencimento:
+                </label>
+                <input
+                  className={sanitaryFieldClass}
+                  id="vaccine-expiryDate"
+                  type="date"
+                  name="expiryDate"
+                  value={sanitaryForm.expiryDate}
+                  onChange={handleSanitaryInput}
+                />
+              </div>
             </TabsContent>
             <TabsContent value="deworming" className="space-y-3">
-              <input
-                className="w-full rounded-sm border px-2 py-1"
-                name="name"
-                placeholder="Nome do vermífugo"
-                value={sanitaryForm.name}
-                onChange={handleSanitaryInput}
-              />
-              <input
-                className="w-full rounded-sm border px-2 py-1"
-                type="date"
-                name="date"
-                value={sanitaryForm.date}
-                onChange={handleSanitaryInput}
-              />
-              <input
-                className="w-full rounded-sm border px-2 py-1"
-                type="date"
-                name="expiryDate"
-                value={sanitaryForm.expiryDate}
-                onChange={handleSanitaryInput}
-              />
+              <div>
+                <label className="text-secondary" htmlFor="deworming-name">
+                  Nome do vermífugo:
+                </label>
+                <input
+                  className={sanitaryFieldClass}
+                  id="deworming-name"
+                  name="name"
+                  value={sanitaryForm.name}
+                  onChange={handleSanitaryInput}
+                />
+              </div>
+              <div>
+                <label className="text-secondary" htmlFor="deworming-date">
+                  Data da aplicação:
+                </label>
+                <input
+                  className={sanitaryFieldClass}
+                  id="deworming-date"
+                  type="date"
+                  name="date"
+                  value={sanitaryForm.date}
+                  onChange={handleSanitaryInput}
+                />
+              </div>
+              <div>
+                <label
+                  className="text-secondary"
+                  htmlFor="deworming-expiryDate"
+                >
+                  Data de vencimento:
+                </label>
+                <input
+                  className={sanitaryFieldClass}
+                  id="deworming-expiryDate"
+                  type="date"
+                  name="expiryDate"
+                  value={sanitaryForm.expiryDate}
+                  onChange={handleSanitaryInput}
+                />
+              </div>
             </TabsContent>
             <TabsContent value="disease" className="space-y-3">
-              <input
-                className="w-full rounded-sm border px-2 py-1"
-                name="name"
-                placeholder="Nome da doença"
-                value={sanitaryForm.name}
-                onChange={handleSanitaryInput}
-              />
-              <input
-                className="w-full rounded-sm border px-2 py-1"
-                name="description"
-                placeholder="Descrição"
-                value={sanitaryForm.description}
-                onChange={handleSanitaryInput}
-              />
-              <input
-                className="w-full rounded-sm border px-2 py-1"
-                type="date"
-                name="date"
-                value={sanitaryForm.date}
-                onChange={handleSanitaryInput}
-              />
-              <input
-                className="w-full rounded-sm border px-2 py-1"
-                type="date"
-                name="expiryDate"
-                value={sanitaryForm.expiryDate}
-                onChange={handleSanitaryInput}
-              />
+              <div>
+                <label className="text-secondary" htmlFor="disease-name">
+                  Nome da doença:
+                </label>
+                <input
+                  className={sanitaryFieldClass}
+                  id="disease-name"
+                  name="name"
+                  value={sanitaryForm.name}
+                  onChange={handleSanitaryInput}
+                />
+              </div>
+              <div>
+                <label className="text-secondary" htmlFor="disease-description">
+                  Descrição:
+                </label>
+                <input
+                  className={sanitaryFieldClass}
+                  id="disease-description"
+                  name="description"
+                  value={sanitaryForm.description}
+                  onChange={handleSanitaryInput}
+                />
+              </div>
+              <div>
+                <label className="text-secondary" htmlFor="disease-date">
+                  Data do registro:
+                </label>
+                <input
+                  className={sanitaryFieldClass}
+                  id="disease-date"
+                  type="date"
+                  name="date"
+                  value={sanitaryForm.date}
+                  onChange={handleSanitaryInput}
+                />
+              </div>
+              <div>
+                <label className="text-secondary" htmlFor="disease-expiryDate">
+                  Data de vencimento:
+                </label>
+                <input
+                  className={sanitaryFieldClass}
+                  id="disease-expiryDate"
+                  type="date"
+                  name="expiryDate"
+                  value={sanitaryForm.expiryDate}
+                  onChange={handleSanitaryInput}
+                />
+              </div>
             </TabsContent>
           </Tabs>
           <DialogFooter>

@@ -48,7 +48,9 @@ export const NotificationComponent: React.FC<TableProps> = ({
 
   const handleStateRead = async (notificationClicked: Notification) => {
     try {
-      await axios.put(`/api/updateNotificationRead?id=${notificationClicked.id}`);
+      await axios.put(
+        `/api/updateNotificationRead?id=${notificationClicked.id}`
+      );
       setListNotifications((prev) =>
         prev.map((item) =>
           item.id === notificationClicked.id ? { ...item, read: true } : item
@@ -71,15 +73,19 @@ export const NotificationComponent: React.FC<TableProps> = ({
     }
   };
 
-  const today = new Date();
+  const now = new Date();
 
-  const notificationsUnread = (listNotifications ?? []).filter(
+  const visibleNotifications = (listNotifications ?? []).filter(
     (notification: Notification) => {
       const notifyAtDate = notification.notifyAt
         ? new Date(notification.notifyAt)
         : null;
-      return notifyAtDate && notifyAtDate <= today;
+      return !notifyAtDate || notifyAtDate <= now;
     }
+  );
+
+  const unreadNotifications = visibleNotifications.filter(
+    (notification: Notification) => notification.read === false
   );
 
   return (
@@ -87,26 +93,26 @@ export const NotificationComponent: React.FC<TableProps> = ({
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger className="relative flex gap-1 rounded-sm bg-primary p-1 py-2">
           <MdNotificationsNone className="size-5 text-background" />
-          {notificationsUnread.filter(
-            (notification: Notification) => notification.read === false
-          ).length > 0 && (
+          {unreadNotifications.length > 0 && (
             <Badge className="absolute right-0 top-0 rounded-full bg-destructive p-0 px-1">
-              {
-                notificationsUnread.filter(
-                  (notification: Notification) => notification.read === false
-                ).length
-              }
+              {unreadNotifications.length}
             </Badge>
           )}
         </DropdownMenuTrigger>
         <DropdownMenuContent className="flex w-full min-w-0 max-w-72 flex-col justify-end gap-3">
-          {(notificationsUnread ?? []).map((notification: Notification) => (
+          {visibleNotifications.length === 0 && (
+            <DropdownMenuItem className="text-xs text-muted-foreground">
+              Nenhuma notificacao
+            </DropdownMenuItem>
+          )}
+
+          {visibleNotifications.map((notification: Notification) => (
             <DropdownMenuItem
               key={notification.id}
               className={`flex w-full items-center justify-between gap-2 text-xs ${notification.read === false ? 'bg-secondary text-background hover:bg-secondary' : 'bg-background hover:bg-background'}`}
             >
               <Link
-                href={`dashboard/${notification.animalId}`}
+                href={`/dashboard/${notification.animalId}`}
                 className="flex min-w-0 flex-1 items-center gap-2"
                 onClick={() => handleStateRead(notification)}
               >

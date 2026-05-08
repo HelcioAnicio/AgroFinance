@@ -56,18 +56,6 @@ export function DashboardTableWithData() {
     loadData();
   }, [loadData]);
 
-  useEffect(() => {
-    const handleFocus = () => {
-      loadData();
-    };
-
-    window.addEventListener('focus', handleFocus);
-
-    return () => {
-      window.removeEventListener('focus', handleFocus);
-    };
-  }, [loadData]);
-
   return (
     <Table
       animals={animals}

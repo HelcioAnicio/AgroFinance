@@ -37,24 +37,22 @@ export const fetchUsers = async (): Promise<User[]> => {
   return await prisma.user.findMany();
 };
 
+export const fetchUserByEmail = async (
+  email?: string | null
+): Promise<User | null> => {
+  if (!email) return null;
+
+  return await prisma.user.findUnique({
+    where: { email },
+  });
+};
+
 export const fetchNotifications = async (
   ownerId: string
 ): Promise<Notification[]> => {
   if (!ownerId) {
     throw new Error('ownerId is required');
   }
-
-  const cutoffDate = new Date();
-  cutoffDate.setDate(cutoffDate.getDate() - 547);
-
-  await prisma.notification.deleteMany({
-    where: {
-      userId: ownerId,
-      notifyAt: {
-        lt: cutoffDate,
-      },
-    },
-  });
 
   const notifications = await prisma.notification.findMany({
     where: {
