@@ -14,7 +14,7 @@ export const MenuNavegation = () => {
             <p>Animal</p>
           </div>
         </Link>
-        <Link href="/dashboard/reproduction/external-bulls">
+        <Link href={'/dashboard/reproduction/'}>
           <div className="relative flex size-16 flex-col items-center gap-1 rounded-full">
             <IoMaleFemaleSharp size={35} />
             <p>Reprodução</p>
