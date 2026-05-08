@@ -587,7 +587,6 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
             </CardContent>
           </Card>
           <CardInformation allDataForm={allDataForm as Animal} />
-          <CardReproduction allDataForm={allDataForm as Animal} />
           <Card className="flex w-full max-w-lg flex-col gap-2 px-2 py-5">
             <CardHeader>
               <CardTitle className="text-base">Histórico de peso</CardTitle>
@@ -619,6 +618,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
               )}
             </CardContent>
           </Card>
+          <CardReproduction allDataForm={allDataForm as Animal} />
           <Card className="flex w-full max-w-lg flex-col gap-2 px-2 py-5">
             <CardHeader>
               <CardTitle className="text-base">
@@ -655,7 +655,23 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                       {new Date(history.lossDate).toLocaleDateString()}
                     </p>
                     <p>
+                      <strong>Data:</strong>{' '}
+                      {new Date(history.lossDate).toLocaleDateString()}
+                    </p>
+                    <p>
                       <strong>Motivo:</strong> {history.reason || 'N/A'}
+                    </p>
+                    <p>
+                      <strong>Origem do pai:</strong>{' '}
+                      {history.fatherType === 'external'
+                        ? 'Externo'
+                        : 'Interno'}
+                    </p>
+                    <p>
+                      <strong>Pai:</strong>{' '}
+                      {history.fatherType === 'external'
+                        ? (history.externalBull?.name ?? 'N/A')
+                        : (history.fatherAnimal?.manualId ?? 'N/A')}
                     </p>
                   </Card>
                 ))
