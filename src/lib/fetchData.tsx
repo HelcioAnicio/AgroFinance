@@ -7,10 +7,13 @@ import { Vaccine } from '@/types/vaccine';
 import { Notification } from '@/types/notification';
 import { ExternalBull } from '@/types/externalBull';
 
-export const fetchAnimals = async (ownerId?: string): Promise<Animal[]> => {
+export const fetchAnimals = async (
+  ownerId?: string,
+  farmId?: string
+): Promise<Animal[]> => {
   try {
     const animals = await prisma.animal.findMany({
-      where: { ownerId },
+      where: farmId ? { farmId } : { ownerId },
     });
 
     const sortedAnimals = animals.sort((a, b) => {
@@ -84,14 +87,13 @@ export const fetchVaccines = async (animalId: string): Promise<Vaccine[]> => {
 };
 
 export const fetchExternalBulls = async (
-  ownerId?: string
+  ownerId?: string,
+  farmId?: string
 ): Promise<ExternalBull[]> => {
-  if (!ownerId) return [];
+  if (!ownerId && !farmId) return [];
 
   const externalBulls = await prisma.externalBull.findMany({
-    where: {
-      ownerId,
-    },
+    where: farmId ? { farmId } : { ownerId },
     orderBy: {
       createdAt: 'desc',
     },
@@ -185,32 +187,33 @@ function buildYear(year: number): LivestockStatsYear {
 }
 
 export const fetchLivestockStats = async (
-  ownerId?: string
+  ownerId?: string,
+  farmId?: string
 ): Promise<LivestockStatsYear[]> => {
-  if (!ownerId) return [];
+  if (!ownerId && !farmId) return [];
 
-  const [animals, statusHistory] = await Promise.all([
-    prisma.animal.findMany({
-      where: { ownerId },
-      select: {
-        id: true,
-        gender: true,
-        status: true,
-        birthDate: true,
-        updatedAt: true,
-      },
-    }),
-    prisma.animalStatusHistory.findMany({
-      where: { ownerId },
-      select: {
-        animalId: true,
-        newStatus: true,
-        year: true,
-        month: true,
-        changedAt: true,
-      },
-    }),
-  ]);
+  const animals = await prisma.animal.findMany({
+    where: farmId ? { farmId } : { ownerId },
+    select: {
+      id: true,
+      gender: true,
+      status: true,
+      birthDate: true,
+      updatedAt: true,
+    },
+  });
+  const statusHistory = await prisma.animalStatusHistory.findMany({
+    where: farmId
+      ? { animalId: { in: animals.map((animal) => animal.id) } }
+      : { ownerId },
+    select: {
+      animalId: true,
+      newStatus: true,
+      year: true,
+      month: true,
+      changedAt: true,
+    },
+  });
 
   const yearsMap = new Map<number, LivestockStatsYear>();
   const monthStatusMap = new Map<string, Map<string, number>>();

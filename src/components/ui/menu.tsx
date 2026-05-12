@@ -3,6 +3,7 @@ import { GiCow } from 'react-icons/gi';
 import { IoMaleFemaleSharp } from 'react-icons/io5';
 import { FaRegMoneyBillAlt } from 'react-icons/fa';
 import { CgProfile } from 'react-icons/cg';
+import { Users } from 'lucide-react';
 
 export const MenuNavegation = () => {
   return (
@@ -30,6 +31,12 @@ export const MenuNavegation = () => {
           <div className="relative flex size-16 flex-col items-center gap-1 rounded-full">
             <CgProfile size={35} />
             <p>Perfil</p>
+          </div>
+        </Link>
+        <Link href="/dashboard/team">
+          <div className="relative flex size-16 flex-col items-center gap-1 rounded-full">
+            <Users size={35} />
+            <p>Equipe</p>
           </div>
         </Link>
       </section>

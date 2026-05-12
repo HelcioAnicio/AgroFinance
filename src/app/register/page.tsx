@@ -1,297 +1,238 @@
 'use client';
-import React, { useState } from 'react';
-import Image from 'next/image';
+
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import axios from 'axios';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { FaRegBuilding, FaRegEye, FaRegEyeSlash } from 'react-icons/fa';
 import { CgProfile } from 'react-icons/cg';
 import { MdOutlineMail } from 'react-icons/md';
-import { FaRegBuilding } from 'react-icons/fa';
 import { IoLockClosedOutline } from 'react-icons/io5';
-import { FaRegEye } from 'react-icons/fa6';
-import { FaRegEyeSlash } from 'react-icons/fa6';
-import { Button } from '@/components/ui/button';
-import { v4 as uuidv4 } from 'uuid';
-import { toast } from 'sonner';
-import axios from 'axios';
-import { useRouter } from 'next/navigation';
 
 interface DataUserState {
   name: string;
+  farmName: string;
   email: string;
   cnpj: string;
   password: string;
-  secondPassword?: string;
+  secondPassword: string;
 }
+
+const emptyForm: DataUserState = {
+  name: '',
+  farmName: '',
+  email: '',
+  cnpj: '',
+  password: '',
+  secondPassword: '',
+};
 
 const Register = () => {
   const router = useRouter();
-  const [inputsError, setInputsError] = useState({
-    name: false,
-    email: false,
-    cnpj: false,
-    password: false,
-    secondPassword: false,
-  });
+  const [inviteToken, setInviteToken] = useState('');
+  const [inputsError, setInputsError] = useState<Record<string, boolean>>({});
   const [showPassword, setShowPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState(false);
-  const [userRegister, setUserRegister] = useState({} as DataUserState);
+  const [userRegister, setUserRegister] = useState<DataUserState>(emptyForm);
 
-  const togglePasswordVisibility = (input: string) => {
-    if (input === 'password') {
-      setShowPassword(!showPassword);
-      return;
-    } else {
-      setConfirmPassword(!confirmPassword);
-      return;
-    }
-  };
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setInviteToken(params.get('invite') ?? '');
+  }, []);
 
   const handleInputValues = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
-    setUserRegister((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+    setUserRegister((prevData) => ({ ...prevData, [name]: value }));
   };
 
   const sendFormRegister = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    const requiredFields = [
-      'name',
-      'email',
-      'cnpj',
-      'password',
-      'secondPassword',
-    ] as const;
-
-    const resetErrors = requiredFields.reduce(
+    const requiredFields = inviteToken
+      ? ['name', 'email', 'cnpj', 'password', 'secondPassword']
+      : ['name', 'farmName', 'email', 'cnpj', 'password', 'secondPassword'];
+    const newErrors = requiredFields.reduce<Record<string, boolean>>(
       (acc, field) => {
-        acc[field] = false;
+        acc[field] = !userRegister[field as keyof DataUserState]?.trim();
         return acc;
       },
-      {} as Record<(typeof requiredFields)[number], boolean>
+      {}
     );
 
-    const newErrors = requiredFields.reduce(
-      (acc, field) => {
-        const value = userRegister[field]?.toString().trim();
-        acc[field] = !value;
-        return acc;
-      },
-      {} as Record<(typeof requiredFields)[number], boolean>
-    );
-
-    const hasAnyError = Object.values(newErrors).some((value) => value);
-    setInputsError(newErrors);
-
-    if (hasAnyError) {
-      setTimeout(() => {
-        setInputsError(resetErrors);
-      }, 5000);
-      toast.error('Por favor, preencha todos os campos obrigatórios');
+    if (Object.values(newErrors).some(Boolean)) {
+      setInputsError(newErrors);
+      toast.error('Por favor, preencha todos os campos obrigatorios');
       return;
     }
 
     if (userRegister.password !== userRegister.secondPassword) {
-      setInputsError({
-        name: false,
-        email: false,
-        cnpj: false,
-        password: true,
-        secondPassword: true,
-      });
-      toast.error('A senha está diferente, favor verificar');
-      setTimeout(() => {
-        setInputsError(resetErrors);
-      }, 5000);
+      setInputsError({ password: true, secondPassword: true });
+      toast.error('As senhas estao diferentes.');
       return;
     }
 
-    const updateUser = {
-      ...userRegister,
-      id: uuidv4(),
-      updatedAt:
-        new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString(),
-    };
-
-    console.log('updateUser: ', updateUser);
-    delete updateUser.secondPassword;
-
     try {
+      const { secondPassword: _secondPassword, ...payload } = userRegister;
+      void _secondPassword;
+
       await axios.post(
         '/api/registerUser',
-        { userRegister: updateUser },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
+        { userRegister: { ...payload, inviteToken } },
+        { headers: { 'Content-Type': 'application/json' } }
       );
-      setUserRegister({} as DataUserState);
+      setUserRegister(emptyForm);
       toast.success('Registrado com sucesso, redirecionando...');
       router.replace('/login');
     } catch (error) {
-      console.log('error: ', error);
+      console.error(error);
       toast.error('Erro, verifique os dados preenchidos e tente novamente.');
     }
   };
 
+  const inputClass = (field: string) =>
+    `h-12 w-full rounded-md border bg-[#f5f3ef] px-10 text-sm outline-none ${
+      inputsError[field] ? 'border-destructive' : 'border-transparent'
+    }`;
+
   return (
-    <div className="flex h-dvh min-h-max flex-col items-center justify-start gap-5">
-      <figure>
-        <Image
-          src="/logo.png"
-          alt="Logo - Um boi e uma ovelha dentro de um círculo"
-          className="m-auto size-40"
-          width={300}
-          height={300}
-        />
-        <figcaption className="-mt-4">Seu agronegocio descomplicado</figcaption>
-      </figure>
-      <section className="min-h-3/4 flex max-h-max w-full max-w-2xl flex-col items-center justify-center gap-5 rounded-t-3xl bg-secondary px-2 py-6 sm:rounded-3xl">
-        {/* <h1 className="text-2xl font-bold text-background">Crie sua conta</h1> */}
+    <main className="grid min-h-screen bg-[#f7f6f1] md:grid-cols-[1.15fr_0.85fr]">
+      <section className="relative hidden overflow-hidden bg-[#49651f] md:block">
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(49,71,20,0.88),rgba(90,111,39,0.42)),url('/logo.png')] bg-[length:cover,420px] bg-center bg-no-repeat" />
+        <div className="relative flex h-full flex-col justify-center gap-8 p-14 text-white">
+          <p className="text-xs font-bold uppercase tracking-[0.22em]">
+            AgroFinance Intelligence
+          </p>
+          <h1 className="max-w-xl text-6xl font-bold leading-tight">
+            O futuro da sua gestao comeca aqui.
+          </h1>
+          <p className="max-w-lg text-lg">
+            Junte-se a elite do agronegocio e transforme dados em rentabilidade
+            com a precisao que sua terra merece.
+          </p>
+        </div>
+      </section>
+
+      <section className="flex items-center justify-center px-5 py-10">
         <form
-          action=""
-          className="flex w-full flex-col items-center justify-between gap-4"
+          className="flex w-full max-w-md flex-col gap-5"
+          onSubmit={sendFormRegister}
         >
-          <div className="relative w-4/5 max-w-72">
-            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xl text-gray-400">
-              <CgProfile
-                className={`${inputsError.name === true && 'text-destructive'}`}
-              />
-            </span>
+          <div className="mb-4">
+            <p className="mb-8 text-xl font-bold text-[#49651f]">
+              AgroFinance
+            </p>
+            <h2 className="text-3xl font-bold">Crie sua conta</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Comece sua jornada de gestao de precisao hoje mesmo.
+            </p>
+          </div>
+
+          <label className="relative text-xs font-bold uppercase tracking-[0.16em] text-[#6b705f]">
+            Nome completo
+            <CgProfile className="absolute left-3 top-[2.45rem] text-lg text-[#8a8f80]" />
             <input
-              className={`w-full rounded-sm ${inputsError.name ? 'border border-destructive' : 'border-none outline-none'} px-3 py-2 pl-8 text-black`}
-              type="text"
+              className={inputClass('name')}
               name="name"
-              placeholder="Nome"
-              required
+              placeholder="Ex: Joao da Silva"
               value={userRegister.name}
               onChange={handleInputValues}
             />
-          </div>
-          <div className="relative w-4/5 max-w-72">
-            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xl text-gray-400">
-              <MdOutlineMail
-                className={`${inputsError.email === true && 'text-destructive'}`}
+          </label>
+
+          {!inviteToken && (
+            <label className="relative text-xs font-bold uppercase tracking-[0.16em] text-[#6b705f]">
+              Nome da fazenda
+              <FaRegBuilding className="absolute left-3 top-[2.45rem] text-lg text-[#8a8f80]" />
+              <input
+                className={inputClass('farmName')}
+                name="farmName"
+                placeholder="Ex: Fazenda Santa Fe"
+                value={userRegister.farmName}
+                onChange={handleInputValues}
               />
-            </span>
+            </label>
+          )}
+
+          <label className="relative text-xs font-bold uppercase tracking-[0.16em] text-[#6b705f]">
+            E-mail corporativo
+            <MdOutlineMail className="absolute left-3 top-[2.45rem] text-lg text-[#8a8f80]" />
             <input
-              className={`w-full rounded-sm ${inputsError.email ? 'border border-destructive' : 'border-none outline-none'} px-3 py-2 pl-8 text-black`}
+              className={inputClass('email')}
               type="email"
               name="email"
-              placeholder="E-mail"
-              required
+              placeholder="seu@email.com"
               value={userRegister.email}
               onChange={handleInputValues}
             />
-          </div>
-          <div className="relative w-4/5 max-w-72">
-            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xl text-gray-400">
-              <FaRegBuilding
-                className={`${inputsError.cnpj === true && 'text-destructive'}`}
-              />
-            </span>
+          </label>
+
+          <label className="relative text-xs font-bold uppercase tracking-[0.16em] text-[#6b705f]">
+            CNPJ/CPF
+            <FaRegBuilding className="absolute left-3 top-[2.45rem] text-lg text-[#8a8f80]" />
             <input
-              className={`w-full rounded-sm ${inputsError.cnpj ? 'border border-destructive' : 'border-none outline-none'} px-3 py-2 pl-8`}
-              type="text"
+              className={inputClass('cnpj')}
               name="cnpj"
-              placeholder="CNPJ/CPF"
-              required
+              placeholder="Documento da conta"
               value={userRegister.cnpj}
               onChange={handleInputValues}
             />
-          </div>
-          <div className="relative w-4/5 max-w-72">
-            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xl text-gray-400">
-              <IoLockClosedOutline
-                className={`${inputsError.password === true && 'text-destructive'}`}
-              />
-            </span>
+          </label>
+
+          <label className="relative text-xs font-bold uppercase tracking-[0.16em] text-[#6b705f]">
+            Senha
+            <IoLockClosedOutline className="absolute left-3 top-[2.45rem] text-lg text-[#8a8f80]" />
             <input
-              className={`w-full rounded-sm ${inputsError.password ? 'border border-destructive' : 'border-none outline-none'} px-3 py-2 pl-8 text-black`}
+              className={inputClass('password')}
               type={showPassword ? 'text' : 'password'}
               name="password"
-              placeholder="Crie sua senha"
-              required
+              placeholder="********"
               value={userRegister.password}
               onChange={handleInputValues}
             />
             <button
               type="button"
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-xl text-gray-400"
+              className="absolute right-3 top-[2.35rem] text-lg text-[#6a705e]"
+              onClick={() => setShowPassword((value) => !value)}
             >
-              {showPassword ? (
-                <FaRegEyeSlash
-                  onClick={() => togglePasswordVisibility('password')}
-                />
-              ) : (
-                <FaRegEye
-                  onClick={() => togglePasswordVisibility('password')}
-                />
-              )}
+              {showPassword ? <FaRegEyeSlash /> : <FaRegEye />}
             </button>
-          </div>
-          <div className="relative w-4/5 max-w-72">
-            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xl text-gray-400">
-              <IoLockClosedOutline
-                className={`${inputsError.password === true && 'text-destructive'}`}
-              />
-            </span>
+          </label>
+
+          <label className="relative text-xs font-bold uppercase tracking-[0.16em] text-[#6b705f]">
+            Confirmar senha
+            <IoLockClosedOutline className="absolute left-3 top-[2.45rem] text-lg text-[#8a8f80]" />
             <input
-              className={`w-full rounded-sm ${inputsError.secondPassword ? 'border border-destructive' : 'border-none outline-none'} px-3 py-2 pl-8 text-black`}
+              className={inputClass('secondPassword')}
               type={confirmPassword ? 'text' : 'password'}
               name="secondPassword"
-              placeholder="Digite sua senha novamente"
-              required
+              placeholder="********"
               value={userRegister.secondPassword}
               onChange={handleInputValues}
             />
             <button
               type="button"
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-xl text-gray-400"
+              className="absolute right-3 top-[2.35rem] text-lg text-[#6a705e]"
+              onClick={() => setConfirmPassword((value) => !value)}
             >
-              {confirmPassword ? (
-                <FaRegEyeSlash
-                  onClick={() => togglePasswordVisibility('passwordAgain')}
-                />
-              ) : (
-                <FaRegEye
-                  onClick={() => togglePasswordVisibility('passwordAgain')}
-                />
-              )}{' '}
+              {confirmPassword ? <FaRegEyeSlash /> : <FaRegEye />}
             </button>
-          </div>
+          </label>
 
-          <Button
-            type="submit"
-            size={'lg'}
-            className="rounded-sm bg-foreground text-lg transition-all duration-500 hover:bg-foreground/80"
-            onClick={sendFormRegister}
-          >
-            Cadastrar
+          <Button className="mt-2 h-12 bg-[#49651f] font-bold hover:bg-[#3d541b]">
+            Criar Minha Conta
           </Button>
-        </form>
 
-        <div className="flex w-full items-center gap-5 px-5">
-          <hr className="flex-1 bg-black" />
-          <span>ou</span>
-          <hr className="flex-1 bg-black" />
-        </div>
-
-        <article className="flex flex-col items-center">
-          <p>
-            Já tem uma conta?{' '}
-            <Link
-              href="/login"
-              className="relative inline-block font-bold after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:origin-left after:scale-x-0 after:bg-current after:transition-transform after:duration-300 hover:after:scale-x-100"
-            >
-              Fazer login
+          <p className="pt-4 text-center text-sm">
+            Ja possui uma conta?{' '}
+            <Link href="/login" className="font-bold text-[#49651f]">
+              Fazer Login
             </Link>
           </p>
-        </article>
+        </form>
       </section>
-    </div>
+    </main>
   );
 };
 

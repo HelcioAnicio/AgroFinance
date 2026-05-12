@@ -17,6 +17,14 @@ type ProfileUser = {
   email: string;
   cnpj: string | null;
   image: string | null;
+  farmMemberships?: {
+    role: string;
+    farm: {
+      id: string;
+      name: string;
+      trialEndsAt: Date | string;
+    };
+  }[];
 };
 
 interface EditableUserProfileProps {
@@ -29,6 +37,7 @@ const EditableUserProfile: React.FC<EditableUserProfileProps> = ({ user }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [form, setForm] = useState<ProfileUser>(user);
   const [initial, setInitial] = useState<ProfileUser>(user);
+  const membership = form.farmMemberships?.[0];
 
   const handleBack = () => router.back();
 
@@ -46,6 +55,7 @@ const EditableUserProfile: React.FC<EditableUserProfileProps> = ({ user }) => {
         name: form.name,
         cnpj: form.cnpj ?? '',
         image: form.image ?? '',
+        farmName: form.farmMemberships?.[0]?.farm.name ?? '',
       };
 
       const res = await axios.put(
@@ -56,8 +66,9 @@ const EditableUserProfile: React.FC<EditableUserProfileProps> = ({ user }) => {
 
       const updated = res.data?.user as ProfileUser | undefined;
       if (updated) {
-        setForm(updated);
-        setInitial(updated);
+        const next = { ...form, ...updated };
+        setForm(next);
+        setInitial(next);
       }
 
       toast.success('Perfil atualizado com sucesso!');
@@ -156,6 +167,14 @@ const EditableUserProfile: React.FC<EditableUserProfileProps> = ({ user }) => {
                 <strong>CNPJ/CPF: </strong>
                 <span>{form.cnpj ?? '—'}</span>
               </div>
+              <div>
+                <strong>Fazenda: </strong>
+                <span>{membership?.farm.name ?? 'Nao vinculada'}</span>
+              </div>
+              <div>
+                <strong>Acesso: </strong>
+                <span>{membership?.role ?? 'Sem acesso'}</span>
+              </div>
             </CardContent>
           </Card>
         ) : (
@@ -214,6 +233,34 @@ const EditableUserProfile: React.FC<EditableUserProfileProps> = ({ user }) => {
                     name="cnpj"
                     value={form.cnpj ?? ''}
                     onChange={handleChange}
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-secondary" htmlFor="farmName">
+                    Nome da fazenda:
+                  </label>
+                  <input
+                    className="w-full border border-b border-b-primary bg-transparent outline-none"
+                    id="farmName"
+                    name="farmName"
+                    value={membership?.farm.name ?? ''}
+                    onChange={(event) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        farmMemberships: [
+                          {
+                            role: prev.farmMemberships?.[0]?.role ?? 'OWNER',
+                            farm: {
+                              id: prev.farmMemberships?.[0]?.farm.id ?? '',
+                              name: event.target.value,
+                              trialEndsAt:
+                                prev.farmMemberships?.[0]?.farm.trialEndsAt ??
+                                new Date().toISOString(),
+                            },
+                          },
+                        ],
+                      }))
+                    }
                   />
                 </div>
               </CardContent>

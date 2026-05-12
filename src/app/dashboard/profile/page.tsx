@@ -11,7 +11,20 @@ const ProfilePage = async () => {
 
   const user = await prisma.user.findUnique({
     where: { email },
-    select: { id: true, name: true, email: true, cnpj: true, image: true },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      cnpj: true,
+      image: true,
+      farmMemberships: {
+        orderBy: { createdAt: 'asc' },
+        select: {
+          role: true,
+          farm: { select: { id: true, name: true, trialEndsAt: true } },
+        },
+      },
+    },
   });
 
   if (!user) redirect('/login');

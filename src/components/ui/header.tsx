@@ -11,6 +11,7 @@ import { Notification } from '@/types/notification';
 import { CgProfile } from 'react-icons/cg';
 import { FaRegMoneyBillAlt } from 'react-icons/fa';
 import { IoMaleFemaleSharp } from 'react-icons/io5';
+import { Users } from 'lucide-react';
 
 interface TableProps {
   notifications: Notification[];
@@ -72,6 +73,15 @@ export const Header: React.FC<TableProps> = ({ notifications }) => {
             >
               <CgProfile size={20} />
               Perfil
+            </Link>
+          </li>
+          <li className="hidden lg:block">
+            <Link
+              href={'/dashboard/team'}
+              className="relative hidden items-center gap-1 transition-all duration-300 after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-foreground after:transition-all after:duration-300 hover:text-secondary hover:after:w-full lg:flex"
+            >
+              <Users size={20} />
+              Equipe
             </Link>
           </li>
         </ul>

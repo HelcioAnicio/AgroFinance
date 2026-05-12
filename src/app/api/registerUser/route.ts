@@ -15,7 +15,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const allowed = ['name', 'email', 'cnpj', 'password', 'image'] as const;
+    const allowed = [
+      'name',
+      'email',
+      'cnpj',
+      'password',
+      'image',
+      'farmName',
+      'inviteToken',
+    ] as const;
 
     type CreatePayloadOptional = Partial<{
       name: string;
@@ -23,6 +31,8 @@ export async function POST(request: NextRequest) {
       cnpj: string;
       password: string;
       image: string;
+      farmName: string;
+      inviteToken: string;
     }>;
 
     type CreatePayload = {
@@ -31,6 +41,8 @@ export async function POST(request: NextRequest) {
       cnpj?: string;
       password?: string;
       image?: string;
+      farmName?: string;
+      inviteToken?: string;
     };
 
     const partialPayload = allowed.reduce<CreatePayloadOptional>((acc, key) => {
@@ -56,7 +68,69 @@ export async function POST(request: NextRequest) {
 
     console.log('createPayload:', createPayload);
 
-    const registerNewUser = await prisma.user.create({ data: createPayload });
+    const trialEndsAt = new Date();
+    trialEndsAt.setDate(trialEndsAt.getDate() + 30);
+
+    const registerNewUser = await prisma.$transaction(async (tx) => {
+      const user = await tx.user.create({
+        data: {
+          name: createPayload.name,
+          email: createPayload.email,
+          ...(createPayload.cnpj ? { cnpj: createPayload.cnpj } : {}),
+          ...(createPayload.password
+            ? { password: createPayload.password }
+            : {}),
+          ...(createPayload.image ? { image: createPayload.image } : {}),
+        },
+      });
+
+      const inviteToken = partialPayload.inviteToken;
+      const invite = inviteToken
+        ? await tx.farmInvite.findUnique({ where: { token: inviteToken } })
+        : null;
+
+      if (
+        invite &&
+        invite.status === 'PENDING' &&
+        invite.email.toLowerCase() === user.email.toLowerCase() &&
+        invite.expiresAt > new Date()
+      ) {
+        await tx.farmMembership.create({
+          data: {
+            farmId: invite.farmId,
+            userId: user.id,
+            role: invite.role,
+          },
+        });
+        await tx.farmInvite.update({
+          where: { id: invite.id },
+          data: {
+            status: 'ACCEPTED',
+            acceptedById: user.id,
+            acceptedAt: new Date(),
+          },
+        });
+        return user;
+      }
+
+      const farm = await tx.farm.create({
+        data: {
+          name: partialPayload.farmName || `${user.name} Fazenda`,
+          ownerUserId: user.id,
+          trialEndsAt,
+        },
+      });
+
+      await tx.farmMembership.create({
+        data: {
+          farmId: farm.id,
+          userId: user.id,
+          role: 'OWNER',
+        },
+      });
+
+      return user;
+    });
 
     return NextResponse.json(
       {

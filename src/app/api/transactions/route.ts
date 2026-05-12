@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import type { FinancialTransaction } from '@/types/financial';
 import type { Transaction, Prisma } from '@prisma/client';
+import { requireFarmContext } from '@/lib/tenant';
 
 function toFinancialTransaction(
   transaction: Transaction
@@ -21,19 +22,13 @@ function toFinancialTransaction(
 }
 
 export async function GET(request: Request) {
+  const { context, error, status } = await requireFarmContext('view_finance');
+  if (!context) return NextResponse.json({ message: error }, { status });
+
   const url = new URL(request.url);
-  const userId = url.searchParams.get('userId');
   const start = url.searchParams.get('start');
   const end = url.searchParams.get('end');
-
-  if (!userId) {
-    return NextResponse.json(
-      { message: 'Parametro userId obrigatorio.' },
-      { status: 400 }
-    );
-  }
-
-  const where: Prisma.TransactionWhereInput = { userId };
+  const where: Prisma.TransactionWhereInput = { farmId: context.farm.id };
 
   if (start && end) {
     where.date = {
@@ -55,6 +50,10 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const { context, error, status: authStatus } =
+    await requireFarmContext('manage_finance');
+  if (!context) return NextResponse.json({ message: error }, { status: authStatus });
+
   const body = await request.json();
 
   const {
@@ -75,7 +74,7 @@ export async function POST(request: Request) {
     status: boolean;
   };
 
-  if (!userId || !type || !category || !amount || !date) {
+  if (!type || !category || !amount || !date) {
     return NextResponse.json(
       { message: 'Informe todos os campos obrigatorios.' },
       { status: 400 }
@@ -85,6 +84,7 @@ export async function POST(request: Request) {
   const createdTransaction = await prisma.transaction.create({
     data: {
       userId,
+      farmId: context.farm.id,
       type,
       category,
       amount,
@@ -98,6 +98,10 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
+  const { context, error, status: authStatus } =
+    await requireFarmContext('manage_finance');
+  if (!context) return NextResponse.json({ message: error }, { status: authStatus });
+
   const body = await request.json();
 
   const {
@@ -120,7 +124,7 @@ export async function PATCH(request: Request) {
     status?: boolean;
   };
 
-  if (!id || !userId) {
+  if (!id) {
     return NextResponse.json(
       { message: 'Informe o id e o user_id do lancamento.' },
       { status: 400 }
@@ -130,7 +134,7 @@ export async function PATCH(request: Request) {
   const transaction = await prisma.transaction.findFirst({
     where: {
       id,
-      userId,
+      farmId: context.farm.id,
     },
   });
 
