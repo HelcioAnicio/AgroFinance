@@ -34,9 +34,16 @@ export async function POST(request: Request) {
   params.set('metadata[planId]', plan.id);
   params.set('line_items[0][quantity]', '1');
   params.set('line_items[0][price_data][currency]', 'brl');
-  params.set('line_items[0][price_data][unit_amount]', String(plan.amountInCents));
+  params.set(
+    'line_items[0][price_data][unit_amount]',
+    String(plan.amountInCents)
+  );
   params.set('line_items[0][price_data][recurring][interval]', plan.interval);
-  params.set('line_items[0][price_data][product_data][name]', `AgroFinance ${plan.name} ${plan.label}`);
+  params.set(
+    'line_items[0][price_data][product_data][name]',
+    `AgroFinance ${plan.name} ${plan.label}`
+  );
+  params.set('allow_promotion_codes', 'true');
 
   const response = await fetch('https://api.stripe.com/v1/checkout/sessions', {
     method: 'POST',

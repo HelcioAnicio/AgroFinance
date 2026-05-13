@@ -4,7 +4,11 @@ import prisma from '@/lib/prisma';
 
 export const runtime = 'nodejs';
 
-function verifyStripeSignature(payload: string, signature: string, secret: string) {
+function verifyStripeSignature(
+  payload: string,
+  signature: string,
+  secret: string
+) {
   const timestamp = signature
     .split(',')
     .find((part) => part.startsWith('t='))
@@ -34,7 +38,10 @@ export async function POST(request: Request) {
   const payload = await request.text();
   const signature = request.headers.get('stripe-signature') ?? '';
 
-  if (webhookSecret && !verifyStripeSignature(payload, signature, webhookSecret)) {
+  if (
+    webhookSecret &&
+    !verifyStripeSignature(payload, signature, webhookSecret)
+  ) {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
   }
 
@@ -48,8 +55,8 @@ export async function POST(request: Request) {
     const farmId =
       typeof object.client_reference_id === 'string'
         ? object.client_reference_id
-        : typeof (object.metadata as Record<string, unknown> | undefined)?.farmId ===
-            'string'
+        : typeof (object.metadata as Record<string, unknown> | undefined)
+              ?.farmId === 'string'
           ? String((object.metadata as Record<string, unknown>).farmId)
           : null;
 

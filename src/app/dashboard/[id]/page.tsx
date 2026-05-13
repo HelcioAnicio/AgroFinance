@@ -5,7 +5,6 @@ import EditableAnimalDetails from './(components)/editableAnimalDetails';
 import {
   fetchAnimals,
   fetchExternalBulls,
-  fetchUsers,
   fetchVaccines,
 } from '@/lib/fetchData';
 import { Vaccine } from '@/types/vaccine';
@@ -21,7 +20,6 @@ const DetailAnimalId = async ({
   const { context } = await requireFarmContext('view_animals');
   if (!context) redirect('/login');
 
-  const users = await fetchUsers();
   const animals = await fetchAnimals(context.user.id, context.farm.id);
   const externalBulls = await fetchExternalBulls(
     context.user.id,
