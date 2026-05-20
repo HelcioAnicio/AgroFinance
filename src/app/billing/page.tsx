@@ -3,6 +3,7 @@ import { BILLING_PLANS } from '@/lib/billing';
 import { canFarmAccessDashboard, getCurrentFarmContext } from '@/lib/tenant';
 import BillingPlans from './plans';
 import BillingStatus from './billing-status';
+import CompleteBillingProfile from './complete-profile';
 import { Suspense } from 'react';
 import { DashboardHeaderSection } from '../dashboard/_components/dashboardHeaderSection';
 import { DashboardHeaderSkeleton } from '../dashboard/_components/dashboardHeaderSkeleton';
@@ -17,13 +18,10 @@ export default async function BillingPage({
   if (!context) redirect('/login');
   if (canFarmAccessDashboard(context.farm)) redirect('/dashboard');
 
-  const daysLeft = Math.ceil(
-    (context.farm.trialEndsAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
-  );
-
   const billing = await searchParams;
   const isPaymentPending = billing?.billing === 'success';
   const isPaymentCanceled = billing?.billing === 'cancel';
+  const hasRequiredProfileData = Boolean(context.user.cnpj);
 
   return (
     <main className="min-h-screen bg-[#f8f7f3] px-4 py-10 text-[#202417]">
@@ -36,20 +34,22 @@ export default async function BillingPage({
             AgroFinance Billing
           </p>
           <h1 className="max-w-3xl text-4xl font-bold">
-            Escolha um plano para continuar usando a fazenda {context.farm.name}
+            {hasRequiredProfileData
+              ? `Escolha um plano para continuar usando a fazenda ${context.farm.name}`
+              : 'Complete seus dados para escolher um plano'}
           </h1>
           <p className="max-w-2xl text-sm text-[#5e654f]">
-            Sua conta tem 1 mes gratuito. Depois do periodo de teste, o acesso
-            ao dashboard e liberado com uma assinatura ativa.
+            Primeiro complete seus dados, depois valide o cartao no Stripe. A
+            liberacao do acesso acontece somente depois dessa confirmacao.
           </p>
-          <div className="w-fit rounded-md border border-[#55722b]/30 bg-white px-3 py-2 text-sm">
-            {daysLeft > 0
-              ? `${daysLeft} dias restantes no teste gratuito`
-              : 'Teste gratuito encerrado'}
-          </div>
         </div>
 
-        {isPaymentPending ? (
+        {!hasRequiredProfileData ? (
+          <CompleteBillingProfile
+            initialName={context.user.name}
+            email={context.user.email}
+          />
+        ) : isPaymentPending ? (
           <BillingStatus />
         ) : (
           <>
@@ -63,6 +63,10 @@ export default async function BillingPage({
               </div>
             ) : null}
 
+            <div className="rounded-md border border-[#d9d5c8] bg-white p-4 text-sm text-[#4d543f]">
+              A validacao do cartao e feita no Stripe. Enquanto ela nao for
+              confirmada, o acesso ao dashboard ainda nao fica ativo.
+            </div>
             <BillingPlans plans={BILLING_PLANS} />
           </>
         )}

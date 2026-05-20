@@ -65,6 +65,7 @@ export const authOptions: NextAuthOptions = {
           name: user.name ? `${user.name} Fazenda` : 'Minha Fazenda',
           ownerUserId: user.id,
           trialEndsAt,
+          subscriptionStatus: 'INCOMPLETE',
         },
       });
 

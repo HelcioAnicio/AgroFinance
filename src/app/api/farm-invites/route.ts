@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { randomBytes } from 'crypto';
 import { requireFarmContext } from '@/lib/tenant';
 import prisma from '@/lib/prisma';
+import { getAppUrl } from '@/lib/appUrl';
 
 const VALID_ROLES = [
   'OWNER',
@@ -14,7 +15,7 @@ export async function GET(request: Request) {
   const { context, error, status } = await requireFarmContext('manage_team');
   if (!context) return NextResponse.json({ error }, { status });
 
-  const appUrl = process.env.NEXTAUTH_URL ?? new URL(request.url).origin;
+  const appUrl = getAppUrl(request);
   const [members, invites, auditLogs] = await Promise.all([
     prisma.farmMembership.findMany({
       where: { farmId: context.farm.id },
@@ -49,7 +50,9 @@ export async function POST(request: Request) {
   if (!context) return NextResponse.json({ error }, { status });
 
   const body = await request.json();
-  const email = String(body.email ?? '').trim().toLowerCase();
+  const email = String(body.email ?? '')
+    .trim()
+    .toLowerCase();
   const role = String(body.role ?? '').trim();
 
   if (!email || !VALID_ROLES.includes(role as (typeof VALID_ROLES)[number])) {
@@ -73,7 +76,7 @@ export async function POST(request: Request) {
     },
   });
 
-  const appUrl = process.env.NEXTAUTH_URL ?? new URL(request.url).origin;
+  const appUrl = getAppUrl(request);
 
   return NextResponse.json({
     invite: {

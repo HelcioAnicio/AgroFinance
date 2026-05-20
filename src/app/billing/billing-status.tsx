@@ -9,7 +9,7 @@ export default function BillingStatus() {
     'pending' | 'active' | 'error' | 'syncing'
   >('pending');
   const [message, setMessage] = useState(
-    'Seu pagamento foi iniciado. Aguardando confirmação do Stripe...'
+    'A validacao do cartao foi iniciada. Aguardando confirmacao do Stripe...'
   );
   const [retryCount, setRetryCount] = useState(0);
 
@@ -24,6 +24,7 @@ export default function BillingStatus() {
         const data = await response.json();
         const isTrialValid =
           data.subscriptionStatus === 'TRIALING' &&
+          data.stripeSubscriptionId &&
           data.trialEndsAt &&
           new Date(data.trialEndsAt).getTime() > Date.now();
 
@@ -41,7 +42,7 @@ export default function BillingStatus() {
 
         if (mounted) {
           setMessage(
-            'A assinatura ainda não foi confirmada. O sistema continuará verificando automaticamente.'
+            'A assinatura ainda nao foi confirmada. O sistema continuara verificando automaticamente.'
           );
         }
       } catch (error) {
@@ -70,6 +71,7 @@ export default function BillingStatus() {
 
         const isTrialValid =
           data.subscriptionStatus === 'TRIALING' &&
+          data.stripeSubscriptionId &&
           data.trialEndsAt &&
           new Date(data.trialEndsAt).getTime() > Date.now();
 
@@ -90,17 +92,17 @@ export default function BillingStatus() {
         if (mounted) {
           setStatus('pending');
           setMessage(
-            'Continuando verificação. Isso pode levar alguns minutos...'
+            'Continuando verificacao. Isso pode levar alguns minutos...'
           );
         }
       } catch (error) {
         if (mounted) {
           setStatus('pending');
           setMessage(
-            'Retornando ao modo de verificação automática. ' +
+            'Retornando ao modo de verificacao automatica. ' +
               (error instanceof Error
                 ? error.message
-                : 'Erro na sincronização.')
+                : 'Erro na sincronizacao.')
           );
         }
       }
@@ -141,7 +143,7 @@ export default function BillingStatus() {
           <p className="text-lg font-semibold text-[#2f6a33]">
             {status === 'active' && 'Assinatura Ativada!'}
             {status === 'syncing' && 'Sincronizando com Stripe'}
-            {status === 'pending' && 'Aguardando confirmação do pagamento'}
+            {status === 'pending' && 'Aguardando confirmacao do Stripe'}
             {status === 'error' && 'Erro ao processar'}
           </p>
           <p className="mt-2 text-sm text-[#5e654f]">{message}</p>
@@ -150,7 +152,7 @@ export default function BillingStatus() {
 
       <div className="mt-6 flex items-center justify-between gap-4 text-sm text-[#4d543f]">
         <span>
-          Verificação automática a cada 5 segundos
+          Verificacao automatica a cada 5 segundos
           {status === 'syncing' ? ' (sincronizando)' : ''}
         </span>
         <span>{retryCount} tentativas</span>
@@ -158,9 +160,9 @@ export default function BillingStatus() {
 
       {status === 'error' ? (
         <div className="mt-6 rounded-lg bg-[#fff3f3] p-4 text-[#7a2a2a]">
-          <p className="font-semibold">Não foi possível verificar o status.</p>
+          <p className="font-semibold">Nao foi possivel verificar o status.</p>
           <p className="mt-1 text-sm">
-            Recarregue a página ou tente novamente mais tarde.
+            Recarregue a pagina ou tente novamente mais tarde.
           </p>
           <Button
             type="button"

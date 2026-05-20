@@ -117,6 +117,7 @@ export async function POST(request: NextRequest) {
           name: partialPayload.farmName || `${user.name} Fazenda`,
           ownerUserId: user.id,
           trialEndsAt,
+          subscriptionStatus: 'INCOMPLETE',
         },
       });
 

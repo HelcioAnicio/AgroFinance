@@ -4,13 +4,21 @@ import { useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { signOut, useSession } from 'next-auth/react';
-import { Separator } from '@/components/ui/separator';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Trash2 } from 'lucide-react';
+import { signOut } from 'next-auth/react';
+import {
+  ArrowLeft,
+  Bell,
+  CheckCircle2,
+  Cloud,
+  CreditCard,
+  IdCard,
+  Loader2,
+  Save,
+  ShieldCheck,
+  Trash2,
+} from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { FaRegMoneyBillAlt } from 'react-icons/fa';
+import { Button } from '@/components/ui/button';
 import { BILLING_PLANS } from '@/lib/billing';
 import BillingPlans from '@/app/billing/plans';
 
@@ -37,41 +45,90 @@ interface EditableUserProfileProps {
   user: ProfileUser;
 }
 
+const statusLabels: Record<string, string> = {
+  ACTIVE: 'Assinatura ativa',
+  TRIALING: 'Teste ativo',
+  PAST_DUE: 'Pagamento pendente',
+  CANCELED: 'Assinatura cancelada',
+  INCOMPLETE: 'Aguardando validacao',
+};
+
 const EditableUserProfile: React.FC<EditableUserProfileProps> = ({ user }) => {
-  const { data } = useSession();
   const router = useRouter();
-  const [isEditing, setIsEditing] = useState(false);
-  const [showPlans, setShowPlans] = useState(false);
   const [form, setForm] = useState<ProfileUser>(user);
-  const [initial, setInitial] = useState<ProfileUser>(user);
+  const [isSaving, setIsSaving] = useState(false);
+  const [showPlans, setShowPlans] = useState(false);
   const membership = form.farmMemberships?.[0];
+  const farm = membership?.farm;
+  const hasDocument = Boolean(form.cnpj?.trim());
+  const hasValidatedTrial =
+    farm?.subscriptionStatus === 'TRIALING' &&
+    Boolean(farm.stripeSubscriptionId) &&
+    new Date(farm.trialEndsAt).getTime() > Date.now();
+  const hasActiveSubscription = farm?.subscriptionStatus === 'ACTIVE';
+  const hasValidatedPlan = hasActiveSubscription || hasValidatedTrial;
+  const statusLabel = !farm
+    ? 'Sem fazenda vinculada'
+    : hasValidatedPlan
+      ? hasValidatedTrial
+        ? statusLabels.TRIALING
+        : statusLabels.ACTIVE
+      : farm.subscriptionStatus === 'PAST_DUE' ||
+          farm.subscriptionStatus === 'CANCELED'
+        ? statusLabels[farm.subscriptionStatus]
+        : statusLabels.INCOMPLETE;
 
   const formatDate = (dateValue: Date | string | null | undefined) => {
-    if (!dateValue) return '—';
-    try {
-      const d = new Date(dateValue);
-      if (isNaN(d.getTime())) return '—';
-      return d.toLocaleDateString('pt-BR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-      });
-    } catch {
-      return '—';
-    }
+    if (!dateValue) return '-';
+    const d = new Date(dateValue);
+    if (isNaN(d.getTime())) return '-';
+
+    return d.toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
   };
 
-  const handleBack = () => router.back();
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.target;
     setForm((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
 
+  const handleFarmNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setForm((prev) => {
+      const currentMembership = prev.farmMemberships?.[0];
+
+      return {
+        ...prev,
+        farmMemberships: [
+          {
+            role: currentMembership?.role ?? 'OWNER',
+            farm: currentMembership
+              ? {
+                  ...currentMembership.farm,
+                  name: event.target.value,
+                }
+              : {
+                  id: '',
+                  name: event.target.value,
+                  trialEndsAt: new Date().toISOString(),
+                  stripeCustomerId: null,
+                  stripeSubscriptionId: null,
+                  subscriptionStatus: 'INCOMPLETE',
+                },
+          },
+        ],
+      };
+    });
+  };
+
   const handleSave = async () => {
+    setIsSaving(true);
+
     try {
       const payload = {
         name: form.name,
@@ -87,34 +144,26 @@ const EditableUserProfile: React.FC<EditableUserProfileProps> = ({ user }) => {
       );
 
       const updated = res.data?.user as ProfileUser | undefined;
-      if (updated) {
-        const next = { ...form, ...updated };
-        setForm(next);
-        setInitial(next);
-      }
-
-      toast.success('Perfil atualizado com sucesso!');
-      setIsEditing(false);
+      const next = updated ? { ...form, ...updated } : form;
+      setForm(next);
+      toast.success('Perfil atualizado com sucesso.');
     } catch (err) {
       console.error(err);
       toast.error('Ocorreu um erro ao atualizar o perfil.');
+    } finally {
+      setIsSaving(false);
     }
-  };
-
-  const handleCancel = () => {
-    setForm(initial);
-    setIsEditing(false);
   };
 
   const handleDeleteAccount = async () => {
     const confirmed = window.confirm(
-      'Tem certeza que deseja excluir sua conta? Essa ação excluirá todos os seus animais e não pode ser desfeita.'
+      'Tem certeza que deseja excluir sua conta? Essa acao excluira todos os seus animais e nao pode ser desfeita.'
     );
     if (!confirmed) return;
 
     try {
       await axios.delete('/api/deleteAccount');
-      toast.success('Conta excluída com sucesso.');
+      toast.success('Conta excluida com sucesso.');
       await signOut({ callbackUrl: '/login' });
     } catch (err) {
       console.error(err);
@@ -122,345 +171,271 @@ const EditableUserProfile: React.FC<EditableUserProfileProps> = ({ user }) => {
     }
   };
 
+  const helperCards = [
+    {
+      icon: ShieldCheck,
+      title: 'Seguranca de Dados',
+      text: 'Revise suas informacoes essenciais e mantenha seus dados fiscais completos.',
+      action: 'Revisar seguranca',
+    },
+    {
+      icon: Bell,
+      title: 'Notificacoes',
+      text: 'Os avisos de assinatura aparecem somente depois da validacao no Stripe.',
+      action: 'Configurar alertas',
+    },
+    {
+      icon: Cloud,
+      title: 'Backup Automatico',
+      text: 'Seus dados da fazenda ficam sincronizados com as rotinas do sistema.',
+      action: 'Ver historico',
+    },
+  ];
+
   return (
-    <div className="pb-14">
-      <section className="sticky top-0 bg-background">
-        <div className="flex items-center justify-between px-2 py-3">
-          <button onClick={handleBack}>
-            <ArrowLeft />
-          </button>
-          <h1 className="w-full max-w-32 text-center text-xl sm:max-w-none">
-            Perfil
-          </h1>
-          <div className="flex items-center gap-4 lg:gap-10">
-            {!isEditing ? (
-              <>
-                <button
-                  onClick={handleDeleteAccount}
-                  aria-label="Excluir conta"
-                >
-                  <Trash2 className="text-red-500" />
-                </button>
-                <Button onClick={() => setIsEditing(true)}>Editar dados</Button>
-              </>
-            ) : (
-              <div className="flex flex-col-reverse gap-5">
-                <Button type="button" onClick={handleSave}>
-                  Salvar
-                </Button>
-                <Button type="button" onClick={handleCancel} variant="ghost">
-                  Cancelar
-                </Button>
-              </div>
-            )}
+    <div className="min-h-screen bg-[#f8f7f3] px-4 pb-20 pt-6 text-[#202417]">
+      <section className="mx-auto flex w-full max-w-6xl flex-col gap-8">
+        <header className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div>
+            <button
+              type="button"
+              className="mb-3 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-[#6d7f3d]"
+              onClick={() => router.back()}
+            >
+              <ArrowLeft className="size-4" />
+              Configuracoes / Perfil do usuario
+            </button>
+            <h1 className="text-3xl font-bold tracking-normal">
+              Conta e Fazenda
+            </h1>
           </div>
-        </div>
-        <Separator className="bg-foreground" />
-      </section>
+          <Button
+            type="button"
+            className="w-full bg-[#49651f] text-white hover:bg-[#3f571b] md:w-auto"
+            onClick={handleSave}
+            disabled={isSaving}
+          >
+            {isSaving ? (
+              <Loader2 className="mr-2 size-4 animate-spin" />
+            ) : (
+              <Save className="mr-2 size-4" />
+            )}
+            Salvar alteracoes
+          </Button>
+        </header>
 
-      <div className="m-auto flex w-full max-w-lg flex-col gap-6 pb-10 pt-5">
-        {!isEditing ? (
-          <Card className="px-2 py-5">
-            <CardHeader className="pb-10">
-              <CardTitle className="text-base">Seus dados</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-3 px-1 text-sm">
-              <div className="flex items-end">
-                <strong>Imagem (URL): </strong>
-                <Avatar className="size-32">
-                  <AvatarImage
-                    src={data?.user?.image ?? undefined}
-                    alt="Image from google profile"
-                  />
-                  <AvatarFallback className="text-foreground">
-                    {data?.user?.name?.charAt(0)}{' '}
-                  </AvatarFallback>
-                </Avatar>
+        <div className="grid gap-6 lg:grid-cols-[17rem_1fr]">
+          <aside className="h-fit rounded-md border-l-4 border-[#49651f] bg-white p-6 shadow-sm">
+            <Avatar className="mx-auto size-28 border-4 border-[#f1efe8]">
+              <AvatarImage src={form.image ?? undefined} alt={form.name} />
+              <AvatarFallback className="bg-[#e9eddf] text-3xl font-bold text-[#49651f]">
+                {form.name?.charAt(0) || 'A'}
+              </AvatarFallback>
+            </Avatar>
+            <div className="mt-5 text-center">
+              <p className="font-bold">{form.name}</p>
+              <p className="text-xs text-[#6b705c]">{form.email}</p>
+            </div>
+            <div className="mt-6 space-y-3 border-t border-[#e1ded3] pt-4 text-xs">
+              <div className="flex items-center justify-between gap-4">
+                <span className="font-semibold uppercase text-[#8a907c]">
+                  Membro desde
+                </span>
+                <span className="font-bold text-[#49651f]">2026</span>
               </div>
-              <div>
-                <strong>Nome: </strong>
-                <span>{form.name}</span>
+              <div className="flex items-center justify-between gap-4">
+                <span className="font-semibold uppercase text-[#8a907c]">
+                  Nivel de acesso
+                </span>
+                <span className="font-bold text-[#49651f]">
+                  {membership?.role ?? 'Sem acesso'}
+                </span>
               </div>
-              <div>
-                <strong>E-mail: </strong>
-                <span>{form.email}</span>
+              <div className="flex items-center justify-between gap-4">
+                <span className="font-semibold uppercase text-[#8a907c]">
+                  Assinatura
+                </span>
+                <span className="text-right font-bold text-[#49651f]">
+                  {statusLabel}
+                </span>
               </div>
-              <div>
-                <strong>CNPJ/CPF: </strong>
-                <span>{form.cnpj ?? '—'}</span>
-              </div>
-              <div>
-                <strong>Fazenda: </strong>
-                <span>{membership?.farm.name ?? 'Nao vinculada'}</span>
-              </div>
-              <div>
-                <strong>Acesso: </strong>
-                <span>{membership?.role ?? 'Sem acesso'}</span>
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <form className="flex flex-col gap-5 px-2">
-            <Card className="px-2 py-5">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">Editar dados</CardTitle>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-4 px-1">
-                <div className="flex flex-col gap-1">
-                  <label className="text-secondary" htmlFor="image">
-                    Imagem (URL):
-                  </label>
-                  <input
-                    className="w-full border border-b border-b-primary bg-transparent outline-none"
-                    id="image"
-                    name="image"
-                    value={form.image ?? ''}
-                    onChange={handleChange}
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-secondary" htmlFor="name">
-                    Nome:
-                  </label>
-                  <input
-                    className="w-full border border-b border-b-primary bg-transparent outline-none"
-                    id="name"
-                    name="name"
-                    value={form.name ?? ''}
-                    onChange={handleChange}
-                  />
-                </div>
+            </div>
+          </aside>
 
-                <div className="flex flex-col gap-1">
-                  <label className="text-secondary" htmlFor="email">
-                    E-mail:
-                  </label>
-                  <input
-                    className="w-full border border-b border-b-primary bg-transparent opacity-70 outline-none"
-                    id="email"
-                    name="email"
-                    value={form.email ?? ''}
-                    disabled
-                    readOnly
-                  />
-                </div>
+          <main className="flex flex-col gap-7">
+            <div className="border-b border-[#e1ded3]">
+              <div className="flex flex-wrap gap-7 text-xs font-bold uppercase tracking-[0.18em] text-[#9aa08d]">
+                <span className="border-b-2 border-[#49651f] pb-3 text-[#202417]">
+                  Dados pessoais
+                </span>
+                <span className="pb-3">Seguranca</span>
+                <span className="pb-3">Propriedade rural</span>
+              </div>
+            </div>
 
-                <div className="flex flex-col gap-1">
-                  <label className="text-secondary" htmlFor="cnpj">
-                    CNPJ/CPF:
-                  </label>
-                  <input
-                    className="w-full border border-b border-b-primary bg-transparent outline-none"
-                    id="cnpj"
-                    name="cnpj"
-                    value={form.cnpj ?? ''}
-                    onChange={handleChange}
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-secondary" htmlFor="farmName">
-                    Nome da fazenda:
-                  </label>
-                  <input
-                    className="w-full border border-b border-b-primary bg-transparent outline-none"
-                    id="farmName"
-                    name="farmName"
-                    value={membership?.farm.name ?? ''}
-                    onChange={(event) =>
-                      setForm((prev) => {
-                        const currentMembership = prev.farmMemberships?.[0];
+            <section className="grid gap-4 md:grid-cols-2">
+              <ProfileField
+                label="Nome completo"
+                name="name"
+                value={form.name ?? ''}
+                onChange={handleChange}
+              />
+              <ProfileField label="E-mail" value={form.email} disabled />
+              <ProfileField
+                label="CPF ou CNPJ"
+                name="cnpj"
+                value={form.cnpj ?? ''}
+                onChange={handleChange}
+              />
+              <ProfileField
+                label="Imagem do perfil (URL)"
+                name="image"
+                value={form.image ?? ''}
+                onChange={handleChange}
+              />
+            </section>
 
-                        return {
-                          ...prev,
-                          farmMemberships: [
-                            {
-                              role: currentMembership?.role ?? 'OWNER',
-                              farm: currentMembership
-                                ? {
-                                    ...currentMembership.farm,
-                                    name: event.target.value,
-                                  }
-                                : {
-                                    id: '',
-                                    name: event.target.value,
-                                    trialEndsAt: new Date().toISOString(),
-                                    stripeCustomerId: null,
-                                    stripeSubscriptionId: null,
-                                    subscriptionStatus: 'TRIALING',
-                                  },
-                            },
-                          ],
-                        };
-                      })
-                    }
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </form>
-        )}
+            <section className="flex flex-col gap-4">
+              <div className="flex items-center gap-2 text-sm font-bold text-[#49651f]">
+                <IdCard className="size-4" />
+                Detalhes da propriedade
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <ProfileField
+                  label="Nome da fazenda"
+                  value={farm?.name ?? ''}
+                  onChange={handleFarmNameChange}
+                />
+                <ProfileField
+                  label="Status de faturamento"
+                  value={statusLabel}
+                  disabled
+                />
+              </div>
+            </section>
 
-        {!isEditing && (
-          <Card className="border-[#e1ded3] bg-white px-2 py-5 shadow-sm">
-            <CardHeader className="flex flex-row items-center gap-2 pb-4">
-              <FaRegMoneyBillAlt className="size-5 text-[#49651f]" />
-              <CardTitle className="text-base font-bold">
-                Assinatura e Planos
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-4 px-1 text-sm">
-              {!membership ? (
-                <div className="rounded-md bg-amber-500/10 p-3 text-amber-800">
-                  <p className="font-semibold">Nenhuma fazenda vinculada</p>
-                  <p className="mt-1 text-xs">
-                    Você precisa estar vinculado a uma fazenda para gerenciar
-                    assinaturas.
+            <section className="rounded-md border border-[#e1ded3] bg-white p-5 shadow-sm">
+              <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                <div>
+                  <div className="flex items-center gap-2 text-sm font-bold text-[#49651f]">
+                    <CreditCard className="size-4" />
+                    Assinatura e planos
+                  </div>
+                  <p className="mt-2 max-w-2xl text-sm text-[#5e654f]">
+                    A liberacao do acesso acontece somente depois que o Stripe
+                    valida o cartao e confirma a assinatura.
                   </p>
                 </div>
+                {hasValidatedPlan ? (
+                  <span className="inline-flex items-center gap-2 rounded-md bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700">
+                    <CheckCircle2 className="size-4" />
+                    {hasValidatedTrial
+                      ? `Teste ativo ate ${formatDate(farm?.trialEndsAt)}`
+                      : 'Plano ativo'}
+                  </span>
+                ) : (
+                  <span className="rounded-md bg-amber-50 px-3 py-2 text-xs font-bold text-amber-700">
+                    Validacao pendente
+                  </span>
+                )}
+              </div>
+
+              {!hasDocument ? (
+                <div className="mt-5 rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+                  Informe CPF ou CNPJ e salve as alteracoes antes de escolher um
+                  plano.
+                </div>
+              ) : membership?.role === 'OWNER' ? (
+                <div className="mt-5 flex flex-col gap-4">
+                  <Button
+                    type="button"
+                    className="w-full bg-[#49651f] text-white hover:bg-[#3f571b] md:w-fit"
+                    onClick={() => setShowPlans((current) => !current)}
+                  >
+                    {showPlans ? 'Ocultar planos' : 'Escolher ou alterar plano'}
+                  </Button>
+                  {showPlans ? <BillingPlans plans={BILLING_PLANS} /> : null}
+                </div>
               ) : (
-                <div className="flex flex-col gap-3">
-                  <div className="flex flex-col gap-1">
-                    <span className="text-xs font-bold uppercase tracking-wider text-[#6d7f3d]">
-                      Status Atual
-                    </span>
-                    <div className="flex items-center gap-2">
-                      {membership.farm.subscriptionStatus === 'TRIALING' && (
-                        <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
-                          Período de Avaliação (30 dias)
-                        </span>
-                      )}
-                      {membership.farm.subscriptionStatus === 'ACTIVE' && (
-                        <span className="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-800 ring-1 ring-inset ring-emerald-600/30">
-                          Ativa / Premium
-                        </span>
-                      )}
-                      {membership.farm.subscriptionStatus === 'CANCELED' && (
-                        <span className="inline-flex items-center rounded-full bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700 ring-1 ring-inset ring-red-600/20">
-                          Cancelada
-                        </span>
-                      )}
-                      {membership.farm.subscriptionStatus === 'PAST_DUE' && (
-                        <span className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700 ring-1 ring-inset ring-amber-600/20">
-                          Pagamento Pendente
-                        </span>
-                      )}
-                      {!['TRIALING', 'ACTIVE', 'CANCELED', 'PAST_DUE'].includes(
-                        membership.farm.subscriptionStatus
-                      ) && (
-                        <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700 ring-1 ring-inset ring-gray-600/20">
-                          Sem Assinatura Ativa
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {membership.farm.subscriptionStatus === 'TRIALING' && (
-                    <p className="text-xs leading-relaxed text-muted-foreground">
-                      Sua fazenda está no período de avaliação de 30 dias. A
-                      cobrança do plano escolhido só será efetuada após o
-                      término do período de testes em{' '}
-                      <strong>{formatDate(membership.farm.trialEndsAt)}</strong>
-                      .
-                    </p>
-                  )}
-
-                  {membership.farm.subscriptionStatus === 'ACTIVE' && (
-                    <p className="text-xs leading-relaxed text-muted-foreground">
-                      Sua assinatura está ativa e regularizada. Obrigado por ser
-                      nosso cliente! Próximo vencimento em{' '}
-                      <strong>{formatDate(membership.farm.trialEndsAt)}</strong>
-                      .
-                    </p>
-                  )}
-
-                  {membership.farm.subscriptionStatus === 'PAST_DUE' && (
-                    <p className="text-xs font-medium leading-relaxed text-amber-700">
-                      Atenção: Houve uma falha no processamento do seu
-                      pagamento. Por favor, selecione um plano abaixo ou
-                      atualize suas informações de faturamento no Stripe para
-                      evitar a suspensão do acesso.
-                    </p>
-                  )}
-
-                  {membership.farm.subscriptionStatus === 'CANCELED' && (
-                    <p className="text-xs font-medium leading-relaxed text-red-600">
-                      Sua assinatura foi cancelada. Seu acesso aos recursos
-                      avançados pode expirar ou ser suspenso em breve. Escolha
-                      um plano abaixo para reativá-la.
-                    </p>
-                  )}
-
-                  {!['TRIALING', 'ACTIVE', 'CANCELED', 'PAST_DUE'].includes(
-                    membership.farm.subscriptionStatus
-                  ) && (
-                    <p className="text-xs leading-relaxed text-muted-foreground">
-                      Selecione um plano abaixo para iniciar seu período de
-                      testes gratuito de 30 dias e liberar o acesso total ao
-                      sistema de gestão AgroFinance.
-                    </p>
-                  )}
-
-                  {membership.farm.trialEndsAt && (
-                    <div className="mt-1 flex justify-between border-t border-[#e1ded3] pt-3 text-xs text-muted-foreground">
-                      <span>Vencimento do Período/Cobrança:</span>
-                      <span className="font-semibold text-foreground">
-                        {formatDate(membership.farm.trialEndsAt)}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Gerenciamento de Planos */}
-                  {membership.role === 'OWNER' ? (
-                    <div className="mt-4 flex flex-col gap-4 border-t border-[#e1ded3] pt-4">
-                      <Button
-                        type="button"
-                        onClick={() => setShowPlans(!showPlans)}
-                        className="w-full bg-[#49651f] text-white hover:bg-[#3f571b]"
-                      >
-                        {showPlans
-                          ? 'Ocultar Planos de Assinatura'
-                          : 'Alterar / Escolher Novo Plano'}
-                      </Button>
-
-                      {showPlans && (
-                        <div className="mt-2 flex flex-col gap-4 duration-300 animate-in fade-in slide-in-from-top-4">
-                          <p className="text-xs leading-relaxed text-muted-foreground">
-                            Ao assinar ou alterar seu plano, você será
-                            redirecionado para o checkout seguro do Stripe.{' '}
-                            <strong>Lembre-se:</strong> a cobrança real só
-                            ocorrerá após o término dos 30 dias do período de
-                            avaliação. Se você já tem uma assinatura ativa, ela
-                            será substituída pela nova.
-                          </p>
-                          <BillingPlans plans={BILLING_PLANS} />
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="mt-4 border-t border-[#e1ded3] pt-4 text-xs italic text-muted-foreground">
-                      Apenas o proprietário (OWNER) da fazenda pode alterar os
-                      planos e gerenciar o faturamento do Stripe.
-                    </div>
-                  )}
+                <div className="mt-5 rounded-md border border-[#e1ded3] bg-[#f8f7f3] p-4 text-sm text-[#5e654f]">
+                  Apenas o proprietario da fazenda pode gerenciar planos.
                 </div>
               )}
-            </CardContent>
-          </Card>
-        )}
+            </section>
+          </main>
+        </div>
 
-        <Card className="border-amber-500/40 bg-amber-500/5 px-2 py-4">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Aviso</CardTitle>
-          </CardHeader>
-          <CardContent className="px-1 text-sm text-muted-foreground">
-            Sua conta será monitorada. Se você não fizer nenhuma alteração (em
-            animais ou no seu perfil) dentro de 6 meses, a conta poderá ser
-            excluída automaticamente. (Ainda não está ativo — apenas aviso.)
-          </CardContent>
-        </Card>
-      </div>
+        <section className="grid gap-4 md:grid-cols-3">
+          {helperCards.map((card) => {
+            const Icon = card.icon;
+            return (
+              <article
+                key={card.title}
+                className="rounded-md border border-[#e1ded3] bg-white p-5 shadow-sm"
+              >
+                <Icon className="size-5 text-[#49651f]" />
+                <h2 className="mt-5 text-sm font-bold">{card.title}</h2>
+                <p className="mt-3 min-h-12 text-xs leading-relaxed text-[#5e654f]">
+                  {card.text}
+                </p>
+                <p className="mt-4 text-xs font-bold uppercase tracking-[0.14em] text-[#49651f]">
+                  {card.action}
+                </p>
+              </article>
+            );
+          })}
+        </section>
+
+        <section className="flex flex-col gap-3 rounded-md border border-red-200 bg-white p-5 text-sm text-[#5e654f] md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="font-bold text-red-700">Zona de seguranca</p>
+            <p className="mt-1">
+              Excluir a conta remove seus dados e nao pode ser desfeito.
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="destructive"
+            className="md:w-fit"
+            onClick={handleDeleteAccount}
+          >
+            <Trash2 className="mr-2 size-4" />
+            Excluir conta
+          </Button>
+        </section>
+      </section>
     </div>
   );
 };
+
+function ProfileField({
+  label,
+  name,
+  value,
+  disabled = false,
+  onChange,
+}: {
+  label: string;
+  name?: string;
+  value: string;
+  disabled?: boolean;
+  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+}) {
+  return (
+    <label className="flex flex-col gap-1">
+      <span className="text-xs font-bold uppercase tracking-[0.14em] text-[#6d7f3d]">
+        {label}
+      </span>
+      <input
+        className="h-11 rounded-md border border-[#e1ded3] bg-white px-3 text-sm font-medium outline-none transition focus:border-[#49651f] disabled:bg-[#f1f0eb] disabled:text-[#202417]"
+        name={name}
+        value={value}
+        disabled={disabled}
+        readOnly={disabled}
+        onChange={onChange}
+      />
+    </label>
+  );
+}
 
 export default EditableUserProfile;

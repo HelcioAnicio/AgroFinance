@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getBillingPlan } from '@/lib/billing';
 import { requireFarmContext } from '@/lib/tenant';
 import prisma from '@/lib/prisma';
+import { getAppUrl } from '@/lib/appUrl';
 
 export async function POST(request: Request) {
   const { context, error, status } = await requireFarmContext('manage_farm');
@@ -14,8 +15,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Plano invalido.' }, { status: 400 });
   }
 
+  if (!context.user.cnpj) {
+    return NextResponse.json(
+      { error: 'Informe CPF ou CNPJ antes de escolher um plano.' },
+      { status: 400 }
+    );
+  }
+
   const secretKey = process.env.STRIPE_SECRET_KEY;
-  const appUrl = process.env.NEXTAUTH_URL ?? new URL(request.url).origin;
+  const appUrl = getAppUrl(request);
 
   if (!secretKey) {
     return NextResponse.json(
@@ -57,6 +65,11 @@ export async function POST(request: Request) {
   params.set('metadata[farmId]', context.farm.id);
   params.set('metadata[planId]', plan.id);
   params.set('subscription_data[trial_period_days]', '30');
+  params.set('payment_method_collection', 'always');
+  params.set(
+    'subscription_data[trial_settings][end_behavior][missing_payment_method]',
+    'cancel'
+  );
   params.set('payment_method_types[]', 'card');
   params.set('line_items[0][quantity]', '1');
   params.set('line_items[0][price_data][currency]', 'brl');

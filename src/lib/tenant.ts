@@ -45,6 +45,7 @@ export async function getCurrentFarmContext() {
       id: true,
       email: true,
       name: true,
+      cnpj: true,
       farmMemberships: {
         orderBy: { createdAt: 'asc' },
         include: { farm: true },
@@ -56,7 +57,7 @@ export async function getCurrentFarmContext() {
   if (!user || !membership) return null;
 
   return {
-    user: { id: user.id, email: user.email, name: user.name },
+    user: { id: user.id, email: user.email, name: user.name, cnpj: user.cnpj },
     farm: membership.farm,
     membership,
     role: membership.role,
@@ -110,8 +111,14 @@ export function isFarmPastTrial(farm: {
   stripeSubscriptionId?: string | null;
 }) {
   if (farm.subscriptionStatus === 'ACTIVE') return false;
-  if (farm.subscriptionStatus === 'TRIALING' && farm.stripeSubscriptionId) return false;
-  return farm.trialEndsAt.getTime() < Date.now();
+  if (
+    farm.subscriptionStatus === 'TRIALING' &&
+    farm.stripeSubscriptionId &&
+    farm.trialEndsAt.getTime() > Date.now()
+  ) {
+    return false;
+  }
+  return true;
 }
 
 export function canFarmAccessDashboard(farm: {
@@ -120,7 +127,12 @@ export function canFarmAccessDashboard(farm: {
   stripeSubscriptionId?: string | null;
 }) {
   if (farm.subscriptionStatus === 'ACTIVE') return true;
-  if (farm.subscriptionStatus === 'TRIALING' && farm.stripeSubscriptionId) return true;
-  if (farm.trialEndsAt.getTime() > Date.now()) return true;
+  if (
+    farm.subscriptionStatus === 'TRIALING' &&
+    farm.stripeSubscriptionId &&
+    farm.trialEndsAt.getTime() > Date.now()
+  ) {
+    return true;
+  }
   return false;
 }
