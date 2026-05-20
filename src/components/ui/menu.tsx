@@ -8,8 +8,8 @@ import { Users } from 'lucide-react';
 export const MenuNavegation = () => {
   return (
     <footer className="fixed inset-x-0 bottom-0 z-50 h-[calc(4rem+env(safe-area-inset-bottom))] w-full rounded-t-3xl bg-primary pb-[env(safe-area-inset-bottom)] lg:hidden">
-      <ul className="relative z-20 mx-auto mt-2 flex max-w-xs justify-between px-5 text-primary-foreground">
-        <li className="relative -mt-4 flex size-16 scale-125 flex-col items-center gap-1 rounded-full bg-primary text-black">
+      <ul className="relative z-20 mx-auto mt-2 flex max-w-lg justify-evenly px-5 text-primary-foreground">
+        <li className="relative flex size-16 flex-col items-center gap-1 rounded-full">
           <Link href="/dashboard">
             <GiCow size={35} />
             <p>Animal</p>
