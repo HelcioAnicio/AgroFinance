@@ -267,21 +267,31 @@ const EditableUserProfile: React.FC<EditableUserProfileProps> = ({ user }) => {
                     name="farmName"
                     value={membership?.farm.name ?? ''}
                     onChange={(event) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        farmMemberships: [
-                          {
-                            role: prev.farmMemberships?.[0]?.role ?? 'OWNER',
-                            farm: {
-                              id: prev.farmMemberships?.[0]?.farm.id ?? '',
-                              name: event.target.value,
-                              trialEndsAt:
-                                prev.farmMemberships?.[0]?.farm.trialEndsAt ??
-                                new Date().toISOString(),
+                      setForm((prev) => {
+                        const currentMembership = prev.farmMemberships?.[0];
+
+                        return {
+                          ...prev,
+                          farmMemberships: [
+                            {
+                              role: currentMembership?.role ?? 'OWNER',
+                              farm: currentMembership
+                                ? {
+                                    ...currentMembership.farm,
+                                    name: event.target.value,
+                                  }
+                                : {
+                                    id: '',
+                                    name: event.target.value,
+                                    trialEndsAt: new Date().toISOString(),
+                                    stripeCustomerId: null,
+                                    stripeSubscriptionId: null,
+                                    subscriptionStatus: 'TRIALING',
+                                  },
                             },
-                          },
-                        ],
-                      }))
+                          ],
+                        };
+                      })
                     }
                   />
                 </div>
@@ -291,21 +301,28 @@ const EditableUserProfile: React.FC<EditableUserProfileProps> = ({ user }) => {
         )}
 
         {!isEditing && (
-          <Card className="px-2 py-5 border-[#e1ded3] bg-white shadow-sm">
-            <CardHeader className="pb-4 flex flex-row items-center gap-2">
+          <Card className="border-[#e1ded3] bg-white px-2 py-5 shadow-sm">
+            <CardHeader className="flex flex-row items-center gap-2 pb-4">
               <FaRegMoneyBillAlt className="size-5 text-[#49651f]" />
-              <CardTitle className="text-base font-bold">Assinatura e Planos</CardTitle>
+              <CardTitle className="text-base font-bold">
+                Assinatura e Planos
+              </CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-4 px-1 text-sm">
               {!membership ? (
                 <div className="rounded-md bg-amber-500/10 p-3 text-amber-800">
                   <p className="font-semibold">Nenhuma fazenda vinculada</p>
-                  <p className="text-xs mt-1">Você precisa estar vinculado a uma fazenda para gerenciar assinaturas.</p>
+                  <p className="mt-1 text-xs">
+                    Você precisa estar vinculado a uma fazenda para gerenciar
+                    assinaturas.
+                  </p>
                 </div>
               ) : (
                 <div className="flex flex-col gap-3">
                   <div className="flex flex-col gap-1">
-                    <span className="text-[#6d7f3d] font-bold uppercase tracking-wider text-xs">Status Atual</span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#6d7f3d]">
+                      Status Atual
+                    </span>
                     <div className="flex items-center gap-2">
                       {membership.farm.subscriptionStatus === 'TRIALING' && (
                         <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
@@ -327,7 +344,9 @@ const EditableUserProfile: React.FC<EditableUserProfileProps> = ({ user }) => {
                           Pagamento Pendente
                         </span>
                       )}
-                      {!['TRIALING', 'ACTIVE', 'CANCELED', 'PAST_DUE'].includes(membership.farm.subscriptionStatus) && (
+                      {!['TRIALING', 'ACTIVE', 'CANCELED', 'PAST_DUE'].includes(
+                        membership.farm.subscriptionStatus
+                      ) && (
                         <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700 ring-1 ring-inset ring-gray-600/20">
                           Sem Assinatura Ativa
                         </span>
@@ -336,65 +355,91 @@ const EditableUserProfile: React.FC<EditableUserProfileProps> = ({ user }) => {
                   </div>
 
                   {membership.farm.subscriptionStatus === 'TRIALING' && (
-                    <p className="text-muted-foreground text-xs leading-relaxed">
-                      Sua fazenda está no período de avaliação de 30 dias. A cobrança do plano escolhido só será efetuada após o término do período de testes em <strong>{formatDate(membership.farm.trialEndsAt)}</strong>.
+                    <p className="text-xs leading-relaxed text-muted-foreground">
+                      Sua fazenda está no período de avaliação de 30 dias. A
+                      cobrança do plano escolhido só será efetuada após o
+                      término do período de testes em{' '}
+                      <strong>{formatDate(membership.farm.trialEndsAt)}</strong>
+                      .
                     </p>
                   )}
 
                   {membership.farm.subscriptionStatus === 'ACTIVE' && (
-                    <p className="text-muted-foreground text-xs leading-relaxed">
-                      Sua assinatura está ativa e regularizada. Obrigado por ser nosso cliente! Próximo vencimento em <strong>{formatDate(membership.farm.trialEndsAt)}</strong>.
+                    <p className="text-xs leading-relaxed text-muted-foreground">
+                      Sua assinatura está ativa e regularizada. Obrigado por ser
+                      nosso cliente! Próximo vencimento em{' '}
+                      <strong>{formatDate(membership.farm.trialEndsAt)}</strong>
+                      .
                     </p>
                   )}
 
                   {membership.farm.subscriptionStatus === 'PAST_DUE' && (
-                    <p className="text-amber-700 text-xs leading-relaxed font-medium">
-                      Atenção: Houve uma falha no processamento do seu pagamento. Por favor, selecione um plano abaixo ou atualize suas informações de faturamento no Stripe para evitar a suspensão do acesso.
+                    <p className="text-xs font-medium leading-relaxed text-amber-700">
+                      Atenção: Houve uma falha no processamento do seu
+                      pagamento. Por favor, selecione um plano abaixo ou
+                      atualize suas informações de faturamento no Stripe para
+                      evitar a suspensão do acesso.
                     </p>
                   )}
 
                   {membership.farm.subscriptionStatus === 'CANCELED' && (
-                    <p className="text-red-600 text-xs leading-relaxed font-medium">
-                      Sua assinatura foi cancelada. Seu acesso aos recursos avançados pode expirar ou ser suspenso em breve. Escolha um plano abaixo para reativá-la.
+                    <p className="text-xs font-medium leading-relaxed text-red-600">
+                      Sua assinatura foi cancelada. Seu acesso aos recursos
+                      avançados pode expirar ou ser suspenso em breve. Escolha
+                      um plano abaixo para reativá-la.
                     </p>
                   )}
 
-                  {!['TRIALING', 'ACTIVE', 'CANCELED', 'PAST_DUE'].includes(membership.farm.subscriptionStatus) && (
-                    <p className="text-muted-foreground text-xs leading-relaxed">
-                      Selecione um plano abaixo para iniciar seu período de testes gratuito de 30 dias e liberar o acesso total ao sistema de gestão AgroFinance.
+                  {!['TRIALING', 'ACTIVE', 'CANCELED', 'PAST_DUE'].includes(
+                    membership.farm.subscriptionStatus
+                  ) && (
+                    <p className="text-xs leading-relaxed text-muted-foreground">
+                      Selecione um plano abaixo para iniciar seu período de
+                      testes gratuito de 30 dias e liberar o acesso total ao
+                      sistema de gestão AgroFinance.
                     </p>
                   )}
 
                   {membership.farm.trialEndsAt && (
-                    <div className="text-xs border-t border-[#e1ded3] pt-3 mt-1 flex justify-between text-muted-foreground">
+                    <div className="mt-1 flex justify-between border-t border-[#e1ded3] pt-3 text-xs text-muted-foreground">
                       <span>Vencimento do Período/Cobrança:</span>
-                      <span className="font-semibold text-foreground">{formatDate(membership.farm.trialEndsAt)}</span>
+                      <span className="font-semibold text-foreground">
+                        {formatDate(membership.farm.trialEndsAt)}
+                      </span>
                     </div>
                   )}
 
                   {/* Gerenciamento de Planos */}
                   {membership.role === 'OWNER' ? (
-                    <div className="mt-4 pt-4 border-t border-[#e1ded3] flex flex-col gap-4">
+                    <div className="mt-4 flex flex-col gap-4 border-t border-[#e1ded3] pt-4">
                       <Button
                         type="button"
                         onClick={() => setShowPlans(!showPlans)}
                         className="w-full bg-[#49651f] text-white hover:bg-[#3f571b]"
                       >
-                        {showPlans ? 'Ocultar Planos de Assinatura' : 'Alterar / Escolher Novo Plano'}
+                        {showPlans
+                          ? 'Ocultar Planos de Assinatura'
+                          : 'Alterar / Escolher Novo Plano'}
                       </Button>
 
                       {showPlans && (
-                        <div className="mt-2 animate-in fade-in slide-in-from-top-4 duration-300 flex flex-col gap-4">
-                          <p className="text-xs text-muted-foreground leading-relaxed">
-                            Ao assinar ou alterar seu plano, você será redirecionado para o checkout seguro do Stripe. <strong>Lembre-se:</strong> a cobrança real só ocorrerá após o término dos 30 dias do período de avaliação. Se você já tem uma assinatura ativa, ela será substituída pela nova.
+                        <div className="mt-2 flex flex-col gap-4 duration-300 animate-in fade-in slide-in-from-top-4">
+                          <p className="text-xs leading-relaxed text-muted-foreground">
+                            Ao assinar ou alterar seu plano, você será
+                            redirecionado para o checkout seguro do Stripe.{' '}
+                            <strong>Lembre-se:</strong> a cobrança real só
+                            ocorrerá após o término dos 30 dias do período de
+                            avaliação. Se você já tem uma assinatura ativa, ela
+                            será substituída pela nova.
                           </p>
                           <BillingPlans plans={BILLING_PLANS} />
                         </div>
                       )}
                     </div>
                   ) : (
-                    <div className="mt-4 pt-4 border-t border-[#e1ded3] text-xs text-muted-foreground italic">
-                      Apenas o proprietário (OWNER) da fazenda pode alterar os planos e gerenciar o faturamento do Stripe.
+                    <div className="mt-4 border-t border-[#e1ded3] pt-4 text-xs italic text-muted-foreground">
+                      Apenas o proprietário (OWNER) da fazenda pode alterar os
+                      planos e gerenciar o faturamento do Stripe.
                     </div>
                   )}
                 </div>
