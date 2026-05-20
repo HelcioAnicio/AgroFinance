@@ -1,9 +1,7 @@
-import { authOptions } from '@/lib/auth';
 import { decrementExternalBullDosesForUsageDelta } from '@/lib/externalBullDoses';
-import { fetchUsers } from '@/lib/fetchData';
 import prisma from '@/lib/prisma';
+import { createAuditLog, requireFarmContext } from '@/lib/tenant';
 import { Prisma, WeightRecordType } from '@prisma/client';
-import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -789,24 +787,15 @@ function pickLookupByManual(
 }
 
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-  const users = await fetchUsers();
-  const userEmail = users.find((user) => user.email === session?.user?.email);
+  const { context, error, status } = await requireFarmContext('manage_animals');
 
-  if (!session || !userEmail) {
+  if (!context) {
     return NextResponse.json(
-      { success: false, error: 'Unauthorized' },
-      { status: 401 }
+      { success: false, error },
+      { status }
     );
   }
-
-  if (!userEmail.id) {
-    return NextResponse.json(
-      { success: false, error: 'User id not found' },
-      { status: 400 }
-    );
-  }
-  const ownerId = userEmail.id;
+  const ownerId = context.farm.ownerUserId;
 
   try {
     const body = await req.json();
@@ -827,7 +816,7 @@ export async function POST(req: Request) {
 
     const summary = await prisma.$transaction(async (tx) => {
       const existingAnimals = await tx.animal.findMany({
-        where: { ownerId },
+        where: { farmId: context.farm.id },
         select: {
           id: true,
           manualId: true,
@@ -901,7 +890,7 @@ export async function POST(req: Request) {
             Object.keys(dataForMutation).length > 0
               ? await tx.animal.update({
                   where: { id: existing.id },
-                  data: dataForMutation,
+                  data: { ...dataForMutation, farmId: context.farm.id },
                   select: {
                     id: true,
                     manualId: true,
@@ -944,6 +933,14 @@ export async function POST(req: Request) {
           animalsByManual.set(parsed.manualId, updatedAnimal);
           processedRows.push({ parsed, animalId: updatedAnimal.id });
           updated += 1;
+          await createAuditLog(tx, {
+            farmId: context.farm.id,
+            actorUserId: context.user.id,
+            action: 'animal.import_update',
+            entityType: 'Animal',
+            entityId: updatedAnimal.id,
+            after: JSON.parse(JSON.stringify(updatedAnimal)),
+          });
         } else {
           if (!hasCreateRequiredData(dataForMutation)) {
             skipped += 1;
@@ -969,6 +966,7 @@ export async function POST(req: Request) {
           const createData: Prisma.AnimalUncheckedCreateInput = {
             id: uuidv4(),
             ownerId,
+            farmId: context.farm.id,
             manualId: parsed.manualId,
             status,
             gender: String(dataForMutation.gender),
@@ -1073,6 +1071,14 @@ export async function POST(req: Request) {
           animalsByManual.set(parsed.manualId, createdAnimal);
           processedRows.push({ parsed, animalId: createdAnimal.id });
           created += 1;
+          await createAuditLog(tx, {
+            farmId: context.farm.id,
+            actorUserId: context.user.id,
+            action: 'animal.import_create',
+            entityType: 'Animal',
+            entityId: createdAnimal.id,
+            after: JSON.parse(JSON.stringify(createdAnimal)),
+          });
         }
 
         for (const message of parsed.issues) {

@@ -201,6 +201,67 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 2.75, 3, 3.25, 3.5, 3.75, 4, 5,
   ];
 
+  const PROFITABLE_GMD_THRESHOLD = 0.85;
+
+  const getWeightHistoriesWithDates = () => {
+    return (allDataForm.weightHistories ?? [])
+      .map((history) => ({
+        ...history,
+        measuredAt: new Date(history.measuredAt),
+      }))
+      .sort(
+        (a, b) =>
+          new Date(a.measuredAt).getTime() - new Date(b.measuredAt).getTime()
+      );
+  };
+
+  const weightGainIntervals = () => {
+    const sortedHistory = getWeightHistoriesWithDates();
+    return sortedHistory
+      .map((current, index, list) => {
+        if (index === 0) return null;
+        const previous = list[index - 1];
+        const timeDiff =
+          new Date(current.measuredAt).getTime() -
+          new Date(previous.measuredAt).getTime();
+        const days = timeDiff / (1000 * 60 * 60 * 24);
+        if (days <= 0) return null;
+
+        const gain = current.weight - previous.weight;
+        return {
+          from: previous,
+          to: current,
+          gain,
+          days,
+          gmd: gain / days,
+        };
+      })
+      .filter(Boolean) as Array<{
+      from: AnimalWeightHistory;
+      to: AnimalWeightHistory;
+      gain: number;
+      days: number;
+      gmd: number;
+    }>;
+  };
+
+  const averageGmd = (() => {
+    const intervals = weightGainIntervals();
+    if (!intervals.length) return null;
+    const total = intervals.reduce((sum, interval) => sum + interval.gmd, 0);
+    return total / intervals.length;
+  })();
+
+  const gmdStatus =
+    averageGmd !== null
+      ? averageGmd >= PROFITABLE_GMD_THRESHOLD
+        ? 'rentável financeiramente'
+        : 'não financeiramente rentável'
+      : null;
+
+  const formattedAverageGmd =
+    averageGmd !== null ? averageGmd.toFixed(3).replace('.', ',') : null;
+
   const handleBack = () => {
     router.back();
   };
@@ -587,7 +648,6 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
             </CardContent>
           </Card>
           <CardInformation allDataForm={allDataForm as Animal} />
-          <CardReproduction allDataForm={allDataForm as Animal} />
           <Card className="flex w-full max-w-lg flex-col gap-2 px-2 py-5">
             <CardHeader>
               <CardTitle className="text-base">Histórico de peso</CardTitle>
@@ -619,6 +679,44 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
               )}
             </CardContent>
           </Card>
+          <Card className="flex w-full max-w-lg flex-col gap-2 px-2 py-5">
+            <CardHeader>
+              <CardTitle className="text-base">
+                Ganho de massa diária (GMD)
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 px-1">
+              {formattedAverageGmd !== null ? (
+                <>
+                  <p>
+                    <strong>GMD médio:</strong> {formattedAverageGmd} Kg/dia
+                  </p>
+                  <p>
+                    <strong>Situação financeira:</strong>{' '}
+                    <span
+                      className={
+                        averageGmd && averageGmd >= PROFITABLE_GMD_THRESHOLD
+                          ? 'text-green-600'
+                          : 'text-red-600'
+                      }
+                    >
+                      {gmdStatus}
+                    </span>
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Para ser financeiramente rentável, o GMD ideal deve ficar
+                    acima de 0,850 Kg/dia.
+                  </p>
+                </>
+              ) : (
+                <span>
+                  Registre pelo menos duas pesagens para calcular o GMD entre as
+                  pesagens.
+                </span>
+              )}
+            </CardContent>
+          </Card>
+          <CardReproduction allDataForm={allDataForm as Animal} />
           <Card className="flex w-full max-w-lg flex-col gap-2 px-2 py-5">
             <CardHeader>
               <CardTitle className="text-base">
@@ -655,7 +753,23 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                       {new Date(history.lossDate).toLocaleDateString()}
                     </p>
                     <p>
+                      <strong>Data:</strong>{' '}
+                      {new Date(history.lossDate).toLocaleDateString()}
+                    </p>
+                    <p>
                       <strong>Motivo:</strong> {history.reason || 'N/A'}
+                    </p>
+                    <p>
+                      <strong>Origem do pai:</strong>{' '}
+                      {history.fatherType === 'external'
+                        ? 'Externo'
+                        : 'Interno'}
+                    </p>
+                    <p>
+                      <strong>Pai:</strong>{' '}
+                      {history.fatherType === 'external'
+                        ? (history.externalBull?.name ?? 'N/A')
+                        : (history.fatherAnimal?.manualId ?? 'N/A')}
                     </p>
                   </Card>
                 ))

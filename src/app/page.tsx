@@ -15,6 +15,7 @@ import {
 import { HeaderSimple } from '@/components/ui/headerSimple';
 import { Button } from '@/components/ui/button';
 import { authOptions } from '@/lib/auth';
+import { canFarmAccessDashboard, getCurrentFarmContext } from '@/lib/tenant';
 
 const modules = [
   {
@@ -73,7 +74,17 @@ export default async function Home() {
   const session = await getServerSession(authOptions);
 
   if (session) {
-    redirect('/dashboard');
+    const context = await getCurrentFarmContext();
+
+    if (context) {
+      if (!canFarmAccessDashboard(context.farm)) {
+        redirect('/billing');
+      }
+
+      redirect('/dashboard');
+    }
+
+    redirect('/login');
   }
 
   return (

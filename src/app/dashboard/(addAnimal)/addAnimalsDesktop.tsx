@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import React, { useState } from 'react';
 import {
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -161,38 +162,64 @@ export const AddAnimalDesktop: React.FC<AddAnimalProps> = ({
   };
 
   return (
-    <DialogContent>
+    <DialogContent className="max-h-[92vh] overflow-y-auto border-none bg-[#f8f7f4] p-0 shadow-2xl sm:max-w-4xl">
       <Tabs key={tabValue} value={tabValue} onValueChange={setTabValue}>
-        <DialogHeader className="mt-5 border">
-          <DialogTitle className="flex justify-center">
-            <TabsList>
-              <TabsTrigger value="principais">Principais</TabsTrigger>
-              <TabsTrigger value="reproducao">Reprodução</TabsTrigger>
+        <DialogHeader className="space-y-4 border-b border-border/70 px-6 pb-5 pt-6 sm:px-8">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div className="space-y-2 text-left">
+              <DialogTitle className="text-2xl font-bold text-foreground">
+                Adicionar Novo Animal
+              </DialogTitle>
+              <DialogDescription className="max-w-md text-sm text-muted-foreground">
+                Insira os dados tecnicos para registrar o animal na propriedade.
+              </DialogDescription>
+            </div>
+            <TabsList className="grid h-auto w-full grid-cols-2 gap-2 bg-transparent p-0 sm:w-[22rem]">
+              <TabsTrigger
+                value="principais"
+                className="h-12 justify-start gap-2 rounded-md border border-transparent bg-white px-4 text-xs font-semibold text-muted-foreground shadow-sm data-[state=active]:border-primary data-[state=active]:bg-white data-[state=active]:text-primary"
+              >
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-[0.7rem] text-primary">
+                  1
+                </span>
+                Principais
+              </TabsTrigger>
+              <TabsTrigger
+                value="reproducao"
+                className="h-12 justify-start gap-2 rounded-md border border-transparent bg-white px-4 text-xs font-semibold text-muted-foreground shadow-sm data-[state=active]:border-primary data-[state=active]:bg-white data-[state=active]:text-primary"
+              >
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-[0.7rem] text-primary">
+                  2
+                </span>
+                Reprodução
+              </TabsTrigger>
             </TabsList>
-          </DialogTitle>
+          </div>
         </DialogHeader>
-        <TabsContent value="principais">
-          <CardFormMain
-            animals={animals}
-            handleInputValues={handleInputValues}
-            allDataForm={allDataForm}
-            setTabValue={setTabValue}
-            breedArray={breedArray}
-            setAllDataForm={setAllDataForm}
-          />
-        </TabsContent>
+        <div className="px-6 py-6 sm:px-8">
+          <TabsContent value="principais" className="mt-0">
+            <CardFormMain
+              animals={animals}
+              handleInputValues={handleInputValues}
+              allDataForm={allDataForm}
+              setTabValue={setTabValue}
+              breedArray={breedArray}
+              setAllDataForm={setAllDataForm}
+            />
+          </TabsContent>
 
-        <TabsContent value="reproducao">
-          <CardFormReproduction
-            animals={animals}
-            externalBulls={externalBulls}
-            handleInputValues={handleInputValues}
-            allDataForm={allDataForm}
-            submitForm={submitForm}
-            setTabValue={setTabValue}
-            setAllDataForm={setAllDataForm}
-          />
-        </TabsContent>
+          <TabsContent value="reproducao" className="mt-0">
+            <CardFormReproduction
+              animals={animals}
+              externalBulls={externalBulls}
+              handleInputValues={handleInputValues}
+              allDataForm={allDataForm}
+              submitForm={submitForm}
+              setTabValue={setTabValue}
+              setAllDataForm={setAllDataForm}
+            />
+          </TabsContent>
+        </div>
       </Tabs>
     </DialogContent>
   );

@@ -1,26 +1,32 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import {
   fetchUsers,
   fetchAnimals,
   fetchLivestockStats,
   fetchExternalBulls,
 } from '@/lib/fetchData';
+import { requireFarmContext } from '@/lib/tenant';
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
+    const { context, error, status } = await requireFarmContext('view_animals');
+    if (!context) return NextResponse.json({ error }, { status });
+
     const users = await fetchUsers();
-    const userEmail = users.find((user) => user.email === session?.user?.email);
-    const ownerId = userEmail?.id ?? undefined;
     const [animals, livestockStats, externalBulls] = await Promise.all([
-      fetchAnimals(ownerId),
-      fetchLivestockStats(ownerId),
-      fetchExternalBulls(ownerId),
+      fetchAnimals(context.user.id, context.farm.id),
+      fetchLivestockStats(context.user.id, context.farm.id),
+      fetchExternalBulls(context.user.id, context.farm.id),
     ]);
 
-    return NextResponse.json({ animals, users, livestockStats, externalBulls });
+    return NextResponse.json({
+      animals,
+      users,
+      livestockStats,
+      externalBulls,
+      farm: context.farm,
+      role: context.role,
+    });
   } catch (error) {
     console.error('Error fetching dashboard table data:', error);
     return NextResponse.json(

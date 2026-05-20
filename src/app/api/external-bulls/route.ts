@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { fetchUsers } from '@/lib/fetchData';
 import prisma from '@/lib/prisma';
+import { requireFarmContext } from '@/lib/tenant';
 
 function parseBatchesInput(value: unknown): string[] {
   if (Array.isArray(value)) {
@@ -33,13 +31,13 @@ function validateExternalBullInput(input: {
   const sourceCompany = String(input.sourceCompany ?? '').trim();
   const dosesAvailable = Number(input.dosesAvailable);
 
-  if (!name) errors.push('Nome do touro é obrigatório.');
-  if (!breed) errors.push('Raça é obrigatória.');
-  if (!sourceCompany) errors.push('Empresa de origem é obrigatória.');
+  if (!name) errors.push('Nome do touro e obrigatorio.');
+  if (!breed) errors.push('Raca e obrigatoria.');
+  if (!sourceCompany) errors.push('Empresa de origem e obrigatoria.');
   if (batches.length === 0) errors.push('Informe ao menos uma partida.');
   if (!Number.isInteger(dosesAvailable) || dosesAvailable < 0) {
     errors.push(
-      'Quantidade de doses deve ser um número inteiro maior ou igual a zero.'
+      'Quantidade de doses deve ser um numero inteiro maior ou igual a zero.'
     );
   }
 
@@ -55,25 +53,12 @@ function validateExternalBullInput(input: {
   };
 }
 
-async function getOwnerId() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.email) return null;
-
-  const users = await fetchUsers();
-  const user = users.find((u) => u.email === session.user?.email);
-
-  return user?.id ?? null;
-}
-
 export async function GET() {
-  const ownerId = await getOwnerId();
-
-  if (!ownerId) {
-    return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
-  }
+  const { context, error, status } = await requireFarmContext('view_animals');
+  if (!context) return NextResponse.json({ error }, { status });
 
   const externalBulls = await prisma.externalBull.findMany({
-    where: { ownerId },
+    where: { farmId: context.farm.id },
     orderBy: { createdAt: 'desc' },
   });
 
@@ -81,11 +66,9 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const ownerId = await getOwnerId();
-
-  if (!ownerId) {
-    return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
-  }
+  const { context, error, status } =
+    await requireFarmContext('manage_animals');
+  if (!context) return NextResponse.json({ error }, { status });
 
   const body = await req.json();
   const { errors, data } = validateExternalBullInput(body);
@@ -97,7 +80,8 @@ export async function POST(req: NextRequest) {
   const externalBull = await prisma.externalBull.create({
     data: {
       ...data,
-      ownerId,
+      ownerId: context.farm.ownerUserId,
+      farmId: context.farm.id,
     },
   });
 
@@ -108,17 +92,15 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
-  const ownerId = await getOwnerId();
-
-  if (!ownerId) {
-    return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
-  }
+  const { context, error, status } =
+    await requireFarmContext('manage_animals');
+  if (!context) return NextResponse.json({ error }, { status });
 
   const body = await req.json();
   const id = String(body.id ?? '').trim();
 
   if (!id) {
-    return NextResponse.json({ error: 'ID não informado.' }, { status: 400 });
+    return NextResponse.json({ error: 'ID nao informado.' }, { status: 400 });
   }
 
   const { errors, data } = validateExternalBullInput(body);
@@ -128,13 +110,13 @@ export async function PUT(req: NextRequest) {
   }
 
   const existingExternalBull = await prisma.externalBull.findFirst({
-    where: { id, ownerId },
+    where: { id, farmId: context.farm.id },
     select: { id: true },
   });
 
   if (!existingExternalBull) {
     return NextResponse.json(
-      { error: 'Touro externo não encontrado.' },
+      { error: 'Touro externo nao encontrado.' },
       { status: 404 }
     );
   }
@@ -151,27 +133,25 @@ export async function PUT(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  const ownerId = await getOwnerId();
-
-  if (!ownerId) {
-    return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
-  }
+  const { context, error, status } =
+    await requireFarmContext('manage_animals');
+  if (!context) return NextResponse.json({ error }, { status });
 
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id');
 
   if (!id) {
-    return NextResponse.json({ error: 'ID não informado.' }, { status: 400 });
+    return NextResponse.json({ error: 'ID nao informado.' }, { status: 400 });
   }
 
   const existingExternalBull = await prisma.externalBull.findFirst({
-    where: { id, ownerId },
+    where: { id, farmId: context.farm.id },
     select: { id: true },
   });
 
   if (!existingExternalBull) {
     return NextResponse.json(
-      { error: 'Touro externo não encontrado.' },
+      { error: 'Touro externo nao encontrado.' },
       { status: 404 }
     );
   }

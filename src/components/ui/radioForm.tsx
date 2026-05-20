@@ -23,8 +23,9 @@ export const RadioForm: React.FC<RadioFormProps> = ({
 }) => {
   return (
     <>
-      <div className="flex items-center gap-1">
+      <div className="flex h-11 items-center gap-2 rounded-md border border-border bg-background px-3 text-sm shadow-sm">
         <input
+          className="h-4 w-4 accent-primary"
           type={type}
           name={name}
           id={id}
@@ -33,7 +34,7 @@ export const RadioForm: React.FC<RadioFormProps> = ({
           required
           onChange={onChange}
         />
-        <label htmlFor={htmlFor} className="py-2">
+        <label htmlFor={htmlFor} className="flex-1 py-2">
           {label}
         </label>
       </div>

@@ -6,6 +6,7 @@ import {
   parseWeightRecordType,
 } from '@/lib/weightHistory';
 import { decrementExternalBullDosesForUsageDelta } from '@/lib/externalBullDoses';
+import { createAuditLog, requireFarmContext } from '@/lib/tenant';
 
 const createCalfLossHistorySafely = async (payload: {
   animalId: string;
@@ -41,6 +42,10 @@ const createCalfLossHistorySafely = async (payload: {
 
 export async function PUT(req: Request) {
   try {
+    const { context, error, status } =
+      await requireFarmContext('manage_animals');
+    if (!context) return NextResponse.json({ error }, { status });
+
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
     const allDataForm = await req.json();
@@ -69,6 +74,7 @@ export async function PUT(req: Request) {
       'vaccines',
       'weightHistories',
       'calfLossHistories',
+      'farm',
       'createdAt',
     ];
     fieldsToRemove.forEach((field) => delete allDataForm[field]);
@@ -82,6 +88,8 @@ export async function PUT(req: Request) {
     delete allDataForm.weightRecordDate;
     delete allDataForm.statusChangeDate;
     delete allDataForm.calfLossEvent;
+    delete allDataForm.ownerId;
+    delete allDataForm.farmId;
 
     if (allDataForm.bodyConditionScore !== null) {
       allDataForm.bodyConditionScore = Number(allDataForm.bodyConditionScore);
@@ -112,10 +120,11 @@ export async function PUT(req: Request) {
         ownerId: true,
         externalBullId: true,
         externalBullIatfId: true,
+        farmId: true,
       },
     });
 
-    if (!existingAnimal) {
+    if (!existingAnimal || existingAnimal.farmId !== context.farm.id) {
       return NextResponse.json(
         { message: 'Animal nao encontrado' },
         { status: 404 }
@@ -132,7 +141,7 @@ export async function PUT(req: Request) {
 
       const updatedAnimal = await tx.animal.update({
         where: { id: allDataForm.id },
-        data: allDataForm,
+        data: { ...allDataForm, farmId: context.farm.id },
       });
 
       const hasWeightChanged =
@@ -196,6 +205,16 @@ export async function PUT(req: Request) {
           });
         }
       }
+
+      await createAuditLog(tx, {
+        farmId: context.farm.id,
+        actorUserId: context.user.id,
+        action: 'animal.update',
+        entityType: 'Animal',
+        entityId: updatedAnimal.id,
+        before: JSON.parse(JSON.stringify(existingAnimal)),
+        after: JSON.parse(JSON.stringify(updatedAnimal)),
+      });
 
       return updatedAnimal;
     });

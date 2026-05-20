@@ -1,5 +1,6 @@
 'use client';
 
+import { ArrowRight, RotateCcw, SquarePen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import React, { useEffect, useState } from 'react';
@@ -150,51 +151,62 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
   }, [allDataForm.gender, isReproductive]);
 
   return (
-    <Card className="min-h-80">
-      <CardHeader className="py-2">
-        <CardTitle>Informações principais</CardTitle>
+    <Card className="border-none bg-transparent shadow-none">
+      <CardHeader className="rounded-md border border-border/70 bg-white px-4 py-4 shadow-sm">
+        <CardTitle className="flex items-center gap-3 text-base font-bold">
+          <span className="flex h-9 w-9 items-center justify-center rounded-md bg-primary/10 text-primary">
+            <SquarePen className="h-4 w-4" />
+          </span>
+          Etapa 1: Informações Principais
+        </CardTitle>
       </CardHeader>
-      <CardContent className="p-1">
+      <CardContent className="px-0 pt-4">
         <form action="" method="post" onSubmit={sendForm}>
-          <section className="flex flex-col gap-4">
-            <InputForm
-              classNameDiv="flex items-end gap-1"
-              htmlFor="manualId"
-              label="Id do animal:"
-              type="text"
-              name="manualId"
-              id="manualId"
-              value={allDataForm.manualId ?? ''}
-              onChange={handleInputValues}
-            />
+          <section className="flex flex-col gap-5">
+            <div className="grid gap-4 rounded-md border border-border/70 bg-white p-4 shadow-sm sm:grid-cols-2">
+              <InputForm
+                htmlFor="manualId"
+                label="Id do animal:"
+                type="text"
+                name="manualId"
+                id="manualId"
+                value={allDataForm.manualId ?? ''}
+                onChange={handleInputValues}
+              />
 
-            <div className="flex items-center gap-5">
-              <div className="flex items-center gap-2">
-                <span className="text-secondary">Sexo:</span>
-                <RadioForm
-                  htmlFor="female"
-                  label="Fêmea"
-                  type="radio"
-                  name="gender"
-                  id="female"
-                  value="female"
-                  checked={allDataForm.gender === 'female'}
-                  onChange={handleInputValues}
-                />
-                <RadioForm
-                  htmlFor="male"
-                  label="Macho"
-                  type="radio"
-                  name="gender"
-                  id="male"
-                  value="male"
-                  checked={allDataForm.gender === 'male'}
-                  onChange={handleInputValues}
-                />
+              <div className="flex flex-col gap-2">
+                <span className="text-[0.7rem] font-semibold uppercase text-muted-foreground">
+                  Sexo:
+                </span>
+                <div className="grid grid-cols-2 gap-2">
+                  <RadioForm
+                    htmlFor="female"
+                    label="Fêmea"
+                    type="radio"
+                    name="gender"
+                    id="female"
+                    value="female"
+                    checked={allDataForm.gender === 'female'}
+                    onChange={handleInputValues}
+                  />
+                  <RadioForm
+                    htmlFor="male"
+                    label="Macho"
+                    type="radio"
+                    name="gender"
+                    id="male"
+                    value="male"
+                    checked={allDataForm.gender === 'male'}
+                    onChange={handleInputValues}
+                  />
+                </div>
               </div>
-              <div className="flex flex-col items-start gap-1 text-xs">
-                <span className="text-secondary">Reprodutivo:</span>
-                <label className="flex items-center gap-1">
+
+              <div className="flex flex-col gap-2">
+                <span className="text-[0.7rem] font-semibold uppercase text-muted-foreground">
+                  Reprodutivo:
+                </span>
+                <label className="flex h-11 items-center gap-2 rounded-md border border-border bg-background px-3 text-sm shadow-sm">
                   <input
                     type="checkbox"
                     id="isReproductive"
@@ -206,7 +218,7 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                     disabled={
                       !allDataForm.gender || allDataForm.gender !== 'male'
                     }
-                    className="h-4 w-4"
+                    className="h-4 w-4 accent-primary"
                   />
                   <span
                     className={
@@ -219,9 +231,7 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                   </span>
                 </label>
               </div>
-            </div>
 
-            <div className="flex items-end gap-4">
               <SelectForm
                 htmlFor="status"
                 label="Status:"
@@ -273,7 +283,7 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 rounded-md border border-border/70 bg-white p-4 shadow-sm sm:grid-cols-2">
               <InputForm
                 classNameInput="max-w-none"
                 htmlFor="birthDate"
@@ -292,8 +302,6 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
               />
 
               <InputForm
-                classNameDiv="flex flex-col"
-                classNameInput="max-w-28"
                 htmlFor="weight"
                 label="Peso:"
                 type="number"
@@ -343,10 +351,12 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                 defaultOption="Escolha a raça"
               />
 
-              <div className="flex flex-col gap-1">
-                <span className="text-secondary">Categoria:</span>
+              <div className="flex flex-col gap-1.5">
+                <span className="text-[0.7rem] font-semibold uppercase text-muted-foreground">
+                  Categoria:
+                </span>
 
-                <p>
+                <p className="flex h-11 items-center rounded-md border border-dashed border-primary/30 bg-primary/5 px-3 text-sm font-semibold text-primary">
                   {allDataForm.category === 'neonate'
                     ? 'Neonate'
                     : allDataForm.category === 'calf'
@@ -422,14 +432,20 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                 defaultOption="Escolha o pai"
               />
             </div>
-            <div className="flex w-full flex-row justify-end gap-5">
+            <div className="flex w-full flex-col-reverse gap-3 border-t border-border/70 pt-5 sm:flex-row sm:justify-end">
               <Button
-                className="bg-card text-card-foreground hover:bg-primary-foreground"
+                type="button"
+                variant="outline"
+                className="gap-2 bg-white"
                 onClick={() => cleanAllDataForm()}
               >
+                <RotateCcw className="h-4 w-4" />
                 Cancelar
               </Button>
-              <Button type="submit">Próximo</Button>
+              <Button type="submit" className="gap-2">
+                Próximo
+                <ArrowRight className="h-4 w-4" />
+              </Button>
             </div>
           </section>
         </form>

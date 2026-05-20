@@ -1,3 +1,5 @@
+import { cn } from '@/lib/utils';
+
 interface SelectFormProps {
   classNameDiv?: string;
   classNameInput?: string;
@@ -26,8 +28,11 @@ export const SelectForm: React.FC<SelectFormProps> = ({
   classNameInput,
 }) => {
   return (
-    <div className={`flex flex-col gap-1 ${classNameDiv}`}>
-      <label className="text-secondary" htmlFor={htmlFor}>
+    <div className={cn('flex flex-col gap-1.5', classNameDiv)}>
+      <label
+        className="text-[0.7rem] font-semibold uppercase text-muted-foreground"
+        htmlFor={htmlFor}
+      >
         {label}
       </label>
       <select
@@ -37,7 +42,10 @@ export const SelectForm: React.FC<SelectFormProps> = ({
         onChange={onChange}
         required
         disabled={disabled}
-        className={`min-w-max flex-1 border border-b border-b-primary bg-transparent outline-none ${classNameInput}`}
+        className={cn(
+          'h-11 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground shadow-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground',
+          classNameInput
+        )}
       >
         <option value="" disabled>
           {defaultOption}

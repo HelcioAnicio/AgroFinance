@@ -1,7 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { fetchUsers } from '@/lib/fetchData';
 import prisma from '@/lib/prisma';
 import { v4 as uuidv4 } from 'uuid';
 import {
@@ -9,17 +6,13 @@ import {
   parseWeightRecordType,
 } from '@/lib/weightHistory';
 import { decrementExternalBullDosesForUsageDelta } from '@/lib/externalBullDoses';
+import { createAuditLog, requireFarmContext } from '@/lib/tenant';
 
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session)
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const { context, error, status } = await requireFarmContext('manage_animals');
+  if (!context) return NextResponse.json({ error }, { status });
 
-  const users = await fetchUsers();
-  const user = users.find((u) => u.email === session.user?.email);
-  const ownerId = user?.id;
-  if (!user || !ownerId)
-    return NextResponse.json({ error: 'User not found' }, { status: 404 });
+  const ownerId = context.farm.ownerUserId;
 
   try {
     const json = await req.json();
@@ -38,6 +31,8 @@ export async function POST(req: NextRequest) {
       statusChangeDate,
       ...animalData
     } = allDataForm;
+    animalData.ownerId = ownerId;
+    animalData.farmId = context.farm.id;
 
     const createAnimal = await prisma.$transaction(async (tx) => {
       const animal = await tx.animal.create({ data: animalData });
@@ -75,6 +70,15 @@ export async function POST(req: NextRequest) {
           month: changedAt.getMonth() + 1,
           reason: 'animal_creation',
         },
+      });
+
+      await createAuditLog(tx, {
+        farmId: context.farm.id,
+        actorUserId: context.user.id,
+        action: 'animal.create',
+        entityType: 'Animal',
+        entityId: animal.id,
+        after: JSON.parse(JSON.stringify(animal)),
       });
 
       return animal;

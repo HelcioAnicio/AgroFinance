@@ -11,6 +11,8 @@ import { Notification } from '@/types/notification';
 import { CgProfile } from 'react-icons/cg';
 import { FaRegMoneyBillAlt } from 'react-icons/fa';
 import { IoMaleFemaleSharp } from 'react-icons/io5';
+import { Users } from 'lucide-react';
+import { GiCow } from 'react-icons/gi';
 
 interface TableProps {
   notifications: Notification[];
@@ -25,8 +27,8 @@ export const Header: React.FC<TableProps> = ({ notifications }) => {
 
   return (
     <header className="flex w-full items-center justify-between p-2">
-      <nav className="flex w-auto lg:w-full">
-        <ul className="flex items-center gap-8">
+      <nav className="flex w-full">
+        <ul className="flex w-full max-w-3xl items-center justify-evenly gap-8">
           <li>
             <Link href={'/dashboard'}>
               <Image
@@ -39,15 +41,15 @@ export const Header: React.FC<TableProps> = ({ notifications }) => {
               />
             </Link>
           </li>
-          {/* <li>
+          <li>
             <Link
-              href={'/dashboard/reproduction/management'}
-              className="relative flex items-center gap-1 transition-all duration-300 after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-foreground after:transition-all after:duration-300 hover:text-secondary hover:after:w-full"
+              href={'/dashboard/'}
+              className="relative hidden items-center gap-1 transition-all duration-300 after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-foreground after:transition-all after:duration-300 hover:text-secondary hover:after:w-full lg:flex"
             >
-              <IoMaleFemaleSharp size={20} />
-              Manejo
+              <GiCow size={20} />
+              Animais
             </Link>
-          </li> */}
+          </li>
           <li className="hidden lg:block">
             <Link
               href={'/dashboard/reproduction/'}
@@ -74,10 +76,19 @@ export const Header: React.FC<TableProps> = ({ notifications }) => {
               Perfil
             </Link>
           </li>
+          <li className="hidden lg:block">
+            <Link
+              href={'/dashboard/team'}
+              className="relative hidden items-center gap-1 transition-all duration-300 after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-foreground after:transition-all after:duration-300 hover:text-secondary hover:after:w-full lg:flex"
+            >
+              <Users size={20} />
+              Equipe
+            </Link>
+          </li>
         </ul>
       </nav>
 
-      <nav className="flex w-full flex-col items-end gap-4">
+      <div className="flex w-full max-w-xs flex-1 flex-col items-end gap-10">
         {status === 'authenticated' && (
           <div className="flex items-center gap-3">
             <Link href={'/dashboard/profile'}>
@@ -94,7 +105,7 @@ export const Header: React.FC<TableProps> = ({ notifications }) => {
                 </Avatar>
               </div>
             </Link>
-            <Button className="p-1" onClick={handleLogoutClick}>
+            <Button className="px-5 py-1" onClick={handleLogoutClick}>
               Sair
             </Button>
             <NotificationComponent notifications={notifications} />
@@ -116,7 +127,7 @@ export const Header: React.FC<TableProps> = ({ notifications }) => {
             </Button>
           </div>
         )}
-      </nav>
+      </div>
     </header>
   );
 };

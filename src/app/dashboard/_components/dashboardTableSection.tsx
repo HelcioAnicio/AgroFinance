@@ -1,20 +1,21 @@
 import { cache } from 'react';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import { fetchUsers, fetchAnimals, fetchExternalBulls } from '@/lib/fetchData';
 import { Table } from '@/components/ui/table';
+import { requireFarmContext } from '@/lib/tenant';
 
-const getCachedSession = cache(() => getServerSession(authOptions));
 const getCachedUsers = cache(fetchUsers);
 
 export async function DashboardTableSection() {
-  const [session, users] = await Promise.all([
-    getCachedSession(),
+  const [{ context }, users] = await Promise.all([
+    requireFarmContext('view_animals'),
     getCachedUsers(),
   ]);
-  const userEmail = users.find((user) => user.email === session?.user?.email);
-  const animals = await fetchAnimals(userEmail?.id ?? undefined);
-  const externalBulls = await fetchExternalBulls(userEmail?.id ?? undefined);
+
+  const animals = await fetchAnimals(context?.user.id, context?.farm.id);
+  const externalBulls = await fetchExternalBulls(
+    context?.user.id,
+    context?.farm.id
+  );
 
   return (
     <Table animals={animals} users={users} externalBulls={externalBulls} />

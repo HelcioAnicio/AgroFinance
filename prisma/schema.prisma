@@ -5,11 +5,11 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
-  id            String          @id @default(uuid())
+  id            String          @id @default(dbgenerated("gen_random_uuid()"))
   name          String
   email         String          @unique
   cnpj          String?         @unique
@@ -25,8 +25,106 @@ model User {
   animalStatusHistories AnimalStatusHistory[]
   calfLossHistories AnimalCalfLossHistory[]
   externalBulls ExternalBull[]
+  farmMemberships FarmMembership[]
+  sentFarmInvites FarmInvite[] @relation("FarmInviteInviter")
+  auditLogs     AuditLog[]
   transactions  Transaction[]
   sessions      Session[]
+}
+
+enum FarmRole {
+  OWNER
+  EMPLOYEE
+  CAREGIVER_VETERINARIAN
+  FINANCIAL
+}
+
+enum FarmInviteStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+  EXPIRED
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  INCOMPLETE
+}
+
+model Farm {
+  id                    String          @id @default(dbgenerated("gen_random_uuid()"))
+  name                  String
+  ownerUserId           String
+  trialStartedAt        DateTime        @default(now())
+  trialEndsAt           DateTime
+  stripeCustomerId      String?
+  stripeSubscriptionId  String?
+  subscriptionStatus    SubscriptionStatus @default(TRIALING)
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+  animals               Animal[]
+  externalBulls         ExternalBull[]
+  transactions          Transaction[]
+  memberships           FarmMembership[]
+  invites               FarmInvite[]
+  auditLogs             AuditLog[]
+
+  @@index([ownerUserId])
+}
+
+model FarmMembership {
+  id        String   @id @default(dbgenerated("gen_random_uuid()"))
+  farmId    String
+  userId    String
+  role      FarmRole @default(OWNER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  farm      Farm     @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([farmId, userId])
+  @@index([userId])
+}
+
+model FarmInvite {
+  id             String           @id @default(dbgenerated("gen_random_uuid()"))
+  farmId         String
+  email          String
+  role           FarmRole
+  token          String           @unique
+  status         FarmInviteStatus @default(PENDING)
+  invitedById    String
+  acceptedById   String?
+  expiresAt      DateTime
+  acceptedAt     DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  farm           Farm             @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  invitedBy      User             @relation("FarmInviteInviter", fields: [invitedById], references: [id], onDelete: Cascade)
+
+  @@index([farmId, status])
+  @@index([email])
+}
+
+model AuditLog {
+  id          String   @id @default(dbgenerated("gen_random_uuid()"))
+  farmId      String
+  actorUserId String?
+  action      String
+  entityType  String
+  entityId    String?
+  before      Json?
+  after       Json?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  farm        Farm     @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  actor       User?    @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([farmId, createdAt])
+  @@index([entityType, entityId])
 }
 
 model Animal {
@@ -49,6 +147,7 @@ model Animal {
   bodyConditionScore    Float?
   observations          String?
   ownerId               String
+  farmId                String?
   createdAt             DateTime       @default(now())
   updatedAt             DateTime       @updatedAt
   dewormingDate         DateTime?
@@ -68,6 +167,7 @@ model Animal {
   mother                Animal?        @relation("MotherOffspring", fields: [motherId], references: [id])
   offspringFromMother   Animal[]       @relation("MotherOffspring")
   owner                 User           @relation(fields: [ownerId], references: [id])
+  farm                  Farm?          @relation(fields: [farmId], references: [id], onDelete: SetNull)
   bullIatfRel           Animal?        @relation("BullIatfHandling", fields: [bullIatfId], references: [id])
   offspringFromBullIatf Animal[]       @relation("BullIatfHandling")
   externalBull          ExternalBull?  @relation("ExternalBullHandling", fields: [externalBullId], references: [id])
@@ -83,6 +183,7 @@ model Animal {
   reproductionManagements ReproductionManagement[]
 
   @@unique([manualId, ownerId])
+  @@index([farmId])
 }
 
 model ExternalBull {
@@ -93,14 +194,17 @@ model ExternalBull {
   sourceCompany    String
   dosesAvailable   Int
   ownerId          String
+  farmId           String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   owner            User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  farm             Farm?    @relation(fields: [farmId], references: [id], onDelete: SetNull)
   usedInHandling   Animal[] @relation("ExternalBullHandling")
   usedInIatf       Animal[] @relation("ExternalBullIatfHandling")
   calfLossHistories AnimalCalfLossHistory[]
 
   @@index([ownerId])
+  @@index([farmId])
 }
 
 model AnimalCalfLossHistory {
@@ -194,7 +298,7 @@ model Vaccine {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   expiryDate  DateTime
-  id          String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id          String   @id @default(dbgenerated("gen_random_uuid()"))
   animal      Animal   @relation("AnimalVaccines", fields: [animalId], references: [id])
 
 }
@@ -265,15 +369,16 @@ model Notification {
   notifyAt  DateTime @db.Timestamp(6)
   read      Boolean  @default(false)
   userId    String
-  animalId  String
+  animalId  String?
   createdAt DateTime @default(now()) @db.Timestamp(6)
-  Animal    Animal   @relation(fields: [animalId], references: [id], onDelete: Cascade, map: "fk_notification_animal")
+  Animal    Animal?  @relation(fields: [animalId], references: [id], onDelete: Cascade, map: "fk_notification_animal")
   User      User     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "fk_notification_user")
 }
 
 model Transaction {
   id          String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userId      String          @map("userId")
+  farmId      String?
   type        TransactionType
   category    String
   amount      Decimal         @db.Decimal(14, 2)
@@ -283,8 +388,10 @@ model Transaction {
   createdAt   DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt   DateTime        @default(now()) @map("updated_at") @db.Timestamptz(6)
   user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  farm        Farm?           @relation(fields: [farmId], references: [id], onDelete: SetNull)
 
   @@index([userId], map: "transactions_user_id_idx")
+  @@index([farmId], map: "transactions_farm_id_idx")
   @@index([userId, date(sort: Desc)], map: "transactions_user_id_date_idx")
   @@index([userId, type], map: "transactions_user_id_type_idx")
   @@map("transactions")

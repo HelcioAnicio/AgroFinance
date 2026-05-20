@@ -112,7 +112,7 @@ export const NotificationComponent: React.FC<TableProps> = ({
               className={`flex w-full items-center justify-between gap-2 text-xs ${notification.read === false ? 'bg-secondary text-background hover:bg-secondary' : 'bg-background hover:bg-background'}`}
             >
               <Link
-                href={`/dashboard/${notification.animalId}`}
+                href={notification.animalId ? `/dashboard/${notification.animalId}` : `/dashboard/profile`}
                 className="flex min-w-0 flex-1 items-center gap-2"
                 onClick={() => handleStateRead(notification)}
               >

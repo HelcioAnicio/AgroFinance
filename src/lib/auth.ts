@@ -47,6 +47,37 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: 'jwt',
   },
+  events: {
+    async createUser({ user }) {
+      if (!user.id || !user.email) return;
+
+      const existingMembership = await prisma.farmMembership.findFirst({
+        where: { userId: user.id },
+        select: { id: true },
+      });
+
+      if (existingMembership) return;
+
+      const trialEndsAt = new Date();
+
+      const farm = await prisma.farm.create({
+        data: {
+          name: user.name ? `${user.name} Fazenda` : 'Minha Fazenda',
+          ownerUserId: user.id,
+          trialEndsAt,
+          subscriptionStatus: 'INCOMPLETE',
+        },
+      });
+
+      await prisma.farmMembership.create({
+        data: {
+          farmId: farm.id,
+          userId: user.id,
+          role: 'OWNER',
+        },
+      });
+    },
+  },
   // pages: {
   //   signIn: '/login',
   // },

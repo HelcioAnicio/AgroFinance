@@ -38,7 +38,7 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
 
   return (
     <>
-      <article className="flex flex-wrap gap-5">
+      <article className="mt-4 grid gap-4 sm:grid-cols-2">
         <SelectForm
           htmlFor="handlingType"
           label="Manejo utilizado:"
@@ -58,7 +58,7 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
         />
       </article>
 
-      <article className="flex flex-wrap gap-2 md:gap-10">
+      <article className="mt-4 grid gap-4 sm:grid-cols-2">
         <SelectForm
           htmlFor="bullId"
           label="Touro utilizado:"
@@ -92,10 +92,12 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
         />
       </article>
 
-      <article className="flex flex-wrap gap-5">
+      <article className="mt-4 grid gap-4 sm:grid-cols-2">
         <div className="flex flex-col">
-          <p className="text-secondary">Sexo Fetal:</p>
-          <div className="flex items-center gap-4">
+          <p className="text-[0.7rem] font-semibold uppercase text-muted-foreground">
+            Sexo Fetal:
+          </p>
+          <div className="mt-1.5 grid grid-cols-2 gap-2">
             <RadioForm
               htmlFor="female"
               label="Fêmea"
@@ -120,10 +122,8 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
         </div>
       </article>
 
-      <article className="flex flex-wrap gap-5">
+      <article className="mt-4 grid gap-4 sm:grid-cols-2">
         <InputForm
-          classNameDiv="flex flex-col gap-1"
-          classNameInput="max-w-40"
           htmlFor="expectedDueDate"
           label="Data prevista para o parto:"
           type="date"

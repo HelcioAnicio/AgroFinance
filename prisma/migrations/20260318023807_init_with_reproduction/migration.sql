@@ -1,3 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 -- CreateEnum
 CREATE TYPE "WeightRecordType" AS ENUM ('PN', 'PS', 'PD', 'PA', 'OTHER');
 
