@@ -8,38 +8,38 @@ import { Users } from 'lucide-react';
 export const MenuNavegation = () => {
   return (
     <footer className="fixed inset-x-0 bottom-0 z-50 h-[calc(4rem+env(safe-area-inset-bottom))] w-full rounded-t-3xl bg-primary pb-[env(safe-area-inset-bottom)] lg:hidden">
-      <section className="relative z-20 mx-auto mt-2 flex max-w-xs justify-between px-5 text-primary-foreground">
-        <Link href="/dashboard">
-          <div className="relative -mt-4 flex size-16 scale-125 flex-col items-center gap-1 rounded-full bg-primary text-black">
+      <ul className="relative z-20 mx-auto mt-2 flex max-w-xs justify-between px-5 text-primary-foreground">
+        <li className="relative -mt-4 flex size-16 scale-125 flex-col items-center gap-1 rounded-full bg-primary text-black">
+          <Link href="/dashboard">
             <GiCow size={35} />
             <p>Animal</p>
-          </div>
-        </Link>
-        <Link href={'/dashboard/reproduction/'}>
-          <div className="relative flex size-16 flex-col items-center gap-1 rounded-full">
+          </Link>
+        </li>
+        <li className="relative flex size-16 flex-col items-center gap-1 rounded-full">
+          <Link href={'/dashboard/reproduction/'}>
             <IoMaleFemaleSharp size={35} />
             <p>Reprodução</p>
-          </div>
-        </Link>
-        <Link href="/dashboard/financial">
-          <div className="relative flex size-16 flex-col items-center gap-1 rounded-full">
+          </Link>
+        </li>
+        <li className="relative flex size-16 flex-col items-center gap-1 rounded-full">
+          <Link href="/dashboard/financial">
             <FaRegMoneyBillAlt size={35} />
             <p>Financeiro</p>
-          </div>
-        </Link>
-        <Link href="/dashboard/profile">
-          <div className="relative flex size-16 flex-col items-center gap-1 rounded-full">
+          </Link>
+        </li>
+        <li className="relative flex size-16 flex-col items-center gap-1 rounded-full">
+          <Link href="/dashboard/profile">
             <CgProfile size={35} />
             <p>Perfil</p>
-          </div>
-        </Link>
-        <Link href="/dashboard/team">
-          <div className="relative flex size-16 flex-col items-center gap-1 rounded-full">
+          </Link>
+        </li>
+        <li className="relative flex size-16 flex-col items-center gap-1 rounded-full">
+          <Link href="/dashboard/team">
             <Users size={35} />
             <p>Equipe</p>
-          </div>
-        </Link>
-      </section>
+          </Link>
+        </li>
+      </ul>
     </footer>
   );
 };

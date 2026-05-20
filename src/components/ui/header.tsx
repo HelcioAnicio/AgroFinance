@@ -12,6 +12,7 @@ import { CgProfile } from 'react-icons/cg';
 import { FaRegMoneyBillAlt } from 'react-icons/fa';
 import { IoMaleFemaleSharp } from 'react-icons/io5';
 import { Users } from 'lucide-react';
+import { GiCow } from 'react-icons/gi';
 
 interface TableProps {
   notifications: Notification[];
@@ -27,7 +28,7 @@ export const Header: React.FC<TableProps> = ({ notifications }) => {
   return (
     <header className="flex w-full items-center justify-between p-2">
       <nav className="flex w-auto lg:w-full">
-        <ul className="flex items-center gap-8">
+        <ul className="flex max-w-3xl items-center justify-evenly gap-8">
           <li>
             <Link href={'/dashboard'}>
               <Image
@@ -40,15 +41,15 @@ export const Header: React.FC<TableProps> = ({ notifications }) => {
               />
             </Link>
           </li>
-          {/* <li>
+          <li>
             <Link
-              href={'/dashboard/reproduction/management'}
+              href={'/dashboard/'}
               className="relative flex items-center gap-1 transition-all duration-300 after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-foreground after:transition-all after:duration-300 hover:text-secondary hover:after:w-full"
             >
-              <IoMaleFemaleSharp size={20} />
-              Manejo
+              <GiCow size={20} />
+              Animais
             </Link>
-          </li> */}
+          </li>
           <li className="hidden lg:block">
             <Link
               href={'/dashboard/reproduction/'}

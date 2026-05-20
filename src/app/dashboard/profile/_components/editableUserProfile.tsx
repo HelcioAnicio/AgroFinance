@@ -50,7 +50,7 @@ const statusLabels: Record<string, string> = {
   TRIALING: 'Teste ativo',
   PAST_DUE: 'Pagamento pendente',
   CANCELED: 'Assinatura cancelada',
-  INCOMPLETE: 'Aguardando validacao',
+  INCOMPLETE: 'Aguardando validação',
 };
 
 const EditableUserProfile: React.FC<EditableUserProfileProps> = ({ user }) => {
@@ -248,7 +248,15 @@ const EditableUserProfile: React.FC<EditableUserProfileProps> = ({ user }) => {
                   Nivel de acesso
                 </span>
                 <span className="font-bold text-[#49651f]">
-                  {membership?.role ?? 'Sem acesso'}
+                  {membership?.role === 'OWNER'
+                    ? 'Proprietario'
+                    : membership?.role === 'EMPLOYEE'
+                      ? 'Funcionário'
+                      : membership?.role === 'CAREGIVER_VETERINARIAN'
+                        ? 'Cuidador/Veterinário'
+                        : membership?.role === 'FINANCIAL'
+                          ? 'Financeiro'
+                          : 'Sem acesso'}
                 </span>
               </div>
               <div className="flex items-center justify-between gap-4">
@@ -268,8 +276,6 @@ const EditableUserProfile: React.FC<EditableUserProfileProps> = ({ user }) => {
                 <span className="border-b-2 border-[#49651f] pb-3 text-[#202417]">
                   Dados pessoais
                 </span>
-                <span className="pb-3">Seguranca</span>
-                <span className="pb-3">Propriedade rural</span>
               </div>
             </div>
 
