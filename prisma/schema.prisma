@@ -369,9 +369,9 @@ model Notification {
   notifyAt  DateTime @db.Timestamp(6)
   read      Boolean  @default(false)
   userId    String
-  animalId  String
+  animalId  String?
   createdAt DateTime @default(now()) @db.Timestamp(6)
-  Animal    Animal   @relation(fields: [animalId], references: [id], onDelete: Cascade, map: "fk_notification_animal")
+  Animal    Animal?  @relation(fields: [animalId], references: [id], onDelete: Cascade, map: "fk_notification_animal")
   User      User     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "fk_notification_user")
 }
 

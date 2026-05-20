@@ -4,7 +4,7 @@ import NoFarmContext from './noFarmContext';
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth';
-import { getCurrentFarmContext } from '@/lib/tenant';
+import { canFarmAccessDashboard, getCurrentFarmContext } from '@/lib/tenant';
 
 const LoginPage = async () => {
   const session = await getServerSession(authOptions);
@@ -13,7 +13,7 @@ const LoginPage = async () => {
     const context = await getCurrentFarmContext();
 
     if (context) {
-      if (context.farm.subscriptionStatus !== 'ACTIVE') {
+      if (!canFarmAccessDashboard(context.farm)) {
         redirect('/billing');
       }
 

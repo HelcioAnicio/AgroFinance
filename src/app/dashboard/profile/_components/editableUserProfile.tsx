@@ -10,6 +10,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Trash2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { FaRegMoneyBillAlt } from 'react-icons/fa';
+import { BILLING_PLANS } from '@/lib/billing';
+import BillingPlans from '@/app/billing/plans';
 
 type ProfileUser = {
   id: string;
@@ -23,6 +26,9 @@ type ProfileUser = {
       id: string;
       name: string;
       trialEndsAt: Date | string;
+      stripeCustomerId: string | null;
+      stripeSubscriptionId: string | null;
+      subscriptionStatus: string;
     };
   }[];
 };
@@ -35,9 +41,25 @@ const EditableUserProfile: React.FC<EditableUserProfileProps> = ({ user }) => {
   const { data } = useSession();
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
+  const [showPlans, setShowPlans] = useState(false);
   const [form, setForm] = useState<ProfileUser>(user);
   const [initial, setInitial] = useState<ProfileUser>(user);
   const membership = form.farmMemberships?.[0];
+
+  const formatDate = (dateValue: Date | string | null | undefined) => {
+    if (!dateValue) return '—';
+    try {
+      const d = new Date(dateValue);
+      if (isNaN(d.getTime())) return '—';
+      return d.toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      });
+    } catch {
+      return '—';
+    }
+  };
 
   const handleBack = () => router.back();
 
@@ -267,6 +289,120 @@ const EditableUserProfile: React.FC<EditableUserProfileProps> = ({ user }) => {
             </Card>
           </form>
         )}
+
+        {!isEditing && (
+          <Card className="px-2 py-5 border-[#e1ded3] bg-white shadow-sm">
+            <CardHeader className="pb-4 flex flex-row items-center gap-2">
+              <FaRegMoneyBillAlt className="size-5 text-[#49651f]" />
+              <CardTitle className="text-base font-bold">Assinatura e Planos</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-4 px-1 text-sm">
+              {!membership ? (
+                <div className="rounded-md bg-amber-500/10 p-3 text-amber-800">
+                  <p className="font-semibold">Nenhuma fazenda vinculada</p>
+                  <p className="text-xs mt-1">Você precisa estar vinculado a uma fazenda para gerenciar assinaturas.</p>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[#6d7f3d] font-bold uppercase tracking-wider text-xs">Status Atual</span>
+                    <div className="flex items-center gap-2">
+                      {membership.farm.subscriptionStatus === 'TRIALING' && (
+                        <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
+                          Período de Avaliação (30 dias)
+                        </span>
+                      )}
+                      {membership.farm.subscriptionStatus === 'ACTIVE' && (
+                        <span className="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-800 ring-1 ring-inset ring-emerald-600/30">
+                          Ativa / Premium
+                        </span>
+                      )}
+                      {membership.farm.subscriptionStatus === 'CANCELED' && (
+                        <span className="inline-flex items-center rounded-full bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700 ring-1 ring-inset ring-red-600/20">
+                          Cancelada
+                        </span>
+                      )}
+                      {membership.farm.subscriptionStatus === 'PAST_DUE' && (
+                        <span className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700 ring-1 ring-inset ring-amber-600/20">
+                          Pagamento Pendente
+                        </span>
+                      )}
+                      {!['TRIALING', 'ACTIVE', 'CANCELED', 'PAST_DUE'].includes(membership.farm.subscriptionStatus) && (
+                        <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700 ring-1 ring-inset ring-gray-600/20">
+                          Sem Assinatura Ativa
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {membership.farm.subscriptionStatus === 'TRIALING' && (
+                    <p className="text-muted-foreground text-xs leading-relaxed">
+                      Sua fazenda está no período de avaliação de 30 dias. A cobrança do plano escolhido só será efetuada após o término do período de testes em <strong>{formatDate(membership.farm.trialEndsAt)}</strong>.
+                    </p>
+                  )}
+
+                  {membership.farm.subscriptionStatus === 'ACTIVE' && (
+                    <p className="text-muted-foreground text-xs leading-relaxed">
+                      Sua assinatura está ativa e regularizada. Obrigado por ser nosso cliente! Próximo vencimento em <strong>{formatDate(membership.farm.trialEndsAt)}</strong>.
+                    </p>
+                  )}
+
+                  {membership.farm.subscriptionStatus === 'PAST_DUE' && (
+                    <p className="text-amber-700 text-xs leading-relaxed font-medium">
+                      Atenção: Houve uma falha no processamento do seu pagamento. Por favor, selecione um plano abaixo ou atualize suas informações de faturamento no Stripe para evitar a suspensão do acesso.
+                    </p>
+                  )}
+
+                  {membership.farm.subscriptionStatus === 'CANCELED' && (
+                    <p className="text-red-600 text-xs leading-relaxed font-medium">
+                      Sua assinatura foi cancelada. Seu acesso aos recursos avançados pode expirar ou ser suspenso em breve. Escolha um plano abaixo para reativá-la.
+                    </p>
+                  )}
+
+                  {!['TRIALING', 'ACTIVE', 'CANCELED', 'PAST_DUE'].includes(membership.farm.subscriptionStatus) && (
+                    <p className="text-muted-foreground text-xs leading-relaxed">
+                      Selecione um plano abaixo para iniciar seu período de testes gratuito de 30 dias e liberar o acesso total ao sistema de gestão AgroFinance.
+                    </p>
+                  )}
+
+                  {membership.farm.trialEndsAt && (
+                    <div className="text-xs border-t border-[#e1ded3] pt-3 mt-1 flex justify-between text-muted-foreground">
+                      <span>Vencimento do Período/Cobrança:</span>
+                      <span className="font-semibold text-foreground">{formatDate(membership.farm.trialEndsAt)}</span>
+                    </div>
+                  )}
+
+                  {/* Gerenciamento de Planos */}
+                  {membership.role === 'OWNER' ? (
+                    <div className="mt-4 pt-4 border-t border-[#e1ded3] flex flex-col gap-4">
+                      <Button
+                        type="button"
+                        onClick={() => setShowPlans(!showPlans)}
+                        className="w-full bg-[#49651f] text-white hover:bg-[#3f571b]"
+                      >
+                        {showPlans ? 'Ocultar Planos de Assinatura' : 'Alterar / Escolher Novo Plano'}
+                      </Button>
+
+                      {showPlans && (
+                        <div className="mt-2 animate-in fade-in slide-in-from-top-4 duration-300 flex flex-col gap-4">
+                          <p className="text-xs text-muted-foreground leading-relaxed">
+                            Ao assinar ou alterar seu plano, você será redirecionado para o checkout seguro do Stripe. <strong>Lembre-se:</strong> a cobrança real só ocorrerá após o término dos 30 dias do período de avaliação. Se você já tem uma assinatura ativa, ela será substituída pela nova.
+                          </p>
+                          <BillingPlans plans={BILLING_PLANS} />
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="mt-4 pt-4 border-t border-[#e1ded3] text-xs text-muted-foreground italic">
+                      Apenas o proprietário (OWNER) da fazenda pode alterar os planos e gerenciar o faturamento do Stripe.
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
         <Card className="border-amber-500/40 bg-amber-500/5 px-2 py-4">
           <CardHeader className="pb-2">
             <CardTitle className="text-base">Aviso</CardTitle>

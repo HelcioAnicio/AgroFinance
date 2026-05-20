@@ -6,9 +6,9 @@ export interface Notification {
   message: string;
   notifyAt: Date;
   read: boolean;
-  animalId: string;
+  animalId?: string | null;
   userId: string;
   createdAt: Date;
   user: User;
-  animal: Animal;
+  animal?: Animal | null;
 }

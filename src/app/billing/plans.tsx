@@ -8,7 +8,13 @@ import type { BILLING_PLANS } from '@/lib/billing';
 
 type Plan = (typeof BILLING_PLANS)[number];
 
-export default function BillingPlans({ plans }: { plans: readonly Plan[] }) {
+export default function BillingPlans({
+  plans,
+  disabled = false,
+}: {
+  plans: readonly Plan[];
+  disabled?: boolean;
+}) {
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [interval, setInterval] = useState<'month' | 'year'>('month');
   const visiblePlans = plans.filter((plan) => plan.interval === interval);
@@ -95,10 +101,14 @@ export default function BillingPlans({ plans }: { plans: readonly Plan[] }) {
             <Button
               type="button"
               className="mt-6 bg-[#49651f] text-white hover:bg-[#3f571b]"
-              disabled={loadingPlan === plan.id}
+              disabled={disabled || loadingPlan === plan.id}
               onClick={() => startCheckout(plan.id)}
             >
-              {loadingPlan === plan.id ? 'Abrindo...' : 'Assinar'}
+              {disabled
+                ? 'Aguardando confirmação'
+                : loadingPlan === plan.id
+                  ? 'Abrindo...'
+                  : 'Assinar'}
             </Button>
           </article>
         ))}

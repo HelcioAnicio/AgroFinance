@@ -107,7 +107,20 @@ export async function createAuditLog(
 export function isFarmPastTrial(farm: {
   trialEndsAt: Date;
   subscriptionStatus: string;
+  stripeSubscriptionId?: string | null;
 }) {
   if (farm.subscriptionStatus === 'ACTIVE') return false;
+  if (farm.subscriptionStatus === 'TRIALING' && farm.stripeSubscriptionId) return false;
   return farm.trialEndsAt.getTime() < Date.now();
+}
+
+export function canFarmAccessDashboard(farm: {
+  trialEndsAt: Date;
+  subscriptionStatus: string;
+  stripeSubscriptionId?: string | null;
+}) {
+  if (farm.subscriptionStatus === 'ACTIVE') return true;
+  if (farm.subscriptionStatus === 'TRIALING' && farm.stripeSubscriptionId) return true;
+  if (farm.trialEndsAt.getTime() > Date.now()) return true;
+  return false;
 }

@@ -5,7 +5,7 @@ import { DashboardHeaderSection } from './_components/dashboardHeaderSection';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { getCurrentFarmContext } from '@/lib/tenant';
+import { canFarmAccessDashboard, getCurrentFarmContext } from '@/lib/tenant';
 
 export default async function DashboardLayout({
   children,
@@ -23,7 +23,7 @@ export default async function DashboardLayout({
     redirect('/login');
   }
 
-  if (context.farm.subscriptionStatus !== 'ACTIVE') {
+  if (!canFarmAccessDashboard(context.farm)) {
     redirect('/billing');
   }
 

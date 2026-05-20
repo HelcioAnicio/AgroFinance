@@ -24,14 +24,40 @@ export async function POST(request: Request) {
     );
   }
 
+  // Cancel existing Stripe subscription if they already have one to avoid multiple active plans
+  if (context.farm.stripeSubscriptionId) {
+    try {
+      console.log(
+        `[CHECKOUT] Canceling old subscription: ${context.farm.stripeSubscriptionId}`
+      );
+      await fetch(
+        `https://api.stripe.com/v1/subscriptions/${context.farm.stripeSubscriptionId}`,
+        {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${secretKey}`,
+          },
+        }
+      );
+    } catch (error) {
+      console.error('[CHECKOUT] Error canceling old subscription:', error);
+    }
+  }
+
   const params = new URLSearchParams();
   params.set('mode', 'subscription');
-  params.set('success_url', `${appUrl}/dashboard?billing=success`);
+  params.set('success_url', `${appUrl}/billing?billing=success`);
   params.set('cancel_url', `${appUrl}/billing?billing=cancel`);
   params.set('client_reference_id', context.farm.id);
-  params.set('customer_email', context.user.email);
+  if (context.farm.stripeCustomerId) {
+    params.set('customer', context.farm.stripeCustomerId);
+  } else {
+    params.set('customer_email', context.user.email);
+  }
   params.set('metadata[farmId]', context.farm.id);
   params.set('metadata[planId]', plan.id);
+  params.set('subscription_data[trial_period_days]', '30');
+  params.set('payment_method_types[]', 'card');
   params.set('line_items[0][quantity]', '1');
   params.set('line_items[0][price_data][currency]', 'brl');
   params.set(
@@ -63,14 +89,45 @@ export async function POST(request: Request) {
     );
   }
 
+  let checkoutCustomerId = context.farm.stripeCustomerId;
+  let checkoutSubscriptionId: string | undefined;
+
+  if (typeof checkout.customer === 'string') {
+    checkoutCustomerId = checkout.customer;
+  } else if (
+    checkout.customer &&
+    typeof checkout.customer === 'object' &&
+    typeof (checkout.customer as { id?: unknown }).id === 'string'
+  ) {
+    checkoutCustomerId = (checkout.customer as { id: string }).id;
+  }
+
+  if (typeof checkout.subscription === 'string') {
+    checkoutSubscriptionId = checkout.subscription;
+  } else if (
+    checkout.subscription &&
+    typeof checkout.subscription === 'object' &&
+    typeof (checkout.subscription as { id?: unknown }).id === 'string'
+  ) {
+    checkoutSubscriptionId = (checkout.subscription as { id: string }).id;
+  }
+
+  const updateData: {
+    stripeCustomerId?: string;
+    stripeSubscriptionId?: string;
+  } = {};
+
+  if (typeof checkoutCustomerId === 'string') {
+    updateData.stripeCustomerId = checkoutCustomerId;
+  }
+
+  if (checkoutSubscriptionId) {
+    updateData.stripeSubscriptionId = checkoutSubscriptionId;
+  }
+
   await prisma.farm.update({
     where: { id: context.farm.id },
-    data: {
-      stripeCustomerId:
-        typeof checkout.customer === 'string'
-          ? checkout.customer
-          : context.farm.stripeCustomerId,
-    },
+    data: updateData,
   });
 
   return NextResponse.json({ url: checkout.url });

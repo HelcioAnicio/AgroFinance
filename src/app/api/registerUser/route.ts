@@ -69,7 +69,6 @@ export async function POST(request: NextRequest) {
     console.log('createPayload:', createPayload);
 
     const trialEndsAt = new Date();
-    trialEndsAt.setDate(trialEndsAt.getDate() + 30);
 
     const registerNewUser = await prisma.$transaction(async (tx) => {
       const user = await tx.user.create({

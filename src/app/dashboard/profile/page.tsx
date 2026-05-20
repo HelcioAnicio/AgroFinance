@@ -21,7 +21,16 @@ const ProfilePage = async () => {
         orderBy: { createdAt: 'asc' },
         select: {
           role: true,
-          farm: { select: { id: true, name: true, trialEndsAt: true } },
+          farm: {
+            select: {
+              id: true,
+              name: true,
+              trialEndsAt: true,
+              stripeCustomerId: true,
+              stripeSubscriptionId: true,
+              subscriptionStatus: true,
+            },
+          },
         },
       },
     },

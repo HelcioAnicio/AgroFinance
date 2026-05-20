@@ -1,20 +1,29 @@
 import { redirect } from 'next/navigation';
 import { BILLING_PLANS } from '@/lib/billing';
-import { getCurrentFarmContext } from '@/lib/tenant';
+import { canFarmAccessDashboard, getCurrentFarmContext } from '@/lib/tenant';
 import BillingPlans from './plans';
+import BillingStatus from './billing-status';
 import { Suspense } from 'react';
 import { DashboardHeaderSection } from '../dashboard/_components/dashboardHeaderSection';
 import { DashboardHeaderSkeleton } from '../dashboard/_components/dashboardHeaderSkeleton';
 
-export default async function BillingPage() {
+export default async function BillingPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ billing?: string }>;
+}) {
   const context = await getCurrentFarmContext();
 
   if (!context) redirect('/login');
-  if (context.farm.subscriptionStatus === 'ACTIVE') redirect('/dashboard');
+  if (canFarmAccessDashboard(context.farm)) redirect('/dashboard');
 
   const daysLeft = Math.ceil(
     (context.farm.trialEndsAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
   );
+
+  const billing = await searchParams;
+  const isPaymentPending = billing?.billing === 'success';
+  const isPaymentCanceled = billing?.billing === 'cancel';
 
   return (
     <main className="min-h-screen bg-[#f8f7f3] px-4 py-10 text-[#202417]">
@@ -40,7 +49,23 @@ export default async function BillingPage() {
           </div>
         </div>
 
-        <BillingPlans plans={BILLING_PLANS} />
+        {isPaymentPending ? (
+          <BillingStatus />
+        ) : (
+          <>
+            {isPaymentCanceled ? (
+              <div className="rounded-xl border border-[#f1c0c0] bg-[#fff3f3] p-6 text-base text-[#7a2a2a] shadow-sm">
+                <p className="font-semibold">Pagamento cancelado</p>
+                <p className="mt-2 text-sm">
+                  O processo de pagamento foi cancelado. Selecione um plano para
+                  tentar novamente.
+                </p>
+              </div>
+            ) : null}
+
+            <BillingPlans plans={BILLING_PLANS} />
+          </>
+        )}
       </section>
     </main>
   );

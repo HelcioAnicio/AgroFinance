@@ -59,7 +59,6 @@ export const authOptions: NextAuthOptions = {
       if (existingMembership) return;
 
       const trialEndsAt = new Date();
-      trialEndsAt.setDate(trialEndsAt.getDate() + 30);
 
       const farm = await prisma.farm.create({
         data: {
