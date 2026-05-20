@@ -1,22 +1,27 @@
 import { redirect } from 'next/navigation';
 import { BILLING_PLANS } from '@/lib/billing';
-import { canFarmAccessDashboard, getCurrentFarmContext } from '@/lib/tenant';
+import {
+  canFarmAccessDashboard,
+  getCurrentUserWithFarmContext,
+} from '@/lib/tenant';
 import BillingPlans from './plans';
 import BillingStatus from './billing-status';
 import CompleteBillingProfile from './complete-profile';
 import { Suspense } from 'react';
 import { DashboardHeaderSection } from '../dashboard/_components/dashboardHeaderSection';
 import { DashboardHeaderSkeleton } from '../dashboard/_components/dashboardHeaderSkeleton';
+import EnsureFarmModal from '@/components/ui/ensureFarmModal';
 
 export default async function BillingPage({
   searchParams,
 }: {
   searchParams?: Promise<{ billing?: string }>;
 }) {
-  const context = await getCurrentFarmContext();
+  const context = await getCurrentUserWithFarmContext();
 
   if (!context) redirect('/login');
-  if (canFarmAccessDashboard(context.farm)) redirect('/dashboard');
+  if (context.farm && canFarmAccessDashboard(context.farm))
+    redirect('/dashboard');
 
   const billing = await searchParams;
   const isPaymentPending = billing?.billing === 'success';
@@ -35,7 +40,9 @@ export default async function BillingPage({
           </p>
           <h1 className="max-w-3xl text-4xl font-bold">
             {hasRequiredProfileData
-              ? `Escolha um plano para continuar usando a fazenda ${context.farm.name}`
+              ? `Escolha um plano para continuar usando ${
+                  context.farm?.name ?? 'sua fazenda'
+                }`
               : 'Complete seus dados para escolher um plano'}
           </h1>
           <p className="max-w-2xl text-sm text-[#5e654f]">
@@ -71,6 +78,13 @@ export default async function BillingPage({
           </>
         )}
       </section>
+      {!context.farm ? (
+        <EnsureFarmModal
+          userName={context.user.name}
+          initialCnpj={context.user.cnpj}
+          mode="blocking"
+        />
+      ) : null}
     </main>
   );
 }

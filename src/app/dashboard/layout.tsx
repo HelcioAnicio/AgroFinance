@@ -20,7 +20,7 @@ export default async function DashboardLayout({
 
   const context = await getCurrentFarmContext();
   if (!context) {
-    redirect('/login');
+    redirect('/billing');
   }
 
   if (!canFarmAccessDashboard(context.farm)) {

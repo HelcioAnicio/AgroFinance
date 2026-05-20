@@ -113,6 +113,12 @@ export async function POST(request: Request) {
     if (farmId) {
       let customerId = parseStripeId(object.customer);
       let subscriptionId = parseStripeId(object.subscription);
+      const metadata = object.metadata as Record<string, unknown> | undefined;
+      const planInterval =
+        typeof metadata?.planInterval === 'string'
+          ? metadata.planInterval
+          : null;
+      const isAnnualPayment = planInterval === 'year' && !subscriptionId;
 
       if ((!customerId || !subscriptionId) && typeof object.id === 'string') {
         const sessionData = await fetchCheckoutSession(object.id);
@@ -129,8 +135,8 @@ export async function POST(request: Request) {
         subscriptionId,
       });
 
-      const trialEndsAt = new Date();
-      trialEndsAt.setDate(trialEndsAt.getDate() + 30);
+      const accessUntil = new Date();
+      accessUntil.setDate(accessUntil.getDate() + (isAnnualPayment ? 365 : 30));
 
       const updateData: {
         subscriptionStatus?:
@@ -143,8 +149,8 @@ export async function POST(request: Request) {
         stripeSubscriptionId?: string | null;
         trialEndsAt?: Date;
       } = {
-        subscriptionStatus: 'TRIALING',
-        trialEndsAt,
+        subscriptionStatus: isAnnualPayment ? 'ACTIVE' : 'TRIALING',
+        trialEndsAt: accessUntil,
       };
 
       if (customerId) updateData.stripeCustomerId = customerId;
@@ -155,13 +161,15 @@ export async function POST(request: Request) {
         data: updateData,
       });
 
-      await scheduleSubscriptionNotifications(
-        updatedFarm.ownerUserId,
-        trialEndsAt
-      );
+      if (!isAnnualPayment) {
+        await scheduleSubscriptionNotifications(
+          updatedFarm.ownerUserId,
+          accessUntil
+        );
+      }
 
       console.log(
-        '[WEBHOOK] Farm updated successfully with TRIALING status and notifications scheduled'
+        '[WEBHOOK] Farm updated successfully after checkout completion'
       );
     }
   }
@@ -200,7 +208,15 @@ export async function POST(request: Request) {
         ? { stripeCustomerId: customerId }
         : { stripeSubscriptionId: subscriptionId };
 
-      const dataClause: any = {
+      const dataClause: {
+        stripeSubscriptionId: string;
+        subscriptionStatus?:
+          | 'ACTIVE'
+          | 'TRIALING'
+          | 'PAST_DUE'
+          | 'CANCELED'
+          | 'INCOMPLETE';
+      } = {
         stripeSubscriptionId: subscriptionId,
       };
       if (updateData.subscriptionStatus) {

@@ -15,6 +15,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Plano invalido.' }, { status: 400 });
   }
 
+  const isAnnualPayment = plan.interval === 'year';
+  const installmentsEnabled = isAnnualPayment && body.installments !== false;
+
   if (!context.user.cnpj) {
     return NextResponse.json(
       { error: 'Informe CPF ou CNPJ antes de escolher um plano.' },
@@ -53,7 +56,7 @@ export async function POST(request: Request) {
   }
 
   const params = new URLSearchParams();
-  params.set('mode', 'subscription');
+  params.set('mode', isAnnualPayment ? 'payment' : 'subscription');
   params.set('success_url', `${appUrl}/billing?billing=success`);
   params.set('cancel_url', `${appUrl}/billing?billing=cancel`);
   params.set('client_reference_id', context.farm.id);
@@ -61,23 +64,41 @@ export async function POST(request: Request) {
     params.set('customer', context.farm.stripeCustomerId);
   } else {
     params.set('customer_email', context.user.email);
+    if (isAnnualPayment) params.set('customer_creation', 'always');
   }
   params.set('metadata[farmId]', context.farm.id);
   params.set('metadata[planId]', plan.id);
-  params.set('subscription_data[trial_period_days]', '30');
-  params.set('payment_method_collection', 'always');
+  params.set('metadata[planInterval]', plan.interval);
   params.set(
-    'subscription_data[trial_settings][end_behavior][missing_payment_method]',
-    'cancel'
+    'metadata[installmentsEnabled]',
+    installmentsEnabled ? 'true' : 'false'
   );
   params.set('payment_method_types[]', 'card');
+  if (isAnnualPayment) {
+    params.set('payment_intent_data[metadata][farmId]', context.farm.id);
+    params.set('payment_intent_data[metadata][planId]', plan.id);
+    params.set('payment_intent_data[metadata][planInterval]', plan.interval);
+    params.set(
+      'payment_method_options[card][installments][enabled]',
+      installmentsEnabled ? 'true' : 'false'
+    );
+  } else {
+    params.set('subscription_data[trial_period_days]', '30');
+    params.set('payment_method_collection', 'always');
+    params.set(
+      'subscription_data[trial_settings][end_behavior][missing_payment_method]',
+      'cancel'
+    );
+  }
   params.set('line_items[0][quantity]', '1');
   params.set('line_items[0][price_data][currency]', 'brl');
   params.set(
     'line_items[0][price_data][unit_amount]',
     String(plan.amountInCents)
   );
-  params.set('line_items[0][price_data][recurring][interval]', plan.interval);
+  if (!isAnnualPayment) {
+    params.set('line_items[0][price_data][recurring][interval]', plan.interval);
+  }
   params.set(
     'line_items[0][price_data][product_data][name]',
     `AgroFinance ${plan.name} ${plan.label}`

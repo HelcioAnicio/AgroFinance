@@ -12,6 +12,7 @@ import { SheetFooter, SheetClose } from '@/components/ui/sheet';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { GoAlertFill } from 'react-icons/go';
+import { ArrowLeft, Check, RotateCcw, Sprout } from 'lucide-react';
 
 interface CardFormReproductionProps {
   animals: Animal[];
@@ -156,86 +157,106 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
 
   return (
     <>
-      <Card className="h-full">
-        <CardHeader className="py-2">
-          <CardTitle>Informações reprodutivas</CardTitle>
+      <Card className="h-full border-none bg-transparent shadow-none">
+        <CardHeader className="rounded-md border border-border/70 bg-white px-4 py-4 shadow-sm">
+          <CardTitle className="flex items-center gap-3 text-base font-bold">
+            <span className="flex h-9 w-9 items-center justify-center rounded-md bg-primary/10 text-primary">
+              <Sprout className="h-4 w-4" />
+            </span>
+            Etapa 2: Informações Reprodutivas
+          </CardTitle>
         </CardHeader>
-        <CardContent className="flex h-full flex-col p-1">
+        <CardContent className="flex h-full flex-col px-0 pt-4">
           <form action="" method="post" className="flex h-full flex-col">
             <section className="flex flex-grow flex-col gap-4">
-              {allDataForm.gender === 'male' ? (
-                <FormMaleReproductive
-                  allDataForm={allDataForm}
-                  handleInputValues={handleInputValues}
-                />
-              ) : (
-                <>
-                  <article className="flex flex-col gap-1">
-                    <SelectForm
-                      htmlFor="reproductiveStatus"
-                      label="Status Reprodutivo:"
-                      name="reproductiveStatus"
-                      id="reproductiveStatus"
-                      value={allDataForm.reproductiveStatus ?? ''}
-                      defaultOption="Status do animal"
-                      options={[
-                        { label: 'Vazia', value: 'empty' },
-                        { label: 'Em espera', value: 'waiting' },
-                        { label: 'Prenha', value: 'pregnant' },
-                        { label: 'PEV - Parida', value: 'pev' },
-                      ]}
-                      onChange={handleInputValues}
-                      classNameInput={'max-w-32'}
-                    />
-                  </article>
-
-                  {allDataForm.reproductiveStatus === 'pregnant' && (
-                    <FormPregnantStatus
-                      animals={animals}
-                      externalBulls={externalBulls}
-                      allDataForm={allDataForm}
-                      handleInputValues={handleInputValues}
-                    />
-                  )}
-
-                  {allDataForm.reproductiveStatus === 'waiting' && (
-                    <FormWaitingStatus
-                      allDataForm={allDataForm}
-                      handleInputValues={handleInputValues}
-                      animals={animals}
-                      externalBulls={externalBulls}
-                    />
-                  )}
-
-                  {allDataForm.reproductiveStatus === 'pev' && (
-                    <article className="mt-4 flex flex-wrap gap-5">
-                      <p className="flex w-4/5 items-center gap-1 text-primary">
-                        <GoAlertFill className="w-20" />
-                        Ao confirmar o animal com o status de PEV, após 40 dias
-                        da data de hoje, a vaca retornará ao status de Vazia
-                        automaticamente.
-                      </p>
+              <div className="rounded-md border border-border/70 bg-white p-4 shadow-sm">
+                {allDataForm.gender === 'male' ? (
+                  <FormMaleReproductive
+                    allDataForm={allDataForm}
+                    handleInputValues={handleInputValues}
+                  />
+                ) : (
+                  <>
+                    <article className="grid gap-4 sm:grid-cols-2">
+                      <SelectForm
+                        htmlFor="reproductiveStatus"
+                        label="Status Reprodutivo:"
+                        name="reproductiveStatus"
+                        id="reproductiveStatus"
+                        value={allDataForm.reproductiveStatus ?? ''}
+                        defaultOption="Status do animal"
+                        options={[
+                          { label: 'Vazia', value: 'empty' },
+                          { label: 'Em espera', value: 'waiting' },
+                          { label: 'Prenha', value: 'pregnant' },
+                          { label: 'PEV - Parida', value: 'pev' },
+                        ]}
+                        onChange={handleInputValues}
+                      />
                     </article>
-                  )}
-                </>
-              )}
 
-              <article className="flex w-full justify-end">
-                <SheetFooter className="flex w-full flex-row justify-end gap-5">
+                    {allDataForm.reproductiveStatus === 'pregnant' && (
+                      <FormPregnantStatus
+                        animals={animals}
+                        externalBulls={externalBulls}
+                        allDataForm={allDataForm}
+                        handleInputValues={handleInputValues}
+                      />
+                    )}
+
+                    {allDataForm.reproductiveStatus === 'waiting' && (
+                      <FormWaitingStatus
+                        allDataForm={allDataForm}
+                        handleInputValues={handleInputValues}
+                        animals={animals}
+                        externalBulls={externalBulls}
+                      />
+                    )}
+
+                    {allDataForm.reproductiveStatus === 'pev' && (
+                      <article className="mt-4 flex flex-wrap gap-5">
+                        <p className="flex w-full items-center gap-3 rounded-md border border-primary/20 bg-primary/5 p-3 text-sm text-primary">
+                          <GoAlertFill className="h-5 w-5 shrink-0" />
+                          Ao confirmar o animal com o status de PEV, após 40
+                          dias da data de hoje, a vaca retornará ao status de
+                          Vazia automaticamente.
+                        </p>
+                      </article>
+                    )}
+                  </>
+                )}
+              </div>
+
+              <article className="flex w-full justify-end border-t border-border/70 pt-5">
+                <SheetFooter className="flex w-full flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="gap-2 bg-white"
+                    onClick={() => setTabValue('principais')}
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    Voltar
+                  </Button>
                   <SheetClose asChild>
                     <Button
-                      className="bg-card text-card-foreground hover:bg-primary-foreground"
+                      type="button"
+                      variant="outline"
+                      className="gap-2 bg-white"
                       onClick={() => cleanAllDataForm()}
                     >
+                      <RotateCcw className="h-4 w-4" />
                       Cancelar
                     </Button>
                   </SheetClose>
                   <SheetClose asChild>
                     <Button
                       type="button"
+                      className="gap-2"
                       onClick={() => submitForm(allDataForm)}
                       disabled={validDate === false}
                     >
+                      <Check className="h-4 w-4" />
                       Adicionar Animal
                     </Button>
                   </SheetClose>

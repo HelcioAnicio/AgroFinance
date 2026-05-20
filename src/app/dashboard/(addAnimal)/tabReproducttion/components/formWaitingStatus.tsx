@@ -36,7 +36,7 @@ export const FormWaitingStatus: React.FC<FormWaitingStatusProps> = ({
 
   return (
     <>
-      <article className="flex flex-wrap gap-5">
+      <article className="mt-4 grid gap-4 sm:grid-cols-2">
         <SelectForm
           htmlFor="handlingType"
           label="Manejo utilizado:"
@@ -71,7 +71,7 @@ export const FormWaitingStatus: React.FC<FormWaitingStatusProps> = ({
         />
       </article>
 
-      <article className="flex flex-wrap gap-5">
+      <article className="mt-4 grid gap-4 sm:grid-cols-2">
         <SelectForm
           htmlFor="bullId"
           label="Touro utilizado:"

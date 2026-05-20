@@ -33,7 +33,7 @@ export function hasFarmPermission(
   return ROLE_PERMISSIONS[role]?.includes(permission) ?? false;
 }
 
-export async function getCurrentFarmContext() {
+export async function getCurrentUserWithFarmContext() {
   const session = await getServerSession(authOptions);
   const email = session?.user?.email;
 
@@ -53,12 +53,26 @@ export async function getCurrentFarmContext() {
     },
   });
 
-  const membership = user?.farmMemberships[0] ?? null;
-  if (!user || !membership) return null;
+  if (!user) return null;
+
+  const membership = user.farmMemberships[0] ?? null;
 
   return {
     user: { id: user.id, email: user.email, name: user.name, cnpj: user.cnpj },
-    farm: membership.farm,
+    farm: membership?.farm ?? null,
+    membership,
+    role: membership?.role ?? null,
+  };
+}
+
+export async function getCurrentFarmContext() {
+  const userContext = await getCurrentUserWithFarmContext();
+  const membership = userContext?.membership ?? null;
+  if (!userContext || !membership || !userContext.farm) return null;
+
+  return {
+    user: userContext.user,
+    farm: userContext.farm,
     membership,
     role: membership.role,
   };

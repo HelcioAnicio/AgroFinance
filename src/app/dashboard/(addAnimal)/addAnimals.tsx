@@ -1,6 +1,11 @@
 'use client';
 
-import { SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import {
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CardFormMain } from './tabMain/cardFormMain';
 import { CardFormReproduction } from './tabReproducttion/cardFormReproduction';
@@ -158,39 +163,65 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
   return (
     <SheetContent
       side="bottom"
-      className="mt-5 max-h-[500px] overflow-y-auto sm:hidden"
+      className="mt-5 max-h-[90vh] overflow-y-auto border-none bg-[#f8f7f4] p-0 sm:hidden"
     >
       <Tabs key={tabValue} value={tabValue} onValueChange={setTabValue}>
-        <SheetHeader className="relative mt-5">
-          <SheetTitle>
-            <TabsList>
-              <TabsTrigger value="principais">Principais</TabsTrigger>
-              <TabsTrigger value="reproducao">Reprodução</TabsTrigger>
+        <SheetHeader className="relative space-y-4 border-b border-border/70 px-5 pb-5 pt-6 text-left">
+          <div className="space-y-2 pr-8">
+            <SheetTitle className="text-2xl font-bold">
+              Adicionar Novo Animal
+            </SheetTitle>
+            <SheetDescription>
+              Insira os dados tecnicos para registrar o animal na propriedade.
+            </SheetDescription>
+          </div>
+          <div>
+            <TabsList className="grid h-auto w-full grid-cols-2 gap-2 bg-transparent p-0">
+              <TabsTrigger
+                value="principais"
+                className="h-12 justify-start gap-2 rounded-md border border-transparent bg-white px-3 text-xs font-semibold text-muted-foreground shadow-sm data-[state=active]:border-primary data-[state=active]:bg-white data-[state=active]:text-primary"
+              >
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-[0.7rem] text-primary">
+                  1
+                </span>
+                Principais
+              </TabsTrigger>
+              <TabsTrigger
+                value="reproducao"
+                className="h-12 justify-start gap-2 rounded-md border border-transparent bg-white px-3 text-xs font-semibold text-muted-foreground shadow-sm data-[state=active]:border-primary data-[state=active]:bg-white data-[state=active]:text-primary"
+              >
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-[0.7rem] text-primary">
+                  2
+                </span>
+                Reprodução
+              </TabsTrigger>
             </TabsList>
-          </SheetTitle>
+          </div>
         </SheetHeader>
-        <TabsContent value="principais">
-          <CardFormMain
-            animals={animals}
-            handleInputValues={handleInputValues}
-            allDataForm={allDataForm}
-            setTabValue={setTabValue}
-            breedArray={breedArray}
-            setAllDataForm={setAllDataForm}
-          />
-        </TabsContent>
+        <div className="px-5 py-5">
+          <TabsContent value="principais" className="mt-0">
+            <CardFormMain
+              animals={animals}
+              handleInputValues={handleInputValues}
+              allDataForm={allDataForm}
+              setTabValue={setTabValue}
+              breedArray={breedArray}
+              setAllDataForm={setAllDataForm}
+            />
+          </TabsContent>
 
-        <TabsContent value="reproducao">
-          <CardFormReproduction
-            animals={animals}
-            externalBulls={externalBulls}
-            handleInputValues={handleInputValues}
-            allDataForm={allDataForm}
-            submitForm={submitForm}
-            setTabValue={setTabValue}
-            setAllDataForm={setAllDataForm}
-          />
-        </TabsContent>
+          <TabsContent value="reproducao" className="mt-0">
+            <CardFormReproduction
+              animals={animals}
+              externalBulls={externalBulls}
+              handleInputValues={handleInputValues}
+              allDataForm={allDataForm}
+              submitForm={submitForm}
+              setTabValue={setTabValue}
+              setAllDataForm={setAllDataForm}
+            />
+          </TabsContent>
+        </div>
       </Tabs>
     </SheetContent>
   );

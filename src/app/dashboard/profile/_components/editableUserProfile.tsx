@@ -21,6 +21,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { BILLING_PLANS } from '@/lib/billing';
 import BillingPlans from '@/app/billing/plans';
+import EnsureFarmModal from '@/components/ui/ensureFarmModal';
 
 type ProfileUser = {
   id: string;
@@ -194,6 +195,13 @@ const EditableUserProfile: React.FC<EditableUserProfileProps> = ({ user }) => {
 
   return (
     <div className="min-h-screen bg-[#f8f7f3] px-4 pb-20 pt-6 text-[#202417]">
+      {!farm ? (
+        <EnsureFarmModal
+          userName={form.name}
+          initialCnpj={form.cnpj}
+          mode="closable"
+        />
+      ) : null}
       <section className="mx-auto flex w-full max-w-6xl flex-col gap-8">
         <header className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div>
@@ -360,7 +368,9 @@ const EditableUserProfile: React.FC<EditableUserProfileProps> = ({ user }) => {
                   >
                     {showPlans ? 'Ocultar planos' : 'Escolher ou alterar plano'}
                   </Button>
-                  {showPlans ? <BillingPlans plans={BILLING_PLANS} /> : null}
+                  {showPlans ? (
+                    <BillingPlans plans={BILLING_PLANS} compact />
+                  ) : null}
                 </div>
               ) : (
                 <div className="mt-5 rounded-md border border-[#e1ded3] bg-[#f8f7f3] p-4 text-sm text-[#5e654f]">
