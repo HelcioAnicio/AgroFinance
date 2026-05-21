@@ -6,7 +6,7 @@ import prisma from '@/lib/prisma';
  * Manual webhook trigger for testing
  * In production, remove this endpoint or require special auth
  */
-export async function POST(request: Request) {
+export async function POST() {
   const { context, error, status } = await requireFarmContext('manage_farm');
 
   if (!context) {

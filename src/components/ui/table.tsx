@@ -28,7 +28,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
   Dialog,
-  DialogClose,
+  // DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -159,6 +159,7 @@ export const Table: React.FC<TableProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [inputValue, setInputValue] = useState<string>('');
   const [inputFile, setInputFile] = useState<File | null>(null);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [selectedStatsYear, setSelectedStatsYear] = useState<number | null>(
     null
   );
@@ -246,7 +247,45 @@ export const Table: React.FC<TableProps> = ({
       const workbook = XLSX.read(data, { type: 'array' });
       const sheetName = workbook.SheetNames[0];
       const sheet = workbook.Sheets[sheetName];
-      const json = XLSX.utils.sheet_to_json(sheet);
+      const allRows = XLSX.utils.sheet_to_json<any[]>(sheet, { header: 1 });
+      let headerRowIndex = 0;
+      for (let i = 0; i < Math.min(allRows.length, 10); i++) {
+        const row = allRows[i];
+        if (Array.isArray(row)) {
+          const hasBrinco = row.some((cell) => {
+            if (typeof cell !== 'string') return false;
+            const norm = cell
+              .normalize('NFD')
+              .replace(/[\u0300-\u036f]/g, '')
+              .toLowerCase();
+            return (
+              norm.includes('brinco') ||
+              norm.includes('manualid') ||
+              norm.includes('id manual')
+            );
+          });
+          if (hasBrinco) {
+            headerRowIndex = i;
+            break;
+          }
+        }
+      }
+
+      console.log('[Import] Header row index:', headerRowIndex);
+      console.log('[Import] Header row content:', allRows[headerRowIndex]);
+
+      // const json = XLSX.utils.sheet_to_json(sheet, { range: headerRowIndex });
+      const json = XLSX.utils.sheet_to_json(sheet, {
+        range: 2,
+        defval: '',
+      });
+
+      console.log('[Import] Total rows parsed:', json.length);
+      if (json.length > 0) {
+        console.log('[Import] First row keys:', Object.keys(json[0] as object));
+        console.log('[Import] First row data:', json[0]);
+      }
+
       setIsLoading(true);
 
       try {
@@ -257,8 +296,19 @@ export const Table: React.FC<TableProps> = ({
         });
 
         const result = await res.json();
-        if (result.success) toast.success('Lista cadastrada com sucesso!');
-        else toast.error('Erro com a importacao');
+        if (result.success) {
+          toast.success('Lista cadastrada com sucesso!');
+        } else {
+          console.log('[Import] API error response:', result);
+          if (result.receivedKeys) {
+            console.log('[Import] Keys received by API:', result.receivedKeys);
+          }
+          const firstIssue =
+            result.issues && result.issues[0]
+              ? `: Linha ${result.issues[0].row} - ${result.issues[0].message}`
+              : '';
+          toast.error(`Erro com a importacao${firstIssue}`);
+        }
       } catch {
         toast.error('Erro com o arquivo');
       } finally {
@@ -390,7 +440,10 @@ export const Table: React.FC<TableProps> = ({
                 />
               </div>
               <div className="flex flex-col gap-3 md:flex-row">
-                <Dialog>
+                <Dialog
+                  open={importDialogOpen}
+                  onOpenChange={setImportDialogOpen}
+                >
                   <DialogTrigger className="flex items-center rounded-md border border-foreground p-2 text-xs">
                     Importar animais
                     <FaFileArrowDown size={16} />
@@ -405,8 +458,8 @@ export const Table: React.FC<TableProps> = ({
                     </DialogHeader>
                     <div className="flex gap-2">
                       <Link
-                        download={'animal_model_template.xlsx'}
-                        href={'/animal_model_template.xlsx'}
+                        download={'agrofinance_importacao_animais.xlsx'}
+                        href={'/agrofinance_importacao_animais.xlsx'}
                         className="flex w-max items-center gap-1 underline"
                       >
                         Arquivo modelo <IoDownloadOutline />
@@ -427,17 +480,24 @@ export const Table: React.FC<TableProps> = ({
                       />
                     </div>
                     <DialogFooter>
-                      <DialogClose className="mr-auto" asChild>
-                        <Button variant="outline">Cancel</Button>
-                      </DialogClose>
+                      <Button
+                        variant="outline"
+                        className="mr-auto"
+                        onClick={() => setImportDialogOpen(false)}
+                      >
+                        Cancel
+                      </Button>
 
-                      <DialogClose>
-                        {inputFile && (
-                          <Button onClick={handleUpload}>
-                            Cadastrar animais
-                          </Button>
-                        )}
-                      </DialogClose>
+                      {inputFile && (
+                        <Button
+                          onClick={() => {
+                            setImportDialogOpen(false);
+                            handleUpload();
+                          }}
+                        >
+                          Cadastrar animais
+                        </Button>
+                      )}
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>

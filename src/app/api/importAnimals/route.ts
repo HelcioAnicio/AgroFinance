@@ -86,7 +86,9 @@ function normalizeText(value: string): string {
 }
 
 function normalizeKey(value: string): string {
-  return normalizeText(value).replace(/[^a-z0-9]/g, '');
+  return normalizeText(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '');
 }
 
 function isBlank(value: unknown): boolean {
@@ -116,7 +118,7 @@ function parseImportDate(value: unknown): Date | null {
     if (!raw) return null;
 
     const brMatch = raw.match(
-      /^(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})(?:\s+(\d{1,2}):(\d{2}))?$/
+      /^(\d{1,2})[/-]+(\d{1,2})[/-]+(\d{2,4})(?:\s+(\d{1,2}):(\d{2}))?$/
     );
     if (brMatch) {
       const day = Number(brMatch[1]);
@@ -378,7 +380,16 @@ function parseRow(row: ImportRow, rowNumber: number): ParsedRow {
   const { get } = makeRowAccessor(row);
   const issues: string[] = [];
 
-  const manualIdRaw = get('manualId', 'idManual', 'id', 'brinco', 'numero');
+  const manualIdRaw = get(
+    'manualId',
+    'idManual',
+    'id',
+    'brinco',
+    'numero',
+    'idBrinco',
+    'idbrinco',
+    'ID / Brinco *'
+  );
   const manualId =
     typeof manualIdRaw === 'string'
       ? manualIdRaw.trim().toLowerCase()
@@ -394,55 +405,78 @@ function parseRow(row: ImportRow, rowNumber: number): ParsedRow {
     manualId,
   };
 
-  const status = normalizeStatus(get('status', 'situacao'));
+  const status = normalizeStatus(get('status', 'situacao', 'Status'));
   if (status) baseData.status = status;
 
-  const gender = normalizeGender(get('gender', 'sexo'));
+  const gender = normalizeGender(get('gender', 'sexo', 'Sexo *', 'Sexo'));
   if (gender) baseData.gender = gender;
 
-  const birthDate = parseImportDate(get('birthDate', 'dataNascimento'));
+  const birthDate = parseImportDate(
+    get('birthDate', 'dataNascimento', 'Data Nascimento *', 'Data Nascimento')
+  );
   if (birthDate) baseData.birthDate = birthDate;
 
-  const weight = parseImportNumber(get('weight', 'peso'));
+  const weight = parseImportNumber(
+    get(
+      'weight',
+      'peso',
+      'pesoAtual',
+      'pesoAtualKg',
+      'Peso Atual (kg) *',
+      'Peso Atual (kg)',
+      'Peso Atual'
+    )
+  );
   if (weight !== null) baseData.weight = weight;
 
-  const breedRaw = cleanString(get('breed', 'raca'));
+  const breedRaw = cleanString(get('breed', 'raca', 'Raça *', 'Raça'));
   if (breedRaw) baseData.breed = breedRaw.toLowerCase();
 
-  const category = normalizeCategory(get('category', 'categoria'));
+  const category = normalizeCategory(get('category', 'categoria', 'Categoria'));
   if (category) baseData.category = category;
 
   const reproductiveStatus = normalizeReproductiveStatus(
-    get('reproductiveStatus', 'statusReprodutivo')
+    get('reproductiveStatus', 'statusReprodutivo', 'Status Reprodutivo')
   );
   if (reproductiveStatus) baseData.reproductiveStatus = reproductiveStatus;
 
-  const handlingType = normalizeHandlingType(get('handlingType', 'tipoManejo'));
+  const handlingType = normalizeHandlingType(
+    get('handlingType', 'tipoManejo', 'tipoDeManejo', 'Tipo de Manejo')
+  );
   if (handlingType) baseData.handlingType = handlingType;
 
-  const protocol = normalizeProtocol(get('protocol', 'protocolo'));
+  const protocol = normalizeProtocol(get('protocol', 'protocolo', 'Protocolo'));
   if (protocol) baseData.protocol = protocol;
 
   const andrological = normalizeAndrological(
-    get('andrological', 'andrologico')
+    get('andrological', 'andrologico', 'Andrológico')
   );
   if (andrological) baseData.andrological = andrological;
 
   const expectedDueDate = parseImportDate(
-    get('expectedDueDate', 'dataPrevistaParto')
+    get(
+      'expectedDueDate',
+      'dataPrevistaParto',
+      'dataPrevParto',
+      'Data Prev. Parto'
+    )
   );
   if (expectedDueDate) baseData.expectedDueDate = expectedDueDate;
 
-  const fetalGender = normalizeGender(get('fetalGender', 'sexoFeto'));
+  const fetalGender = normalizeGender(
+    get('fetalGender', 'sexoFeto', 'sexoDoFeto', 'Sexo do Feto')
+  );
   if (fetalGender) baseData.fetalGender = fetalGender;
 
   const bodyConditionScore = parseImportNumber(
-    get('bodyConditionScore', 'ecc')
+    get('bodyConditionScore', 'ecc', 'ECC')
   );
   if (bodyConditionScore !== null)
     baseData.bodyConditionScore = bodyConditionScore;
 
-  const observations = cleanString(get('observations', 'observacoes', 'obs'));
+  const observations = cleanString(
+    get('observations', 'observacoes', 'obs', 'Observações')
+  );
   if (observations) baseData.observations = observations;
 
   const externalBullId = cleanString(get('externalBullId'));
@@ -451,10 +485,21 @@ function parseRow(row: ImportRow, rowNumber: number): ParsedRow {
   const externalBullIatfId = cleanString(get('externalBullIatfId'));
   if (externalBullIatfId) baseData.externalBullIatfId = externalBullIatfId;
 
-  const vaccineName = cleanString(get('vaccineName', 'nomeVacina'));
-  const vaccineDate = parseImportDate(get('vaccineDate', 'dataVacina'));
+  const vaccineName = cleanString(
+    get('vaccineName', 'nomeVacina', 'Nome Vacina')
+  );
+  const vaccineDate = parseImportDate(
+    get('vaccineDate', 'dataVacina', 'Data Vacina', 'Data Vacinação')
+  );
   const vaccineExpiry = parseImportDate(
-    get('vaccineExpiry', 'vencimentoVacina')
+    get(
+      'vaccineExpiry',
+      'vencimentoVacina',
+      'Vencimento Vacina',
+      'Vencim Vacina',
+      'Vencim. Vacina',
+      'Venc. Vacina'
+    )
   );
   if (vaccineName) baseData.vaccineName = vaccineName;
   if (vaccineDate) baseData.vaccineDate = vaccineDate;
@@ -463,7 +508,14 @@ function parseRow(row: ImportRow, rowNumber: number): ParsedRow {
   const dewormingName = cleanString(get('dewormingName', 'nomeVermifugo'));
   const dewormingDate = parseImportDate(get('dewormingDate', 'dataVermifugo'));
   const dewormingExpiry = parseImportDate(
-    get('dewormingExpiry', 'vencimentoVermifugo')
+    get(
+      'dewormingExpiry',
+      'vencimentoVermifugo',
+      'Vencimento Vermifugo',
+      'Vencim Vermifugo',
+      'Vencim. Vermifugo',
+      'Venc. Vermifugo'
+    )
   );
   if (dewormingName) baseData.dewormingName = dewormingName;
   if (dewormingDate) baseData.dewormingDate = dewormingDate;
@@ -475,11 +527,17 @@ function parseRow(row: ImportRow, rowNumber: number): ParsedRow {
 
   const references = {
     fatherManualId:
-      cleanString(get('fatherId', 'paiId', 'idPai'))?.toLowerCase() ?? null,
+      cleanString(
+        get('fatherId', 'paiId', 'idPai', 'idDoPai')
+      )?.toLowerCase() ?? null,
     motherManualId:
-      cleanString(get('motherId', 'maeId', 'idMae'))?.toLowerCase() ?? null,
+      cleanString(
+        get('motherId', 'maeId', 'idMae', 'idDaMae')
+      )?.toLowerCase() ?? null,
     bullManualId:
-      cleanString(get('bullId', 'touroId', 'idTouro'))?.toLowerCase() ?? null,
+      cleanString(
+        get('bullId', 'touroId', 'idTouro', 'idTouroCobertura')
+      )?.toLowerCase() ?? null,
     bullIatfManualId:
       cleanString(
         get('bullIatfId', 'touroIatfId', 'idTouroIatf')
@@ -503,7 +561,13 @@ function parseRow(row: ImportRow, rowNumber: number): ParsedRow {
   }
 
   const weightList = parseListValue(
-    get('weightHistories', 'historicoPeso', 'pesos', 'weightHistory')
+    get(
+      'weightHistories',
+      'historicoPeso',
+      'pesos',
+      'weightHistory',
+      'Histórico de Pesos'
+    )
   );
 
   for (const item of weightList) {
@@ -790,10 +854,7 @@ export async function POST(req: Request) {
   const { context, error, status } = await requireFarmContext('manage_animals');
 
   if (!context) {
-    return NextResponse.json(
-      { success: false, error },
-      { status }
-    );
+    return NextResponse.json({ success: false, error }, { status });
   }
   const ownerId = context.farm.ownerUserId;
 
@@ -811,6 +872,15 @@ export async function POST(req: Request) {
     const parsedRows = rows.map((row, index) =>
       parseRow((row ?? {}) as ImportRow, index + 2)
     );
+
+    console.log('[Import API] Total rows received:', rows.length);
+    if (rows.length > 0) {
+      console.log('[Import API] First row keys:', Object.keys(rows[0] ?? {}));
+      console.log(
+        '[Import API] First row sample:',
+        JSON.stringify(rows[0]).slice(0, 500)
+      );
+    }
 
     const issues: Array<{ row: number; message: string }> = [];
 
@@ -1176,6 +1246,9 @@ export async function POST(req: Request) {
         success: importedCount > 0,
         summary,
         issues,
+        ...(importedCount === 0 && rows.length > 0
+          ? { receivedKeys: Object.keys(rows[0] ?? {}) }
+          : {}),
       },
       { status: importedCount > 0 ? 200 : 400 }
     );

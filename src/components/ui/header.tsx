@@ -28,7 +28,7 @@ export const Header: React.FC<TableProps> = ({ notifications }) => {
   return (
     <header className="flex w-full items-center justify-between p-2">
       <nav className="flex w-full">
-        <ul className="flex w-full max-w-3xl items-center justify-evenly gap-8">
+        <ul className="flex w-full max-w-lg items-center justify-between gap-4">
           <li>
             <Link href={'/dashboard'}>
               <Image
@@ -37,7 +37,7 @@ export const Header: React.FC<TableProps> = ({ notifications }) => {
                 alt="Logo - Imagem de um touro e uma ovelha"
                 width={100}
                 height={100}
-                className="size-16"
+                className="mr-auto size-16"
               />
             </Link>
           </li>
@@ -92,7 +92,7 @@ export const Header: React.FC<TableProps> = ({ notifications }) => {
         {status === 'authenticated' && (
           <div className="flex items-center gap-3">
             <Link href={'/dashboard/profile'}>
-              <div className="flex items-center gap-1">
+              <div className="flex w-max items-center gap-1">
                 {data?.user?.name}
                 <Avatar className="size-8">
                   <AvatarImage
