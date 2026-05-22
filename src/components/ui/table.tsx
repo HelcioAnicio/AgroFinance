@@ -247,6 +247,7 @@ export const Table: React.FC<TableProps> = ({
       const workbook = XLSX.read(data, { type: 'array' });
       const sheetName = workbook.SheetNames[0];
       const sheet = workbook.Sheets[sheetName];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const allRows = XLSX.utils.sheet_to_json<any[]>(sheet, { header: 1 });
       let headerRowIndex = 0;
       for (let i = 0; i < Math.min(allRows.length, 10); i++) {
@@ -297,7 +298,11 @@ export const Table: React.FC<TableProps> = ({
 
         const result = await res.json();
         if (result.success) {
-          toast.success('Lista cadastrada com sucesso!');
+          toast.success(`Lista cadastrada com sucesso!
+            A página será recarregada para mostrar os novos animais.`);
+          setTimeout(() => {
+            window.location.reload();
+          }, 5000);
         } else {
           console.log('[Import] API error response:', result);
           if (result.receivedKeys) {
@@ -439,7 +444,7 @@ export const Table: React.FC<TableProps> = ({
                   onChange={(event) => setInputValue(event.target.value)}
                 />
               </div>
-              <div className="flex flex-col gap-3 md:flex-row">
+              <div className="flex flex-col gap-3 min-[500px]:flex-row">
                 <Dialog
                   open={importDialogOpen}
                   onOpenChange={setImportDialogOpen}
