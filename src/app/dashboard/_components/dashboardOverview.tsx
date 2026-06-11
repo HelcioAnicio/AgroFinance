@@ -11,9 +11,7 @@ import {
   IoDownloadOutline,
   IoNotificationsOutline,
 } from 'react-icons/io5';
-import {
-  MdHighlightOff,
-} from 'react-icons/md';
+import { MdHighlightOff } from 'react-icons/md';
 import {
   TbMoneybag,
   TbTrashXFilled,
@@ -47,30 +45,71 @@ const isFemale = (gender: string) =>
   gender === 'female' || gender === 'femea' || gender === 'fêmea';
 
 const MONTH_NAMES = [
-  'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
-  'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez',
+  'Jan',
+  'Fev',
+  'Mar',
+  'Abr',
+  'Mai',
+  'Jun',
+  'Jul',
+  'Ago',
+  'Set',
+  'Out',
+  'Nov',
+  'Dez',
 ];
 
 const getStatusNode = (status?: string) => {
   if (status === 'active' || status === 'ativo')
-    return <><FaCheckCircle className="inline-block size-3 text-green-400" /> Ativo</>;
+    return (
+      <>
+        <FaCheckCircle className="inline-block size-3 text-green-400" /> Ativo
+      </>
+    );
   if (status === 'inactive' || status === 'inativo')
-    return <><MdHighlightOff className="inline-block size-3 text-gray-500" /> Inativo</>;
+    return (
+      <>
+        <MdHighlightOff className="inline-block size-3 text-gray-500" /> Inativo
+      </>
+    );
   if (status === 'dead' || status === 'morto')
-    return <><IoSkull className="inline-block size-3 text-black" /> Morto</>;
+    return (
+      <>
+        <IoSkull className="inline-block size-3 text-black" /> Morto
+      </>
+    );
   if (status === 'lost')
-    return <><TbZoomQuestionFilled className="inline-block size-3 text-amber-500" /> Perdida</>;
+    return (
+      <>
+        <TbZoomQuestionFilled className="inline-block size-3 text-amber-500" />{' '}
+        Perdida
+      </>
+    );
   if (status === 'trash')
-    return <><TbTrashXFilled className="inline-block size-3 text-red-500" /> Descarte</>;
-  return <><TbMoneybag className="inline-block size-3 text-yellow-600" /> Vendido</>;
+    return (
+      <>
+        <TbTrashXFilled className="inline-block size-3 text-red-500" /> Descarte
+      </>
+    );
+  return (
+    <>
+      <TbMoneybag className="inline-block size-3 text-yellow-600" /> Vendido
+    </>
+  );
 };
 
 const getStatusBarColor = (status: string) => {
   const colors: Record<string, string> = {
-    active: 'bg-green-500', inactive: 'bg-gray-500', dead: 'bg-black',
-    sold: 'bg-yellow-600', lost: 'bg-amber-500', trash: 'bg-red-500',
-    empty: 'bg-slate-500', pregnant: 'bg-fuchsia-500',
-    waiting: 'bg-indigo-500', pev: 'bg-cyan-500',
+    active: 'bg-green-500',
+    inactive: 'bg-gray-500',
+    dead: 'bg-black',
+    sold: 'bg-yellow-600',
+    lost: 'bg-amber-500',
+    trash: 'bg-red-500',
+    empty: 'bg-slate-500',
+    pregnant: 'bg-fuchsia-500',
+    waiting: 'bg-indigo-500',
+    pev: 'bg-cyan-500',
   };
   return colors[status] ?? 'bg-primary';
 };
@@ -80,14 +119,20 @@ export function DashboardOverview() {
   const [animals, setAnimals] = useState<Animal[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [externalBulls, setExternalBulls] = useState<ExternalBull[]>([]);
-  const [livestockStats, setLivestockStats] = useState<LivestockStatsYear[]>([]);
+  const [livestockStats, setLivestockStats] = useState<LivestockStatsYear[]>(
+    []
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [inputFile, setInputFile] = useState<File | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [parsedJson, setParsedJson] = useState<any[]>([]);
-  const [importIssues, setImportIssues] = useState<Array<{ row: number; message: string }>>([]);
-  const [selectedStatsYear, setSelectedStatsYear] = useState<number | null>(null);
+  const [importIssues, setImportIssues] = useState<
+    Array<{ row: number; message: string }>
+  >([]);
+  const [selectedStatsYear, setSelectedStatsYear] = useState<number | null>(
+    null
+  );
 
   const router = useRouter();
 
@@ -107,13 +152,18 @@ export function DashboardOverview() {
       setLivestockStats(data.livestockStats ?? []);
       setExternalBulls(data.externalBulls ?? []);
     } catch {
-      setAnimals([]); setUsers([]); setLivestockStats([]); setExternalBulls([]);
+      setAnimals([]);
+      setUsers([]);
+      setLivestockStats([]);
+      setExternalBulls([]);
     } finally {
       setDataLoading(false);
     }
   }, []);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const availableYears = useMemo(
     () => livestockStats.map((s) => s.year),
@@ -121,7 +171,10 @@ export function DashboardOverview() {
   );
 
   useEffect(() => {
-    if (availableYears.length === 0) { setSelectedStatsYear(null); return; }
+    if (availableYears.length === 0) {
+      setSelectedStatsYear(null);
+      return;
+    }
     const latestYear = Math.max(...availableYears);
     setSelectedStatsYear((cur) =>
       cur && availableYears.includes(cur) ? cur : latestYear
@@ -136,7 +189,11 @@ export function DashboardOverview() {
   const maxMonthlyValue = useMemo(() => {
     if (!selectedYearStats) return 1;
     return Math.max(
-      ...selectedYearStats.months.flatMap((m) => [m.maleBirths, m.femaleBirths, m.deaths]),
+      ...selectedYearStats.months.flatMap((m) => [
+        m.maleBirths,
+        m.femaleBirths,
+        m.deaths,
+      ]),
       1
     );
   }, [selectedYearStats]);
@@ -177,9 +234,7 @@ export function DashboardOverview() {
       .filter((a) => {
         const vaccExp = a.vaccineExpiry ? new Date(a.vaccineExpiry) : null;
         const dewExp = a.dewormingExpiry ? new Date(a.dewormingExpiry) : null;
-        return (
-          (vaccExp && vaccExp <= in30) || (dewExp && dewExp <= in30)
-        );
+        return (vaccExp && vaccExp <= in30) || (dewExp && dewExp <= in30);
       })
       .map((a) => {
         const vaccExp = a.vaccineExpiry ? new Date(a.vaccineExpiry) : null;
@@ -240,14 +295,27 @@ export function DashboardOverview() {
           if (Array.isArray(row)) {
             const hasBrinco = row.some((cell) => {
               if (typeof cell !== 'string') return false;
-              const norm = cell.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
-              return norm.includes('brinco') || norm.includes('manualid') || norm.includes('id manual');
+              const norm = cell
+                .normalize('NFD')
+                .replace(/[̀-ͯ]/g, '')
+                .toLowerCase();
+              return (
+                norm.includes('brinco') ||
+                norm.includes('manualid') ||
+                norm.includes('id manual')
+              );
             });
-            if (hasBrinco) { headerRowIndex = i; break; }
+            if (hasBrinco) {
+              headerRowIndex = i;
+              break;
+            }
           }
         }
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const json = XLSX.utils.sheet_to_json<any>(sheet, { range: headerRowIndex || 2, defval: '' });
+        const json = XLSX.utils.sheet_to_json<any>(sheet, {
+          range: headerRowIndex || 2,
+          defval: '',
+        });
         setParsedJson(json);
       };
       reader.readAsArrayBuffer(file);
@@ -337,7 +405,7 @@ export function DashboardOverview() {
                 <Link
                   download="agrofinance_importacao_animais.xlsx"
                   href="/agrofinance_importacao_animais.xlsx"
-                  className="flex w-max items-center gap-1 underline text-sm"
+                  className="flex w-max items-center gap-1 text-sm underline"
                 >
                   Arquivo modelo <IoDownloadOutline />
                 </Link>
@@ -348,14 +416,18 @@ export function DashboardOverview() {
                   Escolher arquivo <FaFileArrowDown size={14} />
                 </label>
                 <input
-                  type="file" id="doc-overview" className="hidden"
-                  onChange={handleInputFileValue} accept=".xlsx,.xls,.csv"
+                  type="file"
+                  id="doc-overview"
+                  className="hidden"
+                  onChange={handleInputFileValue}
+                  accept=".xlsx,.xls,.csv"
                 />
               </div>
               {inputFile && (
                 <div className="mt-3 rounded-md border p-3 text-sm">
                   <p className="font-semibold">
-                    Arquivo: <span className="font-normal">{inputFile.name}</span>
+                    Arquivo:{' '}
+                    <span className="font-normal">{inputFile.name}</span>
                   </p>
                   {parsedJson.length > 0 && (
                     <p className="mt-1 text-xs text-muted-foreground">
@@ -365,14 +437,24 @@ export function DashboardOverview() {
                   {importIssues.length > 0 && (
                     <ul className="mt-2 max-h-32 overflow-y-auto rounded bg-red-50 p-2 text-xs text-red-700">
                       {importIssues.map((issue, i) => (
-                        <li key={i}>Linha {issue.row}: {issue.message}</li>
+                        <li key={i}>
+                          Linha {issue.row}: {issue.message}
+                        </li>
                       ))}
                     </ul>
                   )}
                 </div>
               )}
               <DialogFooter>
-                <Button variant="outline" onClick={() => { setImportDialogOpen(false); setInputFile(null); setParsedJson([]); setImportIssues([]); }}>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setImportDialogOpen(false);
+                    setInputFile(null);
+                    setParsedJson([]);
+                    setImportIssues([]);
+                  }}
+                >
                   Cancelar
                 </Button>
                 {inputFile && (
@@ -411,7 +493,7 @@ export function DashboardOverview() {
 
       {/* Summary Cards */}
       <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <div className="rounded-xl border-l-4 border-primary bg-white p-5 shadow-sm">
+        <div className="rounded-xl border-l-4 border-primary bg-white p-3 shadow-sm">
           <p className="mb-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
             Total de animais
           </p>
@@ -446,7 +528,9 @@ export function DashboardOverview() {
             {pregnantCows.length}
           </p>
           <p className="mt-2 text-[11px] italic text-muted-foreground">
-            {pregnantCows.length === 0 ? 'Nenhuma prenha' : 'Acompanhar previsão'}
+            {pregnantCows.length === 0
+              ? 'Nenhuma prenha'
+              : 'Acompanhar previsão'}
           </p>
         </div>
 
@@ -491,7 +575,10 @@ export function DashboardOverview() {
               <tbody className="divide-y">
                 {recentAnimals.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-5 py-8 text-center text-muted-foreground">
+                    <td
+                      colSpan={6}
+                      className="px-5 py-8 text-center text-muted-foreground"
+                    >
                       Nenhum animal cadastrado ainda.
                     </td>
                   </tr>
@@ -511,10 +598,13 @@ export function DashboardOverview() {
                       {animal.manualId}
                     </td>
                     <td className="px-5 py-3">
-                      {animal.breed.charAt(0).toUpperCase() + animal.breed.slice(1)}
+                      {animal.breed.charAt(0).toUpperCase() +
+                        animal.breed.slice(1)}
                     </td>
                     <td className="px-5 py-3">
-                      {animal.gender === 'male' || animal.gender === 'macho' ? 'Macho' : 'Fêmea'}
+                      {animal.gender === 'male' || animal.gender === 'macho'
+                        ? 'Macho'
+                        : 'Fêmea'}
                     </td>
                     <td className="px-5 py-3 text-muted-foreground">
                       {animal.birthDate
@@ -561,7 +651,9 @@ export function DashboardOverview() {
                     .slice()
                     .sort((a, b) => b - a)
                     .map((y) => (
-                      <option key={y} value={y}>{y}</option>
+                      <option key={y} value={y}>
+                        {y}
+                      </option>
                     ))}
                 </select>
               )}
@@ -591,22 +683,30 @@ export function DashboardOverview() {
                         m.statusChanges > 0
                     )
                     .map((month) => {
-                      const malePercent = (month.maleBirths / maxMonthlyValue) * 100;
-                      const femalePercent = (month.femaleBirths / maxMonthlyValue) * 100;
-                      const deathPercent = (month.deaths / maxMonthlyValue) * 100;
+                      const malePercent =
+                        (month.maleBirths / maxMonthlyValue) * 100;
+                      const femalePercent =
+                        (month.femaleBirths / maxMonthlyValue) * 100;
+                      const deathPercent =
+                        (month.deaths / maxMonthlyValue) * 100;
                       const monthStatuses = month.statusBreakdown.filter(
                         (s) => s.total > 0 && s.status !== 'dead'
                       );
                       const maxMonthStatus = Math.max(
-                        ...monthStatuses.map((s) => s.total), 1
+                        ...monthStatuses.map((s) => s.total),
+                        1
                       );
 
                       return (
-                        <div key={month.month} className="rounded-lg border p-3">
+                        <div
+                          key={month.month}
+                          className="rounded-lg border p-3"
+                        >
                           <div className="mb-2 flex items-center justify-between text-[11px]">
                             <span className="font-semibold">{month.label}</span>
                             <span className="text-muted-foreground">
-                              {month.statusChanges} alteração{month.statusChanges !== 1 ? 'ões' : ''}
+                              {month.statusChanges} alteração
+                              {month.statusChanges !== 1 ? 'ões' : ''}
                             </span>
                           </div>
                           <div className="space-y-1.5">
@@ -614,38 +714,60 @@ export function DashboardOverview() {
                               <div className="flex items-center gap-2">
                                 <span className="w-12 text-[10px]">Machos</span>
                                 <div className="h-2 flex-1 rounded bg-muted">
-                                  <div className="h-2 rounded bg-blue-500" style={{ width: `${malePercent}%` }} />
+                                  <div
+                                    className="h-2 rounded bg-blue-500"
+                                    style={{ width: `${malePercent}%` }}
+                                  />
                                 </div>
-                                <span className="w-4 text-right">{month.maleBirths}</span>
+                                <span className="w-4 text-right">
+                                  {month.maleBirths}
+                                </span>
                               </div>
                             )}
                             {month.femaleBirths > 0 && (
                               <div className="flex items-center gap-2">
                                 <span className="w-12 text-[10px]">Fêmeas</span>
                                 <div className="h-2 flex-1 rounded bg-muted">
-                                  <div className="h-2 rounded bg-pink-500" style={{ width: `${femalePercent}%` }} />
+                                  <div
+                                    className="h-2 rounded bg-pink-500"
+                                    style={{ width: `${femalePercent}%` }}
+                                  />
                                 </div>
-                                <span className="w-4 text-right">{month.femaleBirths}</span>
+                                <span className="w-4 text-right">
+                                  {month.femaleBirths}
+                                </span>
                               </div>
                             )}
                             {month.deaths > 0 && (
                               <div className="flex items-center gap-2">
                                 <span className="w-12 text-[10px]">Mortes</span>
                                 <div className="h-2 flex-1 rounded bg-muted">
-                                  <div className="h-2 rounded bg-gray-700" style={{ width: `${deathPercent}%` }} />
+                                  <div
+                                    className="h-2 rounded bg-gray-700"
+                                    style={{ width: `${deathPercent}%` }}
+                                  />
                                 </div>
-                                <span className="w-4 text-right">{month.deaths}</span>
+                                <span className="w-4 text-right">
+                                  {month.deaths}
+                                </span>
                               </div>
                             )}
                             {monthStatuses.map((statusItem) => {
-                              const percent = (statusItem.total / maxMonthStatus) * 100;
+                              const percent =
+                                (statusItem.total / maxMonthStatus) * 100;
                               const genderDetail =
                                 statusItem.males > 0 || statusItem.females > 0
                                   ? ` (${statusItem.males > 0 ? `${statusItem.males}♂` : ''}${statusItem.males > 0 && statusItem.females > 0 ? ' ' : ''}${statusItem.females > 0 ? `${statusItem.females}♀` : ''})`
                                   : '';
                               return (
-                                <div key={`${month.month}-${statusItem.status}`} className="flex items-center gap-2">
-                                  <span className="w-14 truncate text-[10px]" title={statusItem.label + genderDetail}>
+                                <div
+                                  key={`${month.month}-${statusItem.status}`}
+                                  className="flex items-center gap-2"
+                                >
+                                  <span
+                                    className="w-14 truncate text-[10px]"
+                                    title={statusItem.label + genderDetail}
+                                  >
                                     {statusItem.label}
                                   </span>
                                   <div className="h-2 flex-1 rounded bg-muted">
@@ -654,21 +776,33 @@ export function DashboardOverview() {
                                       style={{ width: `${percent}%` }}
                                     />
                                   </div>
-                                  <span className="w-4 text-right">{statusItem.total}</span>
+                                  <span className="w-4 text-right">
+                                    {statusItem.total}
+                                  </span>
                                 </div>
                               );
                             })}
                             {/* Gender detail for each status */}
-                            {monthStatuses.some((s) => s.males > 0 || s.females > 0) && (
+                            {monthStatuses.some(
+                              (s) => s.males > 0 || s.females > 0
+                            ) && (
                               <div className="mt-1 border-t pt-1 text-[9px] text-muted-foreground">
                                 {monthStatuses
                                   .filter((s) => s.males > 0 || s.females > 0)
                                   .map((s) => (
                                     <span key={s.status} className="mr-2">
                                       {s.label}:{' '}
-                                      {s.males > 0 && <span className="text-blue-600">{s.males}♂</span>}
+                                      {s.males > 0 && (
+                                        <span className="text-blue-600">
+                                          {s.males}♂
+                                        </span>
+                                      )}
                                       {s.males > 0 && s.females > 0 && ' '}
-                                      {s.females > 0 && <span className="text-pink-600">{s.females}♀</span>}
+                                      {s.females > 0 && (
+                                        <span className="text-pink-600">
+                                          {s.females}♀
+                                        </span>
+                                      )}
                                     </span>
                                   ))}
                               </div>
@@ -678,7 +812,11 @@ export function DashboardOverview() {
                       );
                     })}
                   {selectedYearStats.months.every(
-                    (m) => m.maleBirths === 0 && m.femaleBirths === 0 && m.deaths === 0 && m.statusChanges === 0
+                    (m) =>
+                      m.maleBirths === 0 &&
+                      m.femaleBirths === 0 &&
+                      m.deaths === 0 &&
+                      m.statusChanges === 0
                   ) && (
                     <p className="py-4 text-center text-muted-foreground">
                       Sem eventos registrados em {selectedStatsYear}.
@@ -718,7 +856,9 @@ export function DashboardOverview() {
                       {animal.manualId} — {animal.breed}
                     </p>
                     {alerts.map((alert, i) => (
-                      <p key={i} className="text-amber-700">{alert}</p>
+                      <p key={i} className="text-amber-700">
+                        {alert}
+                      </p>
                     ))}
                   </button>
                 ))}

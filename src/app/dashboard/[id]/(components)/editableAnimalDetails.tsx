@@ -133,6 +133,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   externalBulls,
   vaccines,
 }) => {
+  const [arrobaPriceLoaded, setArrobaPriceLoaded] = useState(false);
   const [allDataForm, setAllDataForm] = useState<Animal>({
     ...animal,
     bullId: animal.externalBullId
@@ -187,11 +188,27 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   );
 
   // Offspring stats
-  const offspring = allDataForm?.offspringFromMother ?? [];
+  const femaleOffspring = allDataForm?.offspringFromMother ?? [];
+
+  // For males: union of all sire relationships
+  const maleOffspring = (() => {
+    const all = [
+      ...(allDataForm?.offspringFromFather ?? []),
+      ...(allDataForm?.offspringFromBull ?? []),
+      ...(allDataForm?.offspringFromBullIatf ?? []),
+    ];
+    const seen = new Set<string>();
+    return all.filter((o) => { if (seen.has(o.id)) return false; seen.add(o.id); return true; });
+  })();
+
+  const offspring = allDataForm.gender === 'male' ? maleOffspring : femaleOffspring;
+
   const totalBirths = offspring.length;
   const totalLosses = allDataForm?.calfLossHistories?.length ?? 0;
   const totalPregnancies =
-    totalBirths + totalLosses + (currentReproductiveStatus === 'pregnant' ? 1 : 0);
+    allDataForm.gender === 'female'
+      ? totalBirths + totalLosses + (currentReproductiveStatus === 'pregnant' ? 1 : 0)
+      : maleOffspring.length;
   const efficiencyRate =
     totalPregnancies > 0 ? ((totalBirths / totalPregnancies) * 100).toFixed(1) : '0.0';
 
@@ -299,23 +316,37 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   ];
   const scores = [1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 2.75, 3, 3.25, 3.5, 3.75, 4, 5];
 
-  const fetchArrobaPrice = async () => {
-    const id = toast.loading('Buscando cotação da arroba...');
+  const fetchArrobaPrice = async (silent = false) => {
+    const toastId = silent ? null : toast.loading('Buscando cotação da arroba...');
     try {
       const res = await fetch('/api/arroba-price');
       const data = await res.json();
-      toast.dismiss(id);
+      if (toastId) toast.dismiss(toastId);
       if (data.price) {
         setPricePerArroba(String(data.price).replace('.', ','));
-        toast.success(`Cotação: R$ ${data.price}/@ — ${data.source} (${data.date})`);
+        if (!silent) {
+          if (data.warning) {
+            toast.warning(`Cotação: R$ ${data.price}/@ (${data.date}) — ${data.warning}`);
+          } else {
+            toast.success(`Cotação: R$ ${data.price}/@ — ${data.source} (${data.date})`);
+          }
+        }
       } else {
-        toast.info('Cotação automática indisponível. Informe o preço manualmente.');
+        if (!silent) toast.info('Cotação automática indisponível. Informe o preço manualmente.');
       }
     } catch {
-      toast.dismiss(id);
-      toast.error('Erro ao buscar cotação.');
+      if (toastId) toast.dismiss(toastId);
+      if (!silent) toast.error('Erro ao buscar cotação.');
     }
   };
+
+  useEffect(() => {
+    if (!arrobaPriceLoaded) {
+      setArrobaPriceLoaded(true);
+      fetchArrobaPrice(true);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const calcLifetime = () => {
     if (!allDataForm.birthDate) return 'N/A';
@@ -770,38 +801,52 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
               <p className="text-sm text-muted-foreground">Nenhum filho registrado.</p>
             ) : (
               <div className="flex gap-3 overflow-x-auto pb-2">
-                {offspring.map((child) => (
-                  <Link
-                    key={child.id}
-                    href={`/dashboard/${child.id}`}
-                    className="min-w-[150px] shrink-0 rounded-xl border bg-white p-4 shadow-sm transition hover:border-primary/40 hover:shadow-md"
-                  >
-                    <div className="mb-3 flex items-center justify-between">
-                      <span className="text-2xl">😊</span>
-                      <span className={`flex items-center gap-1 text-[10px] font-bold uppercase ${child.status === 'active' ? 'text-green-600' : 'text-muted-foreground'}`}>
-                        <span className={`size-1.5 rounded-full ${child.status === 'active' ? 'bg-green-500' : 'bg-gray-400'}`} />
-                        {child.status === 'active' ? 'Ativo' : (child.status ?? 'N/A')}
-                      </span>
-                    </div>
-                    <p className="font-mono text-lg font-black text-foreground">
-                      {child.manualId.charAt(0).toUpperCase() + child.manualId.slice(1)}
-                    </p>
-                    <div className="mt-2 space-y-1 text-xs">
-                      <div className="flex justify-between gap-2">
-                        <span className="text-muted-foreground">Sexo:</span>
-                        <span className="font-semibold">{child.gender === 'male' ? 'Macho' : 'Fêmea'}</span>
+                {offspring.map((child) => {
+                  const childStatus = child.status ?? '';
+                  const statusLabel =
+                    childStatus === 'active' || childStatus === 'ativo' ? 'Ativo'
+                    : childStatus === 'inactive' || childStatus === 'inativo' ? 'Inativo'
+                    : childStatus === 'dead' || childStatus === 'morto' ? 'Morto'
+                    : childStatus === 'sold' || childStatus === 'vendido' ? 'Vendido'
+                    : childStatus === 'lost' ? 'Perdido'
+                    : childStatus === 'trash' ? 'Descarte'
+                    : 'N/A';
+                  const isActive = childStatus === 'active' || childStatus === 'ativo';
+                  return (
+                    <Link
+                      key={child.id}
+                      href={`/dashboard/${child.id}`}
+                      className="min-w-[150px] shrink-0 rounded-xl border bg-white p-4 shadow-sm transition hover:border-primary/40 hover:shadow-md"
+                    >
+                      <div className="mb-3 flex items-center justify-between">
+                        <span className={`text-xl font-bold ${child.gender === 'male' ? 'text-blue-500' : 'text-pink-500'}`}>
+                          {child.gender === 'male' ? '♂' : '♀'}
+                        </span>
+                        <span className={`flex items-center gap-1 text-[10px] font-bold uppercase ${isActive ? 'text-green-600' : 'text-muted-foreground'}`}>
+                          <span className={`size-1.5 rounded-full ${isActive ? 'bg-green-500' : 'bg-gray-400'}`} />
+                          {statusLabel}
+                        </span>
                       </div>
-                      <div className="flex justify-between gap-2">
-                        <span className="text-muted-foreground">Peso:</span>
-                        <span className="font-bold text-primary">{child.weight} Kg</span>
+                      <p className="font-mono text-lg font-black text-foreground">
+                        {child.manualId.charAt(0).toUpperCase() + child.manualId.slice(1)}
+                      </p>
+                      <div className="mt-2 space-y-1 text-xs">
+                        <div className="flex justify-between gap-2">
+                          <span className="text-muted-foreground">Sexo:</span>
+                          <span className="font-semibold">{child.gender === 'male' ? 'Macho' : 'Fêmea'}</span>
+                        </div>
+                        <div className="flex justify-between gap-2">
+                          <span className="text-muted-foreground">Peso:</span>
+                          <span className="font-bold text-primary">{child.weight} Kg</span>
+                        </div>
+                        <div className="flex justify-between gap-2">
+                          <span className="text-muted-foreground">Cat:</span>
+                          <span className="font-semibold text-green-700">{categoryLabel(child.category, child.gender)}</span>
+                        </div>
                       </div>
-                      <div className="flex justify-between gap-2">
-                        <span className="text-muted-foreground">Cat:</span>
-                        <span className="font-semibold text-green-700">{categoryLabel(child.category, child.gender)}</span>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
+                    </Link>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -812,19 +857,35 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
 
             <div className="rounded-2xl border bg-white p-5 shadow-sm">
               <h2 className="mb-4 font-bold">Eficiência reprodutiva</h2>
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { label: 'Prenhezes', value: totalPregnancies, color: 'border-purple-400' },
-                  { label: 'Nascimentos', value: totalBirths, color: 'border-green-400' },
-                  { label: 'Perdas', value: totalLosses, color: 'border-red-400' },
-                  { label: 'Eficiência', value: `${efficiencyRate}%`, color: 'border-primary' },
-                ].map((item) => (
-                  <div key={item.label} className={`rounded-xl border-l-4 ${item.color} bg-muted/20 px-3 py-2`}>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{item.label}</p>
-                    <p className="text-xl font-black text-foreground">{item.value}</p>
-                  </div>
-                ))}
-              </div>
+              {allDataForm.gender === 'male' ? (
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { label: 'Filhos registrados', value: maleOffspring.length, color: 'border-purple-400' },
+                    { label: 'Nascimentos', value: totalBirths, color: 'border-green-400' },
+                    { label: 'Perdas', value: totalLosses, color: 'border-red-400' },
+                    { label: 'Eficiência', value: maleOffspring.length > 0 ? `${efficiencyRate}%` : '—', color: 'border-primary' },
+                  ].map((item) => (
+                    <div key={item.label} className={`rounded-xl border-l-4 ${item.color} bg-muted/20 px-3 py-2`}>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{item.label}</p>
+                      <p className="text-xl font-black text-foreground">{item.value}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { label: 'Prenhezes', value: totalPregnancies, color: 'border-purple-400' },
+                    { label: 'Nascimentos', value: totalBirths, color: 'border-green-400' },
+                    { label: 'Perdas', value: totalLosses, color: 'border-red-400' },
+                    { label: 'Eficiência', value: `${efficiencyRate}%`, color: 'border-primary' },
+                  ].map((item) => (
+                    <div key={item.label} className={`rounded-xl border-l-4 ${item.color} bg-muted/20 px-3 py-2`}>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{item.label}</p>
+                      <p className="text-xl font-black text-foreground">{item.value}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -869,43 +930,46 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
             </div>
           </div>
 
-          {/* Calf loss history */}
-          {(allDataForm.calfLossHistories?.length ?? 0) > 0 && (
+          {/* Calf loss history + Sanitary records side by side */}
+          <div className={`grid grid-cols-1 gap-4 ${(allDataForm.calfLossHistories?.length ?? 0) > 0 ? 'lg:grid-cols-2' : ''}`}>
+            {/* Sanitary records */}
             <div className="rounded-2xl border bg-white p-5 shadow-sm">
-              <h2 className="mb-3 font-bold">Histórico de perda de cria</h2>
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                {allDataForm.calfLossHistories?.map((h) => (
-                  <div key={h.id} className="rounded-xl bg-muted/20 px-3 py-3 text-sm">
-                    <p><strong>Data:</strong> {new Date(h.lossDate).toLocaleDateString('pt-BR')}</p>
-                    <p><strong>Motivo:</strong> {h.reason || 'N/A'}</p>
-                    <p><strong>Pai:</strong> {h.fatherType === 'external' ? `Externo — ${h.externalBull?.name ?? 'N/A'}` : `Interno — ${h.fatherAnimal?.manualId ?? 'N/A'}`}</p>
-                  </div>
-                ))}
-              </div>
+              <h2 className="mb-3 font-bold">Registros sanitários</h2>
+              {sanitaryRecords.length > 0 ? (
+                <div className="space-y-2">
+                  {sanitaryRecords.map((r) => (
+                    <div key={`${r.typeLabel}-${r.id}`} className="rounded-xl bg-muted/20 px-3 py-3 text-sm">
+                      <div className="mb-1 flex items-center gap-2">
+                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">{r.typeLabel}</span>
+                        <span className="font-semibold">{r.name}</span>
+                      </div>
+                      {r.description && <p className="text-xs text-muted-foreground">{r.description}</p>}
+                      <div className="mt-1 flex gap-4 text-xs text-muted-foreground">
+                        <span>{r.date ? new Date(r.date).toLocaleDateString('pt-BR') : 'N/A'}</span>
+                        {r.expiryDate && <span>Vence: {new Date(r.expiryDate).toLocaleDateString('pt-BR')}</span>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">Nenhum registro sanitário cadastrado.</p>
+              )}
             </div>
-          )}
 
-          {/* Sanitary records */}
-          <div className="rounded-2xl border bg-white p-5 shadow-sm">
-            <h2 className="mb-3 font-bold">Registros sanitários</h2>
-            {sanitaryRecords.length > 0 ? (
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                {sanitaryRecords.map((r) => (
-                  <div key={`${r.typeLabel}-${r.id}`} className="rounded-xl bg-muted/20 px-3 py-3 text-sm">
-                    <div className="mb-1 flex items-center gap-2">
-                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">{r.typeLabel}</span>
-                      <span className="font-semibold">{r.name}</span>
+            {/* Calf loss history */}
+            {(allDataForm.calfLossHistories?.length ?? 0) > 0 && (
+              <div className="rounded-2xl border bg-white p-5 shadow-sm">
+                <h2 className="mb-3 font-bold">Histórico de perda de cria</h2>
+                <div className="space-y-2">
+                  {allDataForm.calfLossHistories?.map((h) => (
+                    <div key={h.id} className="rounded-xl bg-muted/20 px-3 py-3 text-sm">
+                      <p><strong>Data:</strong> {new Date(h.lossDate).toLocaleDateString('pt-BR')}</p>
+                      <p><strong>Motivo:</strong> {h.reason || 'N/A'}</p>
+                      <p><strong>Pai:</strong> {h.fatherType === 'external' ? `Externo — ${h.externalBull?.name ?? 'N/A'}` : `Interno — ${h.fatherAnimal?.manualId ?? 'N/A'}`}</p>
                     </div>
-                    {r.description && <p className="text-xs text-muted-foreground">{r.description}</p>}
-                    <div className="mt-1 flex gap-4 text-xs text-muted-foreground">
-                      <span>📅 {r.date ? new Date(r.date).toLocaleDateString('pt-BR') : 'N/A'}</span>
-                      {r.expiryDate && <span>⏰ Vence: {new Date(r.expiryDate).toLocaleDateString('pt-BR')}</span>}
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">Nenhum registro sanitário cadastrado.</p>
             )}
           </div>
         </div>
@@ -916,8 +980,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
         <form className="mx-auto grid max-w-5xl grid-cols-1 gap-5 p-4 lg:grid-cols-3">
           {/* Left: form fields — 2 cols */}
           <div className="lg:col-span-2 space-y-4">
-            <div className="rounded-2xl border bg-white p-5 shadow-sm">
-              <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Dados básicos</p>
+            <div>
               <FormBasicInformation
                 allDataForm={allDataForm}
                 handleInputValues={handleInputValues}
@@ -946,7 +1009,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                       <select
                         name="reproductiveStatus"
                         id="reproductiveStatus"
-                        className="rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary"
+                        className="w-full rounded-lg border border-input bg-white px-3 py-2 text-sm outline-none transition focus:border-primary"
                         value={allDataForm.reproductiveStatus ?? ''}
                         onChange={handleInputValues}
                       >
