@@ -32,9 +32,11 @@ export default function RootLayout({
     <html lang="en">
       <body
         cz-shortcut-listen="true"
-        className={`${geistSans.variable} ${geistMono.variable} m-auto min-h-full w-full max-w-screen-xl text-sm antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} w-full text-sm antialiased`}
       >
-        <AuthProvider>{children}</AuthProvider>
+        <div className="m-auto min-h-full w-full max-w-screen-xl">
+          <AuthProvider>{children}</AuthProvider>
+        </div>
         <Toaster richColors />
       </body>
     </html>

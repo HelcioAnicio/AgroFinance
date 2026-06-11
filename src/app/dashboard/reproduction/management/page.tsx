@@ -199,7 +199,11 @@ const ReproductionManagementPage = () => {
   };
 
   const stageManagements = managements.filter((m) => m.stage === currentStage);
-  const filteredAnimals = getFilteredAnimals();
+  const baseFiltered = getFilteredAnimals();
+  const filteredAnimals =
+    editingId && formData.animalId && !baseFiltered.some((a) => a.id === formData.animalId)
+      ? [animals.find((a) => a.id === formData.animalId)!, ...baseFiltered].filter(Boolean)
+      : baseFiltered;
   const selectedAnimal = animals.find((a) => a.id === formData.animalId);
   const internalSire = animals.find(
     (a) => a.id === selectedAnimal?.bullId || a.id === selectedAnimal?.bullIatfId || a.id === selectedAnimal?.fatherId
