@@ -215,8 +215,14 @@ export const fetchLivestockStats = async (
     },
   });
 
+  // Build gender map for fast lookup during status history processing
+  const animalGenderMap = new Map<string, 'male' | 'female' | null>(
+    animals.map((a) => [a.id, normalizeGender(a.gender)])
+  );
+
+  type StatusCounter = { total: number; males: number; females: number };
   const yearsMap = new Map<number, LivestockStatsYear>();
-  const monthStatusMap = new Map<string, Map<string, number>>();
+  const monthStatusMap = new Map<string, Map<string, StatusCounter>>();
 
   const getYear = (year: number) => {
     if (!yearsMap.has(year)) yearsMap.set(year, buildYear(year));
@@ -224,7 +230,8 @@ export const fetchLivestockStats = async (
   };
   const getMonthStatusCounter = (year: number, month: number) => {
     const key = `${year}-${month}`;
-    if (!monthStatusMap.has(key)) monthStatusMap.set(key, new Map());
+    if (!monthStatusMap.has(key))
+      monthStatusMap.set(key, new Map<string, StatusCounter>());
     return monthStatusMap.get(key)!;
   };
 
@@ -256,14 +263,21 @@ export const fetchLivestockStats = async (
     const yearRef = getYear(history.year);
     const monthRef = yearRef.months[history.month - 1];
     const normalizedStatus = normalizeStatus(history.newStatus);
+    const gender = animalGenderMap.get(history.animalId);
 
     monthRef.statusChanges += 1;
     yearRef.totalStatusChanges += 1;
+
     const monthCounter = getMonthStatusCounter(history.year, history.month);
-    monthCounter.set(
-      normalizedStatus,
-      (monthCounter.get(normalizedStatus) ?? 0) + 1
-    );
+    const existing = monthCounter.get(normalizedStatus) ?? {
+      total: 0,
+      males: 0,
+      females: 0,
+    };
+    existing.total += 1;
+    if (gender === 'male') existing.males += 1;
+    if (gender === 'female') existing.females += 1;
+    monthCounter.set(normalizedStatus, existing);
 
     if (isDeadStatus(normalizedStatus)) {
       monthRef.deaths += 1;
@@ -288,12 +302,14 @@ export const fetchLivestockStats = async (
     for (const monthRef of yearRef.months) {
       const counter =
         monthStatusMap.get(`${year}-${monthRef.month}`) ??
-        new Map<string, number>();
+        new Map<string, StatusCounter>();
       monthRef.statusBreakdown = Array.from(counter.entries())
-        .map(([status, total]) => ({
+        .map(([status, { total, males, females }]) => ({
           status,
           label: statusLabel(status),
           total,
+          males,
+          females,
         }))
         .sort((a, b) => b.total - a.total);
     }

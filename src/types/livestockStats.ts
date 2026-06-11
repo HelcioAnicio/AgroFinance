@@ -2,6 +2,8 @@ export interface LivestockMonthStatus {
   status: string;
   label: string;
   total: number;
+  males: number;
+  females: number;
 }
 
 export interface LivestockStatsMonth {

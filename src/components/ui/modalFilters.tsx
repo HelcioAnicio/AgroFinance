@@ -1,16 +1,12 @@
 'use client';
 import { Animal } from '@/types/animal';
-import { RadioForm } from './radioForm';
 import {
   SheetClose,
   SheetContent,
-  SheetFooter,
   SheetHeader,
   SheetTitle,
 } from './sheet';
 import React, { SetStateAction, useState } from 'react';
-import { InputForm } from './inputForm';
-import { SelectForm } from './selectForm';
 
 interface FiltersProps {
   originalAnimals: Animal[];
@@ -18,600 +14,354 @@ interface FiltersProps {
   setListAnimals: React.Dispatch<SetStateAction<Animal[]>>;
 }
 
-export const Filters: React.FC<FiltersProps> = ({
-  originalAnimals,
-  listAnimals,
-  setListAnimals,
-}) => {
-  const breedArray = [
-    'Cruzado',
-    'Nelore',
-    'Angus',
-    'Hereford',
-    'Brangus',
-    'Brahman',
-    'Tabapuã',
-    'Charolês',
-    'Senepol',
-    'Simental',
-    'Guzerá',
-    'Holandesa',
-    'Jersey',
-    'Girolando',
-    'Gir Leiteiro',
-    'Pardo-Suíço',
-    'Ayrshire',
-    'Guernsey',
-    'Simbrasil',
-    'Sindi',
-    'Indubrasil',
-    'Canchim',
-    'Red Poll',
-  ];
+const breedArray = [
+  'Cruzado','Nelore','Angus','Hereford','Brangus','Brahman','Tabapuã','Charolês',
+  'Senepol','Simental','Guzerá','Holandesa','Jersey','Girolando','Gir Leiteiro',
+  'Pardo-Suíço','Ayrshire','Guernsey','Simbrasil','Sindi','Indubrasil','Canchim','Red Poll',
+];
 
-  const [typeFilters, setTypeFilters] = useState({
-    status: {
-      active: false,
-      inactive: false,
-      dead: false,
-      sold: false,
-      lost: false,
-      trash: false,
-    },
-    gender: {
-      male: false,
-      female: false,
-    },
-    age: {
-      less12: false,
-      between12And24: false,
-      between24And36: false,
-      between36And120: false,
-      more120: false,
-    },
-    weight: {
-      '300kg': false,
-      '500kg': false,
-      '500kg+': false,
-    },
-    date: {
-      initialDate: '',
-      finalDate: '',
-    },
-    reproductiveStatus: {
-      empty: false,
-      pregnant: false,
-      waiting: false,
-      pev: false,
-    },
-    breed: '',
-    andrological: {
-      positive: false,
-      negative: false,
-      notDone: false,
-    },
+const defaultFilters = {
+  status: { active: false, inactive: false, dead: false, sold: false, lost: false, trash: false },
+  gender: { male: false, female: false },
+  age: { less12: false, between12And24: false, between24And36: false, between36And120: false, more120: false },
+  weight: { '300kg': false, '500kg': false, '600kg': false, '600kg+': false },
+  date: { initialDate: '', finalDate: '' },
+  reproductiveStatus: { empty: false, pregnant: false, waiting: false, pev: false },
+  breed: '',
+  andrological: { positive: false, negative: false, notDone: false },
+};
+
+export const Filters: React.FC<FiltersProps> = ({ originalAnimals, listAnimals, setListAnimals }) => {
+  const [typeFilters, setTypeFilters] = useState(defaultFilters);
+
+  const toggle = <T extends object>(group: T, key: keyof T): T => ({
+    ...group,
+    [key]: !group[key],
   });
 
-  const updateListAndInput = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    setListAnimals(originalAnimals);
-    handleInputsValues(event);
-  };
+  const toggleStatus = (key: keyof typeof defaultFilters.status) =>
+    setTypeFilters((prev) => ({ ...prev, status: toggle(prev.status, key) }));
 
-  const handleInputsValues = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value, type, checked } = event.target as HTMLInputElement;
-    const inputValue = type === 'checkbox' ? checked : value;
+  const toggleGender = (key: keyof typeof defaultFilters.gender) =>
+    setTypeFilters((prev) => ({
+      ...prev,
+      gender: { male: false, female: false, [key]: !prev.gender[key] },
+    }));
 
-    setTypeFilters((prevFilters) => {
-      const [filterType, filterName] = name.split('.') as [
-        keyof typeof typeFilters,
-        string,
-      ];
+  const toggleAge = (key: keyof typeof defaultFilters.age) =>
+    setTypeFilters((prev) => ({ ...prev, age: toggle(prev.age, key) }));
 
-      if (filterType === 'reproductiveStatus') {
-        return {
-          ...prevFilters,
-          reproductiveStatus: {
-            empty: false,
-            pregnant: false,
-            waiting: false,
-            pev: false,
-            [value]: true,
-          },
-        };
-      } else if (filterType === 'breed') {
-        return {
-          ...prevFilters,
-          breed: value,
-        };
-      } else if (filterType === 'andrological') {
-        return {
-          ...prevFilters,
-          andrological: {
-            positive: false,
-            negative: false,
-            notDone: false,
-            [value]: true,
-          },
-        };
-      }
+  const toggleWeight = (key: keyof typeof defaultFilters.weight) =>
+    setTypeFilters((prev) => ({
+      ...prev,
+      weight: { '300kg': false, '500kg': false, '600kg': false, '600kg+': false, [key]: !prev.weight[key as keyof typeof defaultFilters.weight] },
+    }));
 
-      return {
-        ...prevFilters,
-        [filterType]: {
-          ...prevFilters[filterType],
-          [filterName]: inputValue,
-        },
-      };
-    });
-  };
+  const setReproductive = (val: string) =>
+    setTypeFilters((prev) => ({
+      ...prev,
+      reproductiveStatus: { empty: false, pregnant: false, waiting: false, pev: false, [val]: true },
+    }));
+
+  const setAndrological = (val: string) =>
+    setTypeFilters((prev) => ({
+      ...prev,
+      andrological: { positive: false, negative: false, notDone: false, [val]: true },
+    }));
 
   const filterTable = () => {
     const activeStatusFilters = Object.entries(typeFilters.status)
-      .filter(([, value]) => value)
-      .map(([key]) => key);
+      .filter(([, v]) => v)
+      .map(([k]) => k);
 
     const filtered = listAnimals.filter((animal) => {
       const age = new Date(animal.birthDate);
       const today = new Date();
-      const ageInMonths =
-        (today.getFullYear() - age.getFullYear()) * 12 +
-        (today.getMonth() - age.getMonth());
+      const ageInMonths = (today.getFullYear() - age.getFullYear()) * 12 + (today.getMonth() - age.getMonth());
 
-      const matchesStatus =
-        activeStatusFilters.length === 0 ||
-        activeStatusFilters.includes(animal.status);
-
+      const matchesStatus = activeStatusFilters.length === 0 || activeStatusFilters.includes(animal.status);
       const matchesGender =
         (!typeFilters.gender.male && !typeFilters.gender.female) ||
         (typeFilters.gender.male && animal.gender === 'male') ||
         (typeFilters.gender.female && animal.gender === 'female');
-
       const matchesAge =
-        (!typeFilters.age.less12 &&
-          !typeFilters.age.between12And24 &&
-          !typeFilters.age.between24And36 &&
-          !typeFilters.age.between36And120 &&
-          !typeFilters.age.more120) ||
+        (!typeFilters.age.less12 && !typeFilters.age.between12And24 && !typeFilters.age.between24And36 && !typeFilters.age.between36And120 && !typeFilters.age.more120) ||
         (typeFilters.age.less12 && ageInMonths <= 12) ||
-        (typeFilters.age.between12And24 &&
-          ageInMonths >= 13 &&
-          ageInMonths <= 24) ||
-        (typeFilters.age.between24And36 &&
-          ageInMonths >= 25 &&
-          ageInMonths <= 36) ||
-        (typeFilters.age.between36And120 &&
-          ageInMonths >= 37 &&
-          ageInMonths <= 120) ||
+        (typeFilters.age.between12And24 && ageInMonths >= 13 && ageInMonths <= 24) ||
+        (typeFilters.age.between24And36 && ageInMonths >= 25 && ageInMonths <= 36) ||
+        (typeFilters.age.between36And120 && ageInMonths >= 37 && ageInMonths <= 120) ||
         (typeFilters.age.more120 && ageInMonths > 120);
-
       const matchesWeight =
-        (!typeFilters.weight['300kg'] &&
-          !typeFilters.weight['500kg'] &&
-          !typeFilters.weight['500kg+']) ||
+        (!typeFilters.weight['300kg'] && !typeFilters.weight['500kg'] && !typeFilters.weight['600kg'] && !typeFilters.weight['600kg+']) ||
         (typeFilters.weight['300kg'] && animal.weight <= 300) ||
-        (typeFilters.weight['500kg'] &&
-          animal.weight >= 301 &&
-          animal.weight <= 499) ||
-        (typeFilters.weight['500kg+'] && animal.weight >= 500);
-
+        (typeFilters.weight['500kg'] && animal.weight >= 301 && animal.weight <= 499) ||
+        (typeFilters.weight['600kg'] && animal.weight >= 500 && animal.weight <= 599) ||
+        (typeFilters.weight['600kg+'] && animal.weight >= 600);
       const matchesDate =
         (!typeFilters.date.finalDate && !typeFilters.date.initialDate) ||
-        (typeFilters.date.initialDate &&
-          animal.birthDate >= new Date(typeFilters.date.initialDate) &&
-          typeFilters.date.finalDate &&
-          animal.birthDate <= new Date(typeFilters.date.finalDate));
-
+        (typeFilters.date.initialDate && animal.birthDate >= new Date(typeFilters.date.initialDate) &&
+          typeFilters.date.finalDate && animal.birthDate <= new Date(typeFilters.date.finalDate));
       const matchesReproductive =
-        (!typeFilters.reproductiveStatus.empty &&
-          !typeFilters.reproductiveStatus.pregnant &&
-          !typeFilters.reproductiveStatus.waiting &&
-          !typeFilters.reproductiveStatus.pev) ||
-        (typeFilters.reproductiveStatus.empty &&
-          animal.reproductiveStatus === 'empty') ||
-        (typeFilters.reproductiveStatus.pregnant &&
-          animal.reproductiveStatus === 'pregnant') ||
-        (typeFilters.reproductiveStatus.waiting &&
-          animal.reproductiveStatus === 'waiting') ||
-        (typeFilters.reproductiveStatus.pev &&
-          animal.reproductiveStatus === 'pev');
-
-      console.log('matchesGender: ', animal.manualId, matchesGender);
-      const matchesBreed =
-        !typeFilters.breed ||
-        (typeFilters.breed && animal.breed === typeFilters.breed);
-
-      const anyAndro =
-        typeFilters.andrological.positive ||
-        typeFilters.andrological.negative ||
-        typeFilters.andrological.notDone;
-
+        (!typeFilters.reproductiveStatus.empty && !typeFilters.reproductiveStatus.pregnant && !typeFilters.reproductiveStatus.waiting && !typeFilters.reproductiveStatus.pev) ||
+        (typeFilters.reproductiveStatus.empty && animal.reproductiveStatus === 'empty') ||
+        (typeFilters.reproductiveStatus.pregnant && animal.reproductiveStatus === 'pregnant') ||
+        (typeFilters.reproductiveStatus.waiting && animal.reproductiveStatus === 'waiting') ||
+        (typeFilters.reproductiveStatus.pev && animal.reproductiveStatus === 'pev');
+      const matchesBreed = !typeFilters.breed || animal.breed === typeFilters.breed;
+      const anyAndro = typeFilters.andrological.positive || typeFilters.andrological.negative || typeFilters.andrological.notDone;
       const matchesAndrological =
         !anyAndro ||
-        (typeFilters.andrological.positive &&
-          animal.andrological === 'positive') ||
-        (typeFilters.andrological.negative &&
-          animal.andrological === 'negative') ||
+        (typeFilters.andrological.positive && animal.andrological === 'positive') ||
+        (typeFilters.andrological.negative && animal.andrological === 'negative') ||
         (typeFilters.andrological.notDone && animal.andrological === 'notDone');
 
-      return (
-        matchesStatus &&
-        matchesGender &&
-        matchesAge &&
-        matchesWeight &&
-        matchesDate &&
-        matchesReproductive &&
-        matchesBreed &&
-        matchesAndrological
-      );
+      return matchesStatus && matchesGender && matchesAge && matchesWeight && matchesDate && matchesReproductive && matchesBreed && matchesAndrological;
     });
 
     setListAnimals(filtered);
   };
 
   const clearFilters = () => {
-    setTypeFilters({
-      status: {
-        active: false,
-        inactive: false,
-        dead: false,
-        sold: false,
-        lost: false,
-        trash: false,
-      },
-      gender: {
-        male: false,
-        female: false,
-      },
-      age: {
-        less12: false,
-        between12And24: false,
-        between24And36: false,
-        between36And120: false,
-        more120: false,
-      },
-      weight: {
-        '300kg': false,
-        '500kg': false,
-        '500kg+': false,
-      },
-      date: {
-        initialDate: '',
-        finalDate: '',
-      },
-      reproductiveStatus: {
-        empty: false,
-        pregnant: false,
-        waiting: false,
-        pev: false,
-      },
-      breed: '',
-      andrological: {
-        positive: false,
-        negative: false,
-        notDone: false,
-      },
-    });
-    setListAnimals(originalAnimals);
-    const listWithoutDependents = originalAnimals.filter((animal) => {
-      return animal.category !== 'neonate';
-    });
-    setListAnimals(listWithoutDependents);
+    setTypeFilters(defaultFilters);
+    const withoutNeonates = originalAnimals.filter((a) => a.category !== 'neonate');
+    setListAnimals(withoutNeonates);
   };
 
-  return (
-    <SheetContent
-      side={'right'}
-      className="w-11/12 space-y-5 overflow-y-auto px-2 pt-5 md:w-3/5"
+  const PillBtn = ({
+    label,
+    active,
+    onClick,
+  }: {
+    label: string;
+    active: boolean;
+    onClick: () => void;
+  }) => (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-full border px-3 py-1 text-xs font-semibold transition-colors ${
+        active
+          ? 'border-primary bg-primary text-primary-foreground'
+          : 'border-border bg-white text-foreground hover:border-primary/50'
+      }`}
     >
-      <SheetHeader>
-        <SheetTitle>Filtar as informações na tabela</SheetTitle>
+      {label}
+    </button>
+  );
+
+  const GenderBtn = ({
+    label,
+    icon,
+    active,
+    onClick,
+  }: {
+    label: string;
+    icon: string;
+    active: boolean;
+    onClick: () => void;
+  }) => (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex flex-1 items-center justify-center gap-2 rounded-lg border py-2.5 text-sm font-semibold transition-colors ${
+        active
+          ? 'border-primary bg-primary text-primary-foreground'
+          : 'border-border bg-white text-foreground hover:border-primary/50'
+      }`}
+    >
+      <span>{icon}</span> {label}
+    </button>
+  );
+
+  const AgeBox = ({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) => (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
+        active
+          ? 'border-primary bg-primary/10 text-primary'
+          : 'border-border bg-white text-foreground hover:border-primary/40'
+      }`}
+    >
+      {active && (
+        <span className="flex size-4 items-center justify-center rounded bg-primary">
+          <svg className="size-3 text-white" fill="none" viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        </span>
+      )}
+      {!active && <span className="size-4 rounded border border-border bg-white" />}
+      {label}
+    </button>
+  );
+
+  const WeightRadio = ({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) => (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex w-full items-center justify-between rounded-lg border px-4 py-2.5 text-sm transition-colors ${
+        active
+          ? 'border-primary bg-primary/5 font-semibold text-primary'
+          : 'border-border bg-white text-foreground hover:border-primary/40'
+      }`}
+    >
+      {label}
+      <span className={`flex size-4 items-center justify-center rounded-full border-2 transition-colors ${active ? 'border-primary' : 'border-muted-foreground/40'}`}>
+        {active && <span className="size-2 rounded-full bg-primary" />}
+      </span>
+    </button>
+  );
+
+  const sectionLabel = (text: string) => (
+    <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{text}</p>
+  );
+
+  const reproductiveValue = Object.keys(typeFilters.reproductiveStatus).find(
+    (k) => typeFilters.reproductiveStatus[k as keyof typeof typeFilters.reproductiveStatus]
+  ) || '';
+
+  const andrologicalValue = Object.keys(typeFilters.andrological).find(
+    (k) => typeFilters.andrological[k as keyof typeof typeFilters.andrological]
+  ) || '';
+
+  return (
+    <SheetContent side="right" className="flex w-11/12 flex-col gap-0 p-0 md:w-[400px]">
+      {/* Header */}
+      <SheetHeader className="shrink-0 border-b px-5 py-4">
+        <SheetTitle className="text-base font-bold">Filtros Avançados</SheetTitle>
+        <p className="text-xs text-muted-foreground">Refine sua busca no rebanho</p>
       </SheetHeader>
-      <div className="flex flex-col gap-5">
+
+      {/* Scrollable body */}
+      <div className="flex-1 space-y-5 overflow-y-auto px-5 py-4">
+        {/* Status */}
         <div>
-          <p className="font-semibold">Status:</p>
-          <div className="flex flex-wrap gap-x-5 gap-y-2">
-            <RadioForm
-              label="Ativos"
-              htmlFor="status.active"
-              id="status.active"
-              name="status.active"
-              type="checkbox"
-              value="active"
-              checked={typeFilters.status.active}
-              onChange={updateListAndInput}
-            />
-            <RadioForm
-              label="Inativos"
-              htmlFor="status.inactive"
-              id="status.inactive"
-              name="status.inactive"
-              type="checkbox"
-              value="inactive"
-              checked={typeFilters.status.inactive}
-              onChange={updateListAndInput}
-            />
-            <RadioForm
-              label="Mortos"
-              htmlFor="status.dead"
-              id="status.dead"
-              name="status.dead"
-              type="checkbox"
-              value="dead"
-              checked={typeFilters.status.dead}
-              onChange={updateListAndInput}
-            />
-            <RadioForm
-              label="Vendidos"
-              htmlFor="status.sold"
-              id="status.sold"
-              name="status.sold"
-              type="checkbox"
-              value="sold"
-              checked={typeFilters.status.sold}
-              onChange={updateListAndInput}
-            />
-            <RadioForm
-              label="Perdida"
-              htmlFor="status.lost"
-              id="status.lost"
-              name="status.lost"
-              type="checkbox"
-              value="lost"
-              checked={typeFilters.status.lost}
-              onChange={updateListAndInput}
-            />
-            <RadioForm
-              label="Descarte"
-              htmlFor="status.trash"
-              id="status.trash"
-              name="status.trash"
-              type="checkbox"
-              value="trash"
-              checked={typeFilters.status.trash}
-              onChange={updateListAndInput}
-            />
-          </div>
-        </div>
-        <div>
-          <p className="font-semibold">Gênero:</p>
-          <div className="flex flex-wrap gap-x-5 gap-y-2">
-            <RadioForm
-              label="Macho"
-              htmlFor="gender.male"
-              id="gender.male"
-              name="gender.male"
-              type="checkbox"
-              value="male"
-              checked={typeFilters.gender.male}
-              onChange={updateListAndInput}
-            />
-            <RadioForm
-              label="Fêmea"
-              htmlFor="gender.female"
-              id="gender.female"
-              name="gender.female"
-              type="checkbox"
-              value="female"
-              checked={typeFilters.gender.female}
-              onChange={updateListAndInput}
-            />
+          {sectionLabel('Status do Animal')}
+          <div className="flex flex-wrap gap-2">
+            <PillBtn label="Ativos" active={typeFilters.status.active} onClick={() => toggleStatus('active')} />
+            <PillBtn label="Inativos" active={typeFilters.status.inactive} onClick={() => toggleStatus('inactive')} />
+            <PillBtn label="Mortos" active={typeFilters.status.dead} onClick={() => toggleStatus('dead')} />
+            <PillBtn label="Vendidos" active={typeFilters.status.sold} onClick={() => toggleStatus('sold')} />
+            <PillBtn label="Perdida" active={typeFilters.status.lost} onClick={() => toggleStatus('lost')} />
+            <PillBtn label="Descarte" active={typeFilters.status.trash} onClick={() => toggleStatus('trash')} />
           </div>
         </div>
 
+        {/* Gender */}
         <div>
-          <p className="font-semibold">Idade:</p>
-          <div className="flex flex-wrap gap-x-5 gap-y-2">
-            <RadioForm
-              label="0 - 12m"
-              htmlFor="age.less12"
-              id="age.less12"
-              name="age.less12"
-              type="checkbox"
-              value="11"
-              checked={typeFilters.age.less12}
-              onChange={updateListAndInput}
-            />
-            <RadioForm
-              label="12m - 24m"
-              htmlFor="age.between12And24"
-              id="age.between12And24"
-              name="age.between12And24"
-              type="checkbox"
-              value="23"
-              checked={typeFilters.age.between12And24}
-              onChange={updateListAndInput}
-            />
-            <RadioForm
-              label="24m - 36m"
-              htmlFor="age.between24And36"
-              id="age.between24And36"
-              name="age.between24And36"
-              type="checkbox"
-              value="35"
-              checked={typeFilters.age.between24And36}
-              onChange={updateListAndInput}
-            />
-            <RadioForm
-              label="36m - 120m"
-              htmlFor="age.between36And120"
-              id="age.between36And120"
-              name="age.between36And120"
-              type="checkbox"
-              value="119"
-              checked={typeFilters.age.between36And120}
-              onChange={updateListAndInput}
-            />
-
-            <RadioForm
-              label="+ 120m"
-              htmlFor="age.more120"
-              id="age.more120"
-              name="age.more120"
-              type="checkbox"
-              value="121"
-              checked={typeFilters.age.more120}
-              onChange={updateListAndInput}
-            />
+          {sectionLabel('Gênero')}
+          <div className="flex gap-3">
+            <GenderBtn label="Macho" icon="♂" active={typeFilters.gender.male} onClick={() => toggleGender('male')} />
+            <GenderBtn label="Fêmea" icon="♀" active={typeFilters.gender.female} onClick={() => toggleGender('female')} />
           </div>
         </div>
 
+        {/* Age */}
         <div>
-          <p className="font-semibold">Peso:</p>
-          <div className="flex flex-col gap-y-2">
-            <RadioForm
-              label="Até 300kg"
-              htmlFor="weight.300kg"
-              id="weight.300kg"
-              name="weight.300kg"
-              type="checkbox"
-              value="300kg"
-              checked={typeFilters.weight['300kg']}
-              onChange={updateListAndInput}
-            />
-            <RadioForm
-              label="Entre 300kg e 500kg"
-              htmlFor="weight.500kg"
-              id="weight.500kg"
-              name="weight.500kg"
-              type="checkbox"
-              value="500kg"
-              checked={typeFilters.weight['500kg']}
-              onChange={updateListAndInput}
-            />
-            <RadioForm
-              label="+ 500kg"
-              htmlFor="weight.500kg+"
-              id="weight.500kg+"
-              name="weight.500kg+"
-              type="checkbox"
-              value="500kg+"
-              checked={typeFilters.weight['500kg+']}
-              onChange={updateListAndInput}
-            />
+          {sectionLabel('Idade (Meses)')}
+          <div className="grid grid-cols-2 gap-2">
+            <AgeBox label="0 - 12m" active={typeFilters.age.less12} onClick={() => toggleAge('less12')} />
+            <AgeBox label="12m - 24m" active={typeFilters.age.between12And24} onClick={() => toggleAge('between12And24')} />
+            <AgeBox label="24m - 36m" active={typeFilters.age.between24And36} onClick={() => toggleAge('between24And36')} />
+            <AgeBox label="36m - 120m" active={typeFilters.age.between36And120} onClick={() => toggleAge('between36And120')} />
+            <AgeBox label="+120 meses" active={typeFilters.age.more120} onClick={() => toggleAge('more120')} />
           </div>
         </div>
 
+        {/* Weight */}
         <div>
-          <p className="font-semibold">Mês e ano de nascimento:</p>
-          <div className="flex flex-wrap gap-x-5 gap-y-2">
-            <InputForm
-              label="Data inicial: "
-              htmlFor="date.initialDate"
-              id="date.initialDate"
-              name="date.initialDate"
-              type="month"
-              value={typeFilters.date.initialDate}
-              onChange={updateListAndInput}
-            />
-            <InputForm
-              label="Data final: "
-              htmlFor="date.finalDate"
-              id="date.finalDate"
-              name="date.finalDate"
-              type="month"
-              value={typeFilters.date.finalDate}
-              onChange={updateListAndInput}
-            />
+          {sectionLabel('Peso')}
+          <div className="space-y-2">
+            <WeightRadio label="Até 300kg" active={typeFilters.weight['300kg']} onClick={() => toggleWeight('300kg')} />
+            <WeightRadio label="Entre 300kg e 500kg" active={typeFilters.weight['500kg']} onClick={() => toggleWeight('500kg')} />
+            <WeightRadio label="Entre 500kg e 599kg" active={typeFilters.weight['600kg']} onClick={() => toggleWeight('600kg')} />
+            <WeightRadio label="+600kg" active={typeFilters.weight['600kg+']} onClick={() => toggleWeight('600kg+')} />
           </div>
         </div>
 
+        {/* Birth date range */}
         <div>
-          <p className="font-semibold">Status de reprodução:</p>
-          <div className="flex flex-wrap gap-x-5 gap-y-2">
-            <SelectForm
-              label=""
-              htmlFor="reproductiveStatus"
-              id="reproductiveStatus"
-              name="reproductiveStatus"
-              value={
-                Object.keys(typeFilters.reproductiveStatus).find(
-                  (key) =>
-                    typeFilters.reproductiveStatus[
-                      key as keyof typeof typeFilters.reproductiveStatus
-                    ]
-                ) || ''
-              }
-              onChange={updateListAndInput}
-              defaultOption="Status do animal"
-              options={[
-                { label: 'Todas os status', value: '' },
-                { label: 'Vazia', value: 'empty' },
-                { label: 'Prenha', value: 'pregnant' },
-                { label: 'Em espera', value: 'waiting' },
-                { label: 'PEV', value: 'pev' },
-              ]}
-            />
+          {sectionLabel('Mês/Ano de Nascimento')}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-xs text-muted-foreground">Data inicial</label>
+              <input
+                type="month"
+                value={typeFilters.date.initialDate}
+                onChange={(e) => setTypeFilters((prev) => ({ ...prev, date: { ...prev.date, initialDate: e.target.value } }))}
+                className="w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-primary"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-muted-foreground">Data final</label>
+              <input
+                type="month"
+                value={typeFilters.date.finalDate}
+                onChange={(e) => setTypeFilters((prev) => ({ ...prev, date: { ...prev.date, finalDate: e.target.value } }))}
+                className="w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-primary"
+              />
+            </div>
           </div>
         </div>
 
+        {/* Reproductive status */}
         <div>
-          <p className="font-semibold">Raça:</p>
-          <div className="flex flex-wrap gap-x-5 gap-y-2">
-            <SelectForm
-              htmlFor="breed"
-              label=""
-              name="breed"
-              id="breed"
-              value={typeFilters.breed}
-              onChange={updateListAndInput}
-              options={[
-                { label: 'Todas as raças', value: '' },
-                ...breedArray.map((breed) => ({
-                  label: breed,
-                  value: breed,
-                })),
-              ]}
-              defaultOption="Escolha a raça"
-            />
-          </div>
+          {sectionLabel('Status de Reprodução')}
+          <select
+            value={reproductiveValue}
+            onChange={(e) => setReproductive(e.target.value)}
+            className="w-full rounded-lg border border-border px-3 py-2.5 text-sm outline-none focus:border-primary"
+          >
+            <option value="">Todos os status</option>
+            <option value="empty">Vazia</option>
+            <option value="pregnant">Prenha</option>
+            <option value="waiting">Em espera</option>
+            <option value="pev">PEV</option>
+          </select>
         </div>
 
+        {/* Breed */}
         <div>
-          <p className="font-semibold">Status do andrológico:</p>
-          <div className="flex flex-wrap gap-x-5 gap-y-2">
-            <SelectForm
-              label=""
-              htmlFor="andrological"
-              id="andrological"
-              name="andrological"
-              value={
-                Object.keys(typeFilters.andrological).find(
-                  (key) =>
-                    typeFilters.andrological[
-                      key as keyof typeof typeFilters.andrological
-                    ]
-                ) || ''
-              }
-              onChange={updateListAndInput}
-              defaultOption="Status do animal"
-              options={[
-                { label: 'Todas os status', value: '' },
-                { label: 'Positivo', value: 'positive' },
-                { label: 'Negativo', value: 'negative' },
-                { label: 'Não realizado', value: 'notDone' },
-              ]}
-            />
-          </div>
+          {sectionLabel('Raça')}
+          <select
+            value={typeFilters.breed}
+            onChange={(e) => setTypeFilters((prev) => ({ ...prev, breed: e.target.value }))}
+            className="w-full rounded-lg border border-border px-3 py-2.5 text-sm outline-none focus:border-primary"
+          >
+            <option value="">Todas as raças</option>
+            {breedArray.map((b) => <option key={b} value={b}>{b}</option>)}
+          </select>
+        </div>
+
+        {/* Andrological */}
+        <div className="pb-2">
+          {sectionLabel('Status do Andrológico')}
+          <select
+            value={andrologicalValue}
+            onChange={(e) => setAndrological(e.target.value)}
+            className="w-full rounded-lg border border-border px-3 py-2.5 text-sm outline-none focus:border-primary"
+          >
+            <option value="">Todos os status</option>
+            <option value="positive">Positivo</option>
+            <option value="negative">Negativo</option>
+            <option value="notDone">Não realizado</option>
+          </select>
         </div>
       </div>
-      <SheetFooter className="flex w-full flex-row items-center justify-between sm:space-x-5">
-        <SheetClose
-          className="rounded-sm border p-2 shadow-md"
-          onClick={clearFilters}
-        >
-          Limpar filtros
-        </SheetClose>
+
+      {/* Fixed footer */}
+      <div className="shrink-0 space-y-2 border-t bg-background px-5 py-4">
         <SheetClose
           onClick={filterTable}
-          className="ml-auto w-max rounded-sm bg-foreground p-2 text-background shadow-md"
+          className="flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground transition hover:opacity-90"
         >
-          Filtrar tabela
+          Aplicar Filtros
         </SheetClose>
-      </SheetFooter>
+        <SheetClose
+          onClick={clearFilters}
+          className="flex w-full items-center justify-center px-4 py-2 text-sm font-medium text-primary underline-offset-2 hover:underline"
+        >
+          Limpar Todos os Filtros
+        </SheetClose>
+      </div>
     </SheetContent>
   );
 };

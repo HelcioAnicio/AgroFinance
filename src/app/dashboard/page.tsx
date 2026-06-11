@@ -1,9 +1,9 @@
-import { DashboardTableWithData } from './_components/dashboardTableWithData';
+import { DashboardOverview } from './_components/dashboardOverview';
 
 const Dashboard = () => {
   return (
-    <div className="h-full overflow-hidden text-xs">
-      <DashboardTableWithData />
+    <div className="min-h-full">
+      <DashboardOverview />
     </div>
   );
 };

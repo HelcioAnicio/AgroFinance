@@ -116,7 +116,7 @@ function parseImportDate(value: unknown): Date | null {
     if (!raw) return null;
 
     const brMatch = raw.match(
-      /^(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})(?:\s+(\d{1,2}):(\d{2}))?$/
+      /^(\d{1,2})[/-]+(\d{1,2})[/-]+(\d{2,4})(?:\s+(\d{1,2}):(\d{2}))?$/
     );
     if (brMatch) {
       const day = Number(brMatch[1]);
@@ -378,7 +378,17 @@ function parseRow(row: ImportRow, rowNumber: number): ParsedRow {
   const { get } = makeRowAccessor(row);
   const issues: string[] = [];
 
-  const manualIdRaw = get('manualId', 'idManual', 'id', 'brinco', 'numero');
+  const manualIdRaw = get(
+    'manualId',
+    'idManual',
+    'id',
+    'brinco',
+    'numero',
+    'idBrinco',
+    'ID / Brinco *',
+    'ID / Brinco',
+    'idbrinco'
+  );
   const manualId =
     typeof manualIdRaw === 'string'
       ? manualIdRaw.trim().toLowerCase()
@@ -394,103 +404,154 @@ function parseRow(row: ImportRow, rowNumber: number): ParsedRow {
     manualId,
   };
 
-  const status = normalizeStatus(get('status', 'situacao'));
+  const status = normalizeStatus(get('status', 'situacao', 'Status'));
   if (status) baseData.status = status;
 
-  const gender = normalizeGender(get('gender', 'sexo'));
+  const gender = normalizeGender(get('gender', 'sexo', 'Sexo *', 'Sexo'));
   if (gender) baseData.gender = gender;
 
-  const birthDate = parseImportDate(get('birthDate', 'dataNascimento'));
+  const birthDate = parseImportDate(
+    get('birthDate', 'dataNascimento', 'Data Nascimento *', 'Data Nascimento')
+  );
   if (birthDate) baseData.birthDate = birthDate;
 
-  const weight = parseImportNumber(get('weight', 'peso'));
+  const weight = parseImportNumber(
+    get(
+      'weight',
+      'peso',
+      'pesoAtual',
+      'pesoAtualKg',
+      'Peso Atual (kg) *',
+      'Peso Atual (kg)',
+      'Peso Atual'
+    )
+  );
   if (weight !== null) baseData.weight = weight;
 
-  const breedRaw = cleanString(get('breed', 'raca'));
+  const breedRaw = cleanString(get('breed', 'raca', 'Raça *', 'Raça'));
   if (breedRaw) baseData.breed = breedRaw.toLowerCase();
 
-  const category = normalizeCategory(get('category', 'categoria'));
+  const category = normalizeCategory(get('category', 'categoria', 'Categoria'));
   if (category) baseData.category = category;
 
   const reproductiveStatus = normalizeReproductiveStatus(
-    get('reproductiveStatus', 'statusReprodutivo')
+    get('reproductiveStatus', 'statusReprodutivo', 'Status Reprodutivo')
   );
   if (reproductiveStatus) baseData.reproductiveStatus = reproductiveStatus;
 
-  const handlingType = normalizeHandlingType(get('handlingType', 'tipoManejo'));
+  const handlingType = normalizeHandlingType(
+    get('handlingType', 'tipoManejo', 'tipoDeManejo', 'Tipo de Manejo')
+  );
   if (handlingType) baseData.handlingType = handlingType;
 
-  const protocol = normalizeProtocol(get('protocol', 'protocolo'));
+  const protocol = normalizeProtocol(get('protocol', 'protocolo', 'Protocolo'));
   if (protocol) baseData.protocol = protocol;
 
   const andrological = normalizeAndrological(
-    get('andrological', 'andrologico')
+    get('andrological', 'andrologico', 'Andrológico')
   );
   if (andrological) baseData.andrological = andrological;
 
   const expectedDueDate = parseImportDate(
-    get('expectedDueDate', 'dataPrevistaParto')
+    get(
+      'expectedDueDate',
+      'dataPrevistaParto',
+      'dataPrevParto',
+      'Data Prev. Parto'
+    )
   );
   if (expectedDueDate) baseData.expectedDueDate = expectedDueDate;
 
-  const fetalGender = normalizeGender(get('fetalGender', 'sexoFeto'));
+  const fetalGender = normalizeGender(
+    get('fetalGender', 'sexoFeto', 'sexoDoFeto', 'Sexo do Feto')
+  );
   if (fetalGender) baseData.fetalGender = fetalGender;
 
   const bodyConditionScore = parseImportNumber(
-    get('bodyConditionScore', 'ecc')
+    get('bodyConditionScore', 'ecc', 'ECC')
   );
   if (bodyConditionScore !== null)
     baseData.bodyConditionScore = bodyConditionScore;
 
-  const observations = cleanString(get('observations', 'observacoes', 'obs'));
+  const observations = cleanString(
+    get('observations', 'observacoes', 'obs', 'Observações')
+  );
   if (observations) baseData.observations = observations;
 
-  const externalBullId = cleanString(get('externalBullId'));
+  const externalBullId = cleanString(get('externalBullId', 'ID Touro Externo'));
   if (externalBullId) baseData.externalBullId = externalBullId;
 
-  const externalBullIatfId = cleanString(get('externalBullIatfId'));
+  const externalBullIatfId = cleanString(
+    get('externalBullIatfId', 'ID Touro Ext. IATF')
+  );
   if (externalBullIatfId) baseData.externalBullIatfId = externalBullIatfId;
 
-  const vaccineName = cleanString(get('vaccineName', 'nomeVacina'));
-  const vaccineDate = parseImportDate(get('vaccineDate', 'dataVacina'));
+  const vaccineName = cleanString(
+    get('vaccineName', 'nomeVacina', 'Nome Vacina')
+  );
+  const vaccineDate = parseImportDate(
+    get('vaccineDate', 'dataVacina', 'Data Vacinação')
+  );
   const vaccineExpiry = parseImportDate(
-    get('vaccineExpiry', 'vencimentoVacina')
+    get('vaccineExpiry', 'vencimentoVacina', 'Vencim. Vacina')
   );
   if (vaccineName) baseData.vaccineName = vaccineName;
   if (vaccineDate) baseData.vaccineDate = vaccineDate;
   if (vaccineExpiry) baseData.vaccineExpiry = vaccineExpiry;
 
-  const dewormingName = cleanString(get('dewormingName', 'nomeVermifugo'));
-  const dewormingDate = parseImportDate(get('dewormingDate', 'dataVermifugo'));
+  const dewormingName = cleanString(
+    get('dewormingName', 'nomeVermifugo', 'Nome Vermífugo')
+  );
+  const dewormingDate = parseImportDate(
+    get('dewormingDate', 'dataVermifugo', 'Data Vermifugação')
+  );
   const dewormingExpiry = parseImportDate(
-    get('dewormingExpiry', 'vencimentoVermifugo')
+    get('dewormingExpiry', 'vencimentoVermifugo', 'Vencim. Vermífugo')
   );
   if (dewormingName) baseData.dewormingName = dewormingName;
   if (dewormingDate) baseData.dewormingDate = dewormingDate;
   if (dewormingExpiry) baseData.dewormingExpiry = dewormingExpiry;
 
   const statusChangeDate = parseImportDate(
-    get('statusChangeDate', 'status_change_date', 'dataAlteracaoStatus')
+    get(
+      'statusChangeDate',
+      'status_change_date',
+      'dataAlteracaoStatus',
+      'Data Alt. Status'
+    )
   );
 
   const references = {
     fatherManualId:
-      cleanString(get('fatherId', 'paiId', 'idPai'))?.toLowerCase() ?? null,
+      cleanString(
+        get('fatherId', 'paiId', 'idPai', 'idDoPai', 'ID do Pai')
+      )?.toLowerCase() ?? null,
     motherManualId:
-      cleanString(get('motherId', 'maeId', 'idMae'))?.toLowerCase() ?? null,
+      cleanString(
+        get('motherId', 'maeId', 'idMae', 'idDaMae', 'ID da Mãe')
+      )?.toLowerCase() ?? null,
     bullManualId:
-      cleanString(get('bullId', 'touroId', 'idTouro'))?.toLowerCase() ?? null,
+      cleanString(
+        get(
+          'bullId',
+          'touroId',
+          'idTouro',
+          'idTouroCobertura',
+          'ID Touro Cobertura'
+        )
+      )?.toLowerCase() ?? null,
     bullIatfManualId:
       cleanString(
-        get('bullIatfId', 'touroIatfId', 'idTouroIatf')
+        get('bullIatfId', 'touroIatfId', 'idTouroIatf', 'ID Touro IATF')
       )?.toLowerCase() ?? null,
   };
 
   const defaultWeightDate =
-    parseImportDate(get('weightRecordDate', 'dataPeso', 'dataPesagem')) ??
-    new Date();
+    parseImportDate(
+      get('weightRecordDate', 'dataPeso', 'dataPesagem', 'Data do Peso')
+    ) ?? new Date();
   const defaultWeightType = normalizeWeightRecordType(
-    get('weightRecordType', 'tipoPeso')
+    get('weightRecordType', 'tipoPeso', 'Tipo do Peso')
   );
 
   const weights: WeightEntry[] = [];
@@ -503,7 +564,13 @@ function parseRow(row: ImportRow, rowNumber: number): ParsedRow {
   }
 
   const weightList = parseListValue(
-    get('weightHistories', 'historicoPeso', 'pesos', 'weightHistory')
+    get(
+      'weightHistories',
+      'historicoPeso',
+      'pesos',
+      'weightHistory',
+      'Histórico de Pesos'
+    )
   );
 
   for (const item of weightList) {
@@ -537,7 +604,7 @@ function parseRow(row: ImportRow, rowNumber: number): ParsedRow {
   }
 
   const vaccineList = parseListValue(
-    get('vaccines', 'vacinas', 'vaccineHistory')
+    get('vaccines', 'vacinas', 'vaccineHistory', 'Vacinas (histórico)')
   );
   for (const item of vaccineList) {
     const parts = parseStructuredItem(item);
@@ -565,7 +632,12 @@ function parseRow(row: ImportRow, rowNumber: number): ParsedRow {
   }
 
   const dewormingList = parseListValue(
-    get('dewormings', 'vermifugos', 'historicoVermifugo')
+    get(
+      'dewormings',
+      'vermifugos',
+      'historicoVermifugo',
+      'Vermífugos (histórico)'
+    )
   );
   for (const item of dewormingList) {
     const parts = parseStructuredItem(item);
@@ -582,7 +654,7 @@ function parseRow(row: ImportRow, rowNumber: number): ParsedRow {
 
   const managements: ManagementEntry[] = [];
   const managementList = parseListValue(
-    get('managements', 'manejos', 'historicoManejo')
+    get('managements', 'manejos', 'historicoManejo', 'Manejos (histórico)')
   );
 
   for (const item of managementList) {
@@ -641,33 +713,45 @@ async function ensureWeightHistories(
   animalId: string,
   entries: WeightEntry[]
 ) {
+  if (entries.length === 0) return;
+
   const seen = new Set<string>();
-
-  for (const entry of entries) {
+  const uniqueEntries = entries.filter((entry) => {
     const key = `${entry.weight}|${entry.recordType}|${entry.measuredAt.toISOString()}`;
-    if (seen.has(key)) continue;
+    if (seen.has(key)) return false;
     seen.add(key);
+    return true;
+  });
 
-    const existing = await tx.animalWeightHistory.findFirst({
-      where: {
+  // Busca todos os existentes de uma vez
+  const existing = await tx.animalWeightHistory.findMany({
+    where: { animalId },
+    select: { weight: true, recordType: true, measuredAt: true },
+  });
+
+  const existingSet = new Set(
+    existing.map(
+      (e) => `${e.weight}|${e.recordType}|${e.measuredAt.toISOString()}`
+    )
+  );
+
+  // Filtra apenas os que não existem
+  const toCreate = uniqueEntries.filter((entry) => {
+    const key = `${entry.weight}|${entry.recordType}|${entry.measuredAt.toISOString()}`;
+    return !existingSet.has(key);
+  });
+
+  // Cria todos de uma vez (batch)
+  if (toCreate.length > 0) {
+    await tx.animalWeightHistory.createMany({
+      data: toCreate.map((entry) => ({
         animalId,
         weight: entry.weight,
         recordType: entry.recordType,
         measuredAt: entry.measuredAt,
-      },
-      select: { id: true },
+      })),
+      skipDuplicates: true,
     });
-
-    if (!existing) {
-      await tx.animalWeightHistory.create({
-        data: {
-          animalId,
-          weight: entry.weight,
-          recordType: entry.recordType,
-          measuredAt: entry.measuredAt,
-        },
-      });
-    }
   }
 }
 
@@ -676,35 +760,45 @@ async function ensureVaccines(
   animalId: string,
   entries: VaccineEntry[]
 ) {
+  if (entries.length === 0) return;
+
   const seen = new Set<string>();
-
-  for (const entry of entries) {
+  const uniqueEntries = entries.filter((entry) => {
     const key = `${entry.name.toLowerCase()}|${entry.date.toISOString()}|${entry.expiryDate.toISOString()}`;
-    if (seen.has(key)) continue;
+    if (seen.has(key)) return false;
     seen.add(key);
+    return true;
+  });
 
-    const existing = await tx.vaccine.findFirst({
-      where: {
+  const existing = await tx.vaccine.findMany({
+    where: { animalId },
+    select: { name: true, date: true, expiryDate: true },
+  });
+
+  const existingSet = new Set(
+    existing.map(
+      (e) =>
+        `${e.name.toLowerCase()}|${e.date.toISOString()}|${e.expiryDate.toISOString()}`
+    )
+  );
+
+  const toCreate = uniqueEntries.filter((entry) => {
+    const key = `${entry.name.toLowerCase()}|${entry.date.toISOString()}|${entry.expiryDate.toISOString()}`;
+    return !existingSet.has(key);
+  });
+
+  if (toCreate.length > 0) {
+    await tx.vaccine.createMany({
+      data: toCreate.map((entry) => ({
+        id: uuidv4(),
         animalId,
         name: entry.name,
         date: entry.date,
         expiryDate: entry.expiryDate,
-      },
-      select: { id: true },
+        description: entry.description,
+      })),
+      skipDuplicates: true,
     });
-
-    if (!existing) {
-      await tx.vaccine.create({
-        data: {
-          id: uuidv4(),
-          animalId,
-          name: entry.name,
-          date: entry.date,
-          expiryDate: entry.expiryDate,
-          description: entry.description,
-        },
-      });
-    }
   }
 }
 
@@ -713,32 +807,40 @@ async function ensureDewormings(
   animalId: string,
   entries: DewormingEntry[]
 ) {
+  if (entries.length === 0) return;
+
   const seen = new Set<string>();
-
-  for (const entry of entries) {
+  const uniqueEntries = entries.filter((entry) => {
     const key = `${entry.name.toLowerCase()}|${entry.date.toISOString()}`;
-    if (seen.has(key)) continue;
+    if (seen.has(key)) return false;
     seen.add(key);
+    return true;
+  });
 
-    const existing = await tx.deworming.findFirst({
-      where: {
+  const existing = await tx.deworming.findMany({
+    where: { animalId },
+    select: { name: true, date: true },
+  });
+
+  const existingSet = new Set(
+    existing.map((e) => `${e.name.toLowerCase()}|${e.date.toISOString()}`)
+  );
+
+  const toCreate = uniqueEntries.filter((entry) => {
+    const key = `${entry.name.toLowerCase()}|${entry.date.toISOString()}`;
+    return !existingSet.has(key);
+  });
+
+  if (toCreate.length > 0) {
+    await tx.deworming.createMany({
+      data: toCreate.map((entry) => ({
+        id: uuidv4(),
         animalId,
         name: entry.name,
         date: entry.date,
-      },
-      select: { id: true },
+      })),
+      skipDuplicates: true,
     });
-
-    if (!existing) {
-      await tx.deworming.create({
-        data: {
-          id: uuidv4(),
-          animalId,
-          name: entry.name,
-          date: entry.date,
-        },
-      });
-    }
   }
 }
 
@@ -747,34 +849,42 @@ async function ensureManagements(
   animalId: string,
   entries: ManagementEntry[]
 ) {
+  if (entries.length === 0) return;
+
   const seen = new Set<string>();
-
-  for (const entry of entries) {
+  const uniqueEntries = entries.filter((entry) => {
     const key = `${entry.stage}|${entry.date.toISOString()}|${entry.obs ?? ''}`;
-    if (seen.has(key)) continue;
+    if (seen.has(key)) return false;
     seen.add(key);
+    return true;
+  });
 
-    const existing = await tx.reproductionManagement.findFirst({
-      where: {
+  const existing = await tx.reproductionManagement.findMany({
+    where: { animalId },
+    select: { stage: true, date: true },
+  });
+
+  const existingSet = new Set(
+    existing.map((e) => `${e.stage}|${e.date.toISOString()}`)
+  );
+
+  const toCreate = uniqueEntries.filter((entry) => {
+    const key = `${entry.stage}|${entry.date.toISOString()}`;
+    return !existingSet.has(key);
+  });
+
+  if (toCreate.length > 0) {
+    await tx.reproductionManagement.createMany({
+      data: toCreate.map((entry) => ({
         animalId,
         stage: entry.stage,
         date: entry.date,
-      },
-      select: { id: true },
+        obs: entry.obs,
+        ecc: entry.ecc,
+        protocolo: entry.protocolo,
+      })),
+      skipDuplicates: true,
     });
-
-    if (!existing) {
-      await tx.reproductionManagement.create({
-        data: {
-          animalId,
-          stage: entry.stage,
-          date: entry.date,
-          obs: entry.obs,
-          ecc: entry.ecc,
-          protocolo: entry.protocolo,
-        },
-      });
-    }
   }
 }
 
@@ -790,10 +900,7 @@ export async function POST(req: Request) {
   const { context, error, status } = await requireFarmContext('manage_animals');
 
   if (!context) {
-    return NextResponse.json(
-      { success: false, error },
-      { status }
-    );
+    return NextResponse.json({ success: false, error }, { status });
   }
   const ownerId = context.farm.ownerUserId;
 
@@ -812,362 +919,378 @@ export async function POST(req: Request) {
       parseRow((row ?? {}) as ImportRow, index + 2)
     );
 
+    console.log('[Import API] Total rows received:', rows.length);
+    if (rows.length > 0) {
+      console.log('[Import API] First row keys:', Object.keys(rows[0] ?? {}));
+      console.log(
+        '[Import API] First row sample:',
+        JSON.stringify(rows[0]).slice(0, 500)
+      );
+    }
+
     const issues: Array<{ row: number; message: string }> = [];
 
-    const summary = await prisma.$transaction(async (tx) => {
-      const existingAnimals = await tx.animal.findMany({
-        where: { farmId: context.farm.id },
-        select: {
-          id: true,
-          manualId: true,
-          status: true,
-          birthDate: true,
-          weight: true,
-          ownerId: true,
-          externalBullId: true,
-          externalBullIatfId: true,
-        },
-      });
+    const summary = await prisma.$transaction(
+      async (tx) => {
+        const existingAnimals = await tx.animal.findMany({
+          where: { farmId: context.farm.id },
+          select: {
+            id: true,
+            manualId: true,
+            status: true,
+            birthDate: true,
+            weight: true,
+            ownerId: true,
+            externalBullId: true,
+            externalBullIatfId: true,
+          },
+        });
 
-      const animalsByManual = new Map<string, AnimalLookup>();
-      for (const animal of existingAnimals) {
-        animalsByManual.set(animal.manualId.toLowerCase(), animal);
-      }
-
-      const processedRows: ProcessedRow[] = [];
-      let created = 0;
-      let updated = 0;
-      let skipped = 0;
-
-      for (const parsed of parsedRows) {
-        if (!parsed.manualId) {
-          skipped += 1;
-          for (const message of parsed.issues) {
-            issues.push({ row: parsed.rowNumber, message });
-          }
-          continue;
+        const animalsByManual = new Map<string, AnimalLookup>();
+        for (const animal of existingAnimals) {
+          animalsByManual.set(animal.manualId.toLowerCase(), animal);
         }
 
-        const existing = animalsByManual.get(parsed.manualId);
-        const dataForMutation = { ...parsed.baseData };
+        const processedRows: ProcessedRow[] = [];
+        let created = 0;
+        let updated = 0;
+        let skipped = 0;
 
-        delete dataForMutation.id;
-        delete dataForMutation.ownerId;
-        delete dataForMutation.fatherId;
-        delete dataForMutation.motherId;
-        delete dataForMutation.bullId;
-        delete dataForMutation.bullIatfId;
-
-        if (existing) {
-          const nextExternalBullId =
-            typeof dataForMutation.externalBullId === 'string'
-              ? dataForMutation.externalBullId
-              : dataForMutation.externalBullId === null
-                ? null
-                : existing.externalBullId;
-
-          const nextExternalBullIatfId =
-            typeof dataForMutation.externalBullIatfId === 'string'
-              ? dataForMutation.externalBullIatfId
-              : dataForMutation.externalBullIatfId === null
-                ? null
-                : existing.externalBullIatfId;
-
-          const hasDoseImpact =
-            existing.externalBullId !== nextExternalBullId ||
-            existing.externalBullIatfId !== nextExternalBullIatfId;
-
-          if (hasDoseImpact) {
-            await decrementExternalBullDosesForUsageDelta(
-              tx,
-              ownerId,
-              [existing.externalBullId, existing.externalBullIatfId],
-              [nextExternalBullId, nextExternalBullIatfId]
-            );
-          }
-
-          const updatedAnimal =
-            Object.keys(dataForMutation).length > 0
-              ? await tx.animal.update({
-                  where: { id: existing.id },
-                  data: { ...dataForMutation, farmId: context.farm.id },
-                  select: {
-                    id: true,
-                    manualId: true,
-                    status: true,
-                    birthDate: true,
-                    weight: true,
-                    ownerId: true,
-                    externalBullId: true,
-                    externalBullIatfId: true,
-                  },
-                })
-              : existing;
-
-          const nextStatus =
-            typeof dataForMutation.status === 'string'
-              ? dataForMutation.status
-              : existing.status;
-
-          if (nextStatus !== existing.status) {
-            const changedAt = buildStatusChangeDate(
-              nextStatus,
-              updatedAnimal.birthDate,
-              parsed.statusChangeDate
-            );
-
-            await tx.animalStatusHistory.create({
-              data: {
-                animalId: updatedAnimal.id,
-                ownerId: updatedAnimal.ownerId,
-                previousStatus: existing.status,
-                newStatus: nextStatus,
-                changedAt,
-                year: changedAt.getFullYear(),
-                month: changedAt.getMonth() + 1,
-                reason: 'animal_import_update',
-              },
-            });
-          }
-
-          animalsByManual.set(parsed.manualId, updatedAnimal);
-          processedRows.push({ parsed, animalId: updatedAnimal.id });
-          updated += 1;
-          await createAuditLog(tx, {
-            farmId: context.farm.id,
-            actorUserId: context.user.id,
-            action: 'animal.import_update',
-            entityType: 'Animal',
-            entityId: updatedAnimal.id,
-            after: JSON.parse(JSON.stringify(updatedAnimal)),
-          });
-        } else {
-          if (!hasCreateRequiredData(dataForMutation)) {
+        for (const parsed of parsedRows) {
+          if (!parsed.manualId) {
             skipped += 1;
-            for (const field of REQUIRED_FIELDS_FOR_CREATE) {
-              if (isBlank(dataForMutation[field])) {
-                issues.push({
-                  row: parsed.rowNumber,
-                  message: `${field} obrigatorio para criar novo animal.`,
-                });
-              }
-            }
             for (const message of parsed.issues) {
               issues.push({ row: parsed.rowNumber, message });
             }
             continue;
           }
 
-          const status =
-            typeof dataForMutation.status === 'string'
-              ? dataForMutation.status
-              : 'active';
+          const existing = animalsByManual.get(parsed.manualId);
+          const dataForMutation = { ...parsed.baseData };
 
-          const createData: Prisma.AnimalUncheckedCreateInput = {
-            id: uuidv4(),
-            ownerId,
-            farmId: context.farm.id,
-            manualId: parsed.manualId,
-            status,
-            gender: String(dataForMutation.gender),
-            birthDate: new Date(dataForMutation.birthDate as Date),
-            weight: Number(dataForMutation.weight),
-            breed: String(dataForMutation.breed),
-            category: String(dataForMutation.category ?? 'bull'),
-            reproductiveStatus:
-              (dataForMutation.reproductiveStatus as
-                | string
-                | null
-                | undefined) ?? null,
-            handlingType:
-              (dataForMutation.handlingType as string | null | undefined) ??
-              null,
-            protocol:
-              (dataForMutation.protocol as string | null | undefined) ?? null,
-            andrological:
-              (dataForMutation.andrological as string | null | undefined) ??
-              null,
-            expectedDueDate:
-              (dataForMutation.expectedDueDate as Date | null | undefined) ??
-              null,
-            fetalGender:
-              (dataForMutation.fetalGender as string | null | undefined) ??
-              null,
-            bodyConditionScore:
-              (dataForMutation.bodyConditionScore as
-                | number
-                | null
-                | undefined) ?? null,
-            observations:
-              (dataForMutation.observations as string | null | undefined) ??
-              null,
-            vaccineName:
-              (dataForMutation.vaccineName as string | null | undefined) ??
-              null,
-            vaccineDate:
-              (dataForMutation.vaccineDate as Date | null | undefined) ?? null,
-            vaccineExpiry:
-              (dataForMutation.vaccineExpiry as Date | null | undefined) ??
-              null,
-            dewormingName:
-              (dataForMutation.dewormingName as string | null | undefined) ??
-              null,
-            dewormingDate:
-              (dataForMutation.dewormingDate as Date | null | undefined) ??
-              null,
-            dewormingExpiry:
-              (dataForMutation.dewormingExpiry as Date | null | undefined) ??
-              null,
-            externalBullId:
-              (dataForMutation.externalBullId as string | null | undefined) ??
-              null,
-            externalBullIatfId:
-              (dataForMutation.externalBullIatfId as
-                | string
-                | null
-                | undefined) ?? null,
-          };
+          delete dataForMutation.id;
+          delete dataForMutation.ownerId;
+          delete dataForMutation.fatherId;
+          delete dataForMutation.motherId;
+          delete dataForMutation.bullId;
+          delete dataForMutation.bullIatfId;
 
-          await decrementExternalBullDosesForUsageDelta(
-            tx,
-            ownerId,
-            [],
-            [createData.externalBullId, createData.externalBullIatfId]
+          if (existing) {
+            const nextExternalBullId =
+              typeof dataForMutation.externalBullId === 'string'
+                ? dataForMutation.externalBullId
+                : dataForMutation.externalBullId === null
+                  ? null
+                  : existing.externalBullId;
+
+            const nextExternalBullIatfId =
+              typeof dataForMutation.externalBullIatfId === 'string'
+                ? dataForMutation.externalBullIatfId
+                : dataForMutation.externalBullIatfId === null
+                  ? null
+                  : existing.externalBullIatfId;
+
+            const hasDoseImpact =
+              existing.externalBullId !== nextExternalBullId ||
+              existing.externalBullIatfId !== nextExternalBullIatfId;
+
+            if (hasDoseImpact) {
+              await decrementExternalBullDosesForUsageDelta(
+                tx,
+                ownerId,
+                [existing.externalBullId, existing.externalBullIatfId],
+                [nextExternalBullId, nextExternalBullIatfId]
+              );
+            }
+
+            const updatedAnimal =
+              Object.keys(dataForMutation).length > 0
+                ? await tx.animal.update({
+                    where: { id: existing.id },
+                    data: { ...dataForMutation, farmId: context.farm.id },
+                    select: {
+                      id: true,
+                      manualId: true,
+                      status: true,
+                      birthDate: true,
+                      weight: true,
+                      ownerId: true,
+                      externalBullId: true,
+                      externalBullIatfId: true,
+                    },
+                  })
+                : existing;
+
+            const nextStatus =
+              typeof dataForMutation.status === 'string'
+                ? dataForMutation.status
+                : existing.status;
+
+            if (nextStatus !== existing.status) {
+              const changedAt = buildStatusChangeDate(
+                nextStatus,
+                updatedAnimal.birthDate,
+                parsed.statusChangeDate
+              );
+
+              await tx.animalStatusHistory.create({
+                data: {
+                  animalId: updatedAnimal.id,
+                  ownerId: updatedAnimal.ownerId,
+                  previousStatus: existing.status,
+                  newStatus: nextStatus,
+                  changedAt,
+                  year: changedAt.getFullYear(),
+                  month: changedAt.getMonth() + 1,
+                  reason: 'animal_import_update',
+                },
+              });
+            }
+
+            animalsByManual.set(parsed.manualId, updatedAnimal);
+            processedRows.push({ parsed, animalId: updatedAnimal.id });
+            updated += 1;
+            await createAuditLog(tx, {
+              farmId: context.farm.id,
+              actorUserId: context.user.id,
+              action: 'animal.import_update',
+              entityType: 'Animal',
+              entityId: updatedAnimal.id,
+              after: JSON.parse(JSON.stringify(updatedAnimal)),
+            });
+          } else {
+            if (!hasCreateRequiredData(dataForMutation)) {
+              skipped += 1;
+              for (const field of REQUIRED_FIELDS_FOR_CREATE) {
+                if (isBlank(dataForMutation[field])) {
+                  issues.push({
+                    row: parsed.rowNumber,
+                    message: `${field} obrigatorio para criar novo animal.`,
+                  });
+                }
+              }
+              for (const message of parsed.issues) {
+                issues.push({ row: parsed.rowNumber, message });
+              }
+              continue;
+            }
+
+            const status =
+              typeof dataForMutation.status === 'string'
+                ? dataForMutation.status
+                : 'active';
+
+            const createData: Prisma.AnimalUncheckedCreateInput = {
+              id: uuidv4(),
+              ownerId,
+              farmId: context.farm.id,
+              manualId: parsed.manualId,
+              status,
+              gender: String(dataForMutation.gender),
+              birthDate: new Date(dataForMutation.birthDate as Date),
+              weight: Number(dataForMutation.weight),
+              breed: String(dataForMutation.breed),
+              category: String(dataForMutation.category ?? 'bull'),
+              reproductiveStatus:
+                (dataForMutation.reproductiveStatus as
+                  | string
+                  | null
+                  | undefined) ?? null,
+              handlingType:
+                (dataForMutation.handlingType as string | null | undefined) ??
+                null,
+              protocol:
+                (dataForMutation.protocol as string | null | undefined) ?? null,
+              andrological:
+                (dataForMutation.andrological as string | null | undefined) ??
+                null,
+              expectedDueDate:
+                (dataForMutation.expectedDueDate as Date | null | undefined) ??
+                null,
+              fetalGender:
+                (dataForMutation.fetalGender as string | null | undefined) ??
+                null,
+              bodyConditionScore:
+                (dataForMutation.bodyConditionScore as
+                  | number
+                  | null
+                  | undefined) ?? null,
+              observations:
+                (dataForMutation.observations as string | null | undefined) ??
+                null,
+              vaccineName:
+                (dataForMutation.vaccineName as string | null | undefined) ??
+                null,
+              vaccineDate:
+                (dataForMutation.vaccineDate as Date | null | undefined) ??
+                null,
+              vaccineExpiry:
+                (dataForMutation.vaccineExpiry as Date | null | undefined) ??
+                null,
+              dewormingName:
+                (dataForMutation.dewormingName as string | null | undefined) ??
+                null,
+              dewormingDate:
+                (dataForMutation.dewormingDate as Date | null | undefined) ??
+                null,
+              dewormingExpiry:
+                (dataForMutation.dewormingExpiry as Date | null | undefined) ??
+                null,
+              externalBullId:
+                (dataForMutation.externalBullId as string | null | undefined) ??
+                null,
+              externalBullIatfId:
+                (dataForMutation.externalBullIatfId as
+                  | string
+                  | null
+                  | undefined) ?? null,
+            };
+
+            await decrementExternalBullDosesForUsageDelta(
+              tx,
+              ownerId,
+              [],
+              [createData.externalBullId, createData.externalBullIatfId]
+            );
+
+            const createdAnimal = await tx.animal.create({
+              data: createData,
+              select: {
+                id: true,
+                manualId: true,
+                status: true,
+                birthDate: true,
+                weight: true,
+                ownerId: true,
+                externalBullId: true,
+                externalBullIatfId: true,
+              },
+            });
+
+            const changedAt = buildStatusChangeDate(
+              createdAnimal.status,
+              createdAnimal.birthDate,
+              parsed.statusChangeDate
+            );
+
+            await tx.animalStatusHistory.create({
+              data: {
+                animalId: createdAnimal.id,
+                ownerId: createdAnimal.ownerId,
+                previousStatus: null,
+                newStatus: createdAnimal.status,
+                changedAt,
+                year: changedAt.getFullYear(),
+                month: changedAt.getMonth() + 1,
+                reason: 'animal_import_create',
+              },
+            });
+
+            animalsByManual.set(parsed.manualId, createdAnimal);
+            processedRows.push({ parsed, animalId: createdAnimal.id });
+            created += 1;
+            await createAuditLog(tx, {
+              farmId: context.farm.id,
+              actorUserId: context.user.id,
+              action: 'animal.import_create',
+              entityType: 'Animal',
+              entityId: createdAnimal.id,
+              after: JSON.parse(JSON.stringify(createdAnimal)),
+            });
+          }
+
+          for (const message of parsed.issues) {
+            issues.push({ row: parsed.rowNumber, message });
+          }
+        }
+
+        for (const processed of processedRows) {
+          const { parsed, animalId } = processed;
+
+          const father = pickLookupByManual(
+            animalsByManual,
+            parsed.references.fatherManualId
+          );
+          const mother = pickLookupByManual(
+            animalsByManual,
+            parsed.references.motherManualId
+          );
+          const bull = pickLookupByManual(
+            animalsByManual,
+            parsed.references.bullManualId
+          );
+          const bullIatf = pickLookupByManual(
+            animalsByManual,
+            parsed.references.bullIatfManualId
           );
 
-          const createdAnimal = await tx.animal.create({
-            data: createData,
-            select: {
-              id: true,
-              manualId: true,
-              status: true,
-              birthDate: true,
-              weight: true,
-              ownerId: true,
-              externalBullId: true,
-              externalBullIatfId: true,
-            },
-          });
+          const relationData: Prisma.AnimalUncheckedUpdateInput = {};
 
-          const changedAt = buildStatusChangeDate(
-            createdAnimal.status,
-            createdAnimal.birthDate,
-            parsed.statusChangeDate
-          );
+          if (parsed.references.fatherManualId) {
+            if (father) relationData.fatherId = father.id;
+            else {
+              issues.push({
+                row: parsed.rowNumber,
+                message: `pai nao encontrado: ${parsed.references.fatherManualId}.`,
+              });
+            }
+          }
 
-          await tx.animalStatusHistory.create({
-            data: {
-              animalId: createdAnimal.id,
-              ownerId: createdAnimal.ownerId,
-              previousStatus: null,
-              newStatus: createdAnimal.status,
-              changedAt,
-              year: changedAt.getFullYear(),
-              month: changedAt.getMonth() + 1,
-              reason: 'animal_import_create',
-            },
-          });
+          if (parsed.references.motherManualId) {
+            if (mother) relationData.motherId = mother.id;
+            else {
+              issues.push({
+                row: parsed.rowNumber,
+                message: `mae nao encontrada: ${parsed.references.motherManualId}.`,
+              });
+            }
+          }
 
-          animalsByManual.set(parsed.manualId, createdAnimal);
-          processedRows.push({ parsed, animalId: createdAnimal.id });
-          created += 1;
-          await createAuditLog(tx, {
-            farmId: context.farm.id,
-            actorUserId: context.user.id,
-            action: 'animal.import_create',
-            entityType: 'Animal',
-            entityId: createdAnimal.id,
-            after: JSON.parse(JSON.stringify(createdAnimal)),
-          });
+          if (parsed.references.bullManualId) {
+            if (bull) relationData.bullId = bull.id;
+            else {
+              issues.push({
+                row: parsed.rowNumber,
+                message: `touro nao encontrado: ${parsed.references.bullManualId}.`,
+              });
+            }
+          }
+
+          if (parsed.references.bullIatfManualId) {
+            if (bullIatf) relationData.bullIatfId = bullIatf.id;
+            else {
+              issues.push({
+                row: parsed.rowNumber,
+                message: `touro IATF nao encontrado: ${parsed.references.bullIatfManualId}.`,
+              });
+            }
+          }
+
+          if (Object.keys(relationData).length > 0) {
+            await tx.animal.update({
+              where: { id: animalId },
+              data: relationData,
+            });
+          }
+
+          await ensureWeightHistories(tx, animalId, parsed.weights);
+          await ensureVaccines(tx, animalId, parsed.vaccines);
+          await ensureDewormings(tx, animalId, parsed.dewormings);
+          await ensureManagements(tx, animalId, parsed.managements);
         }
 
-        for (const message of parsed.issues) {
-          issues.push({ row: parsed.rowNumber, message });
-        }
+        return {
+          total: parsedRows.length,
+          created,
+          updated,
+          skipped,
+        };
+      },
+      {
+        maxWait: 30000, // 30 segundos de espera máxima
+        timeout: 60000, // 60 segundos de timeout total
       }
-
-      for (const processed of processedRows) {
-        const { parsed, animalId } = processed;
-
-        const father = pickLookupByManual(
-          animalsByManual,
-          parsed.references.fatherManualId
-        );
-        const mother = pickLookupByManual(
-          animalsByManual,
-          parsed.references.motherManualId
-        );
-        const bull = pickLookupByManual(
-          animalsByManual,
-          parsed.references.bullManualId
-        );
-        const bullIatf = pickLookupByManual(
-          animalsByManual,
-          parsed.references.bullIatfManualId
-        );
-
-        const relationData: Prisma.AnimalUncheckedUpdateInput = {};
-
-        if (parsed.references.fatherManualId) {
-          if (father) relationData.fatherId = father.id;
-          else {
-            issues.push({
-              row: parsed.rowNumber,
-              message: `pai nao encontrado: ${parsed.references.fatherManualId}.`,
-            });
-          }
-        }
-
-        if (parsed.references.motherManualId) {
-          if (mother) relationData.motherId = mother.id;
-          else {
-            issues.push({
-              row: parsed.rowNumber,
-              message: `mae nao encontrada: ${parsed.references.motherManualId}.`,
-            });
-          }
-        }
-
-        if (parsed.references.bullManualId) {
-          if (bull) relationData.bullId = bull.id;
-          else {
-            issues.push({
-              row: parsed.rowNumber,
-              message: `touro nao encontrado: ${parsed.references.bullManualId}.`,
-            });
-          }
-        }
-
-        if (parsed.references.bullIatfManualId) {
-          if (bullIatf) relationData.bullIatfId = bullIatf.id;
-          else {
-            issues.push({
-              row: parsed.rowNumber,
-              message: `touro IATF nao encontrado: ${parsed.references.bullIatfManualId}.`,
-            });
-          }
-        }
-
-        if (Object.keys(relationData).length > 0) {
-          await tx.animal.update({
-            where: { id: animalId },
-            data: relationData,
-          });
-        }
-
-        await ensureWeightHistories(tx, animalId, parsed.weights);
-        await ensureVaccines(tx, animalId, parsed.vaccines);
-        await ensureDewormings(tx, animalId, parsed.dewormings);
-        await ensureManagements(tx, animalId, parsed.managements);
-      }
-
-      return {
-        total: parsedRows.length,
-        created,
-        updated,
-        skipped,
-      };
-    });
+    );
 
     const importedCount = summary.created + summary.updated;
 
@@ -1176,6 +1299,9 @@ export async function POST(req: Request) {
         success: importedCount > 0,
         summary,
         issues,
+        ...(importedCount === 0 && rows.length > 0
+          ? { receivedKeys: Object.keys(rows[0] ?? {}) }
+          : {}),
       },
       { status: importedCount > 0 ? 200 : 400 }
     );

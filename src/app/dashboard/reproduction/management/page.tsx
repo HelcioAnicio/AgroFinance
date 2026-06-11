@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,121 +12,89 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table-components';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { ReproductionManagement } from '@/types/reproduction';
 import { Animal } from '@/types/animal';
 import { ExternalBull } from '@/types/externalBull';
+import { Pencil, CheckCircle2, Circle, Download } from 'lucide-react';
+
+const STAGES = ['D0', 'Manejo', 'Insemination', 'DG'] as const;
+type Stage = (typeof STAGES)[number];
+
+const stageLabels: Record<Stage, string> = {
+  D0: 'D0',
+  Manejo: 'Manejo',
+  Insemination: 'Inseminação',
+  DG: 'DG',
+};
+
+const emptyForm = {
+  animalId: '',
+  date: '',
+  protocolo: false,
+  implant: '',
+  obs: '',
+  ecc: '',
+  touroId: '',
+  touroType: 'internal' as 'internal' | 'external',
+  partida: '',
+  cio: '',
+  ressinc: false,
+  newReproductiveStatus: '',
+};
 
 const ReproductionManagementPage = () => {
-  const [currentStage, setCurrentStage] = useState<
-    'D0' | 'Manejo' | 'Insemination' | 'DG'
-  >('D0');
+  const [currentStage, setCurrentStage] = useState<Stage>('D0');
   const [managements, setManagements] = useState<ReproductionManagement[]>([]);
   const [animals, setAnimals] = useState<Animal[]>([]);
   const [externalBulls, setExternalBulls] = useState<ExternalBull[]>([]);
   const [animalSearch, setAnimalSearch] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [stageDates, setStageDates] = useState<Record<string, string>>({
-    D0: '',
-    Manejo: '',
-    Insemination: '',
-    DG: '',
-  });
-  const [formData, setFormData] = useState({
-    animalId: '',
-    date: '',
-    protocolo: false,
-    implant: '',
-    obs: '',
-    ecc: '',
-    touroId: '',
-    touroType: 'internal' as 'internal' | 'external',
-    partida: '',
-    cio: '',
-    ressinc: false,
-    newReproductiveStatus: '',
-  });
-
-  const stageLabels: Record<string, string> = {
-    D0: 'D0',
-    Manejo: 'Manejo',
-    Insemination: 'Inseminação',
-    DG: 'DG',
-  };
+  const [stageDates, setStageDates] = useState<Record<string, string>>({ D0: '', Manejo: '', Insemination: '', DG: '' });
+  const [formData, setFormData] = useState(emptyForm);
 
   const toLocalDateString = (date: string | Date) => {
     const d = new Date(date);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   };
 
-  const computeStageDates = useCallback(
-    (managements: ReproductionManagement[]) => {
-      const dates: Record<string, string> = {
-        D0: '',
-        Manejo: '',
-        Insemination: '',
-        DG: '',
-      };
-
-      managements.forEach((m) => {
-        const dateStr = toLocalDateString(m.date);
-        if (!dates[m.stage] || dateStr > dates[m.stage]) {
-          dates[m.stage] = dateStr;
-        }
-      });
-
-      return dates;
-    },
-    []
-  );
+  const computeStageDates = useCallback((data: ReproductionManagement[]) => {
+    const dates: Record<string, string> = { D0: '', Manejo: '', Insemination: '', DG: '' };
+    data.forEach((m) => {
+      const ds = toLocalDateString(m.date);
+      if (!dates[m.stage] || ds > dates[m.stage]) dates[m.stage] = ds;
+    });
+    return dates;
+  }, []);
 
   const fetchData = useCallback(async () => {
     try {
-      const [managementsRes, animalsRes, bullsRes] = await Promise.all([
+      const [mRes, aRes, bRes] = await Promise.all([
         fetch('/api/reproduction-management'),
         fetch('/api/dashboard-table-data'),
         fetch('/api/external-bulls'),
       ]);
+      const mData = await mRes.json();
+      const aData = await aRes.json();
+      const bData = await bRes.json();
+      setManagements(mData);
+      setStageDates(computeStageDates(mData));
+      setAnimals(aData.animals || []);
+      setExternalBulls(Array.isArray(bData) ? bData : bData?.externalBulls || []);
+    } catch (e) { console.error(e); }
+  }, [computeStageDates]);
 
-      const managementsData = await managementsRes.json();
-      const animalsData = await animalsRes.json();
-      const bullsData = await bullsRes.json();
-
-      setManagements(managementsData);
-      const dates = computeStageDates(managementsData);
-      setStageDates(dates);
-      setAnimals(animalsData.animals || []);
-      const externalBullsList = Array.isArray(bullsData)
-        ? bullsData
-        : bullsData?.externalBulls || [];
-      setExternalBulls(externalBullsList);
-
-      setFormData((prev) => ({
-        ...prev,
-        date: dates[currentStage] || prev.date,
-      }));
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }
-  }, [computeStageDates, currentStage]);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (editingId) return;
+    setFormData((prev) => ({ ...prev, date: stageDates[currentStage] || '' }));
+    setAnimalSearch('');
+  }, [currentStage, stageDates, editingId]);
 
-  const translateCategory = (category = '') => {
-    const c = category.toLowerCase();
+  const translateCategory = (cat = '') => {
+    const c = cat.toLowerCase();
     if (c === 'neonate') return 'Neonato';
     if (c === 'calf') return 'Bezerro';
     if (c === 'steer') return 'Garrote';
@@ -137,113 +104,55 @@ const ReproductionManagementPage = () => {
     if (c === 'old ox') return 'Boi velho';
     if (c === 'bull') return 'Touro';
     if (c === 'old bull') return 'Touro velho';
-    return category;
+    return cat;
   };
 
-  const isCowCandidate = (animal: Animal) => {
-    const c = animal.category?.toLowerCase();
-    return (
-      animal.status?.toLowerCase() === 'active' &&
-      (c === 'cow' || c === 'old cow')
-    );
+  const isCow = (a: Animal) => {
+    const c = a.category?.toLowerCase();
+    return a.status?.toLowerCase() === 'active' && (c === 'cow' || c === 'old cow');
   };
 
-  const isMaleBull = (animal: Animal) => {
-    const c = animal.category?.toLowerCase();
-    return (
-      animal.status?.toLowerCase() === 'active' &&
-      (c === 'bull' || c === 'old bull')
-    );
+  const isBull = (a: Animal) => {
+    const c = a.category?.toLowerCase();
+    return a.status?.toLowerCase() === 'active' && (c === 'bull' || c === 'old bull');
   };
 
   const getFilteredAnimals = () => {
     const search = animalSearch.trim().toLowerCase();
-    const numericSearch = search.replace(/\D/g, '');
+    const numSearch = search.replace(/\D/g, '');
 
-    const filterByStage = () => {
-      switch (currentStage) {
-        case 'D0': {
-          const emptyCows = animals.filter(
-            (animal) =>
-              isCowCandidate(animal) &&
-              animal.reproductiveStatus?.toLowerCase() === 'empty'
-          );
-          const ressincCows = animals.filter(
-            (animal) =>
-              isCowCandidate(animal) &&
-              managements.some(
-                (m) => m.animalId === animal.id && m.stage === 'DG' && m.ressinc
-              )
-          );
-          return [
-            ...emptyCows,
-            ...ressincCows.filter(
-              (cow) => !emptyCows.some((ec) => ec.id === cow.id)
-            ),
-          ];
-        }
-        case 'Manejo': {
-          return animals.filter(
-            (animal) =>
-              isCowCandidate(animal) &&
-              managements.some(
-                (m) =>
-                  m.animalId === animal.id && m.stage === 'D0' && m.protocolo
-              )
-          );
-        }
-        case 'Insemination': {
-          const protocoladas = animals.filter(
-            (animal) =>
-              isCowCandidate(animal) &&
-              managements.some(
-                (m) => m.animalId === animal.id && m.stage === 'Manejo'
-              )
-          );
-          const notParticipated = animals.filter(
-            (animal) =>
-              isCowCandidate(animal) &&
-              managements.some(
-                (m) =>
-                  m.animalId === animal.id && m.stage === 'D0' && m.protocolo
-              ) &&
-              !managements.some(
-                (m) => m.animalId === animal.id && m.stage === 'Manejo'
-              )
-          );
-          return [...protocoladas, ...notParticipated];
-        }
-        case 'DG': {
-          const inseminated = animals.filter(
-            (animal) =>
-              isCowCandidate(animal) &&
-              managements.some(
-                (m) => m.animalId === animal.id && m.stage === 'Insemination'
-              )
-          );
-          const pregnant = animals.filter(
-            (animal) =>
-              isCowCandidate(animal) &&
-              animal.reproductiveStatus?.toLowerCase() === 'pregnant'
-          );
-          return [...inseminated, ...pregnant];
-        }
-        default:
-          return [];
+    let base: Animal[] = [];
+    switch (currentStage) {
+      case 'D0': {
+        const empty = animals.filter((a) => isCow(a) && a.reproductiveStatus?.toLowerCase() === 'empty');
+        const ressinc = animals.filter((a) => isCow(a) && managements.some((m) => m.animalId === a.id && m.stage === 'DG' && m.ressinc));
+        base = [...empty, ...ressinc.filter((r) => !empty.some((e) => e.id === r.id))];
+        break;
       }
-    };
-
-    const stageFiltered = filterByStage();
-
-    if (!search) return stageFiltered;
-
-    return stageFiltered.filter((animal) => {
-      const manualId = animal.manualId?.toLowerCase() ?? '';
-      const manualIdNumbers = manualId.replace(/\D/g, '');
-      return (
-        manualId.includes(search) ||
-        (numericSearch && manualIdNumbers.includes(numericSearch))
-      );
+      case 'Manejo':
+        base = animals.filter((a) => isCow(a) && managements.some((m) => m.animalId === a.id && m.stage === 'D0' && m.protocolo));
+        break;
+      case 'Insemination': {
+        const proto = animals.filter((a) => isCow(a) && managements.some((m) => m.animalId === a.id && m.stage === 'Manejo'));
+        const notPart = animals.filter((a) =>
+          isCow(a) &&
+          managements.some((m) => m.animalId === a.id && m.stage === 'D0' && m.protocolo) &&
+          !managements.some((m) => m.animalId === a.id && m.stage === 'Manejo')
+        );
+        base = [...proto, ...notPart];
+        break;
+      }
+      case 'DG': {
+        const insem = animals.filter((a) => isCow(a) && managements.some((m) => m.animalId === a.id && m.stage === 'Insemination'));
+        const preg = animals.filter((a) => isCow(a) && a.reproductiveStatus?.toLowerCase() === 'pregnant');
+        base = [...insem, ...preg.filter((p) => !insem.some((i) => i.id === p.id))];
+        break;
+      }
+    }
+    if (!search) return base;
+    return base.filter((a) => {
+      const mid = a.manualId?.toLowerCase() ?? '';
+      return mid.includes(search) || (numSearch && mid.replace(/\D/g, '').includes(numSearch));
     });
   };
 
@@ -257,376 +166,160 @@ const ReproductionManagementPage = () => {
         ecc: formData.ecc ? parseFloat(formData.ecc) : undefined,
         id: editingId,
       };
-
-      const response = await fetch('/api/reproduction-management', {
+      const res = await fetch('/api/reproduction-management', {
         method: editingId ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-
-      if (response.ok) {
+      if (res.ok) {
         await fetchData();
         setEditingId(null);
-        setFormData({
-          animalId: '',
-          date: '',
-          protocolo: false,
-          implant: '',
-          obs: '',
-          ecc: '',
-          touroId: '',
-          touroType: 'internal',
-          partida: '',
-          cio: '',
-          ressinc: false,
-          newReproductiveStatus: '',
-        });
+        setFormData(emptyForm);
       }
-    } catch (error) {
-      console.error('Error submitting form:', error);
-    }
+    } catch (e) { console.error(e); }
   };
 
-  const handleDateChange = (date: string) => {
-    setStageDates((prev) => ({ ...prev, [currentStage]: date }));
-    setFormData((prev) => ({ ...prev, date }));
-  };
-
-  const handleStageChange = (stage: typeof currentStage) => {
-    setCurrentStage(stage);
-    setEditingId(null);
-    setAnimalSearch('');
-    setFormData((prev) => ({
-      ...prev,
-      date: stageDates[stage] || '',
-    }));
-  };
-
-  useEffect(() => {
-    if (editingId) return;
-
-    setFormData((prev) => ({
-      ...prev,
-      date: stageDates[currentStage] || '',
-    }));
-    setAnimalSearch('');
-  }, [currentStage, stageDates, editingId]);
-
-  const handleEdit = (management: ReproductionManagement) => {
-    const d = new Date(management.date);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    const formattedDate = `${year}-${month}-${day}`;
-
-    setEditingId(management.id);
+  const handleEdit = (m: ReproductionManagement) => {
+    setEditingId(m.id);
+    setCurrentStage(m.stage);
     setFormData({
-      animalId: management.animalId,
-      date: formattedDate,
-      protocolo: management.protocolo ?? false,
-      implant: management.implant ?? '',
-      obs: management.obs ?? '',
-      ecc: management.ecc?.toString() ?? '',
-      touroId: management.touroId ?? '',
-      touroType: management.touroType ?? 'internal',
-      partida: management.partida ?? '',
-      cio: management.cio ?? '',
-      ressinc: management.ressinc ?? false,
-      newReproductiveStatus: management.newReproductiveStatus ?? '',
+      animalId: m.animalId,
+      date: toLocalDateString(m.date),
+      protocolo: m.protocolo ?? false,
+      implant: m.implant ?? '',
+      obs: m.obs ?? '',
+      ecc: m.ecc?.toString() ?? '',
+      touroId: m.touroId ?? '',
+      touroType: m.touroType ?? 'internal',
+      partida: m.partida ?? '',
+      cio: m.cio ?? '',
+      ressinc: m.ressinc ?? false,
+      newReproductiveStatus: m.newReproductiveStatus ?? '',
     });
-
-    if (currentStage !== management.stage) {
-      setCurrentStage(management.stage);
-    }
   };
 
-  const renderForm = () => {
-    const filteredAnimals = getFilteredAnimals();
-    const selectedAnimal = animals.find((a) => a.id === formData.animalId);
-    const internalSire = animals.find(
-      (a) =>
-        a.id === selectedAnimal?.bullId ||
-        a.id === selectedAnimal?.bullIatfId ||
-        a.id === selectedAnimal?.fatherId
-    );
-    const externalSire = externalBulls.find(
-      (bull) =>
-        bull.id === selectedAnimal?.externalBullId ||
-        bull.id === selectedAnimal?.externalBullIatfId
-    );
-    const sireLabel = internalSire?.manualId ?? externalSire?.name ?? 'N/A';
+  const stageManagements = managements.filter((m) => m.stage === currentStage);
+  const filteredAnimals = getFilteredAnimals();
+  const selectedAnimal = animals.find((a) => a.id === formData.animalId);
+  const internalSire = animals.find(
+    (a) => a.id === selectedAnimal?.bullId || a.id === selectedAnimal?.bullIatfId || a.id === selectedAnimal?.fatherId
+  );
+  const externalSire = externalBulls.find(
+    (b) => b.id === selectedAnimal?.externalBullId || b.id === selectedAnimal?.externalBullIatfId
+  );
+  const sireLabel = internalSire?.manualId ?? externalSire?.name ?? 'N/A';
 
-    if (currentStage === 'DG') {
-      return (
-        <Card>
-          <CardHeader>
-            <CardTitle>DG - Atualizar status</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="date">Data do manejo</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  value={stageDates[currentStage] || formData.date}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    handleDateChange(e.target.value)
-                  }
-                  required
-                />
-              </div>
+  const fieldClass = 'rounded-lg border border-border text-sm';
 
-              <div>
-                <Label htmlFor="animalSearch">Buscar animal</Label>
-                <Input
-                  id="animalSearch"
-                  value={animalSearch}
-                  placeholder="Digite parte do número (ex: 10)"
-                  onChange={(e) => setAnimalSearch(e.target.value)}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="animal">Animal</Label>
-                <Select
-                  value={formData.animalId}
-                  onValueChange={(value: string) => {
-                    const selected = animals.find((a) => a.id === value);
-                    setFormData({
-                      ...formData,
-                      animalId: value,
-                      ecc: selected?.bodyConditionScore
-                        ? String(selected.bodyConditionScore)
-                        : '',
-                      obs: selected?.observations ?? '',
-                      newReproductiveStatus:
-                        selected?.reproductiveStatus &&
-                        ['pregnant', 'empty', 'open'].includes(
-                          selected.reproductiveStatus
-                        )
-                          ? selected.reproductiveStatus
-                          : '',
-                    });
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione animal" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {filteredAnimals.map((animal) => {
-                      const isPregnant =
-                        animal.reproductiveStatus === 'pregnant';
-                      return (
-                        <SelectItem
-                          key={animal.id}
-                          value={animal.id}
-                          disabled={isPregnant}
-                        >
-                          {animal.manualId} -{' '}
-                          {translateCategory(animal.category)} -{' '}
-                          {animal.reproductiveStatus}{' '}
-                          {isPregnant ? '(prenho)' : ''}
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {formData.animalId && (
-                <div className="space-y-2">
-                  <h4 className="font-medium">Informações atuais:</h4>
-                  <div className="text-sm text-gray-600">
-                    Status: {selectedAnimal?.reproductiveStatus || 'N/A'} | ECC:{' '}
-                    {selectedAnimal?.bodyConditionScore ?? 'N/A'} | Obs:{' '}
-                    {selectedAnimal?.observations || 'N/A'}
-                  </div>
-                  {selectedAnimal?.reproductiveStatus === 'pregnant' && (
-                    <div className="text-sm text-gray-600">
-                      Tipo:{' '}
-                      {selectedAnimal?.handlingType === 'naturalMating'
-                        ? 'Monta'
-                        : selectedAnimal?.handlingType ===
-                            'artificialInsemination'
-                          ? 'Inseminação'
-                          : 'N/A'}{' '}
-                      | Pai: {sireLabel}
-                    </div>
-                  )}
-                  {(() => {
-                    const animalManagements = managements.filter(
-                      (m) => m.animalId === formData.animalId
-                    );
-                    return animalManagements.map((m) => (
-                      <div key={m.id} className="text-sm text-gray-600">
-                        {stageLabels[m.stage] || m.stage}: ECC {m.ecc},
-                        Protocolo {m.protocolo ? 'Sim' : 'Não'}, Obs: {m.obs}
-                      </div>
-                    ));
-                  })()}
-                </div>
+  return (
+    <div className="space-y-5">
+      {/* Stage tabs */}
+      <div className="flex gap-2">
+        {STAGES.map((stage) => {
+          const active = currentStage === stage;
+          const count = managements.filter((m) => m.stage === stage).length;
+          return (
+            <button
+              key={stage}
+              type="button"
+              onClick={() => {
+                setCurrentStage(stage);
+                setEditingId(null);
+                setAnimalSearch('');
+              }}
+              className={`flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold transition-colors ${
+                active
+                  ? 'border-primary bg-primary text-primary-foreground shadow-sm'
+                  : 'border-border bg-white text-muted-foreground hover:border-primary/40 hover:text-foreground'
+              }`}
+            >
+              {active ? <CheckCircle2 className="size-4" /> : <Circle className="size-4" />}
+              {stageLabels[stage]}
+              {count > 0 && (
+                <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${active ? 'bg-white/20' : 'bg-muted'}`}>
+                  {count}
+                </span>
               )}
+            </button>
+          );
+        })}
+      </div>
 
-              <div>
-                <Label htmlFor="status">Novo status reprodutivo</Label>
-                <Select
-                  value={formData.newReproductiveStatus}
-                  onValueChange={(value: string) =>
-                    setFormData({ ...formData, newReproductiveStatus: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pregnant">Prenha</SelectItem>
-                    <SelectItem value="empty">Vazia</SelectItem>
-                    <SelectItem value="open">Aberta</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="ressinc"
-                  checked={formData.ressinc}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setFormData({ ...formData, ressinc: e.target.checked })
-                  }
-                />
-                <Label htmlFor="ressinc">Ressinc</Label>
-              </div>
-
-              <div>
-                <Label htmlFor="obs">Observações</Label>
-                <Textarea
-                  id="obs"
-                  value={formData.obs}
-                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                    setFormData({ ...formData, obs: e.target.value })
-                  }
-                  placeholder="Observações"
-                />
-              </div>
-
-              <div className="flex gap-2">
-                <Button type="submit">
-                  {editingId ? 'Atualizar' : 'Salvar'}
-                </Button>
-                {editingId && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      setEditingId(null);
-                      setFormData({
-                        animalId: '',
-                        date: '',
-                        protocolo: false,
-                        implant: '',
-                        obs: '',
-                        ecc: '',
-                        touroId: '',
-                        touroType: 'internal',
-                        partida: '',
-                        cio: '',
-                        ressinc: false,
-                        newReproductiveStatus: '',
-                      });
-                    }}
-                  >
-                    Cancelar
-                  </Button>
-                )}
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      );
-    }
-
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Gerenciamento - {stageLabels[currentStage]}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+        {/* Form panel */}
+        <div className="rounded-2xl border bg-white shadow-sm">
+          <div className="border-b px-5 py-4">
+            <h2 className="font-bold">
+              {currentStage === 'DG' ? 'DG — Atualizar status' : `Gerenciamento — ${stageLabels[currentStage]}`}
+            </h2>
+            <p className="text-xs text-muted-foreground">Registre o manejo do protocolo</p>
+          </div>
+          <form onSubmit={handleSubmit} className="space-y-4 p-5">
+            {/* Date */}
             <div>
-              <Label htmlFor="date">Data do manejo</Label>
+              <Label className="mb-1 block text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                Data do manejo
+              </Label>
               <Input
-                id="date"
                 type="date"
+                className={fieldClass}
                 value={stageDates[currentStage] || formData.date}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  handleDateChange(e.target.value)
-                }
+                onChange={(e) => {
+                  setStageDates((prev) => ({ ...prev, [currentStage]: e.target.value }));
+                  setFormData((prev) => ({ ...prev, date: e.target.value }));
+                }}
                 required
               />
             </div>
 
+            {/* Search */}
             <div>
-              <Label htmlFor="animalSearch">Buscar animal</Label>
+              <Label className="mb-1 block text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                Buscar animal
+              </Label>
               <Input
-                id="animalSearch"
+                className={fieldClass}
                 value={animalSearch}
-                placeholder="Digite parte do número (ex: 10)"
+                placeholder="Digite o número (ex: 10)"
                 onChange={(e) => setAnimalSearch(e.target.value)}
               />
             </div>
 
+            {/* Animal select */}
             <div>
-              <Label htmlFor="animal">Animal</Label>
+              <Label className="mb-1 block text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                Selecionar animal
+              </Label>
               <Select
                 value={formData.animalId}
-                onValueChange={(value: string) => {
-                  const selected = animals.find((a) => a.id === value);
-                  setFormData({
-                    ...formData,
+                onValueChange={(value) => {
+                  const sel = animals.find((a) => a.id === value);
+                  setFormData((prev) => ({
+                    ...prev,
                     animalId: value,
-                    ecc: selected?.bodyConditionScore
-                      ? String(selected.bodyConditionScore)
-                      : '',
-                    obs: selected?.observations ?? '',
+                    ecc: sel?.bodyConditionScore ? String(sel.bodyConditionScore) : '',
+                    obs: sel?.observations ?? '',
                     newReproductiveStatus:
-                      selected?.reproductiveStatus &&
-                      ['pregnant', 'empty', 'open'].includes(
-                        selected.reproductiveStatus
-                      )
-                        ? selected.reproductiveStatus
+                      sel?.reproductiveStatus && ['pregnant', 'empty', 'open'].includes(sel.reproductiveStatus)
+                        ? sel.reproductiveStatus
                         : '',
-                  });
+                  }));
                 }}
               >
-                <SelectTrigger>
+                <SelectTrigger className={fieldClass}>
                   <SelectValue placeholder="Selecione animal" />
                 </SelectTrigger>
                 <SelectContent>
                   {filteredAnimals.map((animal) => {
                     const isPregnant = animal.reproductiveStatus === 'pregnant';
-                    const notParticipated =
+                    const notPart =
                       currentStage === 'Insemination' &&
-                      managements.some(
-                        (m) =>
-                          m.animalId === animal.id &&
-                          m.stage === 'D0' &&
-                          m.protocolo
-                      ) &&
-                      !managements.some(
-                        (m) => m.animalId === animal.id && m.stage === 'Manejo'
-                      );
+                      managements.some((m) => m.animalId === animal.id && m.stage === 'D0' && m.protocolo) &&
+                      !managements.some((m) => m.animalId === animal.id && m.stage === 'Manejo');
                     return (
-                      <SelectItem
-                        key={animal.id}
-                        value={animal.id}
-                        disabled={isPregnant}
-                        className={notParticipated ? 'opacity-50' : ''}
-                      >
-                        {animal.manualId} - {animal.reproductiveStatus}{' '}
-                        {notParticipated ? '(não participou)' : ''}{' '}
-                        {isPregnant ? '(prenha)' : ''}
+                      <SelectItem key={animal.id} value={animal.id} disabled={isPregnant} className={notPart ? 'opacity-50' : ''}>
+                        {animal.manualId} — {translateCategory(animal.category)}{' '}
+                        {notPart ? '(não participou)' : ''}{isPregnant ? '(prenha)' : ''}
                       </SelectItem>
                     );
                   })}
@@ -634,283 +327,235 @@ const ReproductionManagementPage = () => {
               </Select>
             </div>
 
-            {(currentStage === 'D0' ||
-              currentStage === 'Manejo' ||
-              currentStage === 'Insemination') && (
-              <div className="flex items-center space-x-2">
+            {/* Selected animal info */}
+            {formData.animalId && (
+              <div className="rounded-xl bg-muted/40 px-4 py-3 text-xs space-y-1">
+                <p className="font-semibold text-muted-foreground uppercase tracking-widest text-[10px]">Informações atuais</p>
+                <div className="flex gap-4 flex-wrap">
+                  <span>Status: <strong>{selectedAnimal?.reproductiveStatus || 'N/A'}</strong></span>
+                  <span>ECC: <strong>{selectedAnimal?.bodyConditionScore ?? 'N/A'}</strong></span>
+                </div>
+                {selectedAnimal?.reproductiveStatus === 'pregnant' && (
+                  <p>
+                    Tipo:{' '}
+                    <strong>
+                      {selectedAnimal?.handlingType === 'naturalMating' ? 'Monta' : selectedAnimal?.handlingType === 'artificialInsemination' ? 'Inseminação' : 'N/A'}
+                    </strong>{' '}
+                    · Pai: <strong>{sireLabel}</strong>
+                  </p>
+                )}
+                {managements.filter((m) => m.animalId === formData.animalId).map((m) => (
+                  <p key={m.id} className="text-muted-foreground">
+                    {stageLabels[m.stage as Stage]}: ECC {m.ecc} · Protocolo {m.protocolo ? 'Sim' : 'Não'}
+                    {m.obs ? ` · ${m.obs}` : ''}
+                  </p>
+                ))}
+              </div>
+            )}
+
+            {/* Protocol checkbox (D0/Manejo/Insemination) */}
+            {currentStage !== 'DG' && (
+              <label className="flex cursor-pointer items-center gap-2 text-sm">
                 <input
                   type="checkbox"
-                  id="protocolo"
                   checked={formData.protocolo}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setFormData({ ...formData, protocolo: e.target.checked })
-                  }
+                  onChange={(e) => setFormData((prev) => ({ ...prev, protocolo: e.target.checked }))}
+                  className="size-4 accent-primary"
                 />
-                <Label htmlFor="protocolo">Protocolo</Label>
-              </div>
+                Protocolo ativo
+              </label>
             )}
 
+            {/* Implant (D0 only) */}
             {currentStage === 'D0' && (
               <div>
-                <Label htmlFor="implant">Implante</Label>
-                <Input
-                  id="implant"
-                  value={formData.implant}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setFormData({ ...formData, implant: e.target.value })
-                  }
-                  placeholder="Marca do implante"
-                />
+                <Label className="mb-1 block text-xs font-bold uppercase tracking-widest text-muted-foreground">Implante</Label>
+                <Input className={fieldClass} value={formData.implant} placeholder="Marca do implante"
+                  onChange={(e) => setFormData((prev) => ({ ...prev, implant: e.target.value }))} />
               </div>
             )}
 
-            <div>
-              <Label htmlFor="ecc">ECC</Label>
-              <Input
-                id="ecc"
-                type="number"
-                step="0.1"
-                value={formData.ecc}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setFormData({ ...formData, ecc: e.target.value })
-                }
-                placeholder="Condição corporal"
-              />
+            {/* ECC */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="mb-1 block text-xs font-bold uppercase tracking-widest text-muted-foreground">ECC</Label>
+                <Input type="number" step="0.1" className={fieldClass} value={formData.ecc} placeholder="Condição corporal"
+                  onChange={(e) => setFormData((prev) => ({ ...prev, ecc: e.target.value }))} />
+              </div>
+              {currentStage === 'DG' && (
+                <div>
+                  <Label className="mb-1 block text-xs font-bold uppercase tracking-widest text-muted-foreground">Novo status</Label>
+                  <Select value={formData.newReproductiveStatus}
+                    onValueChange={(v) => setFormData((prev) => ({ ...prev, newReproductiveStatus: v }))}>
+                    <SelectTrigger className={fieldClass}><SelectValue placeholder="Status" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pregnant">Prenha</SelectItem>
+                      <SelectItem value="empty">Vazia</SelectItem>
+                      <SelectItem value="open">Aberta</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
 
+            {/* Insemination fields */}
             {currentStage === 'Insemination' && (
               <>
-                <div>
-                  <Label htmlFor="touroType">Tipo de Touro</Label>
-                  <Select
-                    value={formData.touroType}
-                    onValueChange={(value: 'internal' | 'external') =>
-                      setFormData({
-                        ...formData,
-                        touroType: value,
-                        touroId: '',
-                      })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="internal">Interno</SelectItem>
-                      <SelectItem value="external">Externo</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="touro">Touro</Label>
-                  <Select
-                    value={formData.touroId}
-                    onValueChange={(value: string) =>
-                      setFormData({ ...formData, touroId: value })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione touro" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {formData.touroType === 'internal' &&
-                        animals
-                          .filter((a) => isMaleBull(a))
-                          .map((animal) => (
-                            <SelectItem key={animal.id} value={animal.id}>
-                              {animal.manualId} -{' '}
-                              {translateCategory(animal.category)}
-                            </SelectItem>
-                          ))}
-                      {formData.touroType === 'external' &&
-                        externalBulls.map((bull) => (
-                          <SelectItem key={bull.id} value={bull.id}>
-                            {bull.name} - {bull.breed}
-                          </SelectItem>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="mb-1 block text-xs font-bold uppercase tracking-widest text-muted-foreground">Tipo de touro</Label>
+                    <Select value={formData.touroType}
+                      onValueChange={(v: 'internal' | 'external') => setFormData((prev) => ({ ...prev, touroType: v, touroId: '' }))}>
+                      <SelectTrigger className={fieldClass}><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="internal">Interno</SelectItem>
+                        <SelectItem value="external">Externo</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="mb-1 block text-xs font-bold uppercase tracking-widest text-muted-foreground">Touro</Label>
+                    <Select value={formData.touroId} onValueChange={(v) => setFormData((prev) => ({ ...prev, touroId: v }))}>
+                      <SelectTrigger className={fieldClass}><SelectValue placeholder="Selecione" /></SelectTrigger>
+                      <SelectContent>
+                        {formData.touroType === 'internal' && animals.filter(isBull).map((a) => (
+                          <SelectItem key={a.id} value={a.id}>{a.manualId} — {translateCategory(a.category)}</SelectItem>
                         ))}
-                    </SelectContent>
-                  </Select>
+                        {formData.touroType === 'external' && externalBulls.map((b) => (
+                          <SelectItem key={b.id} value={b.id}>{b.name} — {b.breed}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-
-                <div>
-                  <Label htmlFor="partida">Partida</Label>
-                  <Input
-                    id="partida"
-                    value={formData.partida}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      setFormData({ ...formData, partida: e.target.value })
-                    }
-                    placeholder="Código da partida"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="cio">CIO</Label>
-                  <Input
-                    id="cio"
-                    value={formData.cio}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      setFormData({ ...formData, cio: e.target.value })
-                    }
-                    placeholder="Informações do CIO"
-                  />
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="mb-1 block text-xs font-bold uppercase tracking-widest text-muted-foreground">Partida</Label>
+                    <Input className={fieldClass} value={formData.partida} placeholder="Código da partida"
+                      onChange={(e) => setFormData((prev) => ({ ...prev, partida: e.target.value }))} />
+                  </div>
+                  <div>
+                    <Label className="mb-1 block text-xs font-bold uppercase tracking-widest text-muted-foreground">CIO</Label>
+                    <Input className={fieldClass} value={formData.cio} placeholder="Informações do CIO"
+                      onChange={(e) => setFormData((prev) => ({ ...prev, cio: e.target.value }))} />
+                  </div>
                 </div>
               </>
             )}
 
+            {/* Ressinc (DG only) */}
+            {currentStage === 'DG' && (
+              <label className="flex cursor-pointer items-center gap-2 text-sm">
+                <input type="checkbox" checked={formData.ressinc}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, ressinc: e.target.checked }))}
+                  className="size-4 accent-primary" />
+                Ressinc
+              </label>
+            )}
+
+            {/* Observations */}
             <div>
-              <Label htmlFor="obs">Observações</Label>
-              <Textarea
-                id="obs"
-                value={formData.obs}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                  setFormData({ ...formData, obs: e.target.value })
-                }
-                placeholder="Observações"
-              />
+              <Label className="mb-1 block text-xs font-bold uppercase tracking-widest text-muted-foreground">Observações</Label>
+              <Textarea className={fieldClass} value={formData.obs} placeholder="Observações..."
+                onChange={(e) => setFormData((prev) => ({ ...prev, obs: e.target.value }))} />
             </div>
 
-            <div className="flex gap-2">
-              <Button type="submit">
-                {editingId ? 'Atualizar' : 'Salvar'}
+            <div className="flex gap-2 pt-1">
+              <Button type="submit" className="flex-1">
+                {editingId ? 'Atualizar Registro' : 'Confirmar Registro'}
               </Button>
               {editingId && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    setEditingId(null);
-                    setFormData({
-                      animalId: '',
-                      date: '',
-                      protocolo: false,
-                      implant: '',
-                      obs: '',
-                      ecc: '',
-                      touroId: '',
-                      touroType: 'internal',
-                      partida: '',
-                      cio: '',
-                      ressinc: false,
-                      newReproductiveStatus: '',
-                    });
-                  }}
-                >
+                <Button type="button" variant="outline" onClick={() => { setEditingId(null); setFormData(emptyForm); }}>
                   Cancelar
                 </Button>
               )}
             </div>
           </form>
-        </CardContent>
-      </Card>
-    );
-  };
+        </div>
 
-  const renderTable = () => {
-    const stageManagements = managements.filter(
-      (m) => m.stage === currentStage
-    );
-
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Registros - {stageLabels[currentStage]}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[680px] border-collapse border border-gray-300">
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="sticky top-0 bg-background">
-                    Animal
-                  </TableHead>
-                  <TableHead className="sticky top-0 bg-background">
-                    Data
-                  </TableHead>
-                  <TableHead className="sticky top-0 bg-background">
-                    ECC
-                  </TableHead>
-                  <TableHead className="sticky top-0 bg-background">
-                    Protocolo
-                  </TableHead>
-                  <TableHead className="sticky top-0 bg-background">
-                    Observações
-                  </TableHead>
-                  {currentStage === 'DG' && (
-                    <TableHead className="sticky top-0 bg-background">
-                      Contagem
-                    </TableHead>
-                  )}
-                  <TableHead className="sticky top-0 bg-background">
-                    Ações
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {stageManagements.map((management) => {
-                  const isPregnant =
-                    management.animal?.reproductiveStatus === 'pregnant';
-                  return (
-                    <TableRow
-                      key={management.id}
-                      className={isPregnant ? 'opacity-50' : ''}
-                    >
-                      <TableCell>{management.animal?.manualId}</TableCell>
-                      <TableCell>
-                        {format(new Date(management.date), 'dd/MM/yyyy')}
-                      </TableCell>
-                      <TableCell>{management.ecc}</TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={
-                            management.protocolo ? 'default' : 'secondary'
-                          }
-                        >
-                          {management.protocolo ? 'Sim' : 'Não'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{management.obs}</TableCell>
-                      {currentStage === 'DG' && (
-                        <TableCell>{management.ressincCount}</TableCell>
-                      )}
-                      <TableCell>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEdit(management)}
-                        >
-                          Editar
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </table>
+        {/* Records table */}
+        <div className="rounded-2xl border bg-white shadow-sm">
+          <div className="flex items-center justify-between border-b px-5 py-4">
+            <div>
+              <h2 className="font-bold">Registros — {stageLabels[currentStage]}</h2>
+              <p className="text-xs text-muted-foreground">{stageManagements.length} registros</p>
+            </div>
+            <button type="button" className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:border-primary/40 hover:text-foreground">
+              <Download className="size-3.5" /> Exportar
+            </button>
           </div>
-        </CardContent>
-      </Card>
-    );
-  };
 
-  return (
-    <div className="space-y-6">
-      <div className="flex space-x-2">
-        {(['D0', 'Manejo', 'Insemination', 'DG'] as const).map((stage) => (
-          <Button
-            key={stage}
-            variant={currentStage === stage ? 'default' : 'outline'}
-            onClick={() => handleStageChange(stage)}
-          >
-            {stageLabels[stage]}
-          </Button>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {renderForm()}
-        {renderTable()}
+          {stageManagements.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <p className="text-sm font-medium text-muted-foreground">Nenhum registro nesta etapa</p>
+              <p className="text-xs text-muted-foreground">Adicione registros pelo formulário ao lado</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[480px] text-sm">
+                <thead>
+                  <tr className="border-b bg-muted/50">
+                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Animal</th>
+                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Data</th>
+                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">ECC</th>
+                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Protocolo</th>
+                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Observações</th>
+                    {currentStage === 'DG' && (
+                      <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Ressinc</th>
+                    )}
+                    <th className="px-4 py-3"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {stageManagements.map((m) => {
+                    const isPregnant = m.animal?.reproductiveStatus === 'pregnant';
+                    return (
+                      <tr key={m.id} className={`hover:bg-muted/30 transition-colors ${isPregnant ? 'opacity-60' : ''}`}>
+                        <td className="px-4 py-3">
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-0.5 font-mono text-xs font-bold text-primary">
+                            {m.animal?.manualId ?? '—'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground">
+                          {format(new Date(m.date), 'dd MMM yyyy')}
+                        </td>
+                        <td className="px-4 py-3">
+                          {m.ecc != null ? (
+                            <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700">
+                              {m.ecc}
+                            </span>
+                          ) : '—'}
+                        </td>
+                        <td className="px-4 py-3">
+                          <Badge variant={m.protocolo ? 'default' : 'secondary'} className="text-xs">
+                            {m.protocolo ? 'Sim' : 'Não'}
+                          </Badge>
+                        </td>
+                        <td className="max-w-[140px] truncate px-4 py-3 text-xs text-muted-foreground">
+                          {m.obs || '—'}
+                        </td>
+                        {currentStage === 'DG' && (
+                          <td className="px-4 py-3 text-xs">
+                            {m.ressinc ? <Badge variant="outline" className="text-xs">Sim</Badge> : '—'}
+                          </td>
+                        )}
+                        <td className="px-4 py-3">
+                          <button
+                            type="button"
+                            onClick={() => handleEdit(m)}
+                            className="flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-medium text-muted-foreground transition hover:border-primary/50 hover:text-primary"
+                          >
+                            <Pencil className="size-3" /> Editar
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

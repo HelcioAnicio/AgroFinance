@@ -1,0 +1,732 @@
+'use client';
+
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { CirclePlus } from 'lucide-react';
+import { FaCheckCircle } from 'react-icons/fa';
+import { FaFileArrowDown } from 'react-icons/fa6';
+import {
+  IoSkull,
+  IoDownloadOutline,
+  IoNotificationsOutline,
+} from 'react-icons/io5';
+import {
+  MdHighlightOff,
+} from 'react-icons/md';
+import {
+  TbMoneybag,
+  TbTrashXFilled,
+  TbZoomQuestionFilled,
+} from 'react-icons/tb';
+import { LiaExternalLinkAltSolid } from 'react-icons/lia';
+import * as XLSX from 'xlsx';
+import { toast } from 'sonner';
+
+import { Animal } from '@/types/animal';
+import { LivestockStatsYear } from '@/types/livestockStats';
+import { User } from '@/types/user';
+import { ExternalBull } from '@/types/externalBull';
+import { Button } from '@/components/ui/button';
+import { Loading } from '@/components/ui/loading';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Sheet, SheetTrigger } from '@/components/ui/sheet';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { AddAnimal } from '../(addAnimal)/addAnimals';
+import { AddAnimalDesktop } from '../(addAnimal)/addAnimalsDesktop';
+
+const isFemale = (gender: string) =>
+  gender === 'female' || gender === 'femea' || gender === 'fêmea';
+
+const MONTH_NAMES = [
+  'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+  'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez',
+];
+
+const getStatusNode = (status?: string) => {
+  if (status === 'active' || status === 'ativo')
+    return <><FaCheckCircle className="inline-block size-3 text-green-400" /> Ativo</>;
+  if (status === 'inactive' || status === 'inativo')
+    return <><MdHighlightOff className="inline-block size-3 text-gray-500" /> Inativo</>;
+  if (status === 'dead' || status === 'morto')
+    return <><IoSkull className="inline-block size-3 text-black" /> Morto</>;
+  if (status === 'lost')
+    return <><TbZoomQuestionFilled className="inline-block size-3 text-amber-500" /> Perdida</>;
+  if (status === 'trash')
+    return <><TbTrashXFilled className="inline-block size-3 text-red-500" /> Descarte</>;
+  return <><TbMoneybag className="inline-block size-3 text-yellow-600" /> Vendido</>;
+};
+
+const getStatusBarColor = (status: string) => {
+  const colors: Record<string, string> = {
+    active: 'bg-green-500', inactive: 'bg-gray-500', dead: 'bg-black',
+    sold: 'bg-yellow-600', lost: 'bg-amber-500', trash: 'bg-red-500',
+    empty: 'bg-slate-500', pregnant: 'bg-fuchsia-500',
+    waiting: 'bg-indigo-500', pev: 'bg-cyan-500',
+  };
+  return colors[status] ?? 'bg-primary';
+};
+
+export function DashboardOverview() {
+  const [dataLoading, setDataLoading] = useState(true);
+  const [animals, setAnimals] = useState<Animal[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [externalBulls, setExternalBulls] = useState<ExternalBull[]>([]);
+  const [livestockStats, setLivestockStats] = useState<LivestockStatsYear[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [inputFile, setInputFile] = useState<File | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [parsedJson, setParsedJson] = useState<any[]>([]);
+  const [importIssues, setImportIssues] = useState<Array<{ row: number; message: string }>>([]);
+  const [selectedStatsYear, setSelectedStatsYear] = useState<number | null>(null);
+
+  const router = useRouter();
+
+  const loadData = useCallback(async () => {
+    setDataLoading(true);
+    try {
+      const res = await fetch('/api/dashboard-table-data');
+      if (!res.ok) throw new Error();
+      const data: {
+        animals: Animal[];
+        users: User[];
+        livestockStats: LivestockStatsYear[];
+        externalBulls: ExternalBull[];
+      } = await res.json();
+      setAnimals(data.animals ?? []);
+      setUsers(data.users ?? []);
+      setLivestockStats(data.livestockStats ?? []);
+      setExternalBulls(data.externalBulls ?? []);
+    } catch {
+      setAnimals([]); setUsers([]); setLivestockStats([]); setExternalBulls([]);
+    } finally {
+      setDataLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { loadData(); }, [loadData]);
+
+  const availableYears = useMemo(
+    () => livestockStats.map((s) => s.year),
+    [livestockStats]
+  );
+
+  useEffect(() => {
+    if (availableYears.length === 0) { setSelectedStatsYear(null); return; }
+    const latestYear = Math.max(...availableYears);
+    setSelectedStatsYear((cur) =>
+      cur && availableYears.includes(cur) ? cur : latestYear
+    );
+  }, [availableYears]);
+
+  const selectedYearStats = useMemo(
+    () => livestockStats.find((s) => s.year === selectedStatsYear) ?? null,
+    [livestockStats, selectedStatsYear]
+  );
+
+  const maxMonthlyValue = useMemo(() => {
+    if (!selectedYearStats) return 1;
+    return Math.max(
+      ...selectedYearStats.months.flatMap((m) => [m.maleBirths, m.femaleBirths, m.deaths]),
+      1
+    );
+  }, [selectedYearStats]);
+
+  const activeAnimals = animals.filter(
+    (a) => a.status === 'active' && a.category !== 'neonate'
+  );
+  const pregnantCows = animals.filter(
+    (a) =>
+      (a.category === 'cow' || a.category === 'old cow') &&
+      isFemale(a.gender) &&
+      a.reproductiveStatus === 'pregnant'
+  );
+  const emptyCows = animals.filter(
+    (a) =>
+      (a.category === 'cow' || a.category === 'old cow') &&
+      isFemale(a.gender) &&
+      a.reproductiveStatus === 'empty'
+  );
+
+  const recentAnimals = useMemo(
+    () =>
+      [...animals]
+        .sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )
+        .slice(0, 6),
+    [animals]
+  );
+
+  const vaccinationAlerts = useMemo(() => {
+    const today = new Date();
+    const in30 = new Date(today);
+    in30.setDate(in30.getDate() + 30);
+
+    return animals
+      .filter((a) => {
+        const vaccExp = a.vaccineExpiry ? new Date(a.vaccineExpiry) : null;
+        const dewExp = a.dewormingExpiry ? new Date(a.dewormingExpiry) : null;
+        return (
+          (vaccExp && vaccExp <= in30) || (dewExp && dewExp <= in30)
+        );
+      })
+      .map((a) => {
+        const vaccExp = a.vaccineExpiry ? new Date(a.vaccineExpiry) : null;
+        const dewExp = a.dewormingExpiry ? new Date(a.dewormingExpiry) : null;
+        const alerts: string[] = [];
+        if (vaccExp && vaccExp <= in30) {
+          const daysLeft = Math.ceil(
+            (vaccExp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+          );
+          alerts.push(
+            daysLeft <= 0
+              ? `Vacina expirada (${a.vaccineName ?? 'Vacina'})`
+              : `Vacina vence em ${daysLeft}d (${a.vaccineName ?? ''})`
+          );
+        }
+        if (dewExp && dewExp <= in30) {
+          const daysLeft = Math.ceil(
+            (dewExp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+          );
+          alerts.push(
+            daysLeft <= 0
+              ? `Vermífugo expirado (${a.dewormingName ?? 'Vermífugo'})`
+              : `Vermífugo vence em ${daysLeft}d (${a.dewormingName ?? ''})`
+          );
+        }
+        return { animal: a, alerts };
+      })
+      .slice(0, 8);
+  }, [animals]);
+
+  const handleNavigation = (id: string | null) => {
+    if (!id) return;
+    setIsLoading(true);
+    router.push(`/dashboard/${id}`);
+  };
+
+  const handleAnimalAdded = (newAnimal: Animal) => {
+    setAnimals((prev) => [newAnimal, ...prev]);
+  };
+
+  const handleInputFileValue = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] ?? null;
+    setInputFile(file);
+    setImportIssues([]);
+    setParsedJson([]);
+
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const data = new Uint8Array(e.target?.result as ArrayBuffer);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const allRows = XLSX.utils.sheet_to_json<any[]>(sheet, { header: 1 });
+        let headerRowIndex = 0;
+        for (let i = 0; i < Math.min(allRows.length, 10); i++) {
+          const row = allRows[i];
+          if (Array.isArray(row)) {
+            const hasBrinco = row.some((cell) => {
+              if (typeof cell !== 'string') return false;
+              const norm = cell.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+              return norm.includes('brinco') || norm.includes('manualid') || norm.includes('id manual');
+            });
+            if (hasBrinco) { headerRowIndex = i; break; }
+          }
+        }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const json = XLSX.utils.sheet_to_json<any>(sheet, { range: headerRowIndex || 2, defval: '' });
+        setParsedJson(json);
+      };
+      reader.readAsArrayBuffer(file);
+    }
+  };
+
+  async function handleUpload() {
+    if (!inputFile || parsedJson.length === 0) return;
+    const wasLoading = isLoading;
+    void wasLoading;
+    try {
+      const res = await fetch('/api/importAnimals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(parsedJson),
+      });
+      const result = await res.json();
+      if (result.success) {
+        toast.success('Lista cadastrada com sucesso!');
+        setImportDialogOpen(false);
+        setTimeout(() => window.location.reload(), 2500);
+      } else {
+        if (result.issues) setImportIssues(result.issues);
+        toast.error('Erro na importação. Verifique os problemas listados.');
+      }
+    } catch {
+      toast.error('Erro com o arquivo');
+    }
+  }
+
+  if (dataLoading) {
+    return (
+      <main className="mx-auto w-full max-w-[1400px] px-4 py-6">
+        <div className="mb-6 flex items-start justify-between">
+          <div className="flex flex-col gap-2">
+            <Skeleton className="h-8 w-72" />
+            <Skeleton className="h-4 w-56" />
+          </div>
+          <div className="flex gap-2">
+            <Skeleton className="h-9 w-36" />
+            <Skeleton className="h-9 w-28" />
+          </div>
+        </div>
+        <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-28 rounded-xl" />
+          ))}
+        </div>
+        <div className="grid gap-6 xl:grid-cols-12">
+          <Skeleton className="h-72 rounded-2xl xl:col-span-8" />
+          <Skeleton className="h-72 rounded-2xl xl:col-span-4" />
+        </div>
+      </main>
+    );
+  }
+
+  return (
+    <main className="relative mx-auto w-full max-w-[1400px] px-4 py-6">
+      {isLoading && <Loading />}
+
+      {/* Header */}
+      <header className="mb-6 flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
+        <div>
+          <h1 className="text-2xl font-black tracking-tight text-foreground lg:text-3xl">
+            Gerenciamento de Rebanho
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Visão geral da sua propriedade
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
+            <DialogTrigger asChild>
+              <button className="flex items-center gap-2 rounded-lg border border-foreground/30 px-4 py-2 text-sm font-medium transition-colors hover:bg-muted">
+                <FaFileArrowDown size={16} />
+                Importar animais
+              </button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Importar animais</DialogTitle>
+                <DialogDescription>
+                  Use o arquivo modelo para importar os animais corretamente.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex gap-2">
+                <Link
+                  download="agrofinance_importacao_animais.xlsx"
+                  href="/agrofinance_importacao_animais.xlsx"
+                  className="flex w-max items-center gap-1 underline text-sm"
+                >
+                  Arquivo modelo <IoDownloadOutline />
+                </Link>
+                <label
+                  htmlFor="doc-overview"
+                  className="flex cursor-pointer items-center gap-1 rounded-md border px-3 py-1.5 text-sm"
+                >
+                  Escolher arquivo <FaFileArrowDown size={14} />
+                </label>
+                <input
+                  type="file" id="doc-overview" className="hidden"
+                  onChange={handleInputFileValue} accept=".xlsx,.xls,.csv"
+                />
+              </div>
+              {inputFile && (
+                <div className="mt-3 rounded-md border p-3 text-sm">
+                  <p className="font-semibold">
+                    Arquivo: <span className="font-normal">{inputFile.name}</span>
+                  </p>
+                  {parsedJson.length > 0 && (
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {parsedJson.length} animais para importar.
+                    </p>
+                  )}
+                  {importIssues.length > 0 && (
+                    <ul className="mt-2 max-h-32 overflow-y-auto rounded bg-red-50 p-2 text-xs text-red-700">
+                      {importIssues.map((issue, i) => (
+                        <li key={i}>Linha {issue.row}: {issue.message}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
+              <DialogFooter>
+                <Button variant="outline" onClick={() => { setImportDialogOpen(false); setInputFile(null); setParsedJson([]); setImportIssues([]); }}>
+                  Cancelar
+                </Button>
+                {inputFile && (
+                  <Button onClick={handleUpload}>Cadastrar animais</Button>
+                )}
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          <Sheet>
+            <SheetTrigger asChild className="sm:hidden">
+              <Button className="flex gap-2 sm:hidden">
+                Adicionar <CirclePlus className="size-4" />
+              </Button>
+            </SheetTrigger>
+            <AddAnimal
+              animals={animals}
+              externalBulls={externalBulls}
+              users={users}
+              onAnimalAdded={handleAnimalAdded}
+            />
+          </Sheet>
+          <Dialog>
+            <DialogTrigger className="hidden items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 sm:flex">
+              Adicionar <CirclePlus className="size-4" />
+            </DialogTrigger>
+            <AddAnimalDesktop
+              animals={animals}
+              externalBulls={externalBulls}
+              users={users}
+              onAnimalAdded={handleAnimalAdded}
+            />
+          </Dialog>
+        </div>
+      </header>
+
+      {/* Summary Cards */}
+      <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div className="rounded-xl border-l-4 border-primary bg-white p-5 shadow-sm">
+          <p className="mb-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+            Total de animais
+          </p>
+          <p className="text-4xl font-black text-primary">{animals.length}</p>
+          <p className="mt-2 text-[11px] text-muted-foreground">
+            Cadastrados na fazenda
+          </p>
+        </div>
+
+        <div className="rounded-xl border-l-4 border-green-500 bg-white p-5 shadow-sm">
+          <p className="mb-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+            Animais ativos
+          </p>
+          <p className="text-4xl font-black text-foreground">
+            {activeAnimals.length}
+          </p>
+          <div className="mt-3 h-1.5 w-full rounded-full bg-muted">
+            <div
+              className="h-full rounded-full bg-green-500 transition-all"
+              style={{
+                width: `${animals.length ? (activeAnimals.length / animals.length) * 100 : 0}%`,
+              }}
+            />
+          </div>
+        </div>
+
+        <div className="rounded-xl border-l-4 border-fuchsia-500 bg-white p-5 shadow-sm">
+          <p className="mb-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+            Vacas prenhas
+          </p>
+          <p className="text-4xl font-black text-foreground">
+            {pregnantCows.length}
+          </p>
+          <p className="mt-2 text-[11px] italic text-muted-foreground">
+            {pregnantCows.length === 0 ? 'Nenhuma prenha' : 'Acompanhar previsão'}
+          </p>
+        </div>
+
+        <div className="rounded-xl border-l-4 border-slate-400 bg-white p-5 shadow-sm">
+          <p className="mb-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+            Vacas vazias
+          </p>
+          <p className="text-4xl font-black text-foreground">
+            {emptyCows.length}
+          </p>
+          {emptyCows.length > 0 && (
+            <p className="mt-2 text-[11px] text-red-500">Atenção requerida</p>
+          )}
+        </div>
+      </div>
+
+      {/* Main Grid */}
+      <div className="grid gap-6 xl:grid-cols-12">
+        {/* Recent Records */}
+        <section className="overflow-hidden rounded-2xl border bg-white shadow-sm xl:col-span-8">
+          <div className="flex items-center justify-between border-b px-6 py-4">
+            <h2 className="font-bold text-foreground">Registros Recentes</h2>
+            <Link
+              href="/dashboard/animals"
+              className="text-sm font-semibold text-primary hover:underline"
+            >
+              Ver todos
+            </Link>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-muted text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                <tr>
+                  <th className="px-5 py-3">Status</th>
+                  <th className="px-5 py-3">ID</th>
+                  <th className="px-5 py-3">Raça</th>
+                  <th className="px-5 py-3">Sexo</th>
+                  <th className="px-5 py-3">Nascimento</th>
+                  <th className="px-5 py-3 text-right">Ação</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {recentAnimals.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="px-5 py-8 text-center text-muted-foreground">
+                      Nenhum animal cadastrado ainda.
+                    </td>
+                  </tr>
+                )}
+                {recentAnimals.map((animal) => (
+                  <tr
+                    key={animal.id}
+                    className="cursor-pointer transition-colors hover:bg-muted/50"
+                    onClick={() => handleNavigation(animal.id)}
+                  >
+                    <td className="px-5 py-3">
+                      <span className="flex items-center gap-1.5">
+                        {getStatusNode(animal.status)}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3 font-mono text-primary">
+                      {animal.manualId}
+                    </td>
+                    <td className="px-5 py-3">
+                      {animal.breed.charAt(0).toUpperCase() + animal.breed.slice(1)}
+                    </td>
+                    <td className="px-5 py-3">
+                      {animal.gender === 'male' || animal.gender === 'macho' ? 'Macho' : 'Fêmea'}
+                    </td>
+                    <td className="px-5 py-3 text-muted-foreground">
+                      {animal.birthDate
+                        ? new Date(animal.birthDate).toLocaleDateString('pt-BR')
+                        : 'N/A'}
+                    </td>
+                    <td className="px-5 py-3 text-right">
+                      <span className="rounded bg-muted px-2 py-1 text-xs font-bold transition-colors hover:bg-primary hover:text-primary-foreground">
+                        <LiaExternalLinkAltSolid className="inline size-3.5" />
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {animals.length > 6 && (
+            <div className="border-t px-6 py-3">
+              <Link
+                href="/dashboard/animals"
+                className="text-sm font-semibold text-primary hover:underline"
+              >
+                Ver todos os {animals.length} animais →
+              </Link>
+            </div>
+          )}
+        </section>
+
+        {/* Right Sidebar */}
+        <aside className="flex flex-col gap-5 xl:col-span-4">
+          {/* Natalidade e Mortalidade */}
+          <div className="rounded-2xl border bg-white p-5 shadow-sm">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="font-bold text-foreground">
+                Natalidade e Mortalidade
+              </h2>
+              {availableYears.length > 0 && (
+                <select
+                  className="rounded-md border bg-background px-2 py-1 text-xs outline-none"
+                  value={selectedStatsYear ?? ''}
+                  onChange={(e) => setSelectedStatsYear(Number(e.target.value))}
+                >
+                  {availableYears
+                    .slice()
+                    .sort((a, b) => b - a)
+                    .map((y) => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                </select>
+              )}
+            </div>
+
+            {selectedYearStats ? (
+              <>
+                <div className="mb-4 flex flex-wrap gap-2 text-xs">
+                  <span className="rounded bg-blue-50 px-2 py-1 font-semibold text-blue-700">
+                    Machos: {selectedYearStats.totalMaleBirths}
+                  </span>
+                  <span className="rounded bg-pink-50 px-2 py-1 font-semibold text-pink-600">
+                    Fêmeas: {selectedYearStats.totalFemaleBirths}
+                  </span>
+                  <span className="rounded bg-gray-100 px-2 py-1 font-semibold text-gray-700">
+                    Mortes: {selectedYearStats.totalDeaths}
+                  </span>
+                </div>
+
+                <div className="max-h-[50vh] space-y-2 overflow-y-auto pr-1 text-xs">
+                  {selectedYearStats.months
+                    .filter(
+                      (m) =>
+                        m.maleBirths > 0 ||
+                        m.femaleBirths > 0 ||
+                        m.deaths > 0 ||
+                        m.statusChanges > 0
+                    )
+                    .map((month) => {
+                      const malePercent = (month.maleBirths / maxMonthlyValue) * 100;
+                      const femalePercent = (month.femaleBirths / maxMonthlyValue) * 100;
+                      const deathPercent = (month.deaths / maxMonthlyValue) * 100;
+                      const monthStatuses = month.statusBreakdown.filter(
+                        (s) => s.total > 0 && s.status !== 'dead'
+                      );
+                      const maxMonthStatus = Math.max(
+                        ...monthStatuses.map((s) => s.total), 1
+                      );
+
+                      return (
+                        <div key={month.month} className="rounded-lg border p-3">
+                          <div className="mb-2 flex items-center justify-between text-[11px]">
+                            <span className="font-semibold">{month.label}</span>
+                            <span className="text-muted-foreground">
+                              {month.statusChanges} alteração{month.statusChanges !== 1 ? 'ões' : ''}
+                            </span>
+                          </div>
+                          <div className="space-y-1.5">
+                            {month.maleBirths > 0 && (
+                              <div className="flex items-center gap-2">
+                                <span className="w-12 text-[10px]">Machos</span>
+                                <div className="h-2 flex-1 rounded bg-muted">
+                                  <div className="h-2 rounded bg-blue-500" style={{ width: `${malePercent}%` }} />
+                                </div>
+                                <span className="w-4 text-right">{month.maleBirths}</span>
+                              </div>
+                            )}
+                            {month.femaleBirths > 0 && (
+                              <div className="flex items-center gap-2">
+                                <span className="w-12 text-[10px]">Fêmeas</span>
+                                <div className="h-2 flex-1 rounded bg-muted">
+                                  <div className="h-2 rounded bg-pink-500" style={{ width: `${femalePercent}%` }} />
+                                </div>
+                                <span className="w-4 text-right">{month.femaleBirths}</span>
+                              </div>
+                            )}
+                            {month.deaths > 0 && (
+                              <div className="flex items-center gap-2">
+                                <span className="w-12 text-[10px]">Mortes</span>
+                                <div className="h-2 flex-1 rounded bg-muted">
+                                  <div className="h-2 rounded bg-gray-700" style={{ width: `${deathPercent}%` }} />
+                                </div>
+                                <span className="w-4 text-right">{month.deaths}</span>
+                              </div>
+                            )}
+                            {monthStatuses.map((statusItem) => {
+                              const percent = (statusItem.total / maxMonthStatus) * 100;
+                              const genderDetail =
+                                statusItem.males > 0 || statusItem.females > 0
+                                  ? ` (${statusItem.males > 0 ? `${statusItem.males}♂` : ''}${statusItem.males > 0 && statusItem.females > 0 ? ' ' : ''}${statusItem.females > 0 ? `${statusItem.females}♀` : ''})`
+                                  : '';
+                              return (
+                                <div key={`${month.month}-${statusItem.status}`} className="flex items-center gap-2">
+                                  <span className="w-14 truncate text-[10px]" title={statusItem.label + genderDetail}>
+                                    {statusItem.label}
+                                  </span>
+                                  <div className="h-2 flex-1 rounded bg-muted">
+                                    <div
+                                      className={`h-2 rounded ${getStatusBarColor(statusItem.status)}`}
+                                      style={{ width: `${percent}%` }}
+                                    />
+                                  </div>
+                                  <span className="w-4 text-right">{statusItem.total}</span>
+                                </div>
+                              );
+                            })}
+                            {/* Gender detail for each status */}
+                            {monthStatuses.some((s) => s.males > 0 || s.females > 0) && (
+                              <div className="mt-1 border-t pt-1 text-[9px] text-muted-foreground">
+                                {monthStatuses
+                                  .filter((s) => s.males > 0 || s.females > 0)
+                                  .map((s) => (
+                                    <span key={s.status} className="mr-2">
+                                      {s.label}:{' '}
+                                      {s.males > 0 && <span className="text-blue-600">{s.males}♂</span>}
+                                      {s.males > 0 && s.females > 0 && ' '}
+                                      {s.females > 0 && <span className="text-pink-600">{s.females}♀</span>}
+                                    </span>
+                                  ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  {selectedYearStats.months.every(
+                    (m) => m.maleBirths === 0 && m.femaleBirths === 0 && m.deaths === 0 && m.statusChanges === 0
+                  ) && (
+                    <p className="py-4 text-center text-muted-foreground">
+                      Sem eventos registrados em {selectedStatsYear}.
+                    </p>
+                  )}
+                </div>
+              </>
+            ) : (
+              <p className="py-4 text-center text-xs text-muted-foreground">
+                Sem dados de nascimento/mortalidade.
+              </p>
+            )}
+          </div>
+
+          {/* Alertas de Revacinação */}
+          <div className="rounded-2xl border bg-white p-5 shadow-sm">
+            <div className="mb-3 flex items-center gap-2">
+              <IoNotificationsOutline className="size-4 text-amber-500" />
+              <h3 className="font-bold text-foreground">
+                Alertas de Revacinação
+              </h3>
+            </div>
+            {vaccinationAlerts.length === 0 ? (
+              <p className="text-xs text-muted-foreground">
+                Nenhuma vacina ou vermífugo expirando nos próximos 30 dias.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {vaccinationAlerts.map(({ animal, alerts }) => (
+                  <button
+                    key={animal.id}
+                    type="button"
+                    onClick={() => handleNavigation(animal.id)}
+                    className="w-full rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-left text-xs transition-colors hover:bg-amber-100"
+                  >
+                    <p className="font-semibold text-foreground">
+                      {animal.manualId} — {animal.breed}
+                    </p>
+                    {alerts.map((alert, i) => (
+                      <p key={i} className="text-amber-700">{alert}</p>
+                    ))}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </aside>
+      </div>
+    </main>
+  );
+}

@@ -12,6 +12,7 @@ export default function BillingStatus() {
     'A validacao do cartao foi iniciada. Aguardando confirmacao do Stripe...'
   );
   const [retryCount, setRetryCount] = useState(0);
+  console.log('retryCount: ', retryCount);
 
   useEffect(() => {
     let mounted = true;
@@ -152,10 +153,9 @@ export default function BillingStatus() {
 
       <div className="mt-6 flex items-center justify-between gap-4 text-sm text-[#4d543f]">
         <span>
-          Verificacao automatica a cada 5 segundos
+          Verificando status
           {status === 'syncing' ? ' (sincronizando)' : ''}
         </span>
-        <span>{retryCount} tentativas</span>
       </div>
 
       {status === 'error' ? (
