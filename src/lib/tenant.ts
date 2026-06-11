@@ -39,29 +39,53 @@ export async function getCurrentUserWithFarmContext() {
 
   if (!email) return null;
 
-  const user = await prisma.user.findUnique({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const user = await (prisma.user.findUnique as any)({
     where: { email },
     select: {
       id: true,
       email: true,
       name: true,
       cnpj: true,
+      activeFarmId: true, // added in schema — run `prisma generate` to refresh types
       farmMemberships: {
         orderBy: { createdAt: 'asc' },
         include: { farm: true },
       },
     },
-  });
+  }) as {
+    id: string;
+    email: string;
+    name: string;
+    cnpj: string | null;
+    activeFarmId: string | null;
+    farmMemberships: Array<{
+      id: string;
+      farmId: string;
+      userId: string;
+      role: import('@prisma/client').FarmRole;
+      createdAt: Date;
+      updatedAt: Date;
+      farm: import('@prisma/client').Farm;
+    }>;
+  } | null;
 
   if (!user) return null;
 
-  const membership = user.farmMemberships[0] ?? null;
+  // Prefer the explicitly chosen active farm; fall back to the oldest membership
+  const membership =
+    (user.activeFarmId
+      ? user.farmMemberships.find((m) => m.farmId === user.activeFarmId)
+      : null) ??
+    user.farmMemberships[0] ??
+    null;
 
   return {
     user: { id: user.id, email: user.email, name: user.name, cnpj: user.cnpj },
     farm: membership?.farm ?? null,
     membership,
     role: membership?.role ?? null,
+    allMemberships: user.farmMemberships,
   };
 }
 

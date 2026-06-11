@@ -72,7 +72,13 @@ export async function POST(request: Request) {
         acceptedAt: new Date(),
       },
     }),
+    // Switch user's active farm so they land on the newly joined farm immediately
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (prisma.user.update as any)({
+      where: { id: user.id },
+      data: { activeFarmId: invite.farmId }, // run `prisma generate` to refresh types
+    }),
   ]);
 
-  return NextResponse.json({ success: true });
+  return NextResponse.json({ success: true, farmId: invite.farmId });
 }

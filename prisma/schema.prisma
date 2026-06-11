@@ -18,6 +18,8 @@ model User {
   updatedAt     DateTime        @updatedAt
   emailVerified DateTime?
   image         String?
+  activeFarmId  String?
+  activeFarm    Farm?           @relation("UserActiveFarm", fields: [activeFarmId], references: [id])
   accounts      Account[]
   animals       Animal[]
   Authenticator Authenticator[]
@@ -26,7 +28,8 @@ model User {
   calfLossHistories AnimalCalfLossHistory[]
   externalBulls ExternalBull[]
   farmMemberships FarmMembership[]
-  sentFarmInvites FarmInvite[] @relation("FarmInviteInviter")
+  sentFarmInvites FarmInvite[]  @relation("FarmInviteInviter")
+  acceptedInvites FarmInvite[]  @relation("FarmInviteAccepter")
   auditLogs     AuditLog[]
   transactions  Transaction[]
   sessions      Session[]
@@ -71,6 +74,7 @@ model Farm {
   memberships           FarmMembership[]
   invites               FarmInvite[]
   auditLogs             AuditLog[]
+  activeForUsers        User[]           @relation("UserActiveFarm")
 
   @@index([ownerUserId])
 }
@@ -104,6 +108,7 @@ model FarmInvite {
   updatedAt      DateTime         @updatedAt
   farm           Farm             @relation(fields: [farmId], references: [id], onDelete: Cascade)
   invitedBy      User             @relation("FarmInviteInviter", fields: [invitedById], references: [id], onDelete: Cascade)
+  acceptedBy     User?            @relation("FarmInviteAccepter", fields: [acceptedById], references: [id])
 
   @@index([farmId, status])
   @@index([email])

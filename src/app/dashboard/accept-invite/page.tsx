@@ -32,7 +32,8 @@ function AcceptInviteContent() {
         if (data.success) {
           setStatus('success');
           toast.success('Convite aceito! Bem-vindo à fazenda.');
-          setTimeout(() => router.push('/dashboard'), 2500);
+          // Hard redirect so the server re-reads activeFarmId and loads the correct farm
+          setTimeout(() => { window.location.href = '/dashboard'; }, 2500);
         } else {
           setStatus('error');
           setMessage(data.error ?? 'Erro ao aceitar convite.');
