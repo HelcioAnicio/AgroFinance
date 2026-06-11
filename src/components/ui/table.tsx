@@ -384,53 +384,99 @@ export const Table: React.FC<TableProps> = ({
 
   if (dataLoading) {
     return (
-      <main
-        style={{ height: 'calc(100vh-170px)' }}
-        className="relative m-auto max-w-max pb-5"
-      >
-        <div className="sticky right-0 top-0 z-50 max-h-max w-full">
-          <div className="relative flex w-full justify-between gap-10 px-1">
-            <div className="flex items-center gap-3">
-              <Skeleton className="size-6 rounded" />
-              <Skeleton className="h-8 w-40 rounded" />
-            </div>
-            <div className="flex flex-col gap-3 md:flex-row">
-              <Skeleton className="h-9 w-32 rounded-md" />
-              <Skeleton className="h-9 w-28 rounded-md" />
-            </div>
+      <main className="relative m-auto flex h-[calc(100vh-100px)] w-full max-w-[1800px] flex-col overflow-hidden px-1 lg:h-full">
+        {/* Toolbar skeleton */}
+        <div className="flex items-center justify-between py-2">
+          <div className="flex items-center gap-3">
+            <Skeleton className="size-6 rounded-md" />
+            <Skeleton className="h-8 w-36 rounded-lg" />
+            <Skeleton className="h-7 w-28 rounded-md" />
+          </div>
+          <div className="flex gap-2">
+            <Skeleton className="h-8 w-32 rounded-md" />
+            <Skeleton className="h-8 w-28 rounded-md" />
           </div>
         </div>
-        <br className="md:hidden" />
-        <div className="my-5 hidden gap-3 md:flex">
-          <Skeleton className="h-10 w-40 rounded-sm" />
-          <Skeleton className="h-10 w-32 rounded-sm" />
+
+        {/* Summary cards skeleton */}
+        <div className="my-3 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="rounded-xl border-l-4 border-muted bg-white px-4 py-3 shadow-sm">
+              <Skeleton className="mb-2 h-2.5 w-16 rounded" />
+              <Skeleton className="mb-2 h-7 w-10 rounded" />
+              <Skeleton className="h-2 w-24 rounded" />
+            </div>
+          ))}
         </div>
-        <div className="h-full w-full overflow-y-auto pb-28 md:pb-20">
-          <table className="m-auto max-w-max overflow-x-auto overflow-y-scroll scroll-smooth text-left xl:text-sm">
-            <thead className="sticky top-0 z-20 border-collapse bg-primary text-background">
-              <tr>
-                {TABLE_HEADERS.map((header, index) => (
-                  <th key={`${header}-${index}`} className="px-1 py-2">
-                    {header}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="overflow-y-auto scroll-smooth">
-              {Array.from({ length: 12 }).map((_, rowIndex) => (
-                <tr
-                  key={rowIndex}
-                  className={rowIndex % 2 === 0 ? 'bg-muted' : ''}
-                >
-                  {TABLE_HEADERS.map((_, colIndex) => (
-                    <td key={colIndex} className="px-1 py-3">
-                      <Skeleton className="h-5 w-full min-w-[60px] rounded" />
-                    </td>
+
+        {/* Table skeleton */}
+        <div className="min-h-0 flex-1 overflow-hidden">
+          <div className="flex h-full gap-4">
+            <div className="flex h-full flex-1 flex-col overflow-hidden rounded-xl border bg-white shadow-sm">
+              {/* Table header */}
+              <div className="border-b bg-muted/50 px-4 py-3">
+                <div className="flex gap-6">
+                  {['w-16', 'w-12', 'w-20', 'w-14', 'w-20', 'w-20', 'w-24', 'w-20', 'w-20'].map((w, i) => (
+                    <Skeleton key={i} className={`h-3 ${w} rounded`} />
                   ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                </div>
+              </div>
+              {/* Table rows */}
+              <div className="divide-y overflow-auto">
+                {Array.from({ length: 14 }).map((_, rowIndex) => (
+                  <div key={rowIndex} className="flex items-center gap-6 px-4 py-3.5">
+                    {/* Status */}
+                    <Skeleton className="h-4 w-14 rounded-full" />
+                    {/* ID */}
+                    <Skeleton className="h-4 w-10 rounded" />
+                    {/* Raça */}
+                    <Skeleton className="h-4 w-16 rounded" />
+                    {/* Sexo */}
+                    <Skeleton className="h-4 w-12 rounded" />
+                    {/* Mãe */}
+                    <Skeleton className="h-4 w-16 rounded" />
+                    {/* Pai */}
+                    <Skeleton className="h-4 w-16 rounded" />
+                    {/* Nascimento */}
+                    <Skeleton className="h-4 w-20 rounded" />
+                    {/* Categoria */}
+                    <Skeleton className="h-4 w-16 rounded" />
+                    {/* Peso */}
+                    <Skeleton className="h-4 w-14 rounded" />
+                    {/* Ação */}
+                    <Skeleton className="ml-auto h-4 w-4 rounded" />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Aside skeleton (desktop) */}
+            <div className="hidden h-full w-72 shrink-0 flex-col gap-3 rounded-xl border bg-white p-4 shadow-sm lg:flex">
+              <Skeleton className="h-4 w-36 rounded" />
+              <div className="mt-2 space-y-3">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="rounded-lg border p-3">
+                    <div className="mb-2 flex justify-between">
+                      <Skeleton className="h-3 w-12 rounded" />
+                      <Skeleton className="h-3 w-16 rounded" />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Skeleton className="h-2 w-14 rounded" />
+                        <Skeleton className="h-2 flex-1 rounded-full" />
+                        <Skeleton className="h-2 w-3 rounded" />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Skeleton className="h-2 w-14 rounded" />
+                        <Skeleton className="h-2 flex-1 rounded-full" />
+                        <Skeleton className="h-2 w-3 rounded" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </main>
     );

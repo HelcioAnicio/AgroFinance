@@ -4,7 +4,6 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { signOut, useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { NotificationComponent } from './notificationComponent';
 import { Notification } from '@/types/notification';
@@ -93,20 +92,6 @@ export const Header: React.FC<TableProps> = ({ notifications }) => {
         {status === 'authenticated' && (
           <div className="flex items-center gap-3">
             <FarmSwitcher />
-            <Link href={'/dashboard/profile'}>
-              <div className="flex w-max items-center gap-1">
-                {data?.user?.name}
-                <Avatar className="size-8">
-                  <AvatarImage
-                    src={data?.user?.image ?? undefined}
-                    alt="Image from google profile"
-                  />
-                  <AvatarFallback className="text-foreground">
-                    {data?.user?.name?.charAt(0)}{' '}
-                  </AvatarFallback>
-                </Avatar>
-              </div>
-            </Link>
             <Button className="px-5 py-1" onClick={handleLogoutClick}>
               Sair
             </Button>
