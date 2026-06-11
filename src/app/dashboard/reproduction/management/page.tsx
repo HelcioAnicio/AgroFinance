@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -158,6 +159,7 @@ const ReproductionManagementPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const loadingId = toast.loading(editingId ? 'Atualizando registro...' : 'Salvando registro...');
     try {
       const payload = {
         ...formData,
@@ -171,12 +173,21 @@ const ReproductionManagementPage = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
+      toast.dismiss(loadingId);
       if (res.ok) {
+        toast.success(editingId ? 'Registro atualizado com sucesso!' : 'Registro salvo com sucesso!');
         await fetchData();
         setEditingId(null);
         setFormData(emptyForm);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data.error ?? 'Erro ao salvar registro.');
       }
-    } catch (e) { console.error(e); }
+    } catch (err) {
+      toast.dismiss(loadingId);
+      toast.error('Erro ao salvar registro.');
+      console.error(err);
+    }
   };
 
   const handleEdit = (m: ReproductionManagement) => {

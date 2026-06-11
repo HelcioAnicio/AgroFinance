@@ -277,9 +277,28 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    const safeData: Record<string, unknown> = {};
+    if (updates.stage !== undefined) safeData.stage = updates.stage;
+    if (updates.date) {
+      const d = new Date(updates.date);
+      if (!isNaN(d.getTime())) safeData.date = d;
+    }
+    if (updates.protocolo !== undefined) safeData.protocolo = updates.protocolo;
+    if ('implant' in updates) safeData.implant = updates.implant || null;
+    if ('obs' in updates) safeData.obs = updates.obs || null;
+    if (updates.ecc !== undefined && updates.ecc !== null) {
+      const eccNum = Number(updates.ecc);
+      if (!isNaN(eccNum)) safeData.ecc = eccNum;
+    }
+    if ('touroId' in updates) safeData.touroId = updates.touroId || null;
+    if ('touroType' in updates) safeData.touroType = updates.touroType || null;
+    if ('partida' in updates) safeData.partida = updates.partida || null;
+    if ('cio' in updates) safeData.cio = updates.cio || null;
+    if (updates.ressinc !== undefined) safeData.ressinc = updates.ressinc;
+
     const updated = await prisma.reproductionManagement.update({
       where: { id },
-      data: updates,
+      data: safeData,
     });
 
     const stage = updates.stage ?? management.stage;
