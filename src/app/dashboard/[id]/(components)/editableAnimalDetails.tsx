@@ -299,6 +299,37 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   ];
   const scores = [1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 2.75, 3, 3.25, 3.5, 3.75, 4, 5];
 
+  const fetchArrobaPrice = async () => {
+    const id = toast.loading('Buscando cotação da arroba...');
+    try {
+      const res = await fetch('/api/arroba-price');
+      const data = await res.json();
+      toast.dismiss(id);
+      if (data.price) {
+        setPricePerArroba(String(data.price).replace('.', ','));
+        toast.success(`Cotação: R$ ${data.price}/@ — ${data.source} (${data.date})`);
+      } else {
+        toast.info('Cotação automática indisponível. Informe o preço manualmente.');
+      }
+    } catch {
+      toast.dismiss(id);
+      toast.error('Erro ao buscar cotação.');
+    }
+  };
+
+  const calcLifetime = () => {
+    if (!allDataForm.birthDate) return 'N/A';
+    const birth = new Date(allDataForm.birthDate);
+    const now = new Date();
+    const totalMonths = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth());
+    const y = Math.floor(totalMonths / 12);
+    const m = totalMonths % 12;
+    const parts: string[] = [];
+    if (y > 0) parts.push(`${y} ano${y > 1 ? 's' : ''}`);
+    if (m > 0) parts.push(`${m} mês${m > 1 ? 'es' : ''}`);
+    return parts.join(', ') || 'Menos de 1 mês';
+  };
+
   const handleBack = () => router.back();
 
   const handleInputValues = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -445,10 +476,12 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     delete dataToSubmit.offspringFromMother;
     delete dataToSubmit.owner;
 
+    const loadingId = toast.loading('Salvando alterações...');
     try {
       await axios.put(`/api/updateAnimals?id=${dataToSubmit.id}`, dataToSubmit, {
         headers: { 'Content-Type': 'application/json' },
       });
+      toast.dismiss(loadingId);
       const savedFatherId = formData.fatherId === 'Comercial' ? null : formData.fatherId;
       const savedMotherId = formData.motherId === 'Comercial' ? null : formData.motherId;
       setAllDataForm((prev) => ({
@@ -457,12 +490,11 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
         father: savedFatherId ? (animals.find((a) => a.id === savedFatherId) ?? prev.father) : undefined,
         mother: savedMotherId ? (animals.find((a) => a.id === savedMotherId) ?? prev.mother) : undefined,
       }));
-      setTimeout(() => {
-        toast.success('Animal atualizado com sucesso!');
-        router.refresh();
-        setIsEditing(false);
-      }, 2000);
+      toast.success('Animal atualizado com sucesso!');
+      router.refresh();
+      setIsEditing(false);
     } catch {
+      toast.dismiss(loadingId);
       toast.error('Ocorreu um erro ao atualizar o animal.');
     }
   };
@@ -472,6 +504,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
       toast.error('Preencha nome e data do registro sanitário.');
       return;
     }
+    const loadingId = toast.loading('Adicionando registro sanitário...');
     try {
       const response = await axios.post(
         '/api/addSanitary',
@@ -486,6 +519,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
         { headers: { 'Content-Type': 'application/json' } }
       );
       const savedData = response.data?.data;
+      toast.dismiss(loadingId);
       if (sanitaryForm.type === 'vaccine' && savedData) setListVaccines((prev) => [savedData as Vaccine, ...prev]);
       if (sanitaryForm.type === 'deworming' && savedData) setListDewormings((prev) => [savedData as Deworming, ...prev]);
       if (sanitaryForm.type === 'disease' && savedData) setListDiseases((prev) => [savedData as Disease, ...prev]);
@@ -493,19 +527,23 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
       setSanitaryForm({ type: 'vaccine', name: '', description: '', date: new Date().toISOString().split('T')[0], expiryDate: '' });
       toast.success('Registro sanitário adicionado com sucesso!');
     } catch {
+      toast.dismiss(loadingId);
       toast.error('Ocorreu um erro ao adicionar o registro sanitário.');
     }
   };
 
   const handleDelete = async () => {
     if (!window.confirm('Tem certeza que deseja excluir este animal?')) return;
+    const loadingId = toast.loading('Excluindo animal...');
     try {
       await axios.put(`/api/delete?id=${allDataForm.id}`, allDataForm, {
         headers: { 'Content-Type': 'application/json' },
       });
+      toast.dismiss(loadingId);
+      toast.success('Animal excluído com sucesso!');
       router.push('/dashboard');
-      setTimeout(() => toast.success('Animal excluído com sucesso!'), 4000);
     } catch {
+      toast.dismiss(loadingId);
       toast.error('Erro ao excluir o animal.');
     }
   };
@@ -555,89 +593,176 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
 
       {/* VIEW MODE */}
       {!isEditing && (
-        <div className="mx-auto max-w-5xl space-y-5 px-4 py-5">
-          {/* Big info card */}
-          <div className="rounded-2xl border bg-white p-5 shadow-sm">
-            <div className="mb-4 flex flex-wrap items-center gap-3">
-              <span className="font-mono text-2xl font-black text-primary">{animalTitle}</span>
-              {getStatusNode(allDataForm.status)}
-              <span className="text-sm text-muted-foreground">
-                Última atualização:{' '}
-                {allDataForm.updatedAt ? new Date(allDataForm.updatedAt).toLocaleDateString('pt-BR') : 'N/A'}
-              </span>
+        <div className="mx-auto max-w-5xl space-y-4 px-4 py-5">
+          {/* Row 1: DADOS BÁSICOS (2/3) + DADOS REPRODUTIVOS (1/3) */}
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+            {/* DADOS BÁSICOS */}
+            <div className="lg:col-span-2 rounded-2xl border bg-white p-5 shadow-sm">
+              <div className="mb-4 flex items-start justify-between">
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Dados básicos</p>
+                {getStatusNode(allDataForm.status)}
+              </div>
+
+              <div className="grid grid-cols-3 gap-x-6 gap-y-4 text-sm">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">ID do animal</p>
+                  <p className="mt-0.5 font-mono text-xl font-black text-primary">{animalTitle}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Sexo</p>
+                  <p className="mt-0.5 font-semibold">{allDataForm.gender === 'male' ? 'Macho ♂' : 'Fêmea ♀'}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Nascimento</p>
+                  <p className="mt-0.5 font-semibold">
+                    {allDataForm.birthDate ? new Date(allDataForm.birthDate).toLocaleDateString('pt-BR') : 'N/A'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Peso atual</p>
+                  <p className="mt-0.5 text-xl font-black text-primary">{allDataForm.weight} <span className="text-sm font-semibold">kg</span></p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Raça</p>
+                  <p className="mt-0.5 font-semibold">{allDataForm.breed ?? 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Categoria</p>
+                  <p className="mt-0.5 font-semibold">{categoryLabel(allDataForm.category, allDataForm.gender)}</p>
+                </div>
+              </div>
+
+              {/* ID Mãe + ID Pai */}
+              <div className="mt-5 grid grid-cols-2 gap-3">
+                <div className="flex items-center gap-3 rounded-xl border bg-muted/20 p-3">
+                  <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-pink-100 text-base">♀</span>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">ID Mãe</p>
+                    <p className="font-bold">
+                      {allDataForm.mother?.manualId
+                        ? allDataForm.mother.manualId.charAt(0).toUpperCase() + allDataForm.mother.manualId.slice(1)
+                        : 'Comercial'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 rounded-xl border bg-muted/20 p-3">
+                  <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-base">♂</span>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">ID Pai</p>
+                    <p className="font-bold">
+                      {allDataForm.father?.manualId
+                        ? allDataForm.father.manualId.charAt(0).toUpperCase() + allDataForm.father.manualId.slice(1)
+                        : 'Comercial'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Observations */}
+              {allDataForm.observations && (
+                <blockquote className="mt-4 rounded-xl border-l-4 border-primary/30 bg-muted/20 px-4 py-3 text-sm italic text-muted-foreground">
+                  &ldquo;{allDataForm.observations}&rdquo;
+                </blockquote>
+              )}
             </div>
 
-            <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm sm:grid-cols-3 lg:grid-cols-4">
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Sexo</p>
-                <p className="font-semibold">{allDataForm.gender === 'male' ? 'Macho ♂' : 'Fêmea ♀'}</p>
+            {/* DADOS REPRODUTIVOS */}
+            <div className="flex flex-col gap-4">
+              <div className="rounded-2xl border bg-white p-5 shadow-sm">
+                <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Dados reprodutivos</p>
+                {allDataForm.gender === 'female' ? (
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Status reprodutivo</p>
+                      <span className="mt-1.5 inline-flex items-center rounded-full bg-foreground px-3 py-1 text-xs font-semibold text-primary-foreground">
+                        {allDataForm.reproductiveStatus === 'pregnant' ? 'Prenha'
+                          : allDataForm.reproductiveStatus === 'empty' ? 'Vazia'
+                          : allDataForm.reproductiveStatus === 'waiting' ? 'Em espera'
+                          : allDataForm.reproductiveStatus === 'pev' ? 'PEV'
+                          : allDataForm.reproductiveStatus ?? 'N/A'}
+                      </span>
+                    </div>
+                    {allDataForm.handlingType && (
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Manejo utilizado</p>
+                        <p className="mt-0.5 font-semibold">
+                          {allDataForm.handlingType === 'naturalMating' ? '🐂 Monta natural' : '🔬 Inseminação artificial'}
+                        </p>
+                      </div>
+                    )}
+                    {allDataForm.expectedDueDate && (
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Previsão de parto</p>
+                        <p className="mt-0.5 font-semibold">{new Date(allDataForm.expectedDueDate).toLocaleDateString('pt-BR')}</p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Exame andrológico</p>
+                    <p className="mt-0.5 font-semibold">{allDataForm.andrological ? 'Aprovado' : 'N/A'}</p>
+                  </div>
+                )}
               </div>
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Nascimento</p>
-                <p className="font-semibold">
-                  {allDataForm.birthDate
-                    ? new Date(allDataForm.birthDate).toLocaleDateString('pt-BR')
-                    : 'N/A'}
-                </p>
-              </div>
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Peso atual</p>
-                <p className="font-semibold">{allDataForm.weight} kg</p>
-              </div>
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Arrobas</p>
-                <p className="font-semibold">{(weightKg / 15).toFixed(1)} @</p>
-              </div>
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Raça</p>
-                <p className="font-semibold">{allDataForm.breed ?? 'N/A'}</p>
-              </div>
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Categoria</p>
-                <p className="font-semibold">{categoryLabel(allDataForm.category, allDataForm.gender)}</p>
-              </div>
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">ID Mãe</p>
-                <p className="font-semibold">
-                  {allDataForm.mother?.manualId
-                    ? allDataForm.mother.manualId.charAt(0).toUpperCase() + allDataForm.mother.manualId.slice(1)
-                    : 'Comercial'}
-                </p>
-              </div>
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">ID Pai</p>
-                <p className="font-semibold">
-                  {allDataForm.father?.manualId
-                    ? allDataForm.father.manualId.charAt(0).toUpperCase() + allDataForm.father.manualId.slice(1)
-                    : 'Comercial'}
-                </p>
-              </div>
-              {allDataForm.observations && (
-                <div className="col-span-full">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Observações</p>
-                  <p className="font-semibold">{allDataForm.observations}</p>
+
+              {/* Estimated value (view mode) */}
+              <div className="rounded-2xl border bg-white p-5 shadow-sm">
+                <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Valor estimado</p>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Peso</span>
+                    <span className="font-semibold">{weightKg} kg</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Arrobas</span>
+                    <span className="font-semibold">{arrobas.toFixed(1)} @</span>
+                  </div>
+                  <div className="flex gap-2 pt-1">
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      placeholder="R$/@ ex: 320,00"
+                      value={pricePerArroba}
+                      onChange={(e) => setPricePerArroba(e.target.value)}
+                      className="min-w-0 flex-1 rounded-lg border px-2.5 py-1.5 text-xs outline-none focus:border-primary"
+                    />
+                    <button
+                      type="button"
+                      onClick={fetchArrobaPrice}
+                      className="shrink-0 rounded-lg border border-primary/40 bg-primary/5 px-2.5 py-1.5 text-xs font-semibold text-primary hover:bg-primary/10"
+                    >
+                      Buscar
+                    </button>
+                  </div>
+                  {estimatedValue !== null && (
+                    <div className="rounded-lg bg-primary/5 px-3 py-2">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Estimado</p>
+                      <p className="text-lg font-black text-primary">
+                        {estimatedValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                      </p>
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
           </div>
 
-          {/* Offspring horizontal scroll */}
+          {/* Offspring */}
           <div className="rounded-2xl border bg-white p-5 shadow-sm">
-            <div className="mb-3 flex items-center justify-between">
+            <div className="mb-4 flex items-center justify-between">
               <div>
-                <h2 className="text-sm font-bold">Filhos</h2>
-                <p className="text-xs text-muted-foreground">{offspring.length} registrados</p>
+                <h2 className="font-bold">Filhos <span className="text-muted-foreground">(Offspring)</span></h2>
+                <p className="text-xs text-muted-foreground">Linhagem direta e registros de sucessão</p>
               </div>
               {offspring.length > 0 && (
-                <Button
-                  size="sm"
-                  variant="outline"
+                <button
+                  type="button"
                   onClick={() => setOpenGenealogyModal(true)}
-                  className="gap-1.5 text-xs"
+                  className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:border-primary/40 hover:text-primary"
                 >
                   <Users className="size-3.5" />
-                  Relatório de filhos
-                </Button>
+                  Ver Genealogia Completa
+                </button>
               )}
             </div>
 
@@ -649,19 +774,32 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                   <Link
                     key={child.id}
                     href={`/dashboard/${child.id}`}
-                    className="min-w-[140px] shrink-0 rounded-xl border bg-muted/30 p-3 transition hover:bg-muted/60"
+                    className="min-w-[150px] shrink-0 rounded-xl border bg-white p-4 shadow-sm transition hover:border-primary/40 hover:shadow-md"
                   >
-                    <div className="mb-2">{getStatusNode(child.status)}</div>
-                    <p className="font-mono text-base font-black text-primary">
+                    <div className="mb-3 flex items-center justify-between">
+                      <span className="text-2xl">😊</span>
+                      <span className={`flex items-center gap-1 text-[10px] font-bold uppercase ${child.status === 'active' ? 'text-green-600' : 'text-muted-foreground'}`}>
+                        <span className={`size-1.5 rounded-full ${child.status === 'active' ? 'bg-green-500' : 'bg-gray-400'}`} />
+                        {child.status === 'active' ? 'Ativo' : (child.status ?? 'N/A')}
+                      </span>
+                    </div>
+                    <p className="font-mono text-lg font-black text-foreground">
                       {child.manualId.charAt(0).toUpperCase() + child.manualId.slice(1)}
                     </p>
-                    <p className="text-xs text-muted-foreground">
-                      {child.gender === 'male' ? 'Macho ♂' : 'Fêmea ♀'}
-                    </p>
-                    <p className="text-xs font-semibold">{child.weight} kg</p>
-                    <p className="text-xs text-muted-foreground">
-                      {categoryLabel(child.category, child.gender)}
-                    </p>
+                    <div className="mt-2 space-y-1 text-xs">
+                      <div className="flex justify-between gap-2">
+                        <span className="text-muted-foreground">Sexo:</span>
+                        <span className="font-semibold">{child.gender === 'male' ? 'Macho' : 'Fêmea'}</span>
+                      </div>
+                      <div className="flex justify-between gap-2">
+                        <span className="text-muted-foreground">Peso:</span>
+                        <span className="font-bold text-primary">{child.weight} Kg</span>
+                      </div>
+                      <div className="flex justify-between gap-2">
+                        <span className="text-muted-foreground">Cat:</span>
+                        <span className="font-semibold text-green-700">{categoryLabel(child.category, child.gender)}</span>
+                      </div>
+                    </div>
                   </Link>
                 ))}
               </div>
@@ -672,314 +810,336 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <CardReproduction allDataForm={allDataForm as Animal} />
 
-            <Card className="flex flex-col gap-2 px-2 py-5">
-              <CardHeader>
-                <CardTitle className="text-base">Eficiência reprodutiva</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2 px-1">
-                <p><strong>Prenhezes:</strong> {totalPregnancies}</p>
-                <p><strong>Nascimentos:</strong> {totalBirths}</p>
-                <p><strong>Perdas:</strong> {totalLosses}</p>
-                <p><strong>Eficiência:</strong> {efficiencyRate}%</p>
-              </CardContent>
-            </Card>
+            <div className="rounded-2xl border bg-white p-5 shadow-sm">
+              <h2 className="mb-4 font-bold">Eficiência reprodutiva</h2>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { label: 'Prenhezes', value: totalPregnancies, color: 'border-purple-400' },
+                  { label: 'Nascimentos', value: totalBirths, color: 'border-green-400' },
+                  { label: 'Perdas', value: totalLosses, color: 'border-red-400' },
+                  { label: 'Eficiência', value: `${efficiencyRate}%`, color: 'border-primary' },
+                ].map((item) => (
+                  <div key={item.label} className={`rounded-xl border-l-4 ${item.color} bg-muted/20 px-3 py-2`}>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{item.label}</p>
+                    <p className="text-xl font-black text-foreground">{item.value}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* Weight history + GMD */}
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <Card className="flex flex-col gap-2 px-2 py-5">
-              <CardHeader>
-                <CardTitle className="text-base">Histórico de peso</CardTitle>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-2 px-1">
-                {allDataForm.weightHistories?.length ? (
-                  allDataForm.weightHistories.map((h: AnimalWeightHistory) => (
-                    <Card className="rounded-sm px-3 py-2" key={h.id}>
-                      <div><strong>Tipo: </strong><span>{weightRecordTypeLabel(h.recordType)}</span></div>
-                      <div><strong>Peso: </strong><span>{h.weight} Kg</span></div>
-                      <div><strong>Data: </strong><span>{new Date(h.measuredAt).toLocaleDateString('pt-BR')}</span></div>
-                    </Card>
-                  ))
-                ) : (
-                  <span>Nenhum histórico de peso registrado.</span>
-                )}
-              </CardContent>
-            </Card>
+            <div className="rounded-2xl border bg-white p-5 shadow-sm">
+              <h2 className="mb-3 font-bold">Histórico de peso</h2>
+              {allDataForm.weightHistories?.length ? (
+                <div className="space-y-2">
+                  {allDataForm.weightHistories.map((h: AnimalWeightHistory) => (
+                    <div key={h.id} className="grid grid-cols-3 rounded-lg bg-muted/20 px-3 py-2 text-sm">
+                      <span>{weightRecordTypeLabel(h.recordType)}</span>
+                      <span className="font-semibold text-primary">{h.weight} kg</span>
+                      <span className="text-right text-muted-foreground">{new Date(h.measuredAt).toLocaleDateString('pt-BR')}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">Nenhum histórico de peso registrado.</p>
+              )}
+            </div>
 
-            <Card className="flex flex-col gap-2 px-2 py-5">
-              <CardHeader>
-                <CardTitle className="text-base">Ganho de massa diária (GMD)</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2 px-1">
-                {formattedAverageGmd !== null ? (
-                  <>
-                    <p><strong>GMD médio:</strong> {formattedAverageGmd} Kg/dia</p>
-                    <p>
-                      <strong>Situação:</strong>{' '}
-                      <span className={averageGmd && averageGmd >= PROFITABLE_GMD_THRESHOLD ? 'text-green-600' : 'text-red-600'}>
-                        {gmdStatus}
-                      </span>
+            <div className="rounded-2xl border bg-white p-5 shadow-sm">
+              <h2 className="mb-3 font-bold">GMD — Ganho de massa diária</h2>
+              {formattedAverageGmd !== null ? (
+                <div className="space-y-3">
+                  <div className="rounded-xl border-l-4 border-primary bg-muted/20 px-3 py-2">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">GMD médio</p>
+                    <p className="text-2xl font-black text-primary">{formattedAverageGmd} <span className="text-sm">kg/dia</span></p>
+                  </div>
+                  <div className={`rounded-xl border-l-4 ${averageGmd && averageGmd >= PROFITABLE_GMD_THRESHOLD ? 'border-green-400' : 'border-red-400'} bg-muted/20 px-3 py-2`}>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Situação</p>
+                    <p className={`font-semibold ${averageGmd && averageGmd >= PROFITABLE_GMD_THRESHOLD ? 'text-green-600' : 'text-red-600'}`}>
+                      {gmdStatus}
                     </p>
-                    <p className="text-sm text-muted-foreground">
-                      GMD ideal acima de 0,850 Kg/dia.
-                    </p>
-                  </>
-                ) : (
-                  <span>Registre pelo menos duas pesagens para calcular o GMD.</span>
-                )}
-              </CardContent>
-            </Card>
+                    <p className="text-xs text-muted-foreground">GMD ideal: acima de 0,850 kg/dia</p>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">Registre pelo menos duas pesagens para calcular o GMD.</p>
+              )}
+            </div>
           </div>
 
           {/* Calf loss history */}
           {(allDataForm.calfLossHistories?.length ?? 0) > 0 && (
-            <Card className="flex flex-col gap-2 px-2 py-5">
-              <CardHeader>
-                <CardTitle className="text-base">Histórico de perda de cria</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2 px-1">
+            <div className="rounded-2xl border bg-white p-5 shadow-sm">
+              <h2 className="mb-3 font-bold">Histórico de perda de cria</h2>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {allDataForm.calfLossHistories?.map((h) => (
-                  <Card key={h.id} className="rounded-sm px-3 py-2">
+                  <div key={h.id} className="rounded-xl bg-muted/20 px-3 py-3 text-sm">
                     <p><strong>Data:</strong> {new Date(h.lossDate).toLocaleDateString('pt-BR')}</p>
                     <p><strong>Motivo:</strong> {h.reason || 'N/A'}</p>
-                    <p><strong>Origem do pai:</strong> {h.fatherType === 'external' ? 'Externo' : 'Interno'}</p>
-                    <p>
-                      <strong>Pai:</strong>{' '}
-                      {h.fatherType === 'external' ? (h.externalBull?.name ?? 'N/A') : (h.fatherAnimal?.manualId ?? 'N/A')}
-                    </p>
-                  </Card>
+                    <p><strong>Pai:</strong> {h.fatherType === 'external' ? `Externo — ${h.externalBull?.name ?? 'N/A'}` : `Interno — ${h.fatherAnimal?.manualId ?? 'N/A'}`}</p>
+                  </div>
                 ))}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           )}
 
           {/* Sanitary records */}
-          <Card className="flex flex-col gap-4 px-2 py-4">
-            <CardHeader className="py-2">
-              <CardTitle className="text-base">Registros sanitários</CardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-              {sanitaryRecords.length > 0 ? (
-                sanitaryRecords.map((r) => (
-                  <Card key={`${r.typeLabel}-${r.id}`} className="px-3 py-2">
-                    <p><strong>Tipo:</strong> {r.typeLabel}</p>
-                    <p><strong>Nome:</strong> {r.name}</p>
-                    <p><strong>Descrição:</strong> {r.description || 'N/A'}</p>
-                    <p><strong>Data:</strong> {r.date ? new Date(r.date).toLocaleDateString('pt-BR') : 'N/A'}</p>
-                    <p><strong>Vencimento:</strong> {r.expiryDate ? new Date(r.expiryDate).toLocaleDateString('pt-BR') : 'Não informado'}</p>
-                  </Card>
-                ))
-              ) : (
-                <span>Nenhum registro sanitário cadastrado.</span>
-              )}
-            </CardContent>
-          </Card>
+          <div className="rounded-2xl border bg-white p-5 shadow-sm">
+            <h2 className="mb-3 font-bold">Registros sanitários</h2>
+            {sanitaryRecords.length > 0 ? (
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {sanitaryRecords.map((r) => (
+                  <div key={`${r.typeLabel}-${r.id}`} className="rounded-xl bg-muted/20 px-3 py-3 text-sm">
+                    <div className="mb-1 flex items-center gap-2">
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">{r.typeLabel}</span>
+                      <span className="font-semibold">{r.name}</span>
+                    </div>
+                    {r.description && <p className="text-xs text-muted-foreground">{r.description}</p>}
+                    <div className="mt-1 flex gap-4 text-xs text-muted-foreground">
+                      <span>📅 {r.date ? new Date(r.date).toLocaleDateString('pt-BR') : 'N/A'}</span>
+                      {r.expiryDate && <span>⏰ Vence: {new Date(r.expiryDate).toLocaleDateString('pt-BR')}</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">Nenhum registro sanitário cadastrado.</p>
+            )}
+          </div>
         </div>
       )}
 
       {/* EDIT MODE */}
       {isEditing && (
         <form className="mx-auto grid max-w-5xl grid-cols-1 gap-5 p-4 lg:grid-cols-3">
-          {/* Basic info — 2 cols */}
+          {/* Left: form fields — 2 cols */}
           <div className="lg:col-span-2 space-y-4">
-            <FormBasicInformation
-              allDataForm={allDataForm}
-              handleInputValues={handleInputValues}
-              animal={animal as Animal}
-              animals={animals}
-              breedArray={breedArray}
-              scores={scores}
-            />
+            <div className="rounded-2xl border bg-white p-5 shadow-sm">
+              <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Dados básicos</p>
+              <FormBasicInformation
+                allDataForm={allDataForm}
+                handleInputValues={handleInputValues}
+                animal={animal as Animal}
+                animals={animals}
+                breedArray={breedArray}
+                scores={scores}
+              />
+            </div>
 
-            <Card className="px-2 py-7">
-              <CardHeader className="py-2">
-                <CardTitle className="text-base">Informações reprodutivas</CardTitle>
-              </CardHeader>
-              <CardContent className="flex flex-col p-1">
-                <section className="flex w-full max-w-sm flex-col gap-4">
-                  {allDataForm.gender === 'male' ? (
-                    <FormMaleReproductive
-                      allDataForm={allDataForm}
-                      handleInputValues={handleInputValues}
-                      animal={animal as Animal}
-                    />
-                  ) : (
-                    <>
-                      <article className="flex flex-col gap-1">
-                        <label className="text-secondary" htmlFor="reproductiveStatus">Status reprodutivo:</label>
-                        <select
-                          name="reproductiveStatus"
-                          id="reproductiveStatus"
-                          className="w-32 border border-b border-b-primary bg-transparent outline-none"
-                          value={allDataForm.reproductiveStatus ?? ''}
-                          onChange={handleInputValues}
-                        >
-                          <option disabled value=""></option>
-                          <option value="empty">Vazia</option>
-                          <option value="pregnant">Prenha</option>
-                          <option value="waiting">Em espera</option>
-                          <option value="pev">PEV</option>
-                        </select>
-                      </article>
+            <div className="rounded-2xl border bg-white p-5 shadow-sm">
+              <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Dados reprodutivos</p>
+              <section className="flex w-full max-w-sm flex-col gap-4">
+                {allDataForm.gender === 'male' ? (
+                  <FormMaleReproductive
+                    allDataForm={allDataForm}
+                    handleInputValues={handleInputValues}
+                    animal={animal as Animal}
+                  />
+                ) : (
+                  <>
+                    <article className="flex flex-col gap-1">
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground" htmlFor="reproductiveStatus">
+                        Status reprodutivo
+                      </label>
+                      <select
+                        name="reproductiveStatus"
+                        id="reproductiveStatus"
+                        className="rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary"
+                        value={allDataForm.reproductiveStatus ?? ''}
+                        onChange={handleInputValues}
+                      >
+                        <option disabled value=""></option>
+                        <option value="empty">Vazia</option>
+                        <option value="pregnant">Prenha</option>
+                        <option value="waiting">Em espera</option>
+                        <option value="pev">PEV</option>
+                      </select>
+                    </article>
 
-                      {allDataForm.reproductiveStatus === 'pregnant' && (
-                        <FormPregnantStatus
-                          allDataForm={allDataForm}
-                          handleInputValues={handleInputValues}
-                          animal={animal as Animal}
-                          animals={animals}
-                          externalBulls={externalBulls}
-                        />
-                      )}
-                      {allDataForm.reproductiveStatus === 'waiting' && (
-                        <FormWaitingStatus
-                          allDataForm={allDataForm}
-                          handleInputValues={handleInputValues}
-                          animal={animal as Animal}
-                          animals={animals}
-                          externalBulls={externalBulls}
-                        />
-                      )}
-                      {allDataForm.reproductiveStatus === 'pev' && (
-                        <FormPevStatus
-                          allDataForm={allDataForm}
-                          handleInputValues={handleInputValues}
-                          animals={animals}
-                        />
-                      )}
+                    {allDataForm.reproductiveStatus === 'pregnant' && (
+                      <FormPregnantStatus
+                        allDataForm={allDataForm}
+                        handleInputValues={handleInputValues}
+                        animal={animal as Animal}
+                        animals={animals}
+                        externalBulls={externalBulls}
+                      />
+                    )}
+                    {allDataForm.reproductiveStatus === 'waiting' && (
+                      <FormWaitingStatus
+                        allDataForm={allDataForm}
+                        handleInputValues={handleInputValues}
+                        animal={animal as Animal}
+                        animals={animals}
+                        externalBulls={externalBulls}
+                      />
+                    )}
+                    {allDataForm.reproductiveStatus === 'pev' && (
+                      <FormPevStatus
+                        allDataForm={allDataForm}
+                        handleInputValues={handleInputValues}
+                        animals={animals}
+                      />
+                    )}
 
-                      {shouldAskCalfLoss && (
-                        <Card className="mt-4 border-amber-500 px-3 py-4">
-                          <CardTitle className="mb-3 text-sm">Houve perda de cria/bezerro?</CardTitle>
-                          <div className="flex flex-col gap-3">
-                            <div className="flex gap-4">
-                              <label className="flex items-center gap-1">
-                                <input type="radio" name="calfLossConfirmed" checked={calfLossDraft.confirmed === true}
-                                  onChange={() => setCalfLossDraft((prev) => ({ ...prev, confirmed: true }))} />
-                                Sim
-                              </label>
-                              <label className="flex items-center gap-1">
-                                <input type="radio" name="calfLossConfirmed" checked={calfLossDraft.confirmed === false}
-                                  onChange={() => setCalfLossDraft((prev) => ({ ...prev, confirmed: false }))} />
-                                Não
-                              </label>
-                            </div>
+                    {shouldAskCalfLoss && (
+                      <Card className="mt-4 border-amber-500 px-3 py-4">
+                        <CardTitle className="mb-3 text-sm">Houve perda de cria/bezerro?</CardTitle>
+                        <div className="flex flex-col gap-3">
+                          <div className="flex gap-4">
+                            <label className="flex items-center gap-1">
+                              <input type="radio" name="calfLossConfirmed" checked={calfLossDraft.confirmed === true}
+                                onChange={() => setCalfLossDraft((prev) => ({ ...prev, confirmed: true }))} />
+                              Sim
+                            </label>
+                            <label className="flex items-center gap-1">
+                              <input type="radio" name="calfLossConfirmed" checked={calfLossDraft.confirmed === false}
+                                onChange={() => setCalfLossDraft((prev) => ({ ...prev, confirmed: false }))} />
+                              Não
+                            </label>
+                          </div>
 
-                            {calfLossDraft.confirmed && (
-                              <>
-                                <InputForm htmlFor="lossDate" label="Data da perda:" type="date" name="lossDate" id="lossDate"
-                                  value={calfLossDraft.lossDate}
-                                  onChange={(e) => setCalfLossDraft((prev) => ({ ...prev, lossDate: e.target.value }))} />
-                                <InputForm htmlFor="lossReason" label="Motivo da perda:" type="text" name="lossReason" id="lossReason"
-                                  value={calfLossDraft.reason}
-                                  onChange={(e) => setCalfLossDraft((prev) => ({ ...prev, reason: e.target.value }))} />
-
+                          {calfLossDraft.confirmed && (
+                            <>
+                              <InputForm htmlFor="lossDate" label="Data da perda:" type="date" name="lossDate" id="lossDate"
+                                value={calfLossDraft.lossDate}
+                                onChange={(e) => setCalfLossDraft((prev) => ({ ...prev, lossDate: e.target.value }))} />
+                              <InputForm htmlFor="lossReason" label="Motivo da perda:" type="text" name="lossReason" id="lossReason"
+                                value={calfLossDraft.reason}
+                                onChange={(e) => setCalfLossDraft((prev) => ({ ...prev, reason: e.target.value }))} />
+                              <article className="flex flex-col gap-1">
+                                <label className="text-secondary" htmlFor="fatherType">Pai da cria:</label>
+                                <select id="fatherType" className="w-36 border border-b border-b-primary bg-transparent outline-none"
+                                  value={calfLossDraft.fatherType}
+                                  onChange={(e) => setCalfLossDraft((prev) => ({
+                                    ...prev,
+                                    fatherType: e.target.value as 'internal' | 'external' | '',
+                                    fatherId: '',
+                                  }))}>
+                                  <option value=""></option>
+                                  <option value="internal">Animal da fazenda</option>
+                                  <option value="external">Touro externo</option>
+                                </select>
+                              </article>
+                              {calfLossDraft.fatherType === 'internal' && (
                                 <article className="flex flex-col gap-1">
-                                  <label className="text-secondary" htmlFor="fatherType">Pai da cria:</label>
-                                  <select id="fatherType" className="w-36 border border-b border-b-primary bg-transparent outline-none"
-                                    value={calfLossDraft.fatherType}
-                                    onChange={(e) => setCalfLossDraft((prev) => ({
-                                      ...prev,
-                                      fatherType: e.target.value as 'internal' | 'external' | '',
-                                      fatherId: '',
-                                    }))}>
+                                  <label className="text-secondary" htmlFor="fatherInternalId">Selecione o pai interno:</label>
+                                  <select id="fatherInternalId"
+                                    className="w-full max-w-52 border border-b border-b-primary bg-transparent outline-none"
+                                    value={calfLossDraft.fatherId}
+                                    onChange={(e) => setCalfLossDraft((prev) => ({ ...prev, fatherId: e.target.value }))}>
                                     <option value=""></option>
-                                    <option value="internal">Animal da fazenda</option>
-                                    <option value="external">Touro externo</option>
+                                    {internalBullOptions.map((bull) => (
+                                      <option key={bull.id} value={bull.id}>Touro {bull.manualId}</option>
+                                    ))}
                                   </select>
                                 </article>
-
-                                {calfLossDraft.fatherType === 'internal' && (
-                                  <article className="flex flex-col gap-1">
-                                    <label className="text-secondary" htmlFor="fatherInternalId">Selecione o pai interno:</label>
-                                    <select id="fatherInternalId"
-                                      className="w-full max-w-52 border border-b border-b-primary bg-transparent outline-none"
-                                      value={calfLossDraft.fatherId}
-                                      onChange={(e) => setCalfLossDraft((prev) => ({ ...prev, fatherId: e.target.value }))}>
-                                      <option value=""></option>
-                                      {internalBullOptions.map((bull) => (
-                                        <option key={bull.id} value={bull.id}>Touro {bull.manualId}</option>
-                                      ))}
-                                    </select>
-                                  </article>
-                                )}
-
-                                {calfLossDraft.fatherType === 'external' && (
-                                  <article className="flex flex-col gap-1">
-                                    <label className="text-secondary" htmlFor="fatherExternalId">Selecione o pai externo:</label>
-                                    <select id="fatherExternalId"
-                                      className="w-full max-w-52 border border-b border-b-primary bg-transparent outline-none"
-                                      value={calfLossDraft.fatherId}
-                                      onChange={(e) => setCalfLossDraft((prev) => ({ ...prev, fatherId: e.target.value }))}>
-                                      <option value=""></option>
-                                      {externalBulls.map((bull) => (
-                                        <option key={bull.id} value={bull.id}>{bull.name}</option>
-                                      ))}
-                                    </select>
-                                  </article>
-                                )}
-                              </>
-                            )}
-                          </div>
-                        </Card>
-                      )}
-                    </>
-                  )}
-                </section>
-              </CardContent>
-            </Card>
+                              )}
+                              {calfLossDraft.fatherType === 'external' && (
+                                <article className="flex flex-col gap-1">
+                                  <label className="text-secondary" htmlFor="fatherExternalId">Selecione o pai externo:</label>
+                                  <select id="fatherExternalId"
+                                    className="w-full max-w-52 border border-b border-b-primary bg-transparent outline-none"
+                                    value={calfLossDraft.fatherId}
+                                    onChange={(e) => setCalfLossDraft((prev) => ({ ...prev, fatherId: e.target.value }))}>
+                                    <option value=""></option>
+                                    {externalBulls.map((bull) => (
+                                      <option key={bull.id} value={bull.id}>{bull.name}</option>
+                                    ))}
+                                  </select>
+                                </article>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </Card>
+                    )}
+                  </>
+                )}
+              </section>
+            </div>
           </div>
 
-          {/* Right column: Resumo da Ficha */}
+          {/* Right: GENEALOGIA + RESUMO DA FICHA */}
           <div className="space-y-4">
-            <div className="rounded-xl border-l-4 border-primary bg-white p-5 shadow-sm">
-              <h3 className="mb-4 text-sm font-bold uppercase tracking-widest text-muted-foreground">
-                Resumo da Ficha
-              </h3>
-
+            {/* Genealogia */}
+            <div className="rounded-2xl border bg-white p-5 shadow-sm">
+              <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Genealogia</p>
               <div className="space-y-3">
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Peso atual</p>
-                  <p className="text-xl font-black text-primary">{weightKg} kg</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">ID Mãe (Matriz)</p>
+                  <div className="mt-1 flex items-center gap-2 rounded-lg border bg-muted/20 px-3 py-2 text-sm">
+                    <span className="text-pink-500">♀</span>
+                    <span className="font-semibold">
+                      {allDataForm.mother?.manualId
+                        ? allDataForm.mother.manualId.charAt(0).toUpperCase() + allDataForm.mother.manualId.slice(1)
+                        : 'Comercial'}
+                    </span>
+                  </div>
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Arrobas</p>
-                  <p className="text-xl font-black text-primary">{arrobas.toFixed(1)} @</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">ID Pai (Reprodutor)</p>
+                  <div className="mt-1 flex items-center gap-2 rounded-lg border bg-muted/20 px-3 py-2 text-sm">
+                    <span className="text-blue-500">♂</span>
+                    <span className="font-semibold">
+                      {allDataForm.father?.manualId
+                        ? allDataForm.father.manualId.charAt(0).toUpperCase() + allDataForm.father.manualId.slice(1)
+                        : 'Comercial'}
+                    </span>
+                  </div>
                 </div>
-                <Separator />
-                <div>
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground" htmlFor="pricePerArroba">
-                    Preço da arroba (R$/@)
-                  </label>
-                  <input
-                    id="pricePerArroba"
-                    type="text"
-                    inputMode="decimal"
-                    placeholder="ex: 320,00"
-                    value={pricePerArroba}
-                    onChange={(e) => setPricePerArroba(e.target.value)}
-                    className="mt-1 w-full rounded-md border px-3 py-1.5 text-sm outline-none focus:border-primary"
-                  />
+              </div>
+            </div>
+
+            {/* RESUMO DA FICHA — dark green card */}
+            <div className="rounded-2xl bg-foreground p-5 text-primary-foreground shadow-sm">
+              <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-primary-foreground/60">Resumo da Ficha</p>
+              <div className="space-y-4">
+                <div className="border-b border-white/10 pb-3">
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-primary-foreground/60">Tempo de Vida</p>
+                  <p className="mt-0.5 font-bold">{calcLifetime()}</p>
+                </div>
+                <div className="border-b border-white/10 pb-3">
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-primary-foreground/60">Peso / Arrobas</p>
+                  <p className="mt-0.5 font-bold">{weightKg} kg &nbsp;/&nbsp; {arrobas.toFixed(1)} @</p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Valor estimado</p>
-                  <p className="text-xl font-black text-primary">
+                  <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-primary-foreground/60">Valor Estimado</p>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      placeholder="R$/@ ex: 320,00"
+                      value={pricePerArroba}
+                      onChange={(e) => setPricePerArroba(e.target.value)}
+                      className="min-w-0 flex-1 rounded-lg border border-white/20 bg-white/10 px-2.5 py-1.5 text-xs text-white placeholder:text-white/40 outline-none focus:border-white/40"
+                    />
+                    <button
+                      type="button"
+                      onClick={fetchArrobaPrice}
+                      className="shrink-0 rounded-lg border border-white/20 bg-white/10 px-2.5 py-1.5 text-xs font-semibold hover:bg-white/20"
+                    >
+                      Buscar
+                    </button>
+                  </div>
+                  <p className="mt-2 text-xl font-black">
                     {estimatedValue !== null
                       ? estimatedValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
                       : '—'}
                   </p>
                   {estimatedValue !== null && (
-                    <p className="text-xs text-muted-foreground">
-                      {arrobas.toFixed(1)}@ × R$ {priceNum.toFixed(2)}/@ = valor estimado
+                    <p className="text-[10px] text-primary-foreground/50">
+                      {arrobas.toFixed(1)}@ × R$ {priceNum.toFixed(2)}/@
                     </p>
                   )}
                 </div>
               </div>
             </div>
 
-            {/* Offspring mini list in edit mode */}
             {offspring.length > 0 && (
-              <div className="rounded-xl border bg-white p-4 shadow-sm">
+              <div className="rounded-2xl border bg-white p-4 shadow-sm">
                 <h3 className="mb-3 text-sm font-bold">Filhos ({offspring.length})</h3>
                 <div className="flex gap-2 overflow-x-auto pb-1">
                   {offspring.map((child) => (
@@ -991,7 +1151,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                       <p className="font-mono font-bold text-primary">
                         {child.manualId.charAt(0).toUpperCase() + child.manualId.slice(1)}
                       </p>
-                      <p>{child.gender === 'male' ? '♂' : '♀'} {child.weight}kg</p>
+                      <p className="text-muted-foreground">{child.gender === 'male' ? '♂' : '♀'} {child.weight} kg</p>
                     </Link>
                   ))}
                 </div>
