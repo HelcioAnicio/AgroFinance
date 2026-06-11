@@ -13,6 +13,7 @@ import { FaRegMoneyBillAlt } from 'react-icons/fa';
 import { IoMaleFemaleSharp } from 'react-icons/io5';
 import { Users } from 'lucide-react';
 import { GiCow } from 'react-icons/gi';
+import { FarmSwitcher } from './farmSwitcher';
 
 interface TableProps {
   notifications: Notification[];
@@ -91,6 +92,7 @@ export const Header: React.FC<TableProps> = ({ notifications }) => {
       <div className="flex w-full max-w-xs flex-1 flex-col items-end gap-10">
         {status === 'authenticated' && (
           <div className="flex items-center gap-3">
+            <FarmSwitcher />
             <Link href={'/dashboard/profile'}>
               <div className="flex w-max items-center gap-1">
                 {data?.user?.name}
