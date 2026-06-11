@@ -33,16 +33,6 @@ export function FarmSwitcher() {
 
   const activeFarm = farms.find((f) => f.isActive) ?? farms[0];
 
-  // Hide if user only has one farm — no need to show switcher
-  if (farms.length <= 1) {
-    return activeFarm ? (
-      <span className="hidden items-center gap-1.5 text-sm font-semibold lg:flex">
-        <Building2 className="size-4 text-muted-foreground" />
-        {activeFarm.name}
-      </span>
-    ) : null;
-  }
-
   const switchFarm = (farmId: string) => {
     setOpen(false);
     startTransition(async () => {
@@ -102,6 +92,11 @@ export function FarmSwitcher() {
                 {farm.isActive && <Check className="size-4 shrink-0 text-primary" />}
               </button>
             ))}
+            <div className="mx-2 mt-1 border-t pt-1.5 pb-0.5">
+              <p className="text-[10px] text-muted-foreground">
+                Recebeu um convite? Use o link enviado para entrar em outra fazenda.
+              </p>
+            </div>
           </div>
         </>
       )}
