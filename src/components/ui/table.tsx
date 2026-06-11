@@ -25,7 +25,6 @@ import { User } from '@/types/user';
 import { AddAnimal } from '../../app/dashboard/(addAnimal)/addAnimals';
 import { AddAnimalDesktop } from '@/app/dashboard/(addAnimal)/addAnimalsDesktop';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import {
   Dialog,
   // DialogClose,
@@ -37,11 +36,6 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Filters } from '@/components/ui/modalFilters';
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from '@/components/ui/hover-card';
 import { Loading } from '@/components/ui/loading';
 import { Sheet, SheetTrigger } from '@/components/ui/sheet';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -163,6 +157,14 @@ export const Table: React.FC<TableProps> = ({
   const [selectedStatsYear, setSelectedStatsYear] = useState<number | null>(
     null
   );
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [parsedJson, setParsedJson] = useState<any[]>([]);
+  const [importIssues, setImportIssues] = useState<
+    Array<{ row: number; message: string }>
+  >([]);
+  const [isSaleMode, setIsSaleMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [pricePerArroba, setPricePerArroba] = useState('');
 
   const router = useRouter();
 
@@ -236,97 +238,93 @@ export const Table: React.FC<TableProps> = ({
   const handleInputFileValue = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files ? event.target.files[0] : null;
     setInputFile(file);
+    setImportIssues([]);
+    setParsedJson([]);
+
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const data = new Uint8Array(e.target?.result as ArrayBuffer);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const allRows = XLSX.utils.sheet_to_json<any[]>(sheet, { header: 1 });
+        let headerRowIndex = 0;
+        for (let i = 0; i < Math.min(allRows.length, 10); i++) {
+          const row = allRows[i];
+          if (Array.isArray(row)) {
+            const hasBrinco = row.some((cell) => {
+              if (typeof cell !== 'string') return false;
+              const norm = cell
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase();
+              return (
+                norm.includes('brinco') ||
+                norm.includes('manualid') ||
+                norm.includes('id manual')
+              );
+            });
+            if (hasBrinco) {
+              headerRowIndex = i;
+              break;
+            }
+          }
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const json = XLSX.utils.sheet_to_json<any>(sheet, {
+          range: headerRowIndex || 2,
+          defval: '',
+        });
+        setParsedJson(json);
+      };
+      reader.readAsArrayBuffer(file);
+    }
   };
 
   async function handleUpload() {
-    if (!inputFile) return;
+    if (!inputFile || parsedJson.length === 0) return;
 
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      const data = new Uint8Array(event.target?.result as ArrayBuffer);
-      const workbook = XLSX.read(data, { type: 'array' });
-      const sheetName = workbook.SheetNames[0];
-      const sheet = workbook.Sheets[sheetName];
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const allRows = XLSX.utils.sheet_to_json<any[]>(sheet, { header: 1 });
-      let headerRowIndex = 0;
-      for (let i = 0; i < Math.min(allRows.length, 10); i++) {
-        const row = allRows[i];
-        if (Array.isArray(row)) {
-          const hasBrinco = row.some((cell) => {
-            if (typeof cell !== 'string') return false;
-            const norm = cell
-              .normalize('NFD')
-              .replace(/[\u0300-\u036f]/g, '')
-              .toLowerCase();
-            return (
-              norm.includes('brinco') ||
-              norm.includes('manualid') ||
-              norm.includes('id manual')
-            );
-          });
-          if (hasBrinco) {
-            headerRowIndex = i;
-            break;
-          }
-        }
-      }
+    setIsLoading(true);
+    setImportIssues([]);
 
-      console.log('[Import] Header row index:', headerRowIndex);
-      console.log('[Import] Header row content:', allRows[headerRowIndex]);
-
-      // const json = XLSX.utils.sheet_to_json(sheet, { range: headerRowIndex });
-      const json = XLSX.utils.sheet_to_json(sheet, {
-        range: 2,
-        defval: '',
+    try {
+      const res = await fetch('/api/importAnimals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(parsedJson),
       });
 
-      console.log('[Import] Total rows parsed:', json.length);
-      if (json.length > 0) {
-        console.log('[Import] First row keys:', Object.keys(json[0] as object));
-        console.log('[Import] First row data:', json[0]);
-      }
-
-      setIsLoading(true);
-
-      try {
-        const res = await fetch('/api/importAnimals', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(json),
-        });
-
-        const result = await res.json();
-        if (result.success) {
-          toast.success(`Lista cadastrada com sucesso!
-            A página será recarregada para mostrar os novos animais.`);
-          setTimeout(() => {
-            window.location.reload();
-          }, 5000);
-        } else {
-          console.log('[Import] API error response:', result);
-          if (result.receivedKeys) {
-            console.log('[Import] Keys received by API:', result.receivedKeys);
-          }
-          const firstIssue =
-            result.issues && result.issues[0]
-              ? `: Linha ${result.issues[0].row} - ${result.issues[0].message}`
-              : '';
-          toast.error(`Erro com a importacao${firstIssue}`);
+      const result = await res.json();
+      if (result.success) {
+        toast.success(`Lista cadastrada com sucesso!
+          A página será recarregada para mostrar os novos animais.`);
+        setImportDialogOpen(false);
+        setTimeout(() => {
+          window.location.reload();
+        }, 3000);
+      } else {
+        console.log('[Import] API error response:', result);
+        if (result.issues) {
+          setImportIssues(result.issues);
         }
-      } catch {
-        toast.error('Erro com o arquivo');
-      } finally {
-        setIsLoading(false);
+        toast.error(
+          'Erro na importação. Verifique os problemas listados na tela.'
+        );
       }
-    };
-
-    reader.readAsArrayBuffer(inputFile);
+    } catch {
+      toast.error('Erro com o arquivo');
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   const handleNavigation = (id: string | null) => {
     setIsLoading(true);
-    router.push(`dashboard/${id}`);
+    router.push(`/dashboard/${id}`);
   };
 
   const handleAnimalAdded = (newAnimal: Animal) => {
@@ -348,19 +346,41 @@ export const Table: React.FC<TableProps> = ({
     setOriginalAnimals(updateAndSort);
   };
 
-  const pregnantCowsCount = animals.filter(
+  const pregnantCowsCount = listAnimals.filter(
     (animal) =>
       (animal.category === 'cow' || animal.category === 'old cow') &&
       isFemale(animal.gender) &&
       animal.reproductiveStatus === 'pregnant'
   ).length;
 
-  const emptyCowsCount = animals.filter(
+  const emptyCowsCount = listAnimals.filter(
     (animal) =>
       (animal.category === 'cow' || animal.category === 'old cow') &&
       isFemale(animal.gender) &&
       animal.reproductiveStatus === 'empty'
   ).length;
+
+  const selectedAnimals = listAnimals.filter((a) => selectedIds.has(a.id));
+  const totalWeight = selectedAnimals.reduce((sum, a) => sum + (a.weight ?? 0), 0);
+  const avgWeight = selectedAnimals.length ? totalWeight / selectedAnimals.length : 0;
+  const arrobaCount = avgWeight / 15;
+  const pricePerArrobaNum = Number(pricePerArroba) || 0;
+  const pricePerHead = arrobaCount * pricePerArrobaNum;
+  const totalValue = pricePerHead * selectedAnimals.length;
+
+  const toggleSaleMode = () => {
+    setIsSaleMode((v) => !v);
+    setSelectedIds(new Set());
+  };
+
+  const toggleSelectAnimal = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   if (dataLoading) {
     return (
@@ -443,6 +463,18 @@ export const Table: React.FC<TableProps> = ({
                   placeholder="Pesquisar ID"
                   onChange={(event) => setInputValue(event.target.value)}
                 />
+                <button
+                  onClick={toggleSaleMode}
+                  className={`rounded-sm border px-2 py-1 text-xs font-semibold transition-colors ${
+                    isSaleMode
+                      ? 'border-primary bg-primary text-primary-foreground'
+                      : 'border-foreground bg-background text-foreground'
+                  }`}
+                >
+                  {isSaleMode
+                    ? `Selecionando (${selectedIds.size})`
+                    : 'Selecionar venda'}
+                </button>
               </div>
               <div className="flex flex-col gap-3 min-[500px]:flex-row">
                 <Dialog
@@ -482,25 +514,78 @@ export const Table: React.FC<TableProps> = ({
                         id="document"
                         className="hidden"
                         onChange={handleInputFileValue}
+                        accept=".xlsx,.xls,.csv"
                       />
                     </div>
+
+                    {inputFile && (
+                      <div className="mt-4 rounded-md border p-3">
+                        <p className="mb-2 text-sm font-semibold text-foreground">
+                          Arquivo selecionado:{' '}
+                          <span className="font-normal">{inputFile.name}</span>
+                        </p>
+
+                        {parsedJson.length > 0 && (
+                          <div className="mb-2">
+                            <p className="text-xs text-muted-foreground">
+                              Preview (primeiros 5 animais):
+                            </p>
+                            <ul className="mt-1 list-disc pl-5 text-sm">
+                              {parsedJson.slice(0, 5).map((row, idx) => {
+                                const keyId = Object.keys(row).find(
+                                  (k) =>
+                                    k.toLowerCase().includes('brinco') ||
+                                    k.toLowerCase().includes('id')
+                                );
+                                const name = keyId ? row[keyId] : 'Sem ID';
+                                return <li key={idx}>{name || 'Sem ID'}</li>;
+                              })}
+                            </ul>
+                          </div>
+                        )}
+
+                        {importIssues.length > 0 && (
+                          <div className="mt-3 max-h-40 overflow-y-auto rounded bg-red-50 p-2 text-sm text-red-800">
+                            <p className="font-bold">Erros encontrados:</p>
+                            <p className="mb-1 text-xs text-red-600">
+                              Dica: Verifique se escreveu os valores
+                              corretamente na planilha (ex: Macho/Fêmea, Status
+                              como Ativo/Inativo, e Datas como DD/MM/AAAA).
+                            </p>
+                            <ul className="list-disc pl-5">
+                              {importIssues.map((issue, i) => (
+                                <li key={i}>
+                                  Linha {issue.row}: {issue.message}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     <DialogFooter>
                       <Button
                         variant="outline"
                         className="mr-auto"
-                        onClick={() => setImportDialogOpen(false)}
+                        onClick={() => {
+                          setImportDialogOpen(false);
+                          setImportIssues([]);
+                          setInputFile(null);
+                          setParsedJson([]);
+                        }}
                       >
-                        Cancel
+                        Cancelar
                       </Button>
 
                       {inputFile && (
                         <Button
+                          disabled={isLoading}
                           onClick={() => {
-                            setImportDialogOpen(false);
                             handleUpload();
                           }}
                         >
-                          Cadastrar animais
+                          {isLoading ? 'Importando...' : 'Cadastrar animais'}
                         </Button>
                       )}
                     </DialogFooter>
@@ -535,78 +620,84 @@ export const Table: React.FC<TableProps> = ({
             </div>
           </div>
 
-          <br className="md:hidden" />
-          <div className="my-5 hidden gap-3 md:flex">
-            <Card className="rounded-sm p-2">
-              <HoverCard>
-                <HoverCardTrigger className="cursor-default">
-                  Total de animais: {animals.length}
-                </HoverCardTrigger>
-                <HoverCardContent className="bg-primary text-background">
-                  Total considerando todos os cadastrados, incluindo neonato.
-                </HoverCardContent>
-              </HoverCard>
-            </Card>
-
-            <Card className="rounded-sm p-2">
-              <HoverCard>
-                <HoverCardTrigger className="cursor-default">
-                  Animais ativos:{' '}
-                  {
-                    animals.filter(
-                      (a) => a.status === 'active' && a.category !== 'neonate'
-                    ).length
-                  }
-                </HoverCardTrigger>
-                <HoverCardContent className="bg-primary text-background">
-                  Total de animais ativos na fazenda.
-                </HoverCardContent>
-              </HoverCard>
-            </Card>
-
-            <Card className="rounded-sm p-2">
-              <HoverCard>
-                <HoverCardTrigger className="cursor-default">
-                  Vacas prenhas: {pregnantCowsCount}
-                </HoverCardTrigger>
-                <HoverCardContent className="bg-primary text-background">
-                  Total de vacas prenhas.
-                </HoverCardContent>
-              </HoverCard>
-            </Card>
-
-            <Card className="rounded-sm p-2">
-              <HoverCard>
-                <HoverCardTrigger className="cursor-default">
-                  Vacas vazias: {emptyCowsCount}
-                </HoverCardTrigger>
-                <HoverCardContent className="bg-primary text-background">
-                  Total de vacas vazias.
-                </HoverCardContent>
-              </HoverCard>
-            </Card>
+          {/* Summary cards — reactive to active filters */}
+          <div className="my-3 grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <div className="rounded-xl border-l-4 border-primary bg-white px-4 py-3 shadow-sm">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                Total
+              </p>
+              <p className="text-2xl font-black text-primary">
+                {listAnimals.length}
+              </p>
+              <p className="text-[10px] text-muted-foreground">
+                Com filtros aplicados
+              </p>
+            </div>
+            <div className="rounded-xl border-l-4 border-green-500 bg-white px-4 py-3 shadow-sm">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                Ativos
+              </p>
+              <p className="text-2xl font-black text-foreground">
+                {
+                  listAnimals.filter(
+                    (a) => a.status === 'active' && a.category !== 'neonate'
+                  ).length
+                }
+              </p>
+              <div className="mt-1.5 h-1 w-full rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full bg-green-500"
+                  style={{
+                    width: `${listAnimals.length ? (listAnimals.filter((a) => a.status === 'active').length / listAnimals.length) * 100 : 0}%`,
+                  }}
+                />
+              </div>
+            </div>
+            <div className="rounded-xl border-l-4 border-fuchsia-500 bg-white px-4 py-3 shadow-sm">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                Prenhas
+              </p>
+              <p className="text-2xl font-black text-foreground">
+                {pregnantCowsCount}
+              </p>
+              <p className="text-[10px] italic text-muted-foreground">
+                {pregnantCowsCount === 0 ? 'Nenhuma prenha' : 'Vacas prenhas'}
+              </p>
+            </div>
+            <div className="rounded-xl border-l-4 border-slate-400 bg-white px-4 py-3 shadow-sm">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                Vazias
+              </p>
+              <p className="text-2xl font-black text-foreground">
+                {emptyCowsCount}
+              </p>
+              {emptyCowsCount > 0 && (
+                <p className="text-[10px] text-red-500">Atenção requerida</p>
+              )}
+            </div>
           </div>
 
           <div className="min-h-0 w-full pb-28 md:pb-20 lg:pb-0">
-            <div className="flex h-[calc(100vh-110px)] w-full flex-col gap-4 overflow-hidden lg:flex-row lg:items-start lg:justify-between">
-              <div className="flex h-full w-full max-w-5xl flex-col overflow-hidden rounded-sm border pb-40">
+            <div className="flex h-[calc(100vh-200px)] w-full flex-col gap-4 overflow-hidden lg:flex-row lg:items-start lg:justify-between">
+              <div className="flex h-full w-full max-w-5xl flex-col overflow-hidden rounded-xl border bg-white shadow-sm">
                 <div className="overflow-auto scroll-smooth">
-                  <table className="relative w-full min-w-[900px] text-left xl:text-sm">
-                    <thead className="sticky left-0 top-0 z-20 border-collapse bg-primary text-background">
-                      <tr className="">
-                        <th className="w-20 px-1 py-2">Status</th>
-                        <th className="px-1 py-2">ID</th>
-                        <th className="px-1 py-2">Raca</th>
-                        <th className="px-1 py-2">Sexo</th>
-                        <th className="px-1 py-2">Mae</th>
-                        <th className="px-1 py-2">Pai</th>
-                        <th className="px-1 py-2">Nascimento</th>
-                        <th className="px-1 py-2">Categoria</th>
-                        <th className="px-1 py-2">Peso atual</th>
-                        <th className="sticky right-0 bg-primary px-1 py-2 text-background"></th>
+                  <table className="relative w-full min-w-[900px] text-left">
+                    <thead className="sticky left-0 top-0 z-20 bg-muted text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                      <tr>
+                        {isSaleMode && <th className="w-8 px-3 py-3"></th>}
+                        <th className="px-4 py-3">Status</th>
+                        <th className="px-4 py-3">ID</th>
+                        <th className="px-4 py-3">Raça</th>
+                        <th className="px-4 py-3">Sexo</th>
+                        <th className="px-4 py-3">Mãe</th>
+                        <th className="px-4 py-3">Pai</th>
+                        <th className="px-4 py-3">Nascimento</th>
+                        <th className="px-4 py-3">Categoria</th>
+                        <th className="px-4 py-3">Peso atual</th>
+                        <th className="sticky right-0 bg-muted px-4 py-3"></th>
                       </tr>
                     </thead>
-                    <tbody className="overflow-y-auto scroll-smooth">
+                    <tbody className="divide-y overflow-y-auto scroll-smooth">
                       {listAnimals.map((animal: Animal, index: number) => {
                         const mother = animals.find(
                           (a) => a.id === animal.motherId
@@ -624,95 +715,107 @@ export const Table: React.FC<TableProps> = ({
                               ? 'Boi'
                               : '';
 
+                        const isSelected = isSaleMode && selectedIds.has(animal.id);
                         return (
                           <tr
                             key={animal.id}
-                            className={`${index % 2 === 0 ? 'bg-muted' : ''} cursor-pointer`}
-                            onClick={() => handleNavigation(animal.id)}
+                            className={`cursor-pointer transition-colors ${
+                              isSelected
+                                ? 'bg-primary/10 outline outline-1 outline-primary'
+                                : 'hover:bg-muted/50'
+                            }`}
+                            onClick={() =>
+                              isSaleMode
+                                ? toggleSelectAnimal(animal.id)
+                                : handleNavigation(animal.id)
+                            }
                           >
-                            <td className="px-1 py-3 pr-4">
-                              <span className="flex w-max items-center gap-1">
+                            {isSaleMode && (
+                              <td className="px-3 py-3">
+                                <span
+                                  className={`flex size-4 items-center justify-center rounded-full border-2 transition-colors ${
+                                    isSelected
+                                      ? 'border-primary bg-primary'
+                                      : 'border-muted-foreground/40 bg-white'
+                                  }`}
+                                >
+                                  {isSelected && (
+                                    <span className="size-1.5 rounded-full bg-white" />
+                                  )}
+                                </span>
+                              </td>
+                            )}
+                            <td className="px-4 py-3 text-sm">
+                              <span className="flex w-max items-center gap-1.5">
                                 {getStatusNode(animal.status)}
                               </span>
                             </td>
-                            <td className="px-1 py-3">
+                            <td className="px-4 py-3 font-mono text-sm text-primary">
                               {animal.manualId.charAt(0).toUpperCase() +
                                 animal.manualId.slice(1)}
                             </td>
-                            <td className="px-1 py-3">
+                            <td className="px-4 py-3 text-sm">
                               {animal.breed.charAt(0).toUpperCase() +
                                 animal.breed.slice(1)}
                             </td>
-                            <td className="px-1 py-3 pr-4">
+                            <td className="px-4 py-3 text-sm">
                               {animal.gender === 'male' ||
                               animal.gender === 'macho'
                                 ? 'Macho'
-                                : 'Femea'}
+                                : 'Fêmea'}
                             </td>
 
                             {animal.motherId === null ? (
-                              <td className="cursor-default px-1 py-3">
-                                <span className="flex w-max items-center gap-1">
-                                  Comercial
-                                </span>
+                              <td className="px-4 py-3 text-sm text-muted-foreground">
+                                Comercial
                               </td>
                             ) : (
                               <td
-                                className="px-1 py-3 pr-4 transition duration-300 ease-in-out hover:opacity-50"
+                                className="px-4 py-3 text-sm transition hover:opacity-60"
                                 onClick={(event) => {
                                   event.stopPropagation();
                                   handleNavigation(animal.motherId);
                                 }}
                               >
-                                <span className="flex w-max items-center gap-1 border-b border-foreground">
+                                <span className="flex w-max items-center gap-1 border-b border-foreground/40">
                                   {`Vaca ${mother?.manualId}`}
-                                  <LiaExternalLinkAltSolid className="inline-block size-4" />
+                                  <LiaExternalLinkAltSolid className="inline-block size-3.5" />
                                 </span>
                               </td>
                             )}
 
                             {animal.fatherId === null ? (
-                              <td className="cursor-default px-1 py-3">
-                                <span className="flex w-max items-center gap-1">
-                                  Comercial
-                                </span>
+                              <td className="px-4 py-3 text-sm text-muted-foreground">
+                                Comercial
                               </td>
                             ) : (
                               <td
-                                className="px-1 py-3 pr-4 transition duration-300 ease-in-out hover:opacity-50"
+                                className="px-4 py-3 text-sm transition hover:opacity-60"
                                 onClick={(event) => {
                                   event.stopPropagation();
                                   handleNavigation(animal.fatherId);
                                 }}
                               >
-                                <span className="flex w-max items-center gap-1 border-b border-foreground">
+                                <span className="flex w-max items-center gap-1 border-b border-foreground/40">
                                   {`${fatherLabel} ${father?.manualId}`}
-                                  <LiaExternalLinkAltSolid className="inline-block size-4" />
+                                  <LiaExternalLinkAltSolid className="inline-block size-3.5" />
                                 </span>
                               </td>
                             )}
 
-                            <td className="px-1 py-3">
+                            <td className="px-4 py-3 text-sm text-muted-foreground">
                               {animal.birthDate
-                                ? new Date(
-                                    animal.birthDate
-                                  ).toLocaleDateString()
+                                ? new Date(animal.birthDate).toLocaleDateString('pt-BR')
                                 : 'N/A'}
                             </td>
-                            <td className="px-1 py-3 pr-4">
-                              <span className="flex w-max">
-                                {getCategoryLabel(animal)}
-                              </span>
+                            <td className="px-4 py-3 text-sm">
+                              {getCategoryLabel(animal)}
                             </td>
-                            <td className="px-2 py-3">
-                              <span className="flex w-max">
-                                {animal.weight} Kg
-                              </span>
+                            <td className="px-4 py-3 text-sm font-medium">
+                              {animal.weight} kg
                             </td>
-                            <td
-                              className={`sticky right-0 px-1 py-3 ${index % 2 === 0 ? 'bg-muted' : 'bg-background'}`}
-                            >
-                              <SquareArrowOutUpLeft size={20} />
+                            <td className="sticky right-0 bg-white px-4 py-3">
+                              <SquareArrowOutUpLeft size={18} className="text-muted-foreground" />
                             </td>
                           </tr>
                         );
@@ -757,132 +860,198 @@ export const Table: React.FC<TableProps> = ({
                     </div>
 
                     <div className="mb-4 flex flex-wrap gap-2 text-xs">
-                      <Card className="rounded-sm p-1 px-3">
-                        Machos: {selectedYearStats.totalMaleBirths}
-                      </Card>
-                      <Card className="rounded-sm p-1 px-3">
-                        Femeas: {selectedYearStats.totalFemaleBirths}
-                      </Card>
-                      <Card className="rounded-sm p-1 px-3">
-                        Mortos: {selectedYearStats.totalDeaths}
-                      </Card>
-                      <Card className="rounded-sm p-1 px-3">
-                        Mudancas de status:{' '}
-                        {selectedYearStats.totalStatusChanges}
-                      </Card>
+                      <span className="rounded bg-blue-50 px-2 py-1 font-semibold text-blue-700">
+                        Machos nascidos: {selectedYearStats.totalMaleBirths}
+                      </span>
+                      <span className="rounded bg-pink-50 px-2 py-1 font-semibold text-pink-600">
+                        Fêmeas nascidas: {selectedYearStats.totalFemaleBirths}
+                      </span>
+                      <span className="rounded bg-gray-100 px-2 py-1 font-semibold text-gray-700">
+                        Mortes: {selectedYearStats.totalDeaths}
+                      </span>
+                      <span className="rounded bg-muted px-2 py-1 font-semibold">
+                        Mudanças: {selectedYearStats.totalStatusChanges}
+                      </span>
                     </div>
 
-                    <div className="max-h-[58vh] space-y-2 overflow-y-auto pr-1 text-xs">
-                      {selectedYearStats.months.map((month) => {
-                        const malePercent =
-                          (month.maleBirths / maxMonthlyValue) * 100;
-                        const femalePercent =
-                          (month.femaleBirths / maxMonthlyValue) * 100;
-                        const deathPercent =
-                          (month.deaths / maxMonthlyValue) * 100;
-                        const monthStatuses = month.statusBreakdown.filter(
-                          (statusItem) =>
-                            statusItem.total > 0 && statusItem.status !== 'dead'
-                        );
-                        const maxMonthStatus = Math.max(
-                          ...monthStatuses.map(
-                            (statusItem) => statusItem.total
-                          ),
-                          1
-                        );
+                    <div className="max-h-[55vh] space-y-2 overflow-y-auto pr-1 text-xs">
+                      {selectedYearStats.months
+                        .filter(
+                          (m) =>
+                            m.maleBirths > 0 ||
+                            m.femaleBirths > 0 ||
+                            m.deaths > 0 ||
+                            m.statusChanges > 0
+                        )
+                        .map((month) => {
+                          const malePercent =
+                            (month.maleBirths / maxMonthlyValue) * 100;
+                          const femalePercent =
+                            (month.femaleBirths / maxMonthlyValue) * 100;
+                          const deathPercent =
+                            (month.deaths / maxMonthlyValue) * 100;
+                          const monthStatuses = month.statusBreakdown.filter(
+                            (s) => s.total > 0 && s.status !== 'dead'
+                          );
+                          const maxMonthStatus = Math.max(
+                            ...monthStatuses.map((s) => s.total),
+                            1
+                          );
 
-                        return (
-                          <div
-                            key={month.month}
-                            className="rounded-sm border p-2"
-                          >
-                            <div className="mb-1 flex items-center justify-between text-[11px]">
-                              <span className="font-semibold">
-                                {month.label}
-                              </span>
-                              <span>Alteracoes: {month.statusChanges}</span>
-                            </div>
-
-                            <div className="space-y-1">
-                              <div className="flex items-center gap-2 text-[10px]">
-                                <span className="w-12">Machos</span>
-                                <div className="h-2 flex-1 rounded bg-muted">
-                                  <div
-                                    className="h-2 rounded bg-blue-500"
-                                    style={{ width: `${malePercent}%` }}
-                                  />
-                                </div>
-                                <span className="w-4 text-right">
-                                  {month.maleBirths}
+                          return (
+                            <div
+                              key={month.month}
+                              className="rounded-lg border p-3"
+                            >
+                              <div className="mb-2 flex items-center justify-between text-[11px]">
+                                <span className="font-semibold">
+                                  {month.label}
+                                </span>
+                                <span className="text-muted-foreground">
+                                  {month.statusChanges} alteraç{month.statusChanges !== 1 ? 'ões' : 'ão'}
                                 </span>
                               </div>
 
-                              <div className="flex items-center gap-2 text-[10px]">
-                                <span className="w-12">Femeas</span>
-                                <div className="h-2 flex-1 rounded bg-muted">
-                                  <div
-                                    className="h-2 rounded bg-pink-500"
-                                    style={{ width: `${femalePercent}%` }}
-                                  />
-                                </div>
-                                <span className="w-4 text-right">
-                                  {month.femaleBirths}
-                                </span>
-                              </div>
-
-                              <div className="flex items-center gap-2 text-[10px]">
-                                <span className="w-12">Mortes</span>
-                                <div className="h-2 flex-1 rounded bg-muted">
-                                  <div
-                                    className="h-2 rounded bg-gray-700"
-                                    style={{ width: `${deathPercent}%` }}
-                                  />
-                                </div>
-                                <span className="w-4 text-right">
-                                  {month.deaths}
-                                </span>
-                              </div>
-
-                              {monthStatuses.map((statusItem) => {
-                                const percent =
-                                  (statusItem.total / maxMonthStatus) * 100;
-
-                                return (
-                                  <div
-                                    key={`${month.month}-${statusItem.status}`}
-                                    className="flex items-center gap-2 text-[10px]"
-                                  >
-                                    <span className="w-12 truncate">
-                                      {statusItem.label}
-                                    </span>
+                              <div className="space-y-1.5">
+                                {month.maleBirths > 0 && (
+                                  <div className="flex items-center gap-2 text-[10px]">
+                                    <span className="w-14 truncate text-blue-600">Nasc. ♂</span>
                                     <div className="h-2 flex-1 rounded bg-muted">
-                                      <div
-                                        className={`h-2 rounded ${getStatusBarColor(
-                                          statusItem.status
-                                        )}`}
-                                        style={{ width: `${percent}%` }}
-                                      />
+                                      <div className="h-2 rounded bg-blue-500" style={{ width: `${malePercent}%` }} />
                                     </div>
-                                    <span className="w-4 text-right">
-                                      {statusItem.total}
-                                    </span>
+                                    <span className="w-4 text-right">{month.maleBirths}</span>
                                   </div>
-                                );
-                              })}
+                                )}
+                                {month.femaleBirths > 0 && (
+                                  <div className="flex items-center gap-2 text-[10px]">
+                                    <span className="w-14 truncate text-pink-600">Nasc. ♀</span>
+                                    <div className="h-2 flex-1 rounded bg-muted">
+                                      <div className="h-2 rounded bg-pink-500" style={{ width: `${femalePercent}%` }} />
+                                    </div>
+                                    <span className="w-4 text-right">{month.femaleBirths}</span>
+                                  </div>
+                                )}
+                                {month.deaths > 0 && (
+                                  <div className="flex items-center gap-2 text-[10px]">
+                                    <span className="w-14 truncate">Mortes</span>
+                                    <div className="h-2 flex-1 rounded bg-muted">
+                                      <div className="h-2 rounded bg-gray-700" style={{ width: `${deathPercent}%` }} />
+                                    </div>
+                                    <span className="w-4 text-right">{month.deaths}</span>
+                                  </div>
+                                )}
+                                {monthStatuses.map((statusItem) => {
+                                  const percent =
+                                    (statusItem.total / maxMonthStatus) * 100;
+                                  const genderDetail =
+                                    statusItem.males > 0 || statusItem.females > 0
+                                      ? ` (${statusItem.males > 0 ? `${statusItem.males}♂` : ''}${statusItem.males > 0 && statusItem.females > 0 ? ' ' : ''}${statusItem.females > 0 ? `${statusItem.females}♀` : ''})`
+                                      : '';
+
+                                  return (
+                                    <div
+                                      key={`${month.month}-${statusItem.status}`}
+                                      className="flex items-center gap-2 text-[10px]"
+                                    >
+                                      <span className="w-14 truncate" title={statusItem.label + genderDetail}>
+                                        {statusItem.label}
+                                      </span>
+                                      <div className="h-2 flex-1 rounded bg-muted">
+                                        <div
+                                          className={`h-2 rounded ${getStatusBarColor(statusItem.status)}`}
+                                          style={{ width: `${percent}%` }}
+                                        />
+                                      </div>
+                                      <span className="w-4 text-right">
+                                        {statusItem.total}
+                                      </span>
+                                    </div>
+                                  );
+                                })}
+
+                                {/* Gender detail for status changes */}
+                                {monthStatuses.some(
+                                  (s) => s.males > 0 || s.females > 0
+                                ) && (
+                                  <div className="mt-1 border-t pt-1 text-[9px] text-muted-foreground">
+                                    {monthStatuses
+                                      .filter((s) => s.males > 0 || s.females > 0)
+                                      .map((s) => (
+                                        <span key={s.status} className="mr-2">
+                                          {s.label}:{' '}
+                                          {s.males > 0 && (
+                                            <span className="text-blue-600">{s.males}♂</span>
+                                          )}
+                                          {s.males > 0 && s.females > 0 && ' '}
+                                          {s.females > 0 && (
+                                            <span className="text-pink-600">{s.females}♀</span>
+                                          )}
+                                        </span>
+                                      ))}
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        })}
+                      {selectedYearStats.months.every(
+                        (m) =>
+                          m.maleBirths === 0 &&
+                          m.femaleBirths === 0 &&
+                          m.deaths === 0 &&
+                          m.statusChanges === 0
+                      ) && (
+                        <p className="py-4 text-center text-muted-foreground">
+                          Sem eventos em {selectedStatsYear}.
+                        </p>
+                      )}
                     </div>
                   </>
                 ) : (
                   <p className="text-xs text-muted-foreground">
-                    Sem dados para exibir o grafico.
+                    Sem dados para exibir o relatório.
                   </p>
                 )}
               </aside>
             </div>
           </div>
+
+          {isSaleMode && selectedIds.size > 0 && (
+            <div className="fixed bottom-20 left-1/2 z-50 w-full max-w-2xl -translate-x-1/2 rounded-xl border bg-background px-4 py-3 shadow-2xl lg:bottom-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex flex-wrap gap-4 text-xs">
+                  <span className="font-semibold">
+                    {selectedIds.size} animal{selectedIds.size !== 1 ? 'is' : ''} selecionado{selectedIds.size !== 1 ? 's' : ''}
+                  </span>
+                  <span>Peso total: <strong>{totalWeight.toFixed(0)} kg</strong></span>
+                  <span>Peso médio: <strong>{avgWeight.toFixed(0)} kg</strong></span>
+                  <span>Arrobas médias: <strong>{arrobaCount.toFixed(1)} @</strong></span>
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <label className="font-medium">R$/@ </label>
+                  <input
+                    type="number"
+                    min={0}
+                    step={1}
+                    value={pricePerArroba}
+                    onChange={(e) => setPricePerArroba(e.target.value)}
+                    placeholder="0,00"
+                    className="w-24 rounded border px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-primary"
+                  />
+                  {pricePerArrobaNum > 0 && (
+                    <>
+                      <span>
+                        Por cabeça: <strong>R$ {pricePerHead.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                      </span>
+                      <span>
+                        Total: <strong>R$ {totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                      </span>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </>
       )}
     </main>

@@ -28,7 +28,13 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const start = url.searchParams.get('start');
   const end = url.searchParams.get('end');
-  const where: Prisma.TransactionWhereInput = { farmId: context.farm.id };
+  
+  const where: Prisma.TransactionWhereInput = {
+    OR: [
+      { farmId: context.farm.id },
+      { farmId: null, userId: context.user.id },
+    ],
+  };
 
   if (start && end) {
     where.date = {
@@ -134,7 +140,10 @@ export async function PATCH(request: Request) {
   const transaction = await prisma.transaction.findFirst({
     where: {
       id,
-      farmId: context.farm.id,
+      OR: [
+        { farmId: context.farm.id },
+        { farmId: null, userId: context.user.id },
+      ],
     },
   });
 

@@ -10,7 +10,7 @@ export const MenuNavegation = () => {
     <footer className="fixed inset-x-0 bottom-0 z-50 h-[calc(4rem+env(safe-area-inset-bottom))] w-full rounded-t-3xl bg-primary pb-[env(safe-area-inset-bottom)] lg:hidden">
       <ul className="relative z-20 mx-auto mt-2 flex max-w-lg justify-evenly px-2 text-primary-foreground sm:px-5">
         <li className="relative flex flex-col justify-center gap-1 rounded-full text-xs">
-          <Link className="flex flex-col items-center gap-1" href="/dashboard">
+          <Link className="flex flex-col items-center gap-1" href="/dashboard/animals">
             <GiCow size={24} />
             <p>Animal</p>
           </Link>

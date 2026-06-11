@@ -180,6 +180,25 @@ export async function PUT(req: Request) {
             reason: 'animal_update',
           },
         });
+
+        // Auto-create a financial income entry when an animal is sold
+        const isSold =
+          updatedAnimal.status === 'sold' || updatedAnimal.status === 'vendido';
+        if (isSold) {
+          const saleDate = statusChangeDate ? new Date(statusChangeDate) : new Date();
+          await tx.transaction.create({
+            data: {
+              userId: existingAnimal.ownerId,
+              farmId: context.farm.id,
+              type: 'income',
+              category: 'Venda de Animal',
+              amount: 0,
+              date: saleDate,
+              description: `Venda do animal ${existingAnimal.manualId} — preencha o valor recebido`,
+              status: false,
+            },
+          });
+        }
       } else if (statusChangeDate && updatedAnimal.status !== 'active') {
         const changedAt = new Date(statusChangeDate);
         const latestStatusHistory = await tx.animalStatusHistory.findFirst({
