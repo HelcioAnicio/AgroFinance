@@ -27,7 +27,9 @@ export function FarmSwitcher() {
   useEffect(() => {
     fetch('/api/user/active-farm')
       .then((r) => r.json())
-      .then((data) => { if (data.farms) setFarms(data.farms); })
+      .then((data) => {
+        if (data.farms) setFarms(data.farms);
+      })
       .catch(() => {});
   }, []);
 
@@ -51,7 +53,7 @@ export function FarmSwitcher() {
   };
 
   return (
-    <div className="relative">
+    <div className="relative z-50">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
@@ -59,17 +61,24 @@ export function FarmSwitcher() {
         className="hidden items-center gap-1.5 rounded-lg border border-border bg-white px-3 py-1.5 text-sm font-semibold transition hover:border-primary/50 disabled:opacity-60 lg:flex"
       >
         <Building2 className="size-4 text-muted-foreground" />
-        <span className="max-w-[140px] truncate">{activeFarm?.name ?? 'Fazenda'}</span>
-        <ChevronDown className={`size-3.5 text-muted-foreground transition-transform ${open ? 'rotate-180' : ''}`} />
+        <span className="max-w-[140px] truncate">
+          {activeFarm?.name ?? 'Fazenda'}
+        </span>
+        <ChevronDown
+          className={`size-3.5 text-muted-foreground transition-transform ${open ? 'rotate-180' : ''}`}
+        />
       </button>
 
       {open && (
         <>
           {/* Backdrop */}
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div
+            className="absolute inset-0 z-40"
+            onClick={() => setOpen(false)}
+          />
 
           {/* Dropdown */}
-          <div className="absolute left-0 top-full z-50 mt-1.5 w-64 rounded-xl border bg-white p-1.5 shadow-lg">
+          <div className="absolute left-0 top-full z-auto mt-1.5 w-64 rounded-xl border bg-white p-1.5 shadow-lg">
             <p className="px-2 pb-1 pt-0.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
               Suas fazendas
             </p>
@@ -79,7 +88,9 @@ export function FarmSwitcher() {
                 type="button"
                 onClick={() => switchFarm(farm.farmId)}
                 className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition hover:bg-muted/50 ${
-                  farm.isActive ? 'font-semibold text-primary' : 'text-foreground'
+                  farm.isActive
+                    ? 'font-semibold text-primary'
+                    : 'text-foreground'
                 }`}
               >
                 <Building2 className="size-4 shrink-0 text-muted-foreground" />
@@ -89,12 +100,15 @@ export function FarmSwitcher() {
                     {ROLE_LABELS[farm.role] ?? farm.role}
                   </p>
                 </div>
-                {farm.isActive && <Check className="size-4 shrink-0 text-primary" />}
+                {farm.isActive && (
+                  <Check className="size-4 shrink-0 text-primary" />
+                )}
               </button>
             ))}
-            <div className="mx-2 mt-1 border-t pt-1.5 pb-0.5">
+            <div className="mx-2 mt-1 border-t pb-0.5 pt-1.5">
               <p className="text-[10px] text-muted-foreground">
-                Recebeu um convite? Use o link enviado para entrar em outra fazenda.
+                Recebeu um convite? Use o link enviado para entrar em outra
+                fazenda.
               </p>
             </div>
           </div>
