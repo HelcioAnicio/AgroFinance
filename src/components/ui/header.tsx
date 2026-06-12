@@ -19,7 +19,7 @@ interface TableProps {
 }
 
 export const Header: React.FC<TableProps> = ({ notifications }) => {
-  const { status, data } = useSession();
+  const { status } = useSession();
 
   const handleLogoutClick = () => {
     signOut({ callbackUrl: '/' });

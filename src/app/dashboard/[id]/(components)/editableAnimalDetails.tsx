@@ -151,7 +151,11 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [openSanitaryModal, setOpenSanitaryModal] = useState(false);
   const [openGenealogyModal, setOpenGenealogyModal] = useState(false);
-  const [pricePerArroba, setPricePerArroba] = useState('');
+  const [pricePerArroba, setPricePerArroba] = useState<string>(() =>
+    typeof window !== 'undefined'
+      ? (localStorage.getItem('agrofinance_arroba_price') ?? '')
+      : ''
+  );
   const [sanitaryForm, setSanitaryForm] = useState<SanitaryFormState>({
     type: 'vaccine',
     name: '',
@@ -408,9 +412,18 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   };
 
   useEffect(() => {
+    if (pricePerArroba) {
+      localStorage.setItem('agrofinance_arroba_price', pricePerArroba);
+    }
+  }, [pricePerArroba]);
+
+  useEffect(() => {
     if (!arrobaPriceLoaded) {
       setArrobaPriceLoaded(true);
-      fetchArrobaPrice(true);
+      // Only try auto-fetch if no saved price exists
+      if (!localStorage.getItem('agrofinance_arroba_price')) {
+        fetchArrobaPrice(true);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

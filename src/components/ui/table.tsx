@@ -48,18 +48,18 @@ interface TableProps {
   dataLoading?: boolean;
 }
 
-const TABLE_HEADERS = [
-  'Status',
-  'ID',
-  'Raca',
-  'Sexo',
-  'Mae',
-  'Pai',
-  'Nascimento',
-  'Categoria',
-  'Peso atual',
-  '',
-];
+// const TABLE_HEADERS = [
+//   'Status',
+//   'ID',
+//   'Raca',
+//   'Sexo',
+//   'Mae',
+//   'Pai',
+//   'Nascimento',
+//   'Categoria',
+//   'Peso atual',
+//   '',
+// ];
 
 const isFemale = (gender: string) =>
   gender === 'female' || gender === 'femea' || gender === 'fêmea';
@@ -361,8 +361,13 @@ export const Table: React.FC<TableProps> = ({
   ).length;
 
   const selectedAnimals = listAnimals.filter((a) => selectedIds.has(a.id));
-  const totalWeight = selectedAnimals.reduce((sum, a) => sum + (a.weight ?? 0), 0);
-  const avgWeight = selectedAnimals.length ? totalWeight / selectedAnimals.length : 0;
+  const totalWeight = selectedAnimals.reduce(
+    (sum, a) => sum + (a.weight ?? 0),
+    0
+  );
+  const avgWeight = selectedAnimals.length
+    ? totalWeight / selectedAnimals.length
+    : 0;
   const arrobaCount = avgWeight / 15;
   const pricePerArrobaNum = Number(pricePerArroba) || 0;
   const pricePerHead = arrobaCount * pricePerArrobaNum;
@@ -401,7 +406,10 @@ export const Table: React.FC<TableProps> = ({
         {/* Summary cards skeleton */}
         <div className="my-3 grid grid-cols-2 gap-3 lg:grid-cols-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="rounded-xl border-l-4 border-muted bg-white px-4 py-3 shadow-sm">
+            <div
+              key={i}
+              className="rounded-xl border-l-4 border-muted bg-white px-4 py-3 shadow-sm"
+            >
               <Skeleton className="mb-2 h-2.5 w-16 rounded" />
               <Skeleton className="mb-2 h-7 w-10 rounded" />
               <Skeleton className="h-2 w-24 rounded" />
@@ -416,7 +424,17 @@ export const Table: React.FC<TableProps> = ({
               {/* Table header */}
               <div className="border-b bg-muted/50 px-4 py-3">
                 <div className="flex gap-6">
-                  {['w-16', 'w-12', 'w-20', 'w-14', 'w-20', 'w-20', 'w-24', 'w-20', 'w-20'].map((w, i) => (
+                  {[
+                    'w-16',
+                    'w-12',
+                    'w-20',
+                    'w-14',
+                    'w-20',
+                    'w-20',
+                    'w-24',
+                    'w-20',
+                    'w-20',
+                  ].map((w, i) => (
                     <Skeleton key={i} className={`h-3 ${w} rounded`} />
                   ))}
                 </div>
@@ -424,7 +442,10 @@ export const Table: React.FC<TableProps> = ({
               {/* Table rows */}
               <div className="divide-y overflow-auto">
                 {Array.from({ length: 14 }).map((_, rowIndex) => (
-                  <div key={rowIndex} className="flex items-center gap-6 px-4 py-3.5">
+                  <div
+                    key={rowIndex}
+                    className="flex items-center gap-6 px-4 py-3.5"
+                  >
                     {/* Status */}
                     <Skeleton className="h-4 w-14 rounded-full" />
                     {/* ID */}
@@ -488,7 +509,7 @@ export const Table: React.FC<TableProps> = ({
         <Loading />
       ) : (
         <>
-          <div className="sticky right-0 top-0 z-50 max-h-max w-full">
+          <div className="sticky right-0 top-0 z-30 max-h-max w-full">
             <div className="relative flex w-full justify-between gap-10 px-1">
               <div className="flex items-center gap-3">
                 <Sheet>
@@ -744,7 +765,7 @@ export const Table: React.FC<TableProps> = ({
                       </tr>
                     </thead>
                     <tbody className="divide-y overflow-y-auto scroll-smooth">
-                      {listAnimals.map((animal: Animal, index: number) => {
+                      {listAnimals.map((animal: Animal) => {
                         const mother = animals.find(
                           (a) => a.id === animal.motherId
                         );
@@ -761,7 +782,8 @@ export const Table: React.FC<TableProps> = ({
                               ? 'Boi'
                               : '';
 
-                        const isSelected = isSaleMode && selectedIds.has(animal.id);
+                        const isSelected =
+                          isSaleMode && selectedIds.has(animal.id);
                         return (
                           <tr
                             key={animal.id}
@@ -851,7 +873,9 @@ export const Table: React.FC<TableProps> = ({
 
                             <td className="px-4 py-3 text-sm text-muted-foreground">
                               {animal.birthDate
-                                ? new Date(animal.birthDate).toLocaleDateString('pt-BR')
+                                ? new Date(animal.birthDate).toLocaleDateString(
+                                    'pt-BR'
+                                  )
                                 : 'N/A'}
                             </td>
                             <td className="px-4 py-3 text-sm">
@@ -861,7 +885,10 @@ export const Table: React.FC<TableProps> = ({
                               {animal.weight} kg
                             </td>
                             <td className="sticky right-0 bg-white px-4 py-3">
-                              <SquareArrowOutUpLeft size={18} className="text-muted-foreground" />
+                              <SquareArrowOutUpLeft
+                                size={18}
+                                className="text-muted-foreground"
+                              />
                             </td>
                           </tr>
                         );
@@ -954,43 +981,66 @@ export const Table: React.FC<TableProps> = ({
                                   {month.label}
                                 </span>
                                 <span className="text-muted-foreground">
-                                  {month.statusChanges} alteraç{month.statusChanges !== 1 ? 'ões' : 'ão'}
+                                  {month.statusChanges} alteraç
+                                  {month.statusChanges !== 1 ? 'ões' : 'ão'}
                                 </span>
                               </div>
 
                               <div className="space-y-1.5">
                                 {month.maleBirths > 0 && (
                                   <div className="flex items-center gap-2 text-[10px]">
-                                    <span className="w-14 truncate text-blue-600">Nasc. ♂</span>
+                                    <span className="w-14 truncate text-blue-600">
+                                      Nasc. ♂
+                                    </span>
                                     <div className="h-2 flex-1 rounded bg-muted">
-                                      <div className="h-2 rounded bg-blue-500" style={{ width: `${malePercent}%` }} />
+                                      <div
+                                        className="h-2 rounded bg-blue-500"
+                                        style={{ width: `${malePercent}%` }}
+                                      />
                                     </div>
-                                    <span className="w-4 text-right">{month.maleBirths}</span>
+                                    <span className="w-4 text-right">
+                                      {month.maleBirths}
+                                    </span>
                                   </div>
                                 )}
                                 {month.femaleBirths > 0 && (
                                   <div className="flex items-center gap-2 text-[10px]">
-                                    <span className="w-14 truncate text-pink-600">Nasc. ♀</span>
+                                    <span className="w-14 truncate text-pink-600">
+                                      Nasc. ♀
+                                    </span>
                                     <div className="h-2 flex-1 rounded bg-muted">
-                                      <div className="h-2 rounded bg-pink-500" style={{ width: `${femalePercent}%` }} />
+                                      <div
+                                        className="h-2 rounded bg-pink-500"
+                                        style={{ width: `${femalePercent}%` }}
+                                      />
                                     </div>
-                                    <span className="w-4 text-right">{month.femaleBirths}</span>
+                                    <span className="w-4 text-right">
+                                      {month.femaleBirths}
+                                    </span>
                                   </div>
                                 )}
                                 {month.deaths > 0 && (
                                   <div className="flex items-center gap-2 text-[10px]">
-                                    <span className="w-14 truncate">Mortes</span>
+                                    <span className="w-14 truncate">
+                                      Mortes
+                                    </span>
                                     <div className="h-2 flex-1 rounded bg-muted">
-                                      <div className="h-2 rounded bg-gray-700" style={{ width: `${deathPercent}%` }} />
+                                      <div
+                                        className="h-2 rounded bg-gray-700"
+                                        style={{ width: `${deathPercent}%` }}
+                                      />
                                     </div>
-                                    <span className="w-4 text-right">{month.deaths}</span>
+                                    <span className="w-4 text-right">
+                                      {month.deaths}
+                                    </span>
                                   </div>
                                 )}
                                 {monthStatuses.map((statusItem) => {
                                   const percent =
                                     (statusItem.total / maxMonthStatus) * 100;
                                   const genderDetail =
-                                    statusItem.males > 0 || statusItem.females > 0
+                                    statusItem.males > 0 ||
+                                    statusItem.females > 0
                                       ? ` (${statusItem.males > 0 ? `${statusItem.males}♂` : ''}${statusItem.males > 0 && statusItem.females > 0 ? ' ' : ''}${statusItem.females > 0 ? `${statusItem.females}♀` : ''})`
                                       : '';
 
@@ -999,7 +1049,10 @@ export const Table: React.FC<TableProps> = ({
                                       key={`${month.month}-${statusItem.status}`}
                                       className="flex items-center gap-2 text-[10px]"
                                     >
-                                      <span className="w-14 truncate" title={statusItem.label + genderDetail}>
+                                      <span
+                                        className="w-14 truncate"
+                                        title={statusItem.label + genderDetail}
+                                      >
                                         {statusItem.label}
                                       </span>
                                       <div className="h-2 flex-1 rounded bg-muted">
@@ -1021,16 +1074,22 @@ export const Table: React.FC<TableProps> = ({
                                 ) && (
                                   <div className="mt-1 border-t pt-1 text-[9px] text-muted-foreground">
                                     {monthStatuses
-                                      .filter((s) => s.males > 0 || s.females > 0)
+                                      .filter(
+                                        (s) => s.males > 0 || s.females > 0
+                                      )
                                       .map((s) => (
                                         <span key={s.status} className="mr-2">
                                           {s.label}:{' '}
                                           {s.males > 0 && (
-                                            <span className="text-blue-600">{s.males}♂</span>
+                                            <span className="text-blue-600">
+                                              {s.males}♂
+                                            </span>
                                           )}
                                           {s.males > 0 && s.females > 0 && ' '}
                                           {s.females > 0 && (
-                                            <span className="text-pink-600">{s.females}♀</span>
+                                            <span className="text-pink-600">
+                                              {s.females}♀
+                                            </span>
                                           )}
                                         </span>
                                       ))}
@@ -1067,11 +1126,19 @@ export const Table: React.FC<TableProps> = ({
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex flex-wrap gap-4 text-xs">
                   <span className="font-semibold">
-                    {selectedIds.size} animal{selectedIds.size !== 1 ? 'is' : ''} selecionado{selectedIds.size !== 1 ? 's' : ''}
+                    {selectedIds.size} animal
+                    {selectedIds.size !== 1 ? 'is' : ''} selecionado
+                    {selectedIds.size !== 1 ? 's' : ''}
                   </span>
-                  <span>Peso total: <strong>{totalWeight.toFixed(0)} kg</strong></span>
-                  <span>Peso médio: <strong>{avgWeight.toFixed(0)} kg</strong></span>
-                  <span>Arrobas médias: <strong>{arrobaCount.toFixed(1)} @</strong></span>
+                  <span>
+                    Peso total: <strong>{totalWeight.toFixed(0)} kg</strong>
+                  </span>
+                  <span>
+                    Peso médio: <strong>{avgWeight.toFixed(0)} kg</strong>
+                  </span>
+                  <span>
+                    Arrobas médias: <strong>{arrobaCount.toFixed(1)} @</strong>
+                  </span>
                 </div>
                 <div className="flex items-center gap-2 text-xs">
                   <label className="font-medium">R$/@ </label>
@@ -1087,10 +1154,24 @@ export const Table: React.FC<TableProps> = ({
                   {pricePerArrobaNum > 0 && (
                     <>
                       <span>
-                        Por cabeça: <strong>R$ {pricePerHead.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                        Por cabeça:{' '}
+                        <strong>
+                          R${' '}
+                          {pricePerHead.toLocaleString('pt-BR', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                        </strong>
                       </span>
                       <span>
-                        Total: <strong>R$ {totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                        Total:{' '}
+                        <strong>
+                          R${' '}
+                          {totalValue.toLocaleString('pt-BR', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                        </strong>
                       </span>
                     </>
                   )}
