@@ -2,7 +2,7 @@ import Image from 'next/image';
 
 export const Loading = () => {
   return (
-    <div className="absolute left-0 top-0 z-50 flex h-full w-full flex-col items-center justify-center bg-background">
+    <div className="absolute left-0 top-0 z-50 flex h-dvh w-dvw flex-col items-center justify-center bg-background">
       <div className="flex flex-col items-center gap-5">
         <Image
           src="/logo.png"
