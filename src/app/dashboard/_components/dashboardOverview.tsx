@@ -44,20 +44,6 @@ import { AddAnimalDesktop } from '../(addAnimal)/addAnimalsDesktop';
 const isFemale = (gender: string) =>
   gender === 'female' || gender === 'femea' || gender === 'fêmea';
 
-const MONTH_NAMES = [
-  'Jan',
-  'Fev',
-  'Mar',
-  'Abr',
-  'Mai',
-  'Jun',
-  'Jul',
-  'Ago',
-  'Set',
-  'Out',
-  'Nov',
-  'Dez',
-];
 
 const getStatusNode = (status?: string) => {
   if (status === 'active' || status === 'ativo')
@@ -492,22 +478,22 @@ export function DashboardOverview() {
       </header>
 
       {/* Summary Cards */}
-      <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <div className="rounded-xl border-l-4 border-primary bg-white p-3 shadow-sm">
+      <div className="lg: mb-8 grid grid-cols-2 gap-4 lg:flex">
+        <div className="w-max rounded-xl border-l-4 border-primary bg-white p-3 pr-10 shadow-sm">
           <p className="mb-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
             Total de animais
           </p>
-          <p className="text-4xl font-black text-primary">{animals.length}</p>
+          <p className="text-2xl font-black text-primary">{animals.length}</p>
           <p className="mt-2 text-[11px] text-muted-foreground">
             Cadastrados na fazenda
           </p>
         </div>
 
-        <div className="rounded-xl border-l-4 border-green-500 bg-white p-5 shadow-sm">
+        <div className="w-max rounded-xl border-l-4 border-green-500 bg-white p-3 pr-10 shadow-sm">
           <p className="mb-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
             Animais ativos
           </p>
-          <p className="text-4xl font-black text-foreground">
+          <p className="text-2xl font-black text-foreground">
             {activeAnimals.length}
           </p>
           <div className="mt-3 h-1.5 w-full rounded-full bg-muted">
@@ -520,11 +506,11 @@ export function DashboardOverview() {
           </div>
         </div>
 
-        <div className="rounded-xl border-l-4 border-fuchsia-500 bg-white p-5 shadow-sm">
+        <div className="w-max rounded-xl border-l-4 border-fuchsia-500 bg-white p-3 pr-10 shadow-sm">
           <p className="mb-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
             Vacas prenhas
           </p>
-          <p className="text-4xl font-black text-foreground">
+          <p className="text-2xl font-black text-foreground">
             {pregnantCows.length}
           </p>
           <p className="mt-2 text-[11px] italic text-muted-foreground">
@@ -534,11 +520,11 @@ export function DashboardOverview() {
           </p>
         </div>
 
-        <div className="rounded-xl border-l-4 border-slate-400 bg-white p-5 shadow-sm">
+        <div className="w-max rounded-xl border-l-4 border-slate-400 bg-white p-3 pr-10 shadow-sm">
           <p className="mb-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
             Vacas vazias
           </p>
-          <p className="text-4xl font-black text-foreground">
+          <p className="text-2xl font-black text-foreground">
             {emptyCows.length}
           </p>
           {emptyCows.length > 0 && (

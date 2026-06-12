@@ -20,7 +20,7 @@ export default function AnimalDetailLoading() {
         {/* Row 1 */}
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           {/* Dados básicos */}
-          <div className="lg:col-span-2 rounded-2xl border bg-white p-5 shadow-sm">
+          <div className="rounded-2xl border bg-white p-5 shadow-sm lg:col-span-2">
             <div className="mb-4 flex items-start justify-between">
               <Skeleton className="h-3 w-24" />
               <Skeleton className="h-5 w-16 rounded-full" />
@@ -41,7 +41,7 @@ export default function AnimalDetailLoading() {
 
           {/* Right column */}
           <div className="flex flex-col gap-4">
-            <div className="rounded-2xl border bg-white p-5 shadow-sm space-y-3">
+            <div className="space-y-3 rounded-2xl border bg-white p-5 shadow-sm">
               <Skeleton className="h-3 w-32" />
               <Skeleton className="h-7 w-24 rounded-full" />
               <div className="space-y-2">
@@ -49,7 +49,7 @@ export default function AnimalDetailLoading() {
                 <Skeleton className="h-5 w-32" />
               </div>
             </div>
-            <div className="rounded-2xl border bg-white p-5 shadow-sm space-y-3">
+            <div className="space-y-3 rounded-2xl border bg-white p-5 shadow-sm">
               <Skeleton className="h-3 w-28" />
               <div className="space-y-2">
                 <Skeleton className="h-4 w-full" />
@@ -70,7 +70,10 @@ export default function AnimalDetailLoading() {
           </div>
           <div className="flex gap-3">
             {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="min-w-[150px] h-32 shrink-0 rounded-xl" />
+              <Skeleton
+                key={i}
+                className="h-32 min-w-[150px] shrink-0 rounded-xl"
+              />
             ))}
           </div>
         </div>
