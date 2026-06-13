@@ -13,24 +13,28 @@ export async function GET() {
     const { context, error, status } = await requireFarmContext('view_animals');
     if (!context) return NextResponse.json({ error }, { status });
 
-    // Silently migrate any animals/bulls that belong to this user but have no farmId yet.
-    // This handles animals created before the multi-farm system was introduced.
+    // Animals are stored with ownerId = farm.ownerUserId (see addAnimals route).
+    // Use ownerUserId for all queries so the owner's animals are always found.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const farmOwnerId = (context.farm as any).ownerUserId ?? context.user.id;
+
+    // Silently migrate animals/bulls that have no farmId yet.
     await Promise.all([
       prisma.animal.updateMany({
-        where: { ownerId: context.user.id, farmId: null },
+        where: { ownerId: farmOwnerId, farmId: null },
         data: { farmId: context.farm.id },
       }),
       prisma.externalBull.updateMany({
-        where: { ownerId: context.user.id, farmId: null },
+        where: { ownerId: farmOwnerId, farmId: null },
         data: { farmId: context.farm.id },
       }),
     ]);
 
     const users = await fetchUsers();
     const [animals, livestockStats, externalBulls] = await Promise.all([
-      fetchAnimals(context.user.id, context.farm.id),
-      fetchLivestockStats(context.user.id, context.farm.id),
-      fetchExternalBulls(context.user.id, context.farm.id),
+      fetchAnimals(farmOwnerId, context.farm.id),
+      fetchLivestockStats(farmOwnerId, context.farm.id),
+      fetchExternalBulls(farmOwnerId, context.farm.id),
     ]);
 
     return NextResponse.json({
