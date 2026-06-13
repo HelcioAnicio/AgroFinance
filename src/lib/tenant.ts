@@ -11,9 +11,16 @@ export type FarmPermission =
   | 'manage_finance'
   | 'view_finance';
 
-const ROLE_PERMISSIONS: Record<FarmRole, FarmPermission[]> = {
+const ROLE_PERMISSIONS: Record<string, FarmPermission[]> = {
   OWNER: [
     'manage_farm',
+    'manage_team',
+    'manage_animals',
+    'view_animals',
+    'manage_finance',
+    'view_finance',
+  ],
+  MANAGER: [
     'manage_team',
     'manage_animals',
     'view_animals',

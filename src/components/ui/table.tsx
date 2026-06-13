@@ -165,6 +165,9 @@ export const Table: React.FC<TableProps> = ({
   const [isSaleMode, setIsSaleMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [pricePerArroba, setPricePerArroba] = useState('');
+  const [carcassPercent, setCarcassPercent] = useState('50');
+  const [saleDialogOpen, setSaleDialogOpen] = useState(false);
+  const [saleAction, setSaleAction] = useState<'sell' | 'trash'>('sell');
 
   const router = useRouter();
 
@@ -369,8 +372,10 @@ export const Table: React.FC<TableProps> = ({
     ? totalWeight / selectedAnimals.length
     : 0;
   const arrobaCount = avgWeight / 15;
+  const carcassFactor = Math.min(Math.max(Number(carcassPercent) || 50, 1), 100) / 100;
+  const carcassArrobas = arrobaCount * carcassFactor;
   const pricePerArrobaNum = Number(pricePerArroba) || 0;
-  const pricePerHead = arrobaCount * pricePerArrobaNum;
+  const pricePerHead = carcassArrobas * pricePerArrobaNum;
   const totalValue = pricePerHead * selectedAnimals.length;
 
   const toggleSaleMode = () => {
@@ -385,6 +390,50 @@ export const Table: React.FC<TableProps> = ({
       else next.add(id);
       return next;
     });
+  };
+
+  const selectAll = () => setSelectedIds(new Set(listAnimals.map((a) => a.id)));
+  const deselectAll = () => setSelectedIds(new Set());
+  const allSelected = listAnimals.length > 0 && listAnimals.every((a) => selectedIds.has(a.id));
+
+  const executeBulkAction = async () => {
+    if (selectedIds.size === 0) return;
+    const loadingId = toast.loading(
+      saleAction === 'sell' ? 'Vendendo animais...' : 'Alterando para descarte...'
+    );
+    try {
+      const payload: Record<string, unknown> = {
+        animalIds: [...selectedIds],
+        action: saleAction,
+      };
+      if (saleAction === 'sell') {
+        payload.saleData = {
+          pricePerHead,
+          totalValue,
+          date: new Date().toISOString().slice(0, 10),
+          description: `Venda em lote — ${selectedIds.size} animais`,
+        };
+      }
+      const res = await fetch('/api/animals/bulk-action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      toast.dismiss(loadingId);
+      if (res.ok) {
+        toast.success(data.message);
+        setSaleDialogOpen(false);
+        setIsSaleMode(false);
+        setSelectedIds(new Set());
+        setTimeout(() => window.location.reload(), 1500);
+      } else {
+        toast.error(data.message ?? 'Erro ao executar ação.');
+      }
+    } catch {
+      toast.dismiss(loadingId);
+      toast.error('Erro ao executar ação.');
+    }
   };
 
   if (dataLoading) {
@@ -542,6 +591,14 @@ export const Table: React.FC<TableProps> = ({
                     ? `Selecionando (${selectedIds.size})`
                     : 'Selecionar venda'}
                 </button>
+                {isSaleMode && (
+                  <button
+                    onClick={allSelected ? deselectAll : selectAll}
+                    className="rounded-sm border border-primary/50 px-2 py-1 text-xs font-semibold text-primary transition-colors hover:bg-primary/10"
+                  >
+                    {allSelected ? 'Desmarcar todos' : 'Selecionar todos'}
+                  </button>
+                )}
               </div>
               <div className="flex flex-col gap-3 min-[500px]:flex-row">
                 <Dialog
@@ -1122,59 +1179,99 @@ export const Table: React.FC<TableProps> = ({
           </div>
 
           {isSaleMode && selectedIds.size > 0 && (
-            <div className="fixed bottom-20 left-1/2 z-50 w-full max-w-2xl -translate-x-1/2 rounded-xl border bg-background px-4 py-3 shadow-2xl lg:bottom-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex flex-wrap gap-4 text-xs">
-                  <span className="font-semibold">
-                    {selectedIds.size} animal
-                    {selectedIds.size !== 1 ? 'is' : ''} selecionado
-                    {selectedIds.size !== 1 ? 's' : ''}
-                  </span>
-                  <span>
-                    Peso total: <strong>{totalWeight.toFixed(0)} kg</strong>
-                  </span>
-                  <span>
-                    Peso médio: <strong>{avgWeight.toFixed(0)} kg</strong>
-                  </span>
-                  <span>
-                    Arrobas médias: <strong>{arrobaCount.toFixed(1)} @</strong>
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 text-xs">
-                  <label className="font-medium">R$/@ </label>
+            <div className="fixed bottom-20 left-1/2 z-50 w-full max-w-3xl -translate-x-1/2 rounded-xl border bg-white px-4 py-3 shadow-2xl lg:bottom-4">
+              {/* Summary row */}
+              <div className="mb-2 flex flex-wrap gap-3 text-xs text-muted-foreground">
+                <span className="font-semibold text-foreground">
+                  {selectedIds.size} animal{selectedIds.size !== 1 ? 'is' : ''} selecionado{selectedIds.size !== 1 ? 's' : ''}
+                </span>
+                <span>Peso total: <strong>{totalWeight.toFixed(0)} kg</strong></span>
+                <span>Peso médio: <strong>{avgWeight.toFixed(0)} kg</strong></span>
+                <span>Arroba bruta: <strong>{arrobaCount.toFixed(1)} @</strong></span>
+                <span>Arroba carcaça: <strong>{carcassArrobas.toFixed(1)} @</strong></span>
+              </div>
+
+              {/* Inputs + actions row */}
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Carcass % */}
+                <div className="flex items-center gap-1 text-xs">
+                  <label className="font-medium text-muted-foreground">% Carcaça</label>
                   <input
-                    type="number"
-                    min={0}
-                    step={1}
+                    type="number" min={1} max={100} step={1}
+                    value={carcassPercent}
+                    onChange={(e) => setCarcassPercent(e.target.value)}
+                    className="w-14 rounded border px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+
+                {/* R$/@ */}
+                <div className="flex items-center gap-1 text-xs">
+                  <label className="font-medium text-muted-foreground">R$/@</label>
+                  <input
+                    type="number" min={0} step={1}
                     value={pricePerArroba}
                     onChange={(e) => setPricePerArroba(e.target.value)}
-                    placeholder="0,00"
-                    className="w-24 rounded border px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-primary"
+                    placeholder="0"
+                    className="w-20 rounded border px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-primary"
                   />
-                  {pricePerArrobaNum > 0 && (
-                    <>
-                      <span>
-                        Por cabeça:{' '}
-                        <strong>
-                          R${' '}
-                          {pricePerHead.toLocaleString('pt-BR', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })}
-                        </strong>
-                      </span>
-                      <span>
-                        Total:{' '}
-                        <strong>
-                          R${' '}
-                          {totalValue.toLocaleString('pt-BR', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })}
-                        </strong>
-                      </span>
-                    </>
-                  )}
+                </div>
+
+                {pricePerArrobaNum > 0 && (
+                  <>
+                    <span className="text-xs">
+                      Por cabeça: <strong>R$ {pricePerHead.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                    </span>
+                    <span className="text-xs">
+                      Total: <strong className="text-primary">R$ {totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                    </span>
+                  </>
+                )}
+
+                <div className="ml-auto flex gap-2">
+                  <button
+                    onClick={() => { setSaleAction('trash'); setSaleDialogOpen(true); }}
+                    className="rounded-lg border border-red-300 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-100"
+                  >
+                    Alterar para descarte
+                  </button>
+                  <button
+                    onClick={() => { setSaleAction('sell'); setSaleDialogOpen(true); }}
+                    className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition hover:opacity-90"
+                  >
+                    Vender animais
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Execution confirmation dialog */}
+          {saleDialogOpen && (
+            <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40">
+              <div className="w-full max-w-sm rounded-2xl border bg-white p-6 shadow-2xl">
+                <h3 className="mb-1 text-base font-bold">
+                  {saleAction === 'sell' ? 'Confirmar venda' : 'Confirmar descarte'}
+                </h3>
+                <p className="mb-4 text-sm text-muted-foreground">
+                  {saleAction === 'sell'
+                    ? `${selectedIds.size} animal(is) serão marcados como vendidos e um lançamento financeiro pendente será criado para cada um (R$ ${pricePerHead.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} por cabeça).`
+                    : `${selectedIds.size} animal(is) serão marcados para descarte. Esta ação pode ser revertida manualmente.`}
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setSaleDialogOpen(false)}
+                    className="flex-1 rounded-lg border px-4 py-2 text-sm font-medium transition hover:bg-muted"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={executeBulkAction}
+                    className={`flex-1 rounded-lg px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 ${
+                      saleAction === 'sell' ? 'bg-primary' : 'bg-red-600'
+                    }`}
+                  >
+                    {saleAction === 'sell' ? 'Confirmar venda' : 'Confirmar descarte'}
+                  </button>
                 </div>
               </div>
             </div>

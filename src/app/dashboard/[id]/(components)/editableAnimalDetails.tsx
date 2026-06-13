@@ -156,6 +156,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
       ? (localStorage.getItem('agrofinance_arroba_price') ?? '')
       : ''
   );
+  const [carcassPercent, setCarcassPercent] = useState('100');
   const [sanitaryForm, setSanitaryForm] = useState<SanitaryFormState>({
     type: 'vaccine',
     name: '',
@@ -260,12 +261,36 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     (o) => o.status === 'sold' || o.status === 'vendido'
   ).length;
 
+  // Average weaning weight (PD records across all offspring)
+  const weaningWeights = offspring.flatMap((o) =>
+    (o.weightHistories ?? [])
+      .filter((w) => w.recordType === 'PD')
+      .map((w) => Number(w.weight))
+      .filter((w) => w > 0)
+  );
+  const avgWeaningWeight =
+    weaningWeights.length > 0
+      ? (weaningWeights.reduce((a, b) => a + b, 0) / weaningWeights.length).toFixed(0)
+      : null;
+
+  // Average sale weight (current weight of sold offspring)
+  const soldWeights = offspring
+    .filter((o) => o.status === 'sold' || o.status === 'vendido')
+    .map((o) => Number(o.weight))
+    .filter((w) => w > 0);
+  const avgSaleWeight =
+    soldWeights.length > 0
+      ? (soldWeights.reduce((a, b) => a + b, 0) / soldWeights.length).toFixed(0)
+      : null;
+
   // Estimated value calculation
   const weightKg = Number(allDataForm.weight) || 0;
   const arrobas = weightKg / 15;
+  const carcassFactor = Math.min(Math.max(Number(carcassPercent) || 100, 1), 100) / 100;
+  const carcassArrobas = arrobas * carcassFactor;
   const priceNum = parseFloat(pricePerArroba.replace(',', '.'));
   const estimatedValue =
-    !isNaN(priceNum) && priceNum > 0 ? arrobas * priceNum : null;
+    !isNaN(priceNum) && priceNum > 0 ? carcassArrobas * priceNum : null;
 
   // Sanitary records
   const sanitaryRecords = [
@@ -450,7 +475,11 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   ) => {
     const { name, value, type } = event.target;
     const newValue =
-      type === 'number' || type === 'range' ? parseInt(value) : value;
+      type === 'checkbox'
+        ? (event.target as HTMLInputElement).checked
+        : type === 'number' || type === 'range'
+          ? parseInt(value)
+          : value;
     setAllDataForm((prev) => ({ ...prev, [name]: newValue }));
   };
 
@@ -956,10 +985,22 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                     <span className="font-semibold">{weightKg} kg</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Arrobas</span>
+                    <span className="text-muted-foreground">Arrobas brutas</span>
                     <span className="font-semibold">
                       {arrobas.toFixed(1)} @
                     </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="shrink-0 text-xs text-muted-foreground">% Carcaça</span>
+                    <input
+                      type="number"
+                      min="1"
+                      max="100"
+                      value={carcassPercent}
+                      onChange={(e) => setCarcassPercent(e.target.value)}
+                      className="w-16 rounded-lg border px-2 py-1 text-xs outline-none focus:border-primary"
+                    />
+                    <span className="text-xs text-muted-foreground">→ {carcassArrobas.toFixed(1)} @</span>
                   </div>
                   <div className="flex gap-2 pt-1">
                     <input
@@ -1209,6 +1250,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
               )}
             </div>
 
+            {allDataForm.isForFattening && (
             <div className="rounded-2xl border bg-white p-5 shadow-sm">
               <h2 className="mb-3 font-bold">GMD — Ganho de massa diária</h2>
               {formattedAverageGmd !== null ? (
@@ -1244,6 +1286,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                 </p>
               )}
             </div>
+            )}
           </div>
 
           {/* Calf loss history + Sanitary records side by side */}
@@ -1566,6 +1609,26 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                 )}
               </section>
             </div>
+
+            {/* Fattening */}
+            <div className="rounded-2xl border bg-white p-5 shadow-sm">
+              <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+                Engorda
+              </p>
+              <label className="flex cursor-pointer items-center gap-3">
+                <input
+                  type="checkbox"
+                  name="isForFattening"
+                  checked={!!allDataForm.isForFattening}
+                  onChange={handleInputValues}
+                  className="size-4 rounded border-input accent-primary"
+                />
+                <span className="text-sm font-medium">Animal de engorda</span>
+              </label>
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                Quando marcado, o GMD (Ganho de Massa Diária) será exibido na ficha do animal.
+              </p>
+            </div>
           </div>
 
           {/* Right: GENEALOGIA + RESUMO DA FICHA */}
@@ -1631,6 +1694,18 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                   <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-primary-foreground/60">
                     Valor Estimado
                   </p>
+                  <div className="mb-1.5 flex items-center gap-2">
+                    <span className="text-xs text-primary-foreground/60">% Carcaça</span>
+                    <input
+                      type="number"
+                      min="1"
+                      max="100"
+                      value={carcassPercent}
+                      onChange={(e) => setCarcassPercent(e.target.value)}
+                      className="w-14 rounded-lg border border-white/20 bg-white/10 px-2 py-1 text-xs text-white outline-none focus:border-white/40"
+                    />
+                    <span className="text-xs text-primary-foreground/50">→ {carcassArrobas.toFixed(1)} @</span>
+                  </div>
                   <div className="flex gap-2">
                     <input
                       type="text"
@@ -1658,7 +1733,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                   </p>
                   {estimatedValue !== null && (
                     <p className="text-[10px] text-primary-foreground/50">
-                      {arrobas.toFixed(1)}@ × R$ {priceNum.toFixed(2)}/@
+                      {carcassArrobas.toFixed(1)}@ × R$ {priceNum.toFixed(2)}/@
                     </p>
                   )}
                 </div>
@@ -1763,6 +1838,22 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                 </p>
                 <p className="font-semibold">
                   {offspringDead} mortos / {offspringSold} vendidos
+                </p>
+              </div>
+              <div className="rounded-lg border bg-muted/20 px-3 py-2">
+                <p className="text-xs text-muted-foreground">
+                  Peso médio desmame
+                </p>
+                <p className="font-semibold">
+                  {avgWeaningWeight ? `${avgWeaningWeight} kg` : 'N/A'}
+                </p>
+              </div>
+              <div className="rounded-lg border bg-muted/20 px-3 py-2">
+                <p className="text-xs text-muted-foreground">
+                  Peso médio venda
+                </p>
+                <p className="font-semibold">
+                  {avgSaleWeight ? `${avgSaleWeight} kg` : 'N/A'}
                 </p>
               </div>
             </div>

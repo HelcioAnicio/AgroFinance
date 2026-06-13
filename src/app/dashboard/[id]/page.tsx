@@ -29,15 +29,31 @@ const DetailAnimalId = async ({
     where: { id, farmId: context.farm.id },
     include: {
       bull: true,
-      offspringFromBull: true,
+      offspringFromBull: {
+        include: {
+          weightHistories: { where: { recordType: 'PD' } },
+        },
+      },
       bullIatfRel: true,
-      offspringFromBullIatf: true,
+      offspringFromBullIatf: {
+        include: {
+          weightHistories: { where: { recordType: 'PD' } },
+        },
+      },
       externalBull: true,
       externalBullIatfRel: true,
       father: true,
-      offspringFromFather: true,
+      offspringFromFather: {
+        include: {
+          weightHistories: { where: { recordType: 'PD' } },
+        },
+      },
       mother: true,
-      offspringFromMother: true,
+      offspringFromMother: {
+        include: {
+          weightHistories: { where: { recordType: 'PD' } },
+        },
+      },
       owner: true,
       weightHistories: {
         orderBy: {

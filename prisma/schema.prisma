@@ -37,6 +37,7 @@ model User {
 
 enum FarmRole {
   OWNER
+  MANAGER
   EMPLOYEE
   CAREGIVER_VETERINARIAN
   FINANCIAL
@@ -159,6 +160,7 @@ model Animal {
   dewormingExpiry       DateTime?
   dewormingName         String?
   status                String         @default("active")
+  isForFattening        Boolean        @default(false)
   vaccineDate           DateTime?
   vaccineExpiry         DateTime?
   vaccineName           String?

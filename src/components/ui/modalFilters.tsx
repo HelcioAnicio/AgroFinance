@@ -74,48 +74,93 @@ export const Filters: React.FC<FiltersProps> = ({ originalAnimals, listAnimals, 
       .filter(([, v]) => v)
       .map(([k]) => k);
 
-    const filtered = listAnimals.filter((animal) => {
-      const age = new Date(animal.birthDate);
-      const today = new Date();
-      const ageInMonths = (today.getFullYear() - age.getFullYear()) * 12 + (today.getMonth() - age.getMonth());
+    // Always filter from the FULL original list — filters should include neonates when selected
+    // (Only the default listing removes neonates automatically)
+    const base = originalAnimals;
 
-      const matchesStatus = activeStatusFilters.length === 0 || activeStatusFilters.includes(animal.status);
+    const filtered = base.filter((animal) => {
+      // birthDate comes as a string after JSON serialization — always convert
+      const birthDate = new Date(animal.birthDate);
+      const today = new Date();
+      // Day-accurate age in months
+      const ageInMonths =
+        (today.getFullYear() - birthDate.getFullYear()) * 12 +
+        (today.getMonth() - birthDate.getMonth()) +
+        (today.getDate() < birthDate.getDate() ? -1 : 0);
+
+      const matchesStatus =
+        activeStatusFilters.length === 0 || activeStatusFilters.includes(animal.status);
+
       const matchesGender =
         (!typeFilters.gender.male && !typeFilters.gender.female) ||
         (typeFilters.gender.male && animal.gender === 'male') ||
         (typeFilters.gender.female && animal.gender === 'female');
+
+      const anyAge = Object.values(typeFilters.age).some(Boolean);
       const matchesAge =
-        (!typeFilters.age.less12 && !typeFilters.age.between12And24 && !typeFilters.age.between24And36 && !typeFilters.age.between36And120 && !typeFilters.age.more120) ||
-        (typeFilters.age.less12 && ageInMonths <= 12) ||
-        (typeFilters.age.between12And24 && ageInMonths >= 13 && ageInMonths <= 24) ||
-        (typeFilters.age.between24And36 && ageInMonths >= 25 && ageInMonths <= 36) ||
-        (typeFilters.age.between36And120 && ageInMonths >= 37 && ageInMonths <= 120) ||
-        (typeFilters.age.more120 && ageInMonths > 120);
+        !anyAge ||
+        (typeFilters.age.less12 && ageInMonths < 12) ||
+        (typeFilters.age.between12And24 && ageInMonths >= 12 && ageInMonths < 24) ||
+        (typeFilters.age.between24And36 && ageInMonths >= 24 && ageInMonths < 36) ||
+        (typeFilters.age.between36And120 && ageInMonths >= 36 && ageInMonths < 120) ||
+        (typeFilters.age.more120 && ageInMonths >= 120);
+
+      const anyWeight = Object.values(typeFilters.weight).some(Boolean);
       const matchesWeight =
-        (!typeFilters.weight['300kg'] && !typeFilters.weight['500kg'] && !typeFilters.weight['600kg'] && !typeFilters.weight['600kg+']) ||
+        !anyWeight ||
         (typeFilters.weight['300kg'] && animal.weight <= 300) ||
-        (typeFilters.weight['500kg'] && animal.weight >= 301 && animal.weight <= 499) ||
-        (typeFilters.weight['600kg'] && animal.weight >= 500 && animal.weight <= 599) ||
+        (typeFilters.weight['500kg'] && animal.weight > 300 && animal.weight <= 500) ||
+        (typeFilters.weight['600kg'] && animal.weight > 500 && animal.weight <= 599) ||
         (typeFilters.weight['600kg+'] && animal.weight >= 600);
-      const matchesDate =
-        (!typeFilters.date.finalDate && !typeFilters.date.initialDate) ||
-        (typeFilters.date.initialDate && animal.birthDate >= new Date(typeFilters.date.initialDate) &&
-          typeFilters.date.finalDate && animal.birthDate <= new Date(typeFilters.date.finalDate));
+
+      // Date input type="month" gives "YYYY-MM" — build proper Date boundaries
+      let matchesDate = true;
+      if (typeFilters.date.initialDate || typeFilters.date.finalDate) {
+        const birthMs = birthDate.getTime();
+        if (typeFilters.date.initialDate) {
+          const start = new Date(typeFilters.date.initialDate + '-01').getTime();
+          if (birthMs < start) matchesDate = false;
+        }
+        if (matchesDate && typeFilters.date.finalDate) {
+          const [fy, fm] = typeFilters.date.finalDate.split('-').map(Number);
+          // Last millisecond of the final month
+          const end = new Date(fy, fm, 0, 23, 59, 59, 999).getTime();
+          if (birthMs > end) matchesDate = false;
+        }
+      }
+
       const matchesReproductive =
-        (!typeFilters.reproductiveStatus.empty && !typeFilters.reproductiveStatus.pregnant && !typeFilters.reproductiveStatus.waiting && !typeFilters.reproductiveStatus.pev) ||
+        (!typeFilters.reproductiveStatus.empty &&
+          !typeFilters.reproductiveStatus.pregnant &&
+          !typeFilters.reproductiveStatus.waiting &&
+          !typeFilters.reproductiveStatus.pev) ||
         (typeFilters.reproductiveStatus.empty && animal.reproductiveStatus === 'empty') ||
         (typeFilters.reproductiveStatus.pregnant && animal.reproductiveStatus === 'pregnant') ||
         (typeFilters.reproductiveStatus.waiting && animal.reproductiveStatus === 'waiting') ||
         (typeFilters.reproductiveStatus.pev && animal.reproductiveStatus === 'pev');
+
       const matchesBreed = !typeFilters.breed || animal.breed === typeFilters.breed;
-      const anyAndro = typeFilters.andrological.positive || typeFilters.andrological.negative || typeFilters.andrological.notDone;
+
+      const anyAndro =
+        typeFilters.andrological.positive ||
+        typeFilters.andrological.negative ||
+        typeFilters.andrological.notDone;
       const matchesAndrological =
         !anyAndro ||
         (typeFilters.andrological.positive && animal.andrological === 'positive') ||
         (typeFilters.andrological.negative && animal.andrological === 'negative') ||
         (typeFilters.andrological.notDone && animal.andrological === 'notDone');
 
-      return matchesStatus && matchesGender && matchesAge && matchesWeight && matchesDate && matchesReproductive && matchesBreed && matchesAndrological;
+      return (
+        matchesStatus &&
+        matchesGender &&
+        matchesAge &&
+        matchesWeight &&
+        matchesDate &&
+        matchesReproductive &&
+        matchesBreed &&
+        matchesAndrological
+      );
     });
 
     setListAnimals(filtered);
