@@ -13,7 +13,9 @@ export const fetchAnimals = async (
 ): Promise<Animal[]> => {
   try {
     const animals = await prisma.animal.findMany({
-      where: farmId ? { farmId } : { ownerId },
+      where: farmId
+        ? { OR: [{ farmId }, { ownerId, farmId: null }] }
+        : { ownerId },
     });
 
     const sortedAnimals = animals.sort((a, b) => {
@@ -93,7 +95,9 @@ export const fetchExternalBulls = async (
   if (!ownerId && !farmId) return [];
 
   const externalBulls = await prisma.externalBull.findMany({
-    where: farmId ? { farmId } : { ownerId },
+    where: farmId
+      ? { OR: [{ farmId }, { ownerId, farmId: null }] }
+      : { ownerId },
     orderBy: {
       createdAt: 'desc',
     },
@@ -193,7 +197,9 @@ export const fetchLivestockStats = async (
   if (!ownerId && !farmId) return [];
 
   const animals = await prisma.animal.findMany({
-    where: farmId ? { farmId } : { ownerId },
+    where: farmId
+      ? { OR: [{ farmId }, { ownerId, farmId: null }] }
+      : { ownerId },
     select: {
       id: true,
       gender: true,

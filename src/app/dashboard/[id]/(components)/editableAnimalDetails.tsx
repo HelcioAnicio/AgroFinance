@@ -442,6 +442,50 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     }
   }, [pricePerArroba]);
 
+  // Auto-categorize when birthDate or gender changes (mirrors cardFormMain logic)
+  useEffect(() => {
+    if (!allDataForm.birthDate) return;
+    const birth = new Date(allDataForm.birthDate);
+    const today = new Date();
+    const ageInMonths =
+      (today.getFullYear() - birth.getFullYear()) * 12 +
+      (today.getMonth() - birth.getMonth()) +
+      (today.getDate() < birth.getDate() ? -1 : 0);
+
+    const gender = allDataForm.gender;
+    const currentCategory = allDataForm.category;
+    const isCurrentlyReproductive =
+      currentCategory === 'bull' || currentCategory === 'old bull';
+
+    let newCategory: string;
+    if (ageInMonths <= 3) {
+      newCategory = 'neonate';
+    } else if (ageInMonths <= 12) {
+      newCategory = 'calf';
+    } else if (ageInMonths <= 24) {
+      newCategory = 'steer';
+    } else if (ageInMonths <= 36) {
+      newCategory = gender === 'male' ? 'steer' : 'cow';
+    } else if (ageInMonths <= 120) {
+      if (gender === 'male') {
+        newCategory = isCurrentlyReproductive ? 'bull' : 'ox';
+      } else {
+        newCategory = 'cow';
+      }
+    } else {
+      if (gender === 'male') {
+        newCategory = isCurrentlyReproductive ? 'old bull' : 'old ox';
+      } else {
+        newCategory = 'old cow';
+      }
+    }
+
+    if (currentCategory !== newCategory) {
+      setAllDataForm((prev) => ({ ...prev, category: newCategory }));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allDataForm.birthDate, allDataForm.gender]);
+
   useEffect(() => {
     if (!arrobaPriceLoaded) {
       setArrobaPriceLoaded(true);

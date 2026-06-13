@@ -23,7 +23,7 @@ const breedArray = [
 const defaultFilters = {
   status: { active: false, inactive: false, dead: false, sold: false, lost: false, trash: false },
   gender: { male: false, female: false },
-  age: { less12: false, between12And24: false, between24And36: false, between36And120: false, more120: false },
+  age: { less3: false, between3And12: false, between12And24: false, between24And36: false, between36And120: false, more120: false },
   weight: { '300kg': false, '500kg': false, '600kg': false, '600kg+': false },
   date: { initialDate: '', finalDate: '' },
   reproductiveStatus: { empty: false, pregnant: false, waiting: false, pev: false },
@@ -99,11 +99,12 @@ export const Filters: React.FC<FiltersProps> = ({ originalAnimals, listAnimals, 
       const anyAge = Object.values(typeFilters.age).some(Boolean);
       const matchesAge =
         !anyAge ||
-        (typeFilters.age.less12 && ageInMonths < 12) ||
-        (typeFilters.age.between12And24 && ageInMonths >= 12 && ageInMonths < 24) ||
-        (typeFilters.age.between24And36 && ageInMonths >= 24 && ageInMonths < 36) ||
-        (typeFilters.age.between36And120 && ageInMonths >= 36 && ageInMonths < 120) ||
-        (typeFilters.age.more120 && ageInMonths >= 120);
+        (typeFilters.age.less3 && ageInMonths <= 3) ||
+        (typeFilters.age.between3And12 && ageInMonths > 3 && ageInMonths <= 12) ||
+        (typeFilters.age.between12And24 && ageInMonths > 12 && ageInMonths <= 24) ||
+        (typeFilters.age.between24And36 && ageInMonths > 24 && ageInMonths <= 36) ||
+        (typeFilters.age.between36And120 && ageInMonths > 36 && ageInMonths <= 120) ||
+        (typeFilters.age.more120 && ageInMonths > 120);
 
       const anyWeight = Object.values(typeFilters.weight).some(Boolean);
       const matchesWeight =
@@ -303,10 +304,11 @@ export const Filters: React.FC<FiltersProps> = ({ originalAnimals, listAnimals, 
         <div>
           {sectionLabel('Idade (Meses)')}
           <div className="grid grid-cols-2 gap-2">
-            <AgeBox label="0 - 12m" active={typeFilters.age.less12} onClick={() => toggleAge('less12')} />
-            <AgeBox label="12m - 24m" active={typeFilters.age.between12And24} onClick={() => toggleAge('between12And24')} />
-            <AgeBox label="24m - 36m" active={typeFilters.age.between24And36} onClick={() => toggleAge('between24And36')} />
-            <AgeBox label="36m - 120m" active={typeFilters.age.between36And120} onClick={() => toggleAge('between36And120')} />
+            <AgeBox label="0 – 3m (Neonatos)" active={typeFilters.age.less3} onClick={() => toggleAge('less3')} />
+            <AgeBox label="3 – 12m (Bezerros)" active={typeFilters.age.between3And12} onClick={() => toggleAge('between3And12')} />
+            <AgeBox label="12m – 24m" active={typeFilters.age.between12And24} onClick={() => toggleAge('between12And24')} />
+            <AgeBox label="24m – 36m" active={typeFilters.age.between24And36} onClick={() => toggleAge('between24And36')} />
+            <AgeBox label="36m – 120m" active={typeFilters.age.between36And120} onClick={() => toggleAge('between36And120')} />
             <AgeBox label="+120 meses" active={typeFilters.age.more120} onClick={() => toggleAge('more120')} />
           </div>
         </div>
