@@ -14,7 +14,7 @@ export const fetchAnimals = async (
   try {
     const animals = await prisma.animal.findMany({
       where: farmId
-        ? { OR: [{ farmId }, { ownerId, farmId: null }] }
+        ? { OR: [{ farmId }, { ownerId }] }
         : { ownerId },
     });
 
@@ -96,7 +96,7 @@ export const fetchExternalBulls = async (
 
   const externalBulls = await prisma.externalBull.findMany({
     where: farmId
-      ? { OR: [{ farmId }, { ownerId, farmId: null }] }
+      ? { OR: [{ farmId }, { ownerId }] }
       : { ownerId },
     orderBy: {
       createdAt: 'desc',
@@ -198,7 +198,7 @@ export const fetchLivestockStats = async (
 
   const animals = await prisma.animal.findMany({
     where: farmId
-      ? { OR: [{ farmId }, { ownerId, farmId: null }] }
+      ? { OR: [{ farmId }, { ownerId }] }
       : { ownerId },
     select: {
       id: true,
