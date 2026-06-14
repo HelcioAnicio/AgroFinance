@@ -79,11 +79,12 @@ export async function getCurrentUserWithFarmContext() {
 
   if (!user) return null;
 
-  // Prefer the explicitly chosen active farm; fall back to the oldest membership
+  // Prefer explicitly chosen active farm → own farm (OWNER) → oldest membership
   const membership =
     (user.activeFarmId
       ? user.farmMemberships.find((m) => m.farmId === user.activeFarmId)
       : null) ??
+    user.farmMemberships.find((m) => m.role === ('OWNER' as FarmRole)) ??
     user.farmMemberships[0] ??
     null;
 
