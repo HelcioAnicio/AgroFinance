@@ -372,7 +372,8 @@ export const Table: React.FC<TableProps> = ({
     ? totalWeight / selectedAnimals.length
     : 0;
   const arrobaCount = avgWeight / 15;
-  const carcassFactor = Math.min(Math.max(Number(carcassPercent) || 50, 1), 100) / 100;
+  const carcassFactor =
+    Math.min(Math.max(Number(carcassPercent) || 50, 1), 100) / 100;
   const carcassArrobas = arrobaCount * carcassFactor;
   const pricePerArrobaNum = Number(pricePerArroba) || 0;
   const pricePerHead = carcassArrobas * pricePerArrobaNum;
@@ -394,12 +395,15 @@ export const Table: React.FC<TableProps> = ({
 
   const selectAll = () => setSelectedIds(new Set(listAnimals.map((a) => a.id)));
   const deselectAll = () => setSelectedIds(new Set());
-  const allSelected = listAnimals.length > 0 && listAnimals.every((a) => selectedIds.has(a.id));
+  const allSelected =
+    listAnimals.length > 0 && listAnimals.every((a) => selectedIds.has(a.id));
 
   const executeBulkAction = async () => {
     if (selectedIds.size === 0) return;
     const loadingId = toast.loading(
-      saleAction === 'sell' ? 'Vendendo animais...' : 'Alterando para descarte...'
+      saleAction === 'sell'
+        ? 'Vendendo animais...'
+        : 'Alterando para descarte...'
     );
     try {
       const payload: Record<string, unknown> = {
@@ -560,10 +564,10 @@ export const Table: React.FC<TableProps> = ({
         <>
           <div className="sticky right-0 top-0 z-30 max-h-max w-full">
             <div className="relative flex w-full justify-between gap-10 px-1">
-              <div className="flex items-center gap-3">
+              <div className="flex w-full flex-wrap items-center justify-start gap-3 border">
                 <Sheet>
                   <SheetTrigger asChild>
-                    <FaFilter className="size-6 cursor-pointer" />
+                    <FaFilter className="size-7 cursor-pointer" />
                   </SheetTrigger>
                   <Filters
                     listAnimals={listAnimals}
@@ -572,13 +576,13 @@ export const Table: React.FC<TableProps> = ({
                   />
                 </Sheet>
                 <input
-                  className="w-full max-w-40 border border-b-gray-400 bg-input p-1 shadow-sm outline-none"
+                  className="w-full min-w-28 max-w-40 border border-b-gray-400 bg-input p-1 shadow-sm outline-none"
                   type="search"
                   name="inputSearch"
                   id="inputSearch"
                   placeholder="Pesquisar ID"
                   onChange={(event) => setInputValue(event.target.value)}
-                />
+                />{' '}
                 <button
                   onClick={toggleSaleMode}
                   className={`rounded-sm border px-2 py-1 text-xs font-semibold transition-colors ${
@@ -804,7 +808,9 @@ export const Table: React.FC<TableProps> = ({
           <div className="min-h-0 w-full pb-28 md:pb-20 lg:pb-0">
             <div className="flex h-[calc(100vh-200px)] w-full flex-col gap-4 overflow-hidden lg:flex-row lg:items-start lg:justify-between">
               <div className="flex h-full w-full max-w-5xl flex-col overflow-hidden rounded-xl border bg-white shadow-sm">
-                <div className="overflow-auto scroll-smooth">
+                <div
+                  className={`overflow-auto scroll-smooth ${isSaleMode && selectedIds.size > 0 ? 'pb-56 lg:pb-24' : ''}`}
+                >
                   <table className="relative w-full min-w-[900px] text-left">
                     <thead className="sticky left-0 top-0 z-20 bg-muted text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
                       <tr>
@@ -1183,21 +1189,35 @@ export const Table: React.FC<TableProps> = ({
               {/* Summary row */}
               <div className="mb-2 flex flex-wrap gap-3 text-xs text-muted-foreground">
                 <span className="font-semibold text-foreground">
-                  {selectedIds.size} animal{selectedIds.size !== 1 ? 'is' : ''} selecionado{selectedIds.size !== 1 ? 's' : ''}
+                  {selectedIds.size} animal{selectedIds.size !== 1 ? 'is' : ''}{' '}
+                  selecionado{selectedIds.size !== 1 ? 's' : ''}
                 </span>
-                <span>Peso total: <strong>{totalWeight.toFixed(0)} kg</strong></span>
-                <span>Peso médio: <strong>{avgWeight.toFixed(0)} kg</strong></span>
-                <span>Arroba bruta: <strong>{arrobaCount.toFixed(1)} @</strong></span>
-                <span>Arroba carcaça: <strong>{carcassArrobas.toFixed(1)} @</strong></span>
+                <span>
+                  Peso total: <strong>{totalWeight.toFixed(0)} kg</strong>
+                </span>
+                <span>
+                  Peso médio: <strong>{avgWeight.toFixed(0)} kg</strong>
+                </span>
+                <span>
+                  Arroba bruta: <strong>{arrobaCount.toFixed(1)} @</strong>
+                </span>
+                <span>
+                  Arroba carcaça: <strong>{carcassArrobas.toFixed(1)} @</strong>
+                </span>
               </div>
 
               {/* Inputs + actions row */}
               <div className="flex flex-wrap items-center gap-2">
                 {/* Carcass % */}
                 <div className="flex items-center gap-1 text-xs">
-                  <label className="font-medium text-muted-foreground">% Carcaça</label>
+                  <label className="font-medium text-muted-foreground">
+                    % Carcaça
+                  </label>
                   <input
-                    type="number" min={1} max={100} step={1}
+                    type="number"
+                    min={1}
+                    max={100}
+                    step={1}
                     value={carcassPercent}
                     onChange={(e) => setCarcassPercent(e.target.value)}
                     className="w-14 rounded border px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-primary"
@@ -1206,9 +1226,13 @@ export const Table: React.FC<TableProps> = ({
 
                 {/* R$/@ */}
                 <div className="flex items-center gap-1 text-xs">
-                  <label className="font-medium text-muted-foreground">R$/@</label>
+                  <label className="font-medium text-muted-foreground">
+                    R$/@
+                  </label>
                   <input
-                    type="number" min={0} step={1}
+                    type="number"
+                    min={0}
+                    step={1}
                     value={pricePerArroba}
                     onChange={(e) => setPricePerArroba(e.target.value)}
                     placeholder="0"
@@ -1219,23 +1243,43 @@ export const Table: React.FC<TableProps> = ({
                 {pricePerArrobaNum > 0 && (
                   <>
                     <span className="text-xs">
-                      Por cabeça: <strong>R$ {pricePerHead.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                      Por cabeça:{' '}
+                      <strong>
+                        R${' '}
+                        {pricePerHead.toLocaleString('pt-BR', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </strong>
                     </span>
                     <span className="text-xs">
-                      Total: <strong className="text-primary">R$ {totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                      Total:{' '}
+                      <strong className="text-primary">
+                        R${' '}
+                        {totalValue.toLocaleString('pt-BR', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </strong>
                     </span>
                   </>
                 )}
 
                 <div className="ml-auto flex gap-2">
                   <button
-                    onClick={() => { setSaleAction('trash'); setSaleDialogOpen(true); }}
+                    onClick={() => {
+                      setSaleAction('trash');
+                      setSaleDialogOpen(true);
+                    }}
                     className="rounded-lg border border-red-300 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-100"
                   >
                     Alterar para descarte
                   </button>
                   <button
-                    onClick={() => { setSaleAction('sell'); setSaleDialogOpen(true); }}
+                    onClick={() => {
+                      setSaleAction('sell');
+                      setSaleDialogOpen(true);
+                    }}
                     className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition hover:opacity-90"
                   >
                     Vender animais
@@ -1250,7 +1294,9 @@ export const Table: React.FC<TableProps> = ({
             <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40">
               <div className="w-full max-w-sm rounded-2xl border bg-white p-6 shadow-2xl">
                 <h3 className="mb-1 text-base font-bold">
-                  {saleAction === 'sell' ? 'Confirmar venda' : 'Confirmar descarte'}
+                  {saleAction === 'sell'
+                    ? 'Confirmar venda'
+                    : 'Confirmar descarte'}
                 </h3>
                 <p className="mb-4 text-sm text-muted-foreground">
                   {saleAction === 'sell'
@@ -1270,7 +1316,9 @@ export const Table: React.FC<TableProps> = ({
                       saleAction === 'sell' ? 'bg-primary' : 'bg-red-600'
                     }`}
                   >
-                    {saleAction === 'sell' ? 'Confirmar venda' : 'Confirmar descarte'}
+                    {saleAction === 'sell'
+                      ? 'Confirmar venda'
+                      : 'Confirmar descarte'}
                   </button>
                 </div>
               </div>
