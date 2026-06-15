@@ -750,59 +750,45 @@ export const Table: React.FC<TableProps> = ({
           </div>
 
           {/* Summary cards — reactive to active filters */}
-          <div className="my-3 grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <div className="rounded-xl border-l-4 border-primary bg-white px-4 py-3 shadow-sm">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                Total
-              </p>
-              <p className="text-2xl font-black text-primary">
-                {listAnimals.length}
-              </p>
-              <p className="text-[10px] text-muted-foreground">
-                Com filtros aplicados
-              </p>
-            </div>
-            <div className="rounded-xl border-l-4 border-green-500 bg-white px-4 py-3 shadow-sm">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                Ativos
-              </p>
-              <p className="text-2xl font-black text-foreground">
-                {
-                  listAnimals.filter(
-                    (a) => a.status === 'active' && a.category !== 'neonate'
-                  ).length
-                }
-              </p>
-              <div className="mt-1.5 h-1 w-full rounded-full bg-muted">
-                <div
-                  className="h-full rounded-full bg-green-500"
-                  style={{
-                    width: `${listAnimals.length ? (listAnimals.filter((a) => a.status === 'active').length / listAnimals.length) * 100 : 0}%`,
-                  }}
-                />
+          <div className="my-1.5 grid grid-cols-4 gap-2">
+            <div className="flex items-center gap-2 rounded-lg border-l-4 border-primary bg-white px-3 py-1.5 shadow-sm">
+              <div>
+                <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Total</p>
+                <p className="text-base font-black leading-tight text-primary">{listAnimals.length}</p>
+                <p className="hidden text-[9px] text-muted-foreground xs:block">Com filtros aplicados</p>
               </div>
             </div>
-            <div className="rounded-xl border-l-4 border-fuchsia-500 bg-white px-4 py-3 shadow-sm">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                Prenhas
-              </p>
-              <p className="text-2xl font-black text-foreground">
-                {pregnantCowsCount}
-              </p>
-              <p className="text-[10px] italic text-muted-foreground">
-                {pregnantCowsCount === 0 ? 'Nenhuma prenha' : 'Vacas prenhas'}
-              </p>
+            <div className="flex items-center gap-2 rounded-lg border-l-4 border-green-500 bg-white px-3 py-1.5 shadow-sm">
+              <div className="flex-1">
+                <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Ativos</p>
+                <p className="text-base font-black leading-tight text-foreground">
+                  {listAnimals.filter((a) => a.status === 'active' && a.category !== 'neonate').length}
+                </p>
+                <div className="mt-1 h-0.5 w-full rounded-full bg-muted">
+                  <div
+                    className="h-full rounded-full bg-green-500"
+                    style={{ width: `${listAnimals.length ? (listAnimals.filter((a) => a.status === 'active').length / listAnimals.length) * 100 : 0}%` }}
+                  />
+                </div>
+              </div>
             </div>
-            <div className="rounded-xl border-l-4 border-slate-400 bg-white px-4 py-3 shadow-sm">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                Vazias
-              </p>
-              <p className="text-2xl font-black text-foreground">
-                {emptyCowsCount}
-              </p>
-              {emptyCowsCount > 0 && (
-                <p className="text-[10px] text-red-500">Atenção requerida</p>
-              )}
+            <div className="flex items-center gap-2 rounded-lg border-l-4 border-fuchsia-500 bg-white px-3 py-1.5 shadow-sm">
+              <div>
+                <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Prenhas</p>
+                <p className="text-base font-black leading-tight text-foreground">{pregnantCowsCount}</p>
+                <p className="hidden text-[9px] italic text-muted-foreground xs:block">
+                  {pregnantCowsCount === 0 ? 'Nenhuma prenha' : 'Vacas prenhas'}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 rounded-lg border-l-4 border-slate-400 bg-white px-3 py-1.5 shadow-sm">
+              <div>
+                <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Vazias</p>
+                <p className="text-base font-black leading-tight text-foreground">{emptyCowsCount}</p>
+                {emptyCowsCount > 0 && (
+                  <p className="hidden text-[9px] text-red-500 xs:block">Atenção requerida</p>
+                )}
+              </div>
             </div>
           </div>
 
