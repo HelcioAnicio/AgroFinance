@@ -2,7 +2,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export function DashboardHeaderSkeleton() {
   return (
-    <header className="fixed left-0 right-0 top-0 z-30 flex h-14 items-center border-b bg-white">
+    <header className="fixed left-0 right-0 top-0 z-50 flex h-14 items-center border-b bg-white">
       {/* Logo area */}
       <div className="flex h-full shrink-0 items-center gap-2.5 px-5 lg:w-56 lg:border-r">
         <Skeleton className="size-9 rounded-md" />

@@ -651,8 +651,8 @@ export function FinancialDashboard({
           <div className="flex items-center gap-2">
             <Wallet className="h-4 w-4 text-primary" />
             <span>
-              {userName}, os indicadores abaixo consideram todas as transacoes
-              do seu usuario e o recorte mensal selecionado.
+              {userName}, os indicadores abaixo consideram todas as transações
+              da fazenda ativa e o recorte mensal selecionado.
             </span>
           </div>
         </div>
