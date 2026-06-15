@@ -563,8 +563,8 @@ export const Table: React.FC<TableProps> = ({
         <Loading />
       ) : (
         <>
-          <div className="sticky right-0 top-0 z-30 max-h-max w-full">
-            <div className="relative flex w-full justify-between gap-10 px-1">
+          <div className="sticky right-0 top-0 z-30 max-h-max w-full border-b bg-white">
+            <div className="relative flex w-full justify-between gap-4 px-4 py-3">
               <div className="flex w-full flex-wrap items-center justify-start gap-3 border">
                 <Sheet>
                   <SheetTrigger asChild>
@@ -793,8 +793,8 @@ export const Table: React.FC<TableProps> = ({
           </div>
 
           <div className="min-h-0 w-full pb-28 md:pb-20 lg:pb-0">
-            <div className="flex h-[calc(100vh-200px)] w-full flex-col gap-4 overflow-hidden lg:flex-row lg:items-start lg:justify-between">
-              <div className="flex h-full w-full max-w-5xl flex-col overflow-hidden rounded-xl border bg-white shadow-sm">
+            <div className="flex h-[calc(100vh-200px)] w-full overflow-hidden">
+              <div className="flex h-full w-full flex-col overflow-hidden rounded-xl border bg-white shadow-sm">
                 <div
                   className={`overflow-auto scroll-smooth ${isSaleMode && selectedIds.size > 0 ? 'pb-56 lg:pb-24' : ''}`}
                 >
@@ -947,227 +947,6 @@ export const Table: React.FC<TableProps> = ({
                   </table>
                 </div>
               </div>
-              <aside className="hidden h-full w-full min-w-[400px] max-w-80 rounded-sm border bg-background p-3 lg:block lg:flex-1">
-                <div className="mb-3 flex items-center justify-between gap-2">
-                  <h3 className="text-sm font-semibold">
-                    Natalidade e mortalidade
-                  </h3>
-                  <span className="rounded-sm bg-primary/10 px-2 py-1 text-[10px] uppercase tracking-wide text-primary">
-                    Premium em breve
-                  </span>
-                </div>
-
-                {selectedYearStats ? (
-                  <>
-                    <div className="mb-3 flex items-center gap-2">
-                      <label htmlFor="stats-year" className="text-xs">
-                        Ano:
-                      </label>
-                      <select
-                        id="stats-year"
-                        className="rounded-sm border bg-background px-2 py-1 text-xs outline-none"
-                        value={selectedStatsYear ?? ''}
-                        onChange={(event) =>
-                          setSelectedStatsYear(Number(event.target.value))
-                        }
-                      >
-                        {availableYears
-                          .slice()
-                          .sort((a, b) => b - a)
-                          .map((year) => (
-                            <option key={year} value={year}>
-                              {year}
-                            </option>
-                          ))}
-                      </select>
-                    </div>
-
-                    <div className="mb-4 flex flex-wrap gap-2 text-xs">
-                      <span className="rounded bg-blue-50 px-2 py-1 font-semibold text-blue-700">
-                        Machos nascidos: {selectedYearStats.totalMaleBirths}
-                      </span>
-                      <span className="rounded bg-pink-50 px-2 py-1 font-semibold text-pink-600">
-                        Fêmeas nascidas: {selectedYearStats.totalFemaleBirths}
-                      </span>
-                      <span className="rounded bg-gray-100 px-2 py-1 font-semibold text-gray-700">
-                        Mortes: {selectedYearStats.totalDeaths}
-                      </span>
-                      <span className="rounded bg-muted px-2 py-1 font-semibold">
-                        Mudanças: {selectedYearStats.totalStatusChanges}
-                      </span>
-                    </div>
-
-                    <div className="max-h-[55vh] space-y-2 overflow-y-auto pr-1 text-xs">
-                      {selectedYearStats.months
-                        .filter(
-                          (m) =>
-                            m.maleBirths > 0 ||
-                            m.femaleBirths > 0 ||
-                            m.deaths > 0 ||
-                            m.statusChanges > 0
-                        )
-                        .map((month) => {
-                          const malePercent =
-                            (month.maleBirths / maxMonthlyValue) * 100;
-                          const femalePercent =
-                            (month.femaleBirths / maxMonthlyValue) * 100;
-                          const deathPercent =
-                            (month.deaths / maxMonthlyValue) * 100;
-                          const monthStatuses = month.statusBreakdown.filter(
-                            (s) => s.total > 0 && s.status !== 'dead'
-                          );
-                          const maxMonthStatus = Math.max(
-                            ...monthStatuses.map((s) => s.total),
-                            1
-                          );
-
-                          return (
-                            <div
-                              key={month.month}
-                              className="rounded-lg border p-3"
-                            >
-                              <div className="mb-2 flex items-center justify-between text-[11px]">
-                                <span className="font-semibold">
-                                  {month.label}
-                                </span>
-                                <span className="text-muted-foreground">
-                                  {month.statusChanges} alteraç
-                                  {month.statusChanges !== 1 ? 'ões' : 'ão'}
-                                </span>
-                              </div>
-
-                              <div className="space-y-1.5">
-                                {month.maleBirths > 0 && (
-                                  <div className="flex items-center gap-2 text-[10px]">
-                                    <span className="w-14 truncate text-blue-600">
-                                      Nasc. ♂
-                                    </span>
-                                    <div className="h-2 flex-1 rounded bg-muted">
-                                      <div
-                                        className="h-2 rounded bg-blue-500"
-                                        style={{ width: `${malePercent}%` }}
-                                      />
-                                    </div>
-                                    <span className="w-4 text-right">
-                                      {month.maleBirths}
-                                    </span>
-                                  </div>
-                                )}
-                                {month.femaleBirths > 0 && (
-                                  <div className="flex items-center gap-2 text-[10px]">
-                                    <span className="w-14 truncate text-pink-600">
-                                      Nasc. ♀
-                                    </span>
-                                    <div className="h-2 flex-1 rounded bg-muted">
-                                      <div
-                                        className="h-2 rounded bg-pink-500"
-                                        style={{ width: `${femalePercent}%` }}
-                                      />
-                                    </div>
-                                    <span className="w-4 text-right">
-                                      {month.femaleBirths}
-                                    </span>
-                                  </div>
-                                )}
-                                {month.deaths > 0 && (
-                                  <div className="flex items-center gap-2 text-[10px]">
-                                    <span className="w-14 truncate">
-                                      Mortes
-                                    </span>
-                                    <div className="h-2 flex-1 rounded bg-muted">
-                                      <div
-                                        className="h-2 rounded bg-gray-700"
-                                        style={{ width: `${deathPercent}%` }}
-                                      />
-                                    </div>
-                                    <span className="w-4 text-right">
-                                      {month.deaths}
-                                    </span>
-                                  </div>
-                                )}
-                                {monthStatuses.map((statusItem) => {
-                                  const percent =
-                                    (statusItem.total / maxMonthStatus) * 100;
-                                  const genderDetail =
-                                    statusItem.males > 0 ||
-                                    statusItem.females > 0
-                                      ? ` (${statusItem.males > 0 ? `${statusItem.males}♂` : ''}${statusItem.males > 0 && statusItem.females > 0 ? ' ' : ''}${statusItem.females > 0 ? `${statusItem.females}♀` : ''})`
-                                      : '';
-
-                                  return (
-                                    <div
-                                      key={`${month.month}-${statusItem.status}`}
-                                      className="flex items-center gap-2 text-[10px]"
-                                    >
-                                      <span
-                                        className="w-14 truncate"
-                                        title={statusItem.label + genderDetail}
-                                      >
-                                        {statusItem.label}
-                                      </span>
-                                      <div className="h-2 flex-1 rounded bg-muted">
-                                        <div
-                                          className={`h-2 rounded ${getStatusBarColor(statusItem.status)}`}
-                                          style={{ width: `${percent}%` }}
-                                        />
-                                      </div>
-                                      <span className="w-4 text-right">
-                                        {statusItem.total}
-                                      </span>
-                                    </div>
-                                  );
-                                })}
-
-                                {/* Gender detail for status changes */}
-                                {monthStatuses.some(
-                                  (s) => s.males > 0 || s.females > 0
-                                ) && (
-                                  <div className="mt-1 border-t pt-1 text-[9px] text-muted-foreground">
-                                    {monthStatuses
-                                      .filter(
-                                        (s) => s.males > 0 || s.females > 0
-                                      )
-                                      .map((s) => (
-                                        <span key={s.status} className="mr-2">
-                                          {s.label}:{' '}
-                                          {s.males > 0 && (
-                                            <span className="text-blue-600">
-                                              {s.males}♂
-                                            </span>
-                                          )}
-                                          {s.males > 0 && s.females > 0 && ' '}
-                                          {s.females > 0 && (
-                                            <span className="text-pink-600">
-                                              {s.females}♀
-                                            </span>
-                                          )}
-                                        </span>
-                                      ))}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      {selectedYearStats.months.every(
-                        (m) =>
-                          m.maleBirths === 0 &&
-                          m.femaleBirths === 0 &&
-                          m.deaths === 0 &&
-                          m.statusChanges === 0
-                      ) && (
-                        <p className="py-4 text-center text-muted-foreground">
-                          Sem eventos em {selectedStatsYear}.
-                        </p>
-                      )}
-                    </div>
-                  </>
-                ) : (
-                  <p className="text-xs text-muted-foreground">
-                    Sem dados para exibir o relatório.
-                  </p>
-                )}
-              </aside>
             </div>
           </div>
 

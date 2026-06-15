@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ChevronDown, ChevronUp, Baby, Skull, TrendingDown, ShoppingBag } from 'lucide-react';
+import { ChevronDown, ChevronUp, Skull, TrendingDown, ShoppingBag } from 'lucide-react';
+import { GiCow } from 'react-icons/gi';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
@@ -256,7 +257,7 @@ export function BirthMortalityReport() {
             <h2 className="font-bold text-sm uppercase tracking-widest text-muted-foreground">Resumo do período</h2>
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-sm">
-                <Baby className="size-4 text-green-500 shrink-0" />
+                <GiCow className="size-4 text-green-500 shrink-0" />
                 <span className="w-20 font-medium">Nascimentos</span>
                 <MiniBar value={data.births.total} max={maxBar} color="bg-green-400" />
               </div>
@@ -280,7 +281,7 @@ export function BirthMortalityReport() {
 
           <SectionCard
             title="Nascimentos"
-            icon={<Baby className="size-5" />}
+            icon={<GiCow className="size-5" />}
             total={data.births.total}
             males={data.births.males}
             females={data.births.females}
