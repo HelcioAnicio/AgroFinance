@@ -17,7 +17,7 @@ export const Header: React.FC<HeaderProps> = ({ notifications }) => {
   const { status } = useSession();
 
   return (
-    <header className="fixed left-0 right-0 top-0 z-30 flex h-14 items-center border-b bg-white">
+    <header className="fixed left-0 right-0 top-0 z-50 flex h-14 items-center border-b bg-white">
       {/* Logo — on desktop occupies the same width as the sidebar with a right border */}
       <Link
         href="/dashboard"

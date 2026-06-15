@@ -558,7 +558,7 @@ export const Table: React.FC<TableProps> = ({
   }
 
   return (
-    <main className="relative flex h-[calc(100vh-100px)] w-full flex-col overflow-x-auto overflow-y-hidden px-4 lg:h-full lg:px-6">
+    <main className="relative mx-auto flex h-[calc(100vh-100px)] w-[90%] flex-col overflow-x-auto overflow-y-hidden lg:h-full">
       {isLoading ? (
         <Loading />
       ) : (
