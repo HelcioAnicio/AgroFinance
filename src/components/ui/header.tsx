@@ -17,26 +17,29 @@ export const Header: React.FC<HeaderProps> = ({ notifications }) => {
   const { status } = useSession();
 
   return (
-    <header className="sticky top-0 z-30 flex w-full items-center justify-between border-b bg-white/90 px-4 py-2 backdrop-blur-sm">
-      {/* Logo — only visible on mobile (desktop sidebar has its own) */}
-      <Link href="/dashboard" className="lg:hidden">
+    <header className="fixed left-0 right-0 top-0 z-30 flex h-14 items-center border-b bg-white">
+      {/* Logo — on desktop occupies the same width as the sidebar with a right border */}
+      <Link
+        href="/dashboard"
+        className="flex h-full shrink-0 items-center gap-2.5 px-5 transition-opacity hover:opacity-80 lg:w-56 lg:border-r"
+      >
         <Image
           priority
           src="/logo.png"
           alt="AgroFinance"
-          width={48}
-          height={48}
-          className="size-12"
+          width={36}
+          height={36}
+          className="size-9"
         />
+        <span className="text-sm font-bold text-foreground">AgroFinance</span>
       </Link>
 
-      {/* Right side actions */}
-      <div className="ml-auto flex items-center gap-2">
+      {/* Right-side actions — always visible, shifts right on desktop */}
+      <div className="ml-auto flex items-center gap-2 px-4">
         {status === 'authenticated' && (
           <>
             <FarmSwitcher />
             <NotificationComponent notifications={notifications} />
-            {/* Logout only in header on desktop; on mobile it's in the nav drawer */}
             <Button
               className="hidden px-4 py-1 lg:flex"
               onClick={() => signOut({ callbackUrl: '/' })}

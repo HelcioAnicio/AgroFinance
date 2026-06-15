@@ -30,20 +30,22 @@ export default async function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Desktop sidebar — fixed left, hidden on mobile */}
+      {/* Fixed full-width header (z-30) — spans edge to edge */}
+      <Suspense fallback={<DashboardHeaderSkeleton />}>
+        <DashboardHeaderSection />
+      </Suspense>
+
+      {/* Desktop sidebar — fixed, starts below the header (top-14) */}
       <AppSidebar />
 
-      {/* Main area shifted right of sidebar on desktop */}
-      <div className="flex min-h-screen flex-col lg:pl-56">
-        <Suspense fallback={<DashboardHeaderSkeleton />}>
-          <DashboardHeaderSection />
-        </Suspense>
-
-        {/* pb-24 on mobile leaves room for the bottom nav */}
-        <main className="flex-1 pb-24 lg:pb-8">{children}</main>
+      {/* Main content — offset top by header height, offset left by sidebar on desktop */}
+      <div className="pt-14 lg:pl-56">
+        <main className="mx-auto w-full max-w-[1400px] pb-24 lg:pb-8">
+          {children}
+        </main>
       </div>
 
-      {/* Mobile bottom nav — hidden on desktop */}
+      {/* Mobile bottom nav */}
       <MenuNavegation />
     </div>
   );

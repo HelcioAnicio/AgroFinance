@@ -22,7 +22,6 @@ import * as XLSX from 'xlsx';
 import { toast } from 'sonner';
 
 import { Animal } from '@/types/animal';
-import { LivestockStatsYear } from '@/types/livestockStats';
 import { User } from '@/types/user';
 import { ExternalBull } from '@/types/externalBull';
 import { Button } from '@/components/ui/button';
@@ -105,9 +104,6 @@ export function DashboardOverview() {
   const [animals, setAnimals] = useState<Animal[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [externalBulls, setExternalBulls] = useState<ExternalBull[]>([]);
-  const [livestockStats, setLivestockStats] = useState<LivestockStatsYear[]>(
-    []
-  );
   const [isLoading, setIsLoading] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [inputFile, setInputFile] = useState<File | null>(null);
@@ -116,9 +112,6 @@ export function DashboardOverview() {
   const [importIssues, setImportIssues] = useState<
     Array<{ row: number; message: string }>
   >([]);
-  const [selectedStatsYear, setSelectedStatsYear] = useState<number | null>(
-    null
-  );
 
   const router = useRouter();
 
@@ -130,17 +123,14 @@ export function DashboardOverview() {
       const data: {
         animals: Animal[];
         users: User[];
-        livestockStats: LivestockStatsYear[];
         externalBulls: ExternalBull[];
       } = await res.json();
       setAnimals(data.animals ?? []);
       setUsers(data.users ?? []);
-      setLivestockStats(data.livestockStats ?? []);
       setExternalBulls(data.externalBulls ?? []);
     } catch {
       setAnimals([]);
       setUsers([]);
-      setLivestockStats([]);
       setExternalBulls([]);
     } finally {
       setDataLoading(false);
@@ -150,39 +140,6 @@ export function DashboardOverview() {
   useEffect(() => {
     loadData();
   }, [loadData]);
-
-  const availableYears = useMemo(
-    () => livestockStats.map((s) => s.year),
-    [livestockStats]
-  );
-
-  useEffect(() => {
-    if (availableYears.length === 0) {
-      setSelectedStatsYear(null);
-      return;
-    }
-    const latestYear = Math.max(...availableYears);
-    setSelectedStatsYear((cur) =>
-      cur && availableYears.includes(cur) ? cur : latestYear
-    );
-  }, [availableYears]);
-
-  const selectedYearStats = useMemo(
-    () => livestockStats.find((s) => s.year === selectedStatsYear) ?? null,
-    [livestockStats, selectedStatsYear]
-  );
-
-  const maxMonthlyValue = useMemo(() => {
-    if (!selectedYearStats) return 1;
-    return Math.max(
-      ...selectedYearStats.months.flatMap((m) => [
-        m.maleBirths,
-        m.femaleBirths,
-        m.deaths,
-      ]),
-      1
-    );
-  }, [selectedYearStats]);
 
   const activeAnimals = animals.filter(
     (a) => a.status === 'active' && a.category !== 'neonate'
@@ -352,7 +309,7 @@ export function DashboardOverview() {
         </div>
         <div className="grid gap-6 xl:grid-cols-12">
           <Skeleton className="h-72 rounded-2xl xl:col-span-8" />
-          <Skeleton className="h-72 rounded-2xl xl:col-span-4" />
+          <Skeleton className="h-52 rounded-2xl xl:col-span-4" />
         </div>
       </main>
     );
@@ -546,7 +503,7 @@ export function DashboardOverview() {
               Ver todos
             </Link>
           </div>
-          <div className="overflow-x-auto">
+          <div className="max-h-[340px] overflow-auto">
             <table className="w-full text-left text-sm">
               <thead className="bg-muted text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
                 <tr>
@@ -621,210 +578,6 @@ export function DashboardOverview() {
 
         {/* Right Sidebar */}
         <aside className="flex flex-col gap-5 xl:col-span-4">
-          {/* Natalidade e Mortalidade */}
-          <div className="rounded-2xl border bg-white p-5 shadow-sm">
-            <div className="mb-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <h2 className="font-bold text-foreground">
-                  Natalidade e Mortalidade
-                </h2>
-                <Link
-                  href="/dashboard/reports/birth-mortality"
-                  className="rounded-lg border px-2 py-1 text-[11px] font-semibold text-muted-foreground hover:bg-muted/20 hover:text-primary transition-colors"
-                >
-                  Ver relatório
-                </Link>
-              </div>
-              {availableYears.length > 0 && (
-                <select
-                  className="rounded-md border bg-background px-2 py-1 text-xs outline-none"
-                  value={selectedStatsYear ?? ''}
-                  onChange={(e) => setSelectedStatsYear(Number(e.target.value))}
-                >
-                  {availableYears
-                    .slice()
-                    .sort((a, b) => b - a)
-                    .map((y) => (
-                      <option key={y} value={y}>
-                        {y}
-                      </option>
-                    ))}
-                </select>
-              )}
-            </div>
-
-            {selectedYearStats ? (
-              <>
-                <div className="mb-4 flex flex-wrap gap-2 text-xs">
-                  <span className="rounded bg-blue-50 px-2 py-1 font-semibold text-blue-700">
-                    Machos: {selectedYearStats.totalMaleBirths}
-                  </span>
-                  <span className="rounded bg-pink-50 px-2 py-1 font-semibold text-pink-600">
-                    Fêmeas: {selectedYearStats.totalFemaleBirths}
-                  </span>
-                  <span className="rounded bg-gray-100 px-2 py-1 font-semibold text-gray-700">
-                    Mortes: {selectedYearStats.totalDeaths}
-                  </span>
-                </div>
-
-                <div className="max-h-[50vh] space-y-2 overflow-y-auto pr-1 text-xs">
-                  {selectedYearStats.months
-                    .filter(
-                      (m) =>
-                        m.maleBirths > 0 ||
-                        m.femaleBirths > 0 ||
-                        m.deaths > 0 ||
-                        m.statusChanges > 0
-                    )
-                    .map((month) => {
-                      const malePercent =
-                        (month.maleBirths / maxMonthlyValue) * 100;
-                      const femalePercent =
-                        (month.femaleBirths / maxMonthlyValue) * 100;
-                      const deathPercent =
-                        (month.deaths / maxMonthlyValue) * 100;
-                      const monthStatuses = month.statusBreakdown.filter(
-                        (s) => s.total > 0 && s.status !== 'dead'
-                      );
-                      const maxMonthStatus = Math.max(
-                        ...monthStatuses.map((s) => s.total),
-                        1
-                      );
-
-                      return (
-                        <div
-                          key={month.month}
-                          className="rounded-lg border p-3"
-                        >
-                          <div className="mb-2 flex items-center justify-between text-[11px]">
-                            <span className="font-semibold">{month.label}</span>
-                            <span className="text-muted-foreground">
-                              {month.statusChanges} alteração
-                              {month.statusChanges !== 1 ? 'ões' : ''}
-                            </span>
-                          </div>
-                          <div className="space-y-1.5">
-                            {month.maleBirths > 0 && (
-                              <div className="flex items-center gap-2">
-                                <span className="w-12 text-[10px]">Machos</span>
-                                <div className="h-2 flex-1 rounded bg-muted">
-                                  <div
-                                    className="h-2 rounded bg-blue-500"
-                                    style={{ width: `${malePercent}%` }}
-                                  />
-                                </div>
-                                <span className="w-4 text-right">
-                                  {month.maleBirths}
-                                </span>
-                              </div>
-                            )}
-                            {month.femaleBirths > 0 && (
-                              <div className="flex items-center gap-2">
-                                <span className="w-12 text-[10px]">Fêmeas</span>
-                                <div className="h-2 flex-1 rounded bg-muted">
-                                  <div
-                                    className="h-2 rounded bg-pink-500"
-                                    style={{ width: `${femalePercent}%` }}
-                                  />
-                                </div>
-                                <span className="w-4 text-right">
-                                  {month.femaleBirths}
-                                </span>
-                              </div>
-                            )}
-                            {month.deaths > 0 && (
-                              <div className="flex items-center gap-2">
-                                <span className="w-12 text-[10px]">Mortes</span>
-                                <div className="h-2 flex-1 rounded bg-muted">
-                                  <div
-                                    className="h-2 rounded bg-gray-700"
-                                    style={{ width: `${deathPercent}%` }}
-                                  />
-                                </div>
-                                <span className="w-4 text-right">
-                                  {month.deaths}
-                                </span>
-                              </div>
-                            )}
-                            {monthStatuses.map((statusItem) => {
-                              const percent =
-                                (statusItem.total / maxMonthStatus) * 100;
-                              const genderDetail =
-                                statusItem.males > 0 || statusItem.females > 0
-                                  ? ` (${statusItem.males > 0 ? `${statusItem.males}♂` : ''}${statusItem.males > 0 && statusItem.females > 0 ? ' ' : ''}${statusItem.females > 0 ? `${statusItem.females}♀` : ''})`
-                                  : '';
-                              return (
-                                <div
-                                  key={`${month.month}-${statusItem.status}`}
-                                  className="flex items-center gap-2"
-                                >
-                                  <span
-                                    className="w-14 truncate text-[10px]"
-                                    title={statusItem.label + genderDetail}
-                                  >
-                                    {statusItem.label}
-                                  </span>
-                                  <div className="h-2 flex-1 rounded bg-muted">
-                                    <div
-                                      className={`h-2 rounded ${getStatusBarColor(statusItem.status)}`}
-                                      style={{ width: `${percent}%` }}
-                                    />
-                                  </div>
-                                  <span className="w-4 text-right">
-                                    {statusItem.total}
-                                  </span>
-                                </div>
-                              );
-                            })}
-                            {/* Gender detail for each status */}
-                            {monthStatuses.some(
-                              (s) => s.males > 0 || s.females > 0
-                            ) && (
-                              <div className="mt-1 border-t pt-1 text-[9px] text-muted-foreground">
-                                {monthStatuses
-                                  .filter((s) => s.males > 0 || s.females > 0)
-                                  .map((s) => (
-                                    <span key={s.status} className="mr-2">
-                                      {s.label}:{' '}
-                                      {s.males > 0 && (
-                                        <span className="text-blue-600">
-                                          {s.males}♂
-                                        </span>
-                                      )}
-                                      {s.males > 0 && s.females > 0 && ' '}
-                                      {s.females > 0 && (
-                                        <span className="text-pink-600">
-                                          {s.females}♀
-                                        </span>
-                                      )}
-                                    </span>
-                                  ))}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  {selectedYearStats.months.every(
-                    (m) =>
-                      m.maleBirths === 0 &&
-                      m.femaleBirths === 0 &&
-                      m.deaths === 0 &&
-                      m.statusChanges === 0
-                  ) && (
-                    <p className="py-4 text-center text-muted-foreground">
-                      Sem eventos registrados em {selectedStatsYear}.
-                    </p>
-                  )}
-                </div>
-              </>
-            ) : (
-              <p className="py-4 text-center text-xs text-muted-foreground">
-                Sem dados de nascimento/mortalidade.
-              </p>
-            )}
-          </div>
-
           {/* Alertas de Revacinação */}
           <div className="rounded-2xl border bg-white p-5 shadow-sm">
             <div className="mb-3 flex items-center gap-2">

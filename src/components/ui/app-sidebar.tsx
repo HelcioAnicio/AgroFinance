@@ -2,7 +2,6 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import { LayoutDashboard, Users, BarChart2, LogOut } from 'lucide-react';
 import { GiCow } from 'react-icons/gi';
 import { IoMaleFemaleSharp } from 'react-icons/io5';
@@ -65,23 +64,8 @@ export function AppSidebar() {
   }
 
   return (
-    <aside className="fixed left-0 top-0 z-40 hidden h-screen w-56 flex-col border-r bg-white shadow-sm lg:flex">
-      {/* Logo */}
-      <Link
-        href="/dashboard"
-        className="flex items-center gap-2.5 border-b px-5 py-4 hover:opacity-80 transition-opacity"
-      >
-        <Image
-          src="/logo.png"
-          alt="AgroFinance"
-          width={40}
-          height={40}
-          className="size-10"
-          priority
-        />
-        <span className="text-sm font-bold text-foreground">AgroFinance</span>
-      </Link>
-
+    /* Starts at top-14 (below the fixed header) */
+    <aside className="fixed left-0 top-14 z-40 hidden h-[calc(100vh-56px)] w-56 flex-col border-r bg-white lg:flex">
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto px-3 py-5">
         <p className="mb-2 px-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
