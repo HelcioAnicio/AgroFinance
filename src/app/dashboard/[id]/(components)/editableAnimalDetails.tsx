@@ -12,7 +12,7 @@ import { Separator } from '@/components/ui/separator';
 import { Card, CardTitle } from '@/components/ui/card';
 import { CardReproduction } from './isNotEditing/cardReproduction';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Pencil, Plus, Trash2, Users } from 'lucide-react';
+import { ArrowLeft, Check, Pencil, Plus, Trash2, Users, X } from 'lucide-react';
 import { FormBasicInformation } from './isEditing/formBasicInformation';
 import { FormMaleReproductive } from './isEditing/formMaleReproductive';
 import { FormPevStatus } from './isEditing/formPevStatus';
@@ -27,7 +27,7 @@ import {
   TbZoomQuestionFilled,
   TbTrashXFilled,
 } from 'react-icons/tb';
-import { weightRecordTypeLabel } from '@/lib/weightHistory';
+import { weightRecordOptions, weightRecordTypeLabel } from '@/lib/weightHistory';
 import {
   buildExternalBullValue,
   extractExternalBullId,
@@ -151,6 +151,15 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [openSanitaryModal, setOpenSanitaryModal] = useState(false);
   const [openGenealogyModal, setOpenGenealogyModal] = useState(false);
+
+  // Weight history inline edit
+  const [editingWeightId, setEditingWeightId] = useState<string | null>(null);
+  const [editingWeightData, setEditingWeightData] = useState({ weight: '', recordType: 'OTHER', measuredAt: '' });
+
+  // Sanitary inline edit
+  const [editingSanitaryId, setEditingSanitaryId] = useState<string | null>(null);
+  const [editingSanitaryType, setEditingSanitaryType] = useState<string>('vaccine');
+  const [editingSanitaryData, setEditingSanitaryData] = useState({ name: '', description: '', date: '', expiryDate: '' });
   const [pricePerArroba, setPricePerArroba] = useState<string>(() =>
     typeof window !== 'undefined'
       ? (localStorage.getItem('agrofinance_arroba_price') ?? '')
@@ -496,6 +505,89 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const saveWeightHistory = async (id: string) => {
+    const tid = toast.loading('Salvando pesagem...');
+    try {
+      const res = await fetch(`/api/weight-history?id=${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editingWeightData),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Erro');
+      toast.dismiss(tid);
+      toast.success('Pesagem atualizada.');
+      setAllDataForm((prev) => ({
+        ...prev,
+        weightHistories: (prev.weightHistories ?? []).map((h) =>
+          h.id === id ? { ...h, weight: Number(editingWeightData.weight), recordType: editingWeightData.recordType as AnimalWeightHistory['recordType'], measuredAt: new Date(editingWeightData.measuredAt) } : h
+        ),
+      }));
+      setEditingWeightId(null);
+    } catch (e) {
+      toast.dismiss(tid);
+      toast.error(e instanceof Error ? e.message : 'Erro ao salvar.');
+    }
+  };
+
+  const deleteWeightHistory = async (id: string) => {
+    if (!window.confirm('Excluir esta pesagem?')) return;
+    const tid = toast.loading('Excluindo pesagem...');
+    try {
+      const res = await fetch(`/api/weight-history?id=${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error((await res.json()).error ?? 'Erro');
+      toast.dismiss(tid);
+      toast.success('Pesagem excluída.');
+      setAllDataForm((prev) => ({
+        ...prev,
+        weightHistories: (prev.weightHistories ?? []).filter((h) => h.id !== id),
+      }));
+    } catch (e) {
+      toast.dismiss(tid);
+      toast.error(e instanceof Error ? e.message : 'Erro ao excluir.');
+    }
+  };
+
+  const saveSanitary = async (id: string, type: string) => {
+    const tid = toast.loading('Salvando registro sanitário...');
+    try {
+      const res = await fetch(`/api/sanitary?id=${id}&type=${type}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editingSanitaryData),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Erro');
+      toast.dismiss(tid);
+      toast.success('Registro atualizado.');
+      const updated = data.data;
+      if (type === 'vaccine') setListVaccines((prev) => prev.map((v) => (v.id === id ? { ...v, ...updated } : v)));
+      if (type === 'deworming') setListDewormings((prev) => prev.map((d) => (d.id === id ? { ...d, ...updated } : d)));
+      if (type === 'disease') setListDiseases((prev) => prev.map((d) => (d.id === id ? { ...d, ...updated } : d)));
+      setEditingSanitaryId(null);
+    } catch (e) {
+      toast.dismiss(tid);
+      toast.error(e instanceof Error ? e.message : 'Erro ao salvar.');
+    }
+  };
+
+  const deleteSanitary = async (id: string, type: string) => {
+    if (!window.confirm('Excluir este registro sanitário?')) return;
+    const tid = toast.loading('Excluindo...');
+    try {
+      const res = await fetch(`/api/sanitary?id=${id}&type=${type}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error((await res.json()).error ?? 'Erro');
+      toast.dismiss(tid);
+      toast.success('Registro excluído.');
+      if (type === 'vaccine') setListVaccines((prev) => prev.filter((v) => v.id !== id));
+      if (type === 'deworming') setListDewormings((prev) => prev.filter((d) => d.id !== id));
+      if (type === 'disease') setListDiseases((prev) => prev.filter((d) => d.id !== id));
+    } catch (e) {
+      toast.dismiss(tid);
+      toast.error(e instanceof Error ? e.message : 'Erro ao excluir.');
+    }
+  };
 
   const calcLifetime = () => {
     if (!allDataForm.birthDate) return 'N/A';
@@ -1272,20 +1364,94 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
               <h2 className="mb-3 font-bold">Histórico de peso</h2>
               {allDataForm.weightHistories?.length ? (
                 <div className="space-y-2">
-                  {allDataForm.weightHistories.map((h: AnimalWeightHistory) => (
-                    <div
-                      key={h.id}
-                      className="grid grid-cols-3 rounded-lg bg-muted/20 px-3 py-2 text-sm"
-                    >
-                      <span>{weightRecordTypeLabel(h.recordType)}</span>
-                      <span className="font-semibold text-primary">
-                        {h.weight} kg
-                      </span>
-                      <span className="text-right text-muted-foreground">
-                        {new Date(h.measuredAt).toLocaleDateString('pt-BR')}
-                      </span>
-                    </div>
-                  ))}
+                  {allDataForm.weightHistories.map((h: AnimalWeightHistory) => {
+                    const isEditingThis = editingWeightId === h.id;
+                    return (
+                      <div key={h.id} className="rounded-lg bg-muted/20 px-3 py-2 text-sm">
+                        {isEditingThis ? (
+                          <div className="flex flex-col gap-2">
+                            <div className="grid grid-cols-3 gap-2">
+                              <div>
+                                <label className="text-[10px] font-semibold uppercase text-muted-foreground">Peso (kg)</label>
+                                <input
+                                  type="number"
+                                  value={editingWeightData.weight}
+                                  onChange={(e) => setEditingWeightData((p) => ({ ...p, weight: e.target.value }))}
+                                  className="w-full rounded border border-input px-2 py-1 text-xs outline-none focus:border-primary"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-[10px] font-semibold uppercase text-muted-foreground">Tipo</label>
+                                <select
+                                  value={editingWeightData.recordType}
+                                  onChange={(e) => setEditingWeightData((p) => ({ ...p, recordType: e.target.value }))}
+                                  className="w-full rounded border border-input px-2 py-1 text-xs outline-none focus:border-primary"
+                                >
+                                  {weightRecordOptions.map((o) => (
+                                    <option key={o.value} value={o.value}>{o.label}</option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div>
+                                <label className="text-[10px] font-semibold uppercase text-muted-foreground">Data</label>
+                                <input
+                                  type="date"
+                                  value={editingWeightData.measuredAt}
+                                  onChange={(e) => setEditingWeightData((p) => ({ ...p, measuredAt: e.target.value }))}
+                                  className="w-full rounded border border-input px-2 py-1 text-xs outline-none focus:border-primary"
+                                />
+                              </div>
+                            </div>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => saveWeightHistory(h.id)}
+                                className="flex items-center gap-1 rounded-lg bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground"
+                              >
+                                <Check className="size-3" /> Salvar
+                              </button>
+                              <button
+                                onClick={() => setEditingWeightId(null)}
+                                className="flex items-center gap-1 rounded-lg border px-3 py-1 text-xs text-muted-foreground hover:bg-muted"
+                              >
+                                <X className="size-3" /> Cancelar
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="grid flex-1 grid-cols-3 gap-1">
+                              <span className="text-muted-foreground">{weightRecordTypeLabel(h.recordType)}</span>
+                              <span className="font-semibold text-primary">{h.weight} kg</span>
+                              <span className="text-right text-muted-foreground">{new Date(h.measuredAt).toLocaleDateString('pt-BR')}</span>
+                            </div>
+                            <div className="flex shrink-0 items-center gap-1">
+                              <button
+                                onClick={() => {
+                                  setEditingWeightId(h.id);
+                                  setEditingWeightData({
+                                    weight: String(h.weight),
+                                    recordType: h.recordType ?? 'OTHER',
+                                    measuredAt: new Date(h.measuredAt).toISOString().split('T')[0],
+                                  });
+                                }}
+                                className="rounded p-1 text-muted-foreground hover:bg-white hover:text-primary"
+                                title="Editar"
+                              >
+                                <Pencil className="size-3" />
+                              </button>
+                              <button
+                                onClick={() => deleteWeightHistory(h.id)}
+                                className="rounded p-1 text-muted-foreground hover:bg-white hover:text-red-500"
+                                title="Excluir"
+                              >
+                                <Trash2 className="size-3" />
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground">
@@ -1342,37 +1508,120 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
               <h2 className="mb-3 font-bold">Registros sanitários</h2>
               {sanitaryRecords.length > 0 ? (
                 <div className="space-y-2">
-                  {sanitaryRecords.map((r) => (
-                    <div
-                      key={`${r.typeLabel}-${r.id}`}
-                      className="rounded-xl bg-muted/20 px-3 py-3 text-sm"
-                    >
-                      <div className="mb-1 flex items-center gap-2">
-                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
-                          {r.typeLabel}
-                        </span>
-                        <span className="font-semibold">{r.name}</span>
-                      </div>
-                      {r.description && (
-                        <p className="text-xs text-muted-foreground">
-                          {r.description}
-                        </p>
-                      )}
-                      <div className="mt-1 flex gap-4 text-xs text-muted-foreground">
-                        <span>
-                          {r.date
-                            ? new Date(r.date).toLocaleDateString('pt-BR')
-                            : 'N/A'}
-                        </span>
-                        {r.expiryDate && (
-                          <span>
-                            Vence:{' '}
-                            {new Date(r.expiryDate).toLocaleDateString('pt-BR')}
-                          </span>
+                  {sanitaryRecords.map((r) => {
+                    const rawType = r.typeLabel === 'Vacina' ? 'vaccine' : r.typeLabel === 'Vermifugação' ? 'deworming' : 'disease';
+                    const hasExpiry = rawType === 'vaccine';
+                    const isEditingThis = editingSanitaryId === r.id;
+                    return (
+                      <div key={`${r.typeLabel}-${r.id}`} className="rounded-xl bg-muted/20 px-3 py-3 text-sm">
+                        {isEditingThis ? (
+                          <div className="flex flex-col gap-2">
+                            <div className="grid grid-cols-2 gap-2">
+                              <div className="col-span-2">
+                                <label className="text-[10px] font-semibold uppercase text-muted-foreground">Nome</label>
+                                <input
+                                  type="text"
+                                  value={editingSanitaryData.name}
+                                  onChange={(e) => setEditingSanitaryData((p) => ({ ...p, name: e.target.value }))}
+                                  className="w-full rounded border border-input px-2 py-1 text-xs outline-none focus:border-primary"
+                                />
+                              </div>
+                              {rawType !== 'deworming' && (
+                                <div className="col-span-2">
+                                  <label className="text-[10px] font-semibold uppercase text-muted-foreground">Descrição</label>
+                                  <input
+                                    type="text"
+                                    value={editingSanitaryData.description}
+                                    onChange={(e) => setEditingSanitaryData((p) => ({ ...p, description: e.target.value }))}
+                                    className="w-full rounded border border-input px-2 py-1 text-xs outline-none focus:border-primary"
+                                  />
+                                </div>
+                              )}
+                              <div>
+                                <label className="text-[10px] font-semibold uppercase text-muted-foreground">Data</label>
+                                <input
+                                  type="date"
+                                  value={editingSanitaryData.date}
+                                  onChange={(e) => setEditingSanitaryData((p) => ({ ...p, date: e.target.value }))}
+                                  className="w-full rounded border border-input px-2 py-1 text-xs outline-none focus:border-primary"
+                                />
+                              </div>
+                              {hasExpiry && (
+                                <div>
+                                  <label className="text-[10px] font-semibold uppercase text-muted-foreground">Vencimento</label>
+                                  <input
+                                    type="date"
+                                    value={editingSanitaryData.expiryDate}
+                                    onChange={(e) => setEditingSanitaryData((p) => ({ ...p, expiryDate: e.target.value }))}
+                                    className="w-full rounded border border-input px-2 py-1 text-xs outline-none focus:border-primary"
+                                  />
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => saveSanitary(r.id, rawType)}
+                                className="flex items-center gap-1 rounded-lg bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground"
+                              >
+                                <Check className="size-3" /> Salvar
+                              </button>
+                              <button
+                                onClick={() => setEditingSanitaryId(null)}
+                                className="flex items-center gap-1 rounded-lg border px-3 py-1 text-xs text-muted-foreground hover:bg-muted"
+                              >
+                                <X className="size-3" /> Cancelar
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div>
+                            <div className="mb-1 flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-2">
+                                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
+                                  {r.typeLabel}
+                                </span>
+                                <span className="font-semibold">{r.name}</span>
+                              </div>
+                              <div className="flex shrink-0 items-center gap-1">
+                                <button
+                                  onClick={() => {
+                                    setEditingSanitaryId(r.id);
+                                    setEditingSanitaryType(rawType);
+                                    setEditingSanitaryData({
+                                      name: r.name,
+                                      description: r.description ?? '',
+                                      date: r.date ? new Date(r.date).toISOString().split('T')[0] : '',
+                                      expiryDate: r.expiryDate ? new Date(r.expiryDate).toISOString().split('T')[0] : '',
+                                    });
+                                  }}
+                                  className="rounded p-1 text-muted-foreground hover:bg-white hover:text-primary"
+                                  title="Editar"
+                                >
+                                  <Pencil className="size-3" />
+                                </button>
+                                <button
+                                  onClick={() => deleteSanitary(r.id, rawType)}
+                                  className="rounded p-1 text-muted-foreground hover:bg-white hover:text-red-500"
+                                  title="Excluir"
+                                >
+                                  <Trash2 className="size-3" />
+                                </button>
+                              </div>
+                            </div>
+                            {r.description && (
+                              <p className="text-xs text-muted-foreground">{r.description}</p>
+                            )}
+                            <div className="mt-1 flex gap-4 text-xs text-muted-foreground">
+                              <span>{r.date ? new Date(r.date).toLocaleDateString('pt-BR') : 'N/A'}</span>
+                              {r.expiryDate && (
+                                <span>Vence: {new Date(r.expiryDate).toLocaleDateString('pt-BR')}</span>
+                              )}
+                            </div>
+                          </div>
                         )}
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground">
