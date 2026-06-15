@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { SquareArrowOutUpLeft } from 'lucide-react';
+import { ChevronUp, SquareArrowOutUpLeft } from 'lucide-react';
 import { CirclePlus } from 'lucide-react';
 import { FaFilter, FaCheckCircle } from 'react-icons/fa';
 import { IoSkull, IoDownloadOutline } from 'react-icons/io5';
@@ -168,6 +168,7 @@ export const Table: React.FC<TableProps> = ({
   const [carcassPercent, setCarcassPercent] = useState('50');
   const [saleDialogOpen, setSaleDialogOpen] = useState(false);
   const [saleAction, setSaleAction] = useState<'sell' | 'trash'>('sell');
+  const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false);
 
   const router = useRouter();
 
@@ -576,13 +577,13 @@ export const Table: React.FC<TableProps> = ({
                   />
                 </Sheet>
                 <input
-                  className="w-full min-w-28 max-w-40 border border-b-gray-400 bg-input p-1 shadow-sm outline-none"
+                  className="w-28 border border-b-gray-400 bg-input p-1 shadow-sm outline-none sm:w-36"
                   type="search"
                   name="inputSearch"
                   id="inputSearch"
                   placeholder="Pesquisar ID"
                   onChange={(event) => setInputValue(event.target.value)}
-                />{' '}
+                />
                 <button
                   onClick={toggleSaleMode}
                   className={`rounded-sm border px-2 py-1 text-xs font-semibold transition-colors ${
@@ -1185,108 +1186,187 @@ export const Table: React.FC<TableProps> = ({
           </div>
 
           {isSaleMode && selectedIds.size > 0 && (
-            <div className="fixed bottom-20 left-1/2 z-50 w-full max-w-3xl -translate-x-1/2 rounded-xl border bg-white px-4 py-3 shadow-2xl lg:bottom-4">
-              {/* Summary row */}
-              <div className="mb-2 flex flex-wrap gap-3 text-xs text-muted-foreground">
-                <span className="font-semibold text-foreground">
-                  {selectedIds.size} animal{selectedIds.size !== 1 ? 'is' : ''}{' '}
-                  selecionado{selectedIds.size !== 1 ? 's' : ''}
-                </span>
-                <span>
-                  Peso total: <strong>{totalWeight.toFixed(0)} kg</strong>
-                </span>
-                <span>
-                  Peso médio: <strong>{avgWeight.toFixed(0)} kg</strong>
-                </span>
-                <span>
-                  Arroba bruta: <strong>{arrobaCount.toFixed(1)} @</strong>
-                </span>
-                <span>
-                  Arroba carcaça: <strong>{carcassArrobas.toFixed(1)} @</strong>
-                </span>
+            <>
+              {/* ── Mobile compact bar (< sm) ── */}
+              <div className="fixed bottom-20 left-1/2 z-50 w-[calc(100%-1rem)] -translate-x-1/2 sm:hidden">
+                <div className="flex items-center justify-between rounded-xl border bg-white px-3 py-2 shadow-2xl">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-foreground">
+                      {selectedIds.size} animal{selectedIds.size !== 1 ? 'is' : ''}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      · {totalWeight.toFixed(0)} kg
+                    </span>
+                    <button
+                      onClick={() => setMobileSummaryOpen(true)}
+                      className="rounded-full border p-0.5 text-muted-foreground transition hover:bg-muted"
+                    >
+                      <ChevronUp size={14} />
+                    </button>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => { setSaleAction('trash'); setSaleDialogOpen(true); }}
+                      className="rounded-lg border border-red-300 bg-red-50 px-2 py-1 text-xs font-semibold text-red-700"
+                    >
+                      Descarte
+                    </button>
+                    <button
+                      onClick={() => { setSaleAction('sell'); setSaleDialogOpen(true); }}
+                      className="rounded-lg bg-primary px-2 py-1 text-xs font-semibold text-primary-foreground"
+                    >
+                      Vender
+                    </button>
+                  </div>
+                </div>
               </div>
 
-              {/* Inputs + actions row */}
-              <div className="flex flex-wrap items-center gap-2">
-                {/* Carcass % */}
-                <div className="flex items-center gap-1 text-xs">
-                  <label className="font-medium text-muted-foreground">
-                    % Carcaça
-                  </label>
-                  <input
-                    type="number"
-                    min={1}
-                    max={100}
-                    step={1}
-                    value={carcassPercent}
-                    onChange={(e) => setCarcassPercent(e.target.value)}
-                    className="w-14 rounded border px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-primary"
-                  />
+              {/* ── Mobile detail sheet ── */}
+              {mobileSummaryOpen && (
+                <div
+                  className="fixed inset-0 z-[60] flex items-end sm:hidden"
+                  onClick={() => setMobileSummaryOpen(false)}
+                >
+                  <div
+                    className="w-full rounded-t-2xl border bg-white px-4 pb-6 pt-4 shadow-2xl"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="mb-3 flex items-center justify-between">
+                      <h3 className="text-sm font-bold">
+                        {selectedIds.size} animal{selectedIds.size !== 1 ? 'is' : ''} selecionado{selectedIds.size !== 1 ? 's' : ''}
+                      </h3>
+                      <button
+                        onClick={() => setMobileSummaryOpen(false)}
+                        className="text-muted-foreground"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <div className="mb-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                      <span>Peso total: <strong>{totalWeight.toFixed(0)} kg</strong></span>
+                      {selectedIds.size > 1 && (
+                        <span>Peso médio: <strong>{avgWeight.toFixed(0)} kg</strong></span>
+                      )}
+                      {selectedIds.size > 1 && (
+                        <span>Arroba bruta: <strong>{arrobaCount.toFixed(1)} @</strong></span>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <div className="flex items-center gap-1 text-xs">
+                        <label className="font-medium text-muted-foreground">% Carcaça</label>
+                        <input
+                          type="number" min={1} max={100} step={1}
+                          value={carcassPercent}
+                          onChange={(e) => setCarcassPercent(e.target.value)}
+                          className="w-14 rounded border px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-primary"
+                        />
+                      </div>
+                      <div className="flex items-center gap-1 text-xs">
+                        <label className="font-medium text-muted-foreground">R$/@</label>
+                        <input
+                          type="number" min={0} step={1}
+                          value={pricePerArroba}
+                          onChange={(e) => setPricePerArroba(e.target.value)}
+                          placeholder="0"
+                          className="w-20 rounded border px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-primary"
+                        />
+                      </div>
+                      {pricePerArrobaNum > 0 && (
+                        <>
+                          <span className="text-xs">Por cabeça: <strong>R$ {pricePerHead.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></span>
+                          <span className="text-xs">Total: <strong className="text-primary">R$ {totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></span>
+                        </>
+                      )}
+                    </div>
+                    <div className="mt-3 flex gap-2">
+                      <button
+                        onClick={() => { setSaleAction('trash'); setMobileSummaryOpen(false); setSaleDialogOpen(true); }}
+                        className="flex-1 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700"
+                      >
+                        Alterar para descarte
+                      </button>
+                      <button
+                        onClick={() => { setSaleAction('sell'); setMobileSummaryOpen(false); setSaleDialogOpen(true); }}
+                        className="flex-1 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground"
+                      >
+                        Vender animais
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Desktop full bar (≥ sm) ── */}
+              <div className="fixed bottom-20 left-1/2 z-50 hidden w-full max-w-3xl -translate-x-1/2 rounded-xl border bg-white px-4 py-3 shadow-2xl sm:block lg:bottom-4">
+                {/* Summary row */}
+                <div className="mb-2 flex flex-wrap gap-3 text-xs text-muted-foreground">
+                  <span className="font-semibold text-foreground">
+                    {selectedIds.size} animal{selectedIds.size !== 1 ? 'is' : ''}{' '}
+                    selecionado{selectedIds.size !== 1 ? 's' : ''}
+                  </span>
+                  <span>
+                    Peso total: <strong>{totalWeight.toFixed(0)} kg</strong>
+                  </span>
+                  {selectedIds.size > 1 && (
+                    <span>
+                      Peso médio: <strong>{avgWeight.toFixed(0)} kg</strong>
+                    </span>
+                  )}
+                  {selectedIds.size > 1 && (
+                    <span>
+                      Arroba bruta: <strong>{arrobaCount.toFixed(1)} @</strong>
+                    </span>
+                  )}
                 </div>
 
-                {/* R$/@ */}
-                <div className="flex items-center gap-1 text-xs">
-                  <label className="font-medium text-muted-foreground">
-                    R$/@
-                  </label>
-                  <input
-                    type="number"
-                    min={0}
-                    step={1}
-                    value={pricePerArroba}
-                    onChange={(e) => setPricePerArroba(e.target.value)}
-                    placeholder="0"
-                    className="w-20 rounded border px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-primary"
-                  />
-                </div>
-
-                {pricePerArrobaNum > 0 && (
-                  <>
-                    <span className="text-xs">
-                      Por cabeça:{' '}
-                      <strong>
-                        R${' '}
-                        {pricePerHead.toLocaleString('pt-BR', {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
-                      </strong>
-                    </span>
-                    <span className="text-xs">
-                      Total:{' '}
-                      <strong className="text-primary">
-                        R${' '}
-                        {totalValue.toLocaleString('pt-BR', {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
-                      </strong>
-                    </span>
-                  </>
-                )}
-
-                <div className="ml-auto flex gap-2">
-                  <button
-                    onClick={() => {
-                      setSaleAction('trash');
-                      setSaleDialogOpen(true);
-                    }}
-                    className="rounded-lg border border-red-300 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-100"
-                  >
-                    Alterar para descarte
-                  </button>
-                  <button
-                    onClick={() => {
-                      setSaleAction('sell');
-                      setSaleDialogOpen(true);
-                    }}
-                    className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition hover:opacity-90"
-                  >
-                    Vender animais
-                  </button>
+                {/* Inputs + actions row */}
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex items-center gap-1 text-xs">
+                    <label className="font-medium text-muted-foreground">% Carcaça</label>
+                    <input
+                      type="number" min={1} max={100} step={1}
+                      value={carcassPercent}
+                      onChange={(e) => setCarcassPercent(e.target.value)}
+                      className="w-14 rounded border px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                  <div className="flex items-center gap-1 text-xs">
+                    <label className="font-medium text-muted-foreground">R$/@</label>
+                    <input
+                      type="number" min={0} step={1}
+                      value={pricePerArroba}
+                      onChange={(e) => setPricePerArroba(e.target.value)}
+                      placeholder="0"
+                      className="w-20 rounded border px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                  {pricePerArrobaNum > 0 && (
+                    <>
+                      <span className="text-xs">
+                        Por cabeça: <strong>R$ {pricePerHead.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                      </span>
+                      <span className="text-xs">
+                        Total: <strong className="text-primary">R$ {totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                      </span>
+                    </>
+                  )}
+                  <div className="ml-auto flex gap-2">
+                    <button
+                      onClick={() => { setSaleAction('trash'); setSaleDialogOpen(true); }}
+                      className="rounded-lg border border-red-300 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-100"
+                    >
+                      Alterar para descarte
+                    </button>
+                    <button
+                      onClick={() => { setSaleAction('sell'); setSaleDialogOpen(true); }}
+                      className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition hover:opacity-90"
+                    >
+                      Vender animais
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
+            </>
           )}
 
           {/* Execution confirmation dialog */}
