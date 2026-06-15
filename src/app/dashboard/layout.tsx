@@ -1,4 +1,5 @@
 import { MenuNavegation } from '@/components/ui/menu';
+import { AppSidebar } from '@/components/ui/app-sidebar';
 import { Suspense } from 'react';
 import { DashboardHeaderSkeleton } from './_components/dashboardHeaderSkeleton';
 import { DashboardHeaderSection } from './_components/dashboardHeaderSection';
@@ -28,11 +29,21 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen">
-      <Suspense fallback={<DashboardHeaderSkeleton />}>
-        <DashboardHeaderSection />
-      </Suspense>
-      <main className="pb-20">{children}</main>
+    <div className="min-h-screen bg-background">
+      {/* Desktop sidebar — fixed left, hidden on mobile */}
+      <AppSidebar />
+
+      {/* Main area shifted right of sidebar on desktop */}
+      <div className="flex min-h-screen flex-col lg:pl-56">
+        <Suspense fallback={<DashboardHeaderSkeleton />}>
+          <DashboardHeaderSection />
+        </Suspense>
+
+        {/* pb-24 on mobile leaves room for the bottom nav */}
+        <main className="flex-1 pb-24 lg:pb-8">{children}</main>
+      </div>
+
+      {/* Mobile bottom nav — hidden on desktop */}
       <MenuNavegation />
     </div>
   );

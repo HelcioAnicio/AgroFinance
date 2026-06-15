@@ -624,9 +624,17 @@ export function DashboardOverview() {
           {/* Natalidade e Mortalidade */}
           <div className="rounded-2xl border bg-white p-5 shadow-sm">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="font-bold text-foreground">
-                Natalidade e Mortalidade
-              </h2>
+              <div className="flex items-center gap-3">
+                <h2 className="font-bold text-foreground">
+                  Natalidade e Mortalidade
+                </h2>
+                <Link
+                  href="/dashboard/reports/birth-mortality"
+                  className="rounded-lg border px-2 py-1 text-[11px] font-semibold text-muted-foreground hover:bg-muted/20 hover:text-primary transition-colors"
+                >
+                  Ver relatório
+                </Link>
+              </div>
               {availableYears.length > 0 && (
                 <select
                   className="rounded-md border bg-background px-2 py-1 text-xs outline-none"

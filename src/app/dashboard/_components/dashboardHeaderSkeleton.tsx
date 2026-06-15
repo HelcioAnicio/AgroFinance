@@ -2,20 +2,16 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export function DashboardHeaderSkeleton() {
   return (
-    <header className="flex w-full items-center justify-between p-2">
-      <div className="w-1/3">
-        <Skeleton className="size-16 rounded-md" />
+    <header className="sticky top-0 z-30 flex w-full items-center justify-between border-b bg-white/90 px-4 py-2 backdrop-blur-sm">
+      {/* Mobile logo placeholder */}
+      <Skeleton className="size-12 rounded-md lg:hidden" />
+
+      {/* Right side: farm + notif + logout */}
+      <div className="ml-auto flex items-center gap-2">
+        <Skeleton className="h-8 w-28 rounded-lg" />
+        <Skeleton className="size-8 rounded-md" />
+        <Skeleton className="hidden h-8 w-14 rounded-md lg:block" />
       </div>
-      <nav className="flex w-full flex-col items-end gap-4">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1">
-            <Skeleton className="h-4 w-24" />
-            <Skeleton className="size-8 rounded-full" />
-          </div>
-          <Skeleton className="h-7 w-10 rounded-md" />
-          <Skeleton className="size-8 rounded-md" />
-        </div>
-      </nav>
     </header>
   );
 }
