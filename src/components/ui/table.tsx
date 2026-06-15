@@ -1314,7 +1314,7 @@ export const Table: React.FC<TableProps> = ({
                   )}
                   {selectedIds.size > 1 && (
                     <span>
-                      Arroba bruta: <strong>{arrobaCount.toFixed(1)} @</strong>
+                      Arroba média: <strong>{arrobaCount.toFixed(1)} @</strong>
                     </span>
                   )}
                 </div>
