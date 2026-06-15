@@ -1,0 +1,76 @@
+import { NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
+import { requireFarmContext } from '@/lib/tenant';
+
+export async function POST(request: Request) {
+  const { context, error, status } = await requireFarmContext('manage_animals');
+  if (!context) return NextResponse.json({ message: error }, { status });
+
+  const body = await request.json() as {
+    animalIds: string[];
+    action: 'sell' | 'trash';
+    saleData?: {
+      pricePerHead: number;
+      totalValue: number;
+      date: string;
+      description?: string;
+    };
+  };
+
+  const { animalIds, action, saleData } = body;
+
+  if (!animalIds?.length || !action) {
+    return NextResponse.json({ message: 'animalIds e action são obrigatórios.' }, { status: 400 });
+  }
+
+  // Verify all animals belong to the farm
+  const animals = await prisma.animal.findMany({
+    where: { id: { in: animalIds }, farmId: context.farm.id },
+    select: { id: true, manualId: true, weight: true },
+  });
+
+  if (animals.length !== animalIds.length) {
+    return NextResponse.json({ message: 'Um ou mais animais não pertencem a esta fazenda.' }, { status: 403 });
+  }
+
+  const newStatus = action === 'sell' ? 'sold' : 'trash';
+  const today = new Date();
+
+  if (action === 'sell' && saleData) {
+    // Atomic: update all animals + create one pending financial record per animal
+    await prisma.$transaction([
+      prisma.animal.updateMany({
+        where: { id: { in: animalIds } },
+        data: { status: newStatus },
+      }),
+      ...animals.map((animal) =>
+        prisma.transaction.create({
+          data: {
+            userId: context.user.id,
+            farmId: context.farm.id,
+            type: 'income',
+            category: 'Venda de animal',
+            amount: saleData.pricePerHead,
+            date: new Date(saleData.date),
+            description: `Venda do animal ${animal.manualId} — ${animal.weight ?? 0} kg`,
+            status: false, // pending — financial team confirms later
+          },
+        })
+      ),
+    ]);
+  } else {
+    await prisma.animal.updateMany({
+      where: { id: { in: animalIds } },
+      data: { status: newStatus },
+    });
+  }
+
+  return NextResponse.json({
+    updated: animals.length,
+    action,
+    message:
+      action === 'sell'
+        ? `${animals.length} animal(is) marcado(s) como vendido(s). Lançamentos financeiros criados como pendente.`
+        : `${animals.length} animal(is) marcado(s) para descarte.`,
+  });
+}

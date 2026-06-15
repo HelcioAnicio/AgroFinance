@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { SquareArrowOutUpLeft } from 'lucide-react';
+import { ChevronUp, SquareArrowOutUpLeft } from 'lucide-react';
 import { CirclePlus } from 'lucide-react';
 import { FaFilter, FaCheckCircle } from 'react-icons/fa';
 import { IoSkull, IoDownloadOutline } from 'react-icons/io5';
@@ -165,6 +165,10 @@ export const Table: React.FC<TableProps> = ({
   const [isSaleMode, setIsSaleMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [pricePerArroba, setPricePerArroba] = useState('');
+  const [carcassPercent, setCarcassPercent] = useState('50');
+  const [saleDialogOpen, setSaleDialogOpen] = useState(false);
+  const [saleAction, setSaleAction] = useState<'sell' | 'trash'>('sell');
+  const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false);
 
   const router = useRouter();
 
@@ -369,8 +373,11 @@ export const Table: React.FC<TableProps> = ({
     ? totalWeight / selectedAnimals.length
     : 0;
   const arrobaCount = avgWeight / 15;
+  const carcassFactor =
+    Math.min(Math.max(Number(carcassPercent) || 50, 1), 100) / 100;
+  const carcassArrobas = arrobaCount * carcassFactor;
   const pricePerArrobaNum = Number(pricePerArroba) || 0;
-  const pricePerHead = arrobaCount * pricePerArrobaNum;
+  const pricePerHead = carcassArrobas * pricePerArrobaNum;
   const totalValue = pricePerHead * selectedAnimals.length;
 
   const toggleSaleMode = () => {
@@ -385,6 +392,53 @@ export const Table: React.FC<TableProps> = ({
       else next.add(id);
       return next;
     });
+  };
+
+  const selectAll = () => setSelectedIds(new Set(listAnimals.map((a) => a.id)));
+  const deselectAll = () => setSelectedIds(new Set());
+  const allSelected =
+    listAnimals.length > 0 && listAnimals.every((a) => selectedIds.has(a.id));
+
+  const executeBulkAction = async () => {
+    if (selectedIds.size === 0) return;
+    const loadingId = toast.loading(
+      saleAction === 'sell'
+        ? 'Vendendo animais...'
+        : 'Alterando para descarte...'
+    );
+    try {
+      const payload: Record<string, unknown> = {
+        animalIds: [...selectedIds],
+        action: saleAction,
+      };
+      if (saleAction === 'sell') {
+        payload.saleData = {
+          pricePerHead,
+          totalValue,
+          date: new Date().toISOString().slice(0, 10),
+          description: `Venda em lote — ${selectedIds.size} animais`,
+        };
+      }
+      const res = await fetch('/api/animals/bulk-action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      toast.dismiss(loadingId);
+      if (res.ok) {
+        toast.success(data.message);
+        setSaleDialogOpen(false);
+        setIsSaleMode(false);
+        setSelectedIds(new Set());
+        setTimeout(() => window.location.reload(), 1500);
+      } else {
+        toast.error(data.message ?? 'Erro ao executar ação.');
+      }
+    } catch {
+      toast.dismiss(loadingId);
+      toast.error('Erro ao executar ação.');
+    }
   };
 
   if (dataLoading) {
@@ -511,10 +565,10 @@ export const Table: React.FC<TableProps> = ({
         <>
           <div className="sticky right-0 top-0 z-30 max-h-max w-full">
             <div className="relative flex w-full justify-between gap-10 px-1">
-              <div className="flex items-center gap-3">
+              <div className="flex w-full flex-wrap items-center justify-start gap-3 border">
                 <Sheet>
                   <SheetTrigger asChild>
-                    <FaFilter className="size-6 cursor-pointer" />
+                    <FaFilter className="size-7 cursor-pointer" />
                   </SheetTrigger>
                   <Filters
                     listAnimals={listAnimals}
@@ -523,7 +577,7 @@ export const Table: React.FC<TableProps> = ({
                   />
                 </Sheet>
                 <input
-                  className="w-full max-w-40 border border-b-gray-400 bg-input p-1 shadow-sm outline-none"
+                  className="w-28 border border-b-gray-400 bg-input p-1 shadow-sm outline-none sm:w-36"
                   type="search"
                   name="inputSearch"
                   id="inputSearch"
@@ -542,6 +596,14 @@ export const Table: React.FC<TableProps> = ({
                     ? `Selecionando (${selectedIds.size})`
                     : 'Selecionar venda'}
                 </button>
+                {isSaleMode && (
+                  <button
+                    onClick={allSelected ? deselectAll : selectAll}
+                    className="rounded-sm border border-primary/50 px-2 py-1 text-xs font-semibold text-primary transition-colors hover:bg-primary/10"
+                  >
+                    {allSelected ? 'Desmarcar todos' : 'Selecionar todos'}
+                  </button>
+                )}
               </div>
               <div className="flex flex-col gap-3 min-[500px]:flex-row">
                 <Dialog
@@ -688,66 +750,54 @@ export const Table: React.FC<TableProps> = ({
           </div>
 
           {/* Summary cards — reactive to active filters */}
-          <div className="my-3 grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <div className="rounded-xl border-l-4 border-primary bg-white px-4 py-3 shadow-sm">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                Total
-              </p>
-              <p className="text-2xl font-black text-primary">
-                {listAnimals.length}
-              </p>
-              <p className="text-[10px] text-muted-foreground">
-                Com filtros aplicados
-              </p>
-            </div>
-            <div className="rounded-xl border-l-4 border-green-500 bg-white px-4 py-3 shadow-sm">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                Ativos
-              </p>
-              <p className="text-2xl font-black text-foreground">
-                {
-                  listAnimals.filter(
-                    (a) => a.status === 'active' && a.category !== 'neonate'
-                  ).length
-                }
-              </p>
-              <div className="mt-1.5 h-1 w-full rounded-full bg-muted">
-                <div
-                  className="h-full rounded-full bg-green-500"
-                  style={{
-                    width: `${listAnimals.length ? (listAnimals.filter((a) => a.status === 'active').length / listAnimals.length) * 100 : 0}%`,
-                  }}
-                />
+          <div className="my-1.5 grid grid-cols-4 gap-2">
+            <div className="flex items-center gap-2 rounded-lg border-l-4 border-primary bg-white px-3 py-1.5 shadow-sm">
+              <div>
+                <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Total</p>
+                <p className="text-base font-black leading-tight text-primary">{listAnimals.length}</p>
+                <p className="hidden text-[9px] text-muted-foreground xs:block">Com filtros aplicados</p>
               </div>
             </div>
-            <div className="rounded-xl border-l-4 border-fuchsia-500 bg-white px-4 py-3 shadow-sm">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                Prenhas
-              </p>
-              <p className="text-2xl font-black text-foreground">
-                {pregnantCowsCount}
-              </p>
-              <p className="text-[10px] italic text-muted-foreground">
-                {pregnantCowsCount === 0 ? 'Nenhuma prenha' : 'Vacas prenhas'}
-              </p>
+            <div className="flex items-center gap-2 rounded-lg border-l-4 border-green-500 bg-white px-3 py-1.5 shadow-sm">
+              <div className="flex-1">
+                <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Ativos</p>
+                <p className="text-base font-black leading-tight text-foreground">
+                  {listAnimals.filter((a) => a.status === 'active' && a.category !== 'neonate').length}
+                </p>
+                <div className="mt-1 h-0.5 w-full rounded-full bg-muted">
+                  <div
+                    className="h-full rounded-full bg-green-500"
+                    style={{ width: `${listAnimals.length ? (listAnimals.filter((a) => a.status === 'active').length / listAnimals.length) * 100 : 0}%` }}
+                  />
+                </div>
+              </div>
             </div>
-            <div className="rounded-xl border-l-4 border-slate-400 bg-white px-4 py-3 shadow-sm">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                Vazias
-              </p>
-              <p className="text-2xl font-black text-foreground">
-                {emptyCowsCount}
-              </p>
-              {emptyCowsCount > 0 && (
-                <p className="text-[10px] text-red-500">Atenção requerida</p>
-              )}
+            <div className="flex items-center gap-2 rounded-lg border-l-4 border-fuchsia-500 bg-white px-3 py-1.5 shadow-sm">
+              <div>
+                <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Prenhas</p>
+                <p className="text-base font-black leading-tight text-foreground">{pregnantCowsCount}</p>
+                <p className="hidden text-[9px] italic text-muted-foreground xs:block">
+                  {pregnantCowsCount === 0 ? 'Nenhuma prenha' : 'Vacas prenhas'}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 rounded-lg border-l-4 border-slate-400 bg-white px-3 py-1.5 shadow-sm">
+              <div>
+                <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Vazias</p>
+                <p className="text-base font-black leading-tight text-foreground">{emptyCowsCount}</p>
+                {emptyCowsCount > 0 && (
+                  <p className="hidden text-[9px] text-red-500 xs:block">Atenção requerida</p>
+                )}
+              </div>
             </div>
           </div>
 
           <div className="min-h-0 w-full pb-28 md:pb-20 lg:pb-0">
             <div className="flex h-[calc(100vh-200px)] w-full flex-col gap-4 overflow-hidden lg:flex-row lg:items-start lg:justify-between">
               <div className="flex h-full w-full max-w-5xl flex-col overflow-hidden rounded-xl border bg-white shadow-sm">
-                <div className="overflow-auto scroll-smooth">
+                <div
+                  className={`overflow-auto scroll-smooth ${isSaleMode && selectedIds.size > 0 ? 'pb-56 lg:pb-24' : ''}`}
+                >
                   <table className="relative w-full min-w-[900px] text-left">
                     <thead className="sticky left-0 top-0 z-20 bg-muted text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
                       <tr>
@@ -1122,59 +1172,220 @@ export const Table: React.FC<TableProps> = ({
           </div>
 
           {isSaleMode && selectedIds.size > 0 && (
-            <div className="fixed bottom-20 left-1/2 z-50 w-full max-w-2xl -translate-x-1/2 rounded-xl border bg-background px-4 py-3 shadow-2xl lg:bottom-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex flex-wrap gap-4 text-xs">
-                  <span className="font-semibold">
-                    {selectedIds.size} animal
-                    {selectedIds.size !== 1 ? 'is' : ''} selecionado
-                    {selectedIds.size !== 1 ? 's' : ''}
+            <>
+              {/* ── Mobile compact bar (< sm) ── */}
+              <div className="fixed bottom-20 left-1/2 z-50 w-[calc(100%-1rem)] -translate-x-1/2 sm:hidden">
+                <div className="flex items-center justify-between rounded-xl border bg-white px-3 py-2 shadow-2xl">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-foreground">
+                      {selectedIds.size} animal{selectedIds.size !== 1 ? 'is' : ''}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      · {totalWeight.toFixed(0)} kg
+                    </span>
+                    <button
+                      onClick={() => setMobileSummaryOpen(true)}
+                      className="rounded-full border p-0.5 text-muted-foreground transition hover:bg-muted"
+                    >
+                      <ChevronUp size={14} />
+                    </button>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => { setSaleAction('trash'); setSaleDialogOpen(true); }}
+                      className="rounded-lg border border-red-300 bg-red-50 px-2 py-1 text-xs font-semibold text-red-700"
+                    >
+                      Descarte
+                    </button>
+                    <button
+                      onClick={() => { setSaleAction('sell'); setSaleDialogOpen(true); }}
+                      className="rounded-lg bg-primary px-2 py-1 text-xs font-semibold text-primary-foreground"
+                    >
+                      Vender
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* ── Mobile detail sheet ── */}
+              {mobileSummaryOpen && (
+                <div
+                  className="fixed inset-0 z-[60] flex items-end sm:hidden"
+                  onClick={() => setMobileSummaryOpen(false)}
+                >
+                  <div
+                    className="w-full rounded-t-2xl border bg-white px-4 pb-6 pt-4 shadow-2xl"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="mb-3 flex items-center justify-between">
+                      <h3 className="text-sm font-bold">
+                        {selectedIds.size} animal{selectedIds.size !== 1 ? 'is' : ''} selecionado{selectedIds.size !== 1 ? 's' : ''}
+                      </h3>
+                      <button
+                        onClick={() => setMobileSummaryOpen(false)}
+                        className="text-muted-foreground"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <div className="mb-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                      <span>Peso total: <strong>{totalWeight.toFixed(0)} kg</strong></span>
+                      {selectedIds.size > 1 && (
+                        <span>Peso médio: <strong>{avgWeight.toFixed(0)} kg</strong></span>
+                      )}
+                      {selectedIds.size > 1 && (
+                        <span>Arroba bruta: <strong>{arrobaCount.toFixed(1)} @</strong></span>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <div className="flex items-center gap-1 text-xs">
+                        <label className="font-medium text-muted-foreground">% Carcaça</label>
+                        <input
+                          type="number" min={1} max={100} step={1}
+                          value={carcassPercent}
+                          onChange={(e) => setCarcassPercent(e.target.value)}
+                          className="w-14 rounded border px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-primary"
+                        />
+                      </div>
+                      <div className="flex items-center gap-1 text-xs">
+                        <label className="font-medium text-muted-foreground">R$/@</label>
+                        <input
+                          type="number" min={0} step={1}
+                          value={pricePerArroba}
+                          onChange={(e) => setPricePerArroba(e.target.value)}
+                          placeholder="0"
+                          className="w-20 rounded border px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-primary"
+                        />
+                      </div>
+                      {pricePerArrobaNum > 0 && (
+                        <>
+                          <span className="text-xs">Por cabeça: <strong>R$ {pricePerHead.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></span>
+                          <span className="text-xs">Total: <strong className="text-primary">R$ {totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></span>
+                        </>
+                      )}
+                    </div>
+                    <div className="mt-3 flex gap-2">
+                      <button
+                        onClick={() => { setSaleAction('trash'); setMobileSummaryOpen(false); setSaleDialogOpen(true); }}
+                        className="flex-1 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700"
+                      >
+                        Alterar para descarte
+                      </button>
+                      <button
+                        onClick={() => { setSaleAction('sell'); setMobileSummaryOpen(false); setSaleDialogOpen(true); }}
+                        className="flex-1 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground"
+                      >
+                        Vender animais
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Desktop full bar (≥ sm) ── */}
+              <div className="fixed bottom-20 left-1/2 z-50 hidden w-full max-w-3xl -translate-x-1/2 rounded-xl border bg-white px-4 py-3 shadow-2xl sm:block lg:bottom-4">
+                {/* Summary row */}
+                <div className="mb-2 flex flex-wrap gap-3 text-xs text-muted-foreground">
+                  <span className="font-semibold text-foreground">
+                    {selectedIds.size} animal{selectedIds.size !== 1 ? 'is' : ''}{' '}
+                    selecionado{selectedIds.size !== 1 ? 's' : ''}
                   </span>
                   <span>
                     Peso total: <strong>{totalWeight.toFixed(0)} kg</strong>
                   </span>
-                  <span>
-                    Peso médio: <strong>{avgWeight.toFixed(0)} kg</strong>
-                  </span>
-                  <span>
-                    Arrobas médias: <strong>{arrobaCount.toFixed(1)} @</strong>
-                  </span>
+                  {selectedIds.size > 1 && (
+                    <span>
+                      Peso médio: <strong>{avgWeight.toFixed(0)} kg</strong>
+                    </span>
+                  )}
+                  {selectedIds.size > 1 && (
+                    <span>
+                      Arroba média: <strong>{arrobaCount.toFixed(1)} @</strong>
+                    </span>
+                  )}
                 </div>
-                <div className="flex items-center gap-2 text-xs">
-                  <label className="font-medium">R$/@ </label>
-                  <input
-                    type="number"
-                    min={0}
-                    step={1}
-                    value={pricePerArroba}
-                    onChange={(e) => setPricePerArroba(e.target.value)}
-                    placeholder="0,00"
-                    className="w-24 rounded border px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-primary"
-                  />
+
+                {/* Inputs + actions row */}
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex items-center gap-1 text-xs">
+                    <label className="font-medium text-muted-foreground">% Carcaça</label>
+                    <input
+                      type="number" min={1} max={100} step={1}
+                      value={carcassPercent}
+                      onChange={(e) => setCarcassPercent(e.target.value)}
+                      className="w-14 rounded border px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                  <div className="flex items-center gap-1 text-xs">
+                    <label className="font-medium text-muted-foreground">R$/@</label>
+                    <input
+                      type="number" min={0} step={1}
+                      value={pricePerArroba}
+                      onChange={(e) => setPricePerArroba(e.target.value)}
+                      placeholder="0"
+                      className="w-20 rounded border px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
                   {pricePerArrobaNum > 0 && (
                     <>
-                      <span>
-                        Por cabeça:{' '}
-                        <strong>
-                          R${' '}
-                          {pricePerHead.toLocaleString('pt-BR', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })}
-                        </strong>
+                      <span className="text-xs">
+                        Por cabeça: <strong>R$ {pricePerHead.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
                       </span>
-                      <span>
-                        Total:{' '}
-                        <strong>
-                          R${' '}
-                          {totalValue.toLocaleString('pt-BR', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })}
-                        </strong>
+                      <span className="text-xs">
+                        Total: <strong className="text-primary">R$ {totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
                       </span>
                     </>
                   )}
+                  <div className="ml-auto flex gap-2">
+                    <button
+                      onClick={() => { setSaleAction('trash'); setSaleDialogOpen(true); }}
+                      className="rounded-lg border border-red-300 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-100"
+                    >
+                      Alterar para descarte
+                    </button>
+                    <button
+                      onClick={() => { setSaleAction('sell'); setSaleDialogOpen(true); }}
+                      className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition hover:opacity-90"
+                    >
+                      Vender animais
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Execution confirmation dialog */}
+          {saleDialogOpen && (
+            <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40">
+              <div className="w-full max-w-sm rounded-2xl border bg-white p-6 shadow-2xl">
+                <h3 className="mb-1 text-base font-bold">
+                  {saleAction === 'sell'
+                    ? 'Confirmar venda'
+                    : 'Confirmar descarte'}
+                </h3>
+                <p className="mb-4 text-sm text-muted-foreground">
+                  {saleAction === 'sell'
+                    ? `${selectedIds.size} animal(is) serão marcados como vendidos e um lançamento financeiro pendente será criado para cada um (R$ ${pricePerHead.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} por cabeça).`
+                    : `${selectedIds.size} animal(is) serão marcados para descarte. Esta ação pode ser revertida manualmente.`}
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setSaleDialogOpen(false)}
+                    className="flex-1 rounded-lg border px-4 py-2 text-sm font-medium transition hover:bg-muted"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={executeBulkAction}
+                    className={`flex-1 rounded-lg px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 ${
+                      saleAction === 'sell' ? 'bg-primary' : 'bg-red-600'
+                    }`}
+                  >
+                    {saleAction === 'sell'
+                      ? 'Confirmar venda'
+                      : 'Confirmar descarte'}
+                  </button>
                 </div>
               </div>
             </div>

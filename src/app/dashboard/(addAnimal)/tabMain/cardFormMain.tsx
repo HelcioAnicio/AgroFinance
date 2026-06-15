@@ -110,7 +110,7 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
 
       let newCategory: string;
 
-      if (ageInMonths <= 8 && allDataForm.birthDate !== null) {
+      if (ageInMonths <= 3 && allDataForm.birthDate !== null) {
         newCategory = 'neonate';
       } else if (ageInMonths <= 12) {
         newCategory = 'calf';

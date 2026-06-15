@@ -9,11 +9,18 @@ import { ExternalBull } from '@/types/externalBull';
 
 export const fetchAnimals = async (
   ownerId?: string,
-  farmId?: string
+  farmId?: string,
+  extraOwnerIds?: string[]
 ): Promise<Animal[]> => {
   try {
+    const allOwnerIds = [...new Set([ownerId, ...(extraOwnerIds ?? [])].filter(Boolean))] as string[];
+    const ownerConditions = allOwnerIds.map((id) => ({ ownerId: id }));
     const animals = await prisma.animal.findMany({
-      where: farmId ? { farmId } : { ownerId },
+      where: farmId
+        ? { OR: [{ farmId }, ...ownerConditions] }
+        : ownerConditions.length === 1
+          ? { ownerId: allOwnerIds[0] }
+          : { OR: ownerConditions },
     });
 
     const sortedAnimals = animals.sort((a, b) => {
@@ -88,12 +95,20 @@ export const fetchVaccines = async (animalId: string): Promise<Vaccine[]> => {
 
 export const fetchExternalBulls = async (
   ownerId?: string,
-  farmId?: string
+  farmId?: string,
+  extraOwnerIds?: string[]
 ): Promise<ExternalBull[]> => {
-  if (!ownerId && !farmId) return [];
+  if (!ownerId && !farmId && !extraOwnerIds?.length) return [];
+
+  const allOwnerIds = [...new Set([ownerId, ...(extraOwnerIds ?? [])].filter(Boolean))] as string[];
+  const ownerConditions = allOwnerIds.map((id) => ({ ownerId: id }));
 
   const externalBulls = await prisma.externalBull.findMany({
-    where: farmId ? { farmId } : { ownerId },
+    where: farmId
+      ? { OR: [{ farmId }, ...ownerConditions] }
+      : ownerConditions.length === 1
+        ? { ownerId: allOwnerIds[0] }
+        : { OR: ownerConditions },
     orderBy: {
       createdAt: 'desc',
     },
@@ -188,12 +203,19 @@ function buildYear(year: number): LivestockStatsYear {
 
 export const fetchLivestockStats = async (
   ownerId?: string,
-  farmId?: string
+  farmId?: string,
+  extraOwnerIds?: string[]
 ): Promise<LivestockStatsYear[]> => {
-  if (!ownerId && !farmId) return [];
+  if (!ownerId && !farmId && !extraOwnerIds?.length) return [];
+
+  const allOwnerIds = [...new Set([ownerId, ...(extraOwnerIds ?? [])].filter(Boolean))] as string[];
+  const ownerConditions = allOwnerIds.map((id) => ({ ownerId: id }));
+  const ownerWhere = ownerConditions.length === 1 ? { ownerId: allOwnerIds[0] } : { OR: ownerConditions };
 
   const animals = await prisma.animal.findMany({
-    where: farmId ? { farmId } : { ownerId },
+    where: farmId
+      ? { OR: [{ farmId }, ...ownerConditions] }
+      : ownerWhere,
     select: {
       id: true,
       gender: true,

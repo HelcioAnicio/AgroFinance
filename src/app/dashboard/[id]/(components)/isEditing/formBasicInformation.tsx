@@ -177,8 +177,8 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
               className={selectClass}
             >
               <option disabled value=""></option>
-              <option value="neonate">Dependente</option>
-              <option value="calf">Bezerro</option>
+              <option value="neonate">Neonato (0–3 meses)</option>
+              <option value="calf">Bezerro (4–12 meses)</option>
               <option value="steer">
                 {allDataForm.gender === 'male' ? 'Garrote' : 'Novilha'}
               </option>

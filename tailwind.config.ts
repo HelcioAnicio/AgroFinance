@@ -10,6 +10,9 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      screens: {
+        xs: '540px',
+      },
       keyframes: {
         round: {
           from: { transform: 'rotate(0deg)' },

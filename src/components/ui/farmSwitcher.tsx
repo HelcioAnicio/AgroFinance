@@ -13,6 +13,7 @@ interface FarmEntry {
 
 const ROLE_LABELS: Record<string, string> = {
   OWNER: 'Proprietário',
+  MANAGER: 'Gerente',
   EMPLOYEE: 'Funcionário',
   CAREGIVER_VETERINARIAN: 'Veterinário',
   FINANCIAL: 'Financeiro',

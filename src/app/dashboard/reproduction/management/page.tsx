@@ -18,7 +18,7 @@ import { format } from 'date-fns';
 import { ReproductionManagement } from '@/types/reproduction';
 import { Animal } from '@/types/animal';
 import { ExternalBull } from '@/types/externalBull';
-import { Pencil, CheckCircle2, Circle, Download } from 'lucide-react';
+import { Pencil, CheckCircle2, Circle, Download, Search, X } from 'lucide-react';
 
 const STAGES = ['D0', 'Manejo', 'Insemination', 'DG'] as const;
 type Stage = (typeof STAGES)[number];
@@ -287,59 +287,93 @@ const ReproductionManagementPage = () => {
               />
             </div>
 
-            {/* Search */}
+            {/* Animal autocomplete */}
             <div>
               <Label className="mb-1 block text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                Buscar animal
+                Buscar e selecionar animal
               </Label>
-              <Input
-                className={fieldClass}
-                value={animalSearch}
-                placeholder="Digite o número (ex: 10)"
-                onChange={(e) => setAnimalSearch(e.target.value)}
-              />
-            </div>
+              <div className="relative">
+                <div className="relative flex items-center">
+                  <Search className="absolute left-2.5 size-3.5 text-muted-foreground" />
+                  <Input
+                    className={`${fieldClass} pl-8 pr-8`}
+                    value={animalSearch}
+                    placeholder="Digite o número do animal (ex: A001)"
+                    onChange={(e) => {
+                      setAnimalSearch(e.target.value);
+                      // Clear selection when user starts typing
+                      if (formData.animalId) setFormData((prev) => ({ ...prev, animalId: '' }));
+                    }}
+                    onFocus={() => {
+                      // Show dropdown on focus if no animal selected yet
+                      if (!formData.animalId) setAnimalSearch(animalSearch);
+                    }}
+                  />
+                  {formData.animalId && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormData((prev) => ({ ...prev, animalId: '' }));
+                        setAnimalSearch('');
+                      }}
+                      className="absolute right-2.5 text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="size-3.5" />
+                    </button>
+                  )}
+                </div>
 
-            {/* Animal select */}
-            <div>
-              <Label className="mb-1 block text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                Selecionar animal
-              </Label>
-              <Select
-                value={formData.animalId}
-                onValueChange={(value) => {
-                  const sel = animals.find((a) => a.id === value);
-                  setFormData((prev) => ({
-                    ...prev,
-                    animalId: value,
-                    ecc: sel?.bodyConditionScore ? String(sel.bodyConditionScore) : '',
-                    obs: sel?.observations ?? '',
-                    newReproductiveStatus:
-                      sel?.reproductiveStatus && ['pregnant', 'empty', 'open'].includes(sel.reproductiveStatus)
-                        ? sel.reproductiveStatus
-                        : '',
-                  }));
-                }}
-              >
-                <SelectTrigger className={fieldClass}>
-                  <SelectValue placeholder="Selecione animal" />
-                </SelectTrigger>
-                <SelectContent>
-                  {filteredAnimals.map((animal) => {
-                    const isPregnant = animal.reproductiveStatus === 'pregnant';
-                    const notPart =
-                      currentStage === 'Insemination' &&
-                      managements.some((m) => m.animalId === animal.id && m.stage === 'D0' && m.protocolo) &&
-                      !managements.some((m) => m.animalId === animal.id && m.stage === 'Manejo');
-                    return (
-                      <SelectItem key={animal.id} value={animal.id} disabled={isPregnant} className={notPart ? 'opacity-50' : ''}>
-                        {animal.manualId} — {translateCategory(animal.category)}{' '}
-                        {notPart ? '(não participou)' : ''}{isPregnant ? '(prenha)' : ''}
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
+                {/* Dropdown list — shown when typing and no animal selected */}
+                {animalSearch && !formData.animalId && filteredAnimals.length > 0 && (
+                  <div className="absolute left-0 top-full z-50 mt-1 max-h-48 w-full overflow-y-auto rounded-lg border bg-white shadow-lg">
+                    {filteredAnimals.map((animal) => {
+                      const isPregnant = animal.reproductiveStatus === 'pregnant';
+                      return (
+                        <button
+                          key={animal.id}
+                          type="button"
+                          disabled={isPregnant}
+                          onClick={() => {
+                            const sel = animal;
+                            setFormData((prev) => ({
+                              ...prev,
+                              animalId: sel.id,
+                              ecc: sel.bodyConditionScore ? String(sel.bodyConditionScore) : '',
+                              obs: sel.observations ?? '',
+                              newReproductiveStatus:
+                                sel.reproductiveStatus && ['pregnant', 'empty', 'open'].includes(sel.reproductiveStatus)
+                                  ? sel.reproductiveStatus
+                                  : '',
+                            }));
+                            setAnimalSearch(sel.manualId);
+                          }}
+                          className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-muted/60 disabled:cursor-not-allowed disabled:opacity-50`}
+                        >
+                          <span className="font-semibold text-primary">{animal.manualId}</span>
+                          <span className="text-muted-foreground">
+                            — {translateCategory(animal.category)}
+                            {isPregnant ? ' (prenha)' : ''}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* No results */}
+                {animalSearch && !formData.animalId && filteredAnimals.length === 0 && (
+                  <div className="absolute left-0 top-full z-50 mt-1 w-full rounded-lg border bg-white p-3 text-center text-xs text-muted-foreground shadow-lg">
+                    Nenhum animal encontrado para este estágio.
+                  </div>
+                )}
+
+                {/* Selected animal badge */}
+                {formData.animalId && (
+                  <p className="mt-1 text-xs text-primary font-semibold">
+                    ✓ {animals.find((a) => a.id === formData.animalId)?.manualId} selecionado
+                  </p>
+                )}
+              </div>
             </div>
 
             {/* Selected animal info */}

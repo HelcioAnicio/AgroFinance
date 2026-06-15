@@ -77,6 +77,7 @@ export interface Animal {
   owner?: User;
   weightHistories?: AnimalWeightHistory[];
   calfLossHistories?: AnimalCalfLossHistory[];
+  isForFattening?: boolean;
   weightRecordType?: WeightRecordType;
   weightRecordDate?: string | Date | null;
   statusChangeDate?: string | Date | null;
