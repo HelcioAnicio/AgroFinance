@@ -443,7 +443,7 @@ export const Table: React.FC<TableProps> = ({
 
   if (dataLoading) {
     return (
-      <main className="relative m-auto flex h-[calc(100vh-100px)] w-full max-w-[1800px] flex-col overflow-hidden px-1 lg:h-full">
+      <main className="relative flex h-[calc(100vh-100px)] w-full flex-col overflow-hidden px-4 lg:h-full lg:px-6">
         {/* Toolbar skeleton */}
         <div className="flex items-center justify-between py-2">
           <div className="flex items-center gap-3">
@@ -558,14 +558,14 @@ export const Table: React.FC<TableProps> = ({
   }
 
   return (
-    <main className="relative m-auto flex h-[calc(100vh-100px)] w-full max-w-[1800px] flex-col overflow-x-auto overflow-y-hidden lg:h-full">
+    <main className="relative flex h-[calc(100vh-100px)] w-full flex-col overflow-x-auto overflow-y-hidden px-4 lg:h-full lg:px-6">
       {isLoading ? (
         <Loading />
       ) : (
         <>
-          <div className="sticky right-0 top-0 z-30 max-h-max w-full border-b bg-white">
-            <div className="relative flex w-full justify-between gap-4 px-4 py-3">
-              <div className="flex w-full flex-wrap items-center justify-start gap-3 border">
+          <div className="sticky right-0 top-0 z-30 max-h-max w-full">
+            <div className="relative flex w-full justify-between gap-4 py-3">
+              <div className="flex w-full flex-wrap items-center justify-start gap-3">
                 <Sheet>
                   <SheetTrigger asChild>
                     <FaFilter className="size-7 cursor-pointer" />
@@ -750,15 +750,15 @@ export const Table: React.FC<TableProps> = ({
           </div>
 
           {/* Summary cards — reactive to active filters */}
-          <div className="my-1.5 grid grid-cols-4 gap-2">
-            <div className="flex items-center gap-2 rounded-lg border-l-4 border-primary bg-white px-3 py-1.5 shadow-sm">
+          <div className="my-1.5 flex flex-row gap-2">
+            <div className="flex flex-1 items-center gap-2 rounded-lg border-l-4 border-primary bg-white px-3 py-1.5 shadow-sm">
               <div>
                 <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Total</p>
                 <p className="text-base font-black leading-tight text-primary">{listAnimals.length}</p>
                 <p className="hidden text-[9px] text-muted-foreground xs:block">Com filtros aplicados</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 rounded-lg border-l-4 border-green-500 bg-white px-3 py-1.5 shadow-sm">
+            <div className="flex flex-1 items-center gap-2 rounded-lg border-l-4 border-green-500 bg-white px-3 py-1.5 shadow-sm">
               <div className="flex-1">
                 <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Ativos</p>
                 <p className="text-base font-black leading-tight text-foreground">
@@ -772,7 +772,7 @@ export const Table: React.FC<TableProps> = ({
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-2 rounded-lg border-l-4 border-fuchsia-500 bg-white px-3 py-1.5 shadow-sm">
+            <div className="flex flex-1 items-center gap-2 rounded-lg border-l-4 border-fuchsia-500 bg-white px-3 py-1.5 shadow-sm">
               <div>
                 <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Prenhas</p>
                 <p className="text-base font-black leading-tight text-foreground">{pregnantCowsCount}</p>
@@ -781,7 +781,7 @@ export const Table: React.FC<TableProps> = ({
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2 rounded-lg border-l-4 border-slate-400 bg-white px-3 py-1.5 shadow-sm">
+            <div className="flex flex-1 items-center gap-2 rounded-lg border-l-4 border-slate-400 bg-white px-3 py-1.5 shadow-sm">
               <div>
                 <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Vazias</p>
                 <p className="text-base font-black leading-tight text-foreground">{emptyCowsCount}</p>
