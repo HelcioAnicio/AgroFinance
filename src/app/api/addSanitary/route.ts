@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import dayjs from 'dayjs';
 import { v4 as uuidv4 } from 'uuid';
+import { createAuditLog, requireFarmContext } from '@/lib/tenant';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,6 +18,7 @@ interface SanitaryPayload {
 }
 
 export async function POST(req: NextRequest) {
+  const { context } = await requireFarmContext('manage_animals');
   try {
     const payload = (await req.json()) as SanitaryPayload;
     const { type, animalId, name, date, description, expiryDate } = payload;
@@ -117,6 +119,19 @@ export async function POST(req: NextRequest) {
           animalId: animal.id,
         },
       });
+    }
+
+    if (context) {
+      try {
+        await createAuditLog(prisma, {
+          farmId: context.farm.id,
+          actorUserId: context.user.id,
+          action: 'sanitary.create',
+          entityType: 'Animal',
+          entityId: animal.id,
+          after: { manualId: animal.manualId, sanitaryType: type, name },
+        });
+      } catch { /* non-critical */ }
     }
 
     return NextResponse.json({

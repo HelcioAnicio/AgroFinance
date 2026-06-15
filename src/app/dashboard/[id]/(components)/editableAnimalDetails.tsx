@@ -1814,15 +1814,15 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
 
       {/* Genealogy / offspring comparison modal */}
       <Dialog open={openGenealogyModal} onOpenChange={setOpenGenealogyModal}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
+        <DialogContent className="flex max-h-[85vh] max-w-lg flex-col overflow-hidden">
+          <DialogHeader className="shrink-0">
             <DialogTitle>Relatório de filhos — {animalTitle}</DialogTitle>
             <DialogDescription>
               Estatísticas de todos os filhos registrados para este animal.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="flex-1 space-y-4 overflow-y-auto pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {/* Summary stats */}
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-xl border-l-4 border-primary bg-muted/30 px-3 py-2">
@@ -1907,7 +1907,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
               <p className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
                 Listagem
               </p>
-              <div className="max-h-48 space-y-2 overflow-y-auto">
+              <div className="max-h-52 space-y-2 overflow-y-auto">
                 {offspring.map((child) => (
                   <div
                     key={child.id}
