@@ -610,7 +610,7 @@ export const Table: React.FC<TableProps> = ({
                   open={importDialogOpen}
                   onOpenChange={setImportDialogOpen}
                 >
-                  <DialogTrigger className="flex items-center rounded-md border border-foreground p-2 text-xs">
+                  <DialogTrigger className="flex w-full items-center justify-center gap-1 rounded-md border border-foreground p-2 text-xs min-[410px]:w-max">
                     Importar animais
                     <FaFileArrowDown size={16} />
                   </DialogTrigger>

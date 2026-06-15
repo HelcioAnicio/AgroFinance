@@ -302,9 +302,9 @@ export function DashboardOverview() {
             <Skeleton className="h-9 w-28" />
           </div>
         </div>
-        <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div className="mb-8 flex flex-wrap gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-28 rounded-xl" />
+            <Skeleton key={i} className="h-28 min-w-[calc(50%-8px)] flex-1 rounded-xl sm:flex-none sm:w-36" />
           ))}
         </div>
         <div className="grid gap-6 xl:grid-cols-12">
@@ -316,7 +316,7 @@ export function DashboardOverview() {
   }
 
   return (
-    <main className="relative mx-auto w-full max-w-[1400px] px-4 py-6">
+    <main className="relative mx-auto w-full max-w-[1400px] px-4 py-6 lg:px-6">
       {isLoading && <Loading />}
 
       {/* Header */}
@@ -332,7 +332,7 @@ export function DashboardOverview() {
         <div className="flex items-center gap-3">
           <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
             <DialogTrigger asChild>
-              <button className="flex items-center gap-2 rounded-lg border border-foreground/30 px-4 py-2 text-sm font-medium transition-colors hover:bg-muted">
+              <button className="flex w-full items-center justify-center gap-2 rounded-lg border border-foreground/30 px-4 py-2 text-sm font-medium transition-colors hover:bg-muted min-[410px]:w-max">
                 <FaFileArrowDown size={16} />
                 Importar animais
               </button>
@@ -435,8 +435,8 @@ export function DashboardOverview() {
       </header>
 
       {/* Summary Cards */}
-      <div className="lg: mb-8 grid grid-cols-2 gap-4 lg:flex">
-        <div className="w-max rounded-xl border-l-4 border-primary bg-white p-3 pr-10 shadow-sm">
+      <div className="mb-8 flex flex-wrap gap-4">
+        <div className="min-w-[calc(50%-8px)] flex-1 rounded-xl border-l-4 border-primary bg-white p-3 pr-6 shadow-sm sm:flex-none sm:w-max sm:pr-10">
           <p className="mb-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
             Total de animais
           </p>
@@ -446,7 +446,7 @@ export function DashboardOverview() {
           </p>
         </div>
 
-        <div className="w-max rounded-xl border-l-4 border-green-500 bg-white p-3 pr-10 shadow-sm">
+        <div className="min-w-[calc(50%-8px)] flex-1 rounded-xl border-l-4 border-green-500 bg-white p-3 pr-6 shadow-sm sm:flex-none sm:w-max sm:pr-10">
           <p className="mb-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
             Animais ativos
           </p>
@@ -463,7 +463,7 @@ export function DashboardOverview() {
           </div>
         </div>
 
-        <div className="w-max rounded-xl border-l-4 border-fuchsia-500 bg-white p-3 pr-10 shadow-sm">
+        <div className="min-w-[calc(50%-8px)] flex-1 rounded-xl border-l-4 border-fuchsia-500 bg-white p-3 pr-6 shadow-sm sm:flex-none sm:w-max sm:pr-10">
           <p className="mb-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
             Vacas prenhas
           </p>
@@ -477,7 +477,7 @@ export function DashboardOverview() {
           </p>
         </div>
 
-        <div className="w-max rounded-xl border-l-4 border-slate-400 bg-white p-3 pr-10 shadow-sm">
+        <div className="min-w-[calc(50%-8px)] flex-1 rounded-xl border-l-4 border-slate-400 bg-white p-3 pr-6 shadow-sm sm:flex-none sm:w-max sm:pr-10">
           <p className="mb-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
             Vacas vazias
           </p>

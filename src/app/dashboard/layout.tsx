@@ -40,7 +40,7 @@ export default async function DashboardLayout({
 
       {/* Main content — offset top by header height, offset left by sidebar on desktop */}
       <div className="pt-14 lg:pl-56">
-        <main className="mx-auto w-full max-w-[1400px] pb-24 lg:pb-8">
+        <main className="w-full pb-24 lg:pb-8">
           {children}
         </main>
       </div>
