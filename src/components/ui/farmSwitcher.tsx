@@ -59,7 +59,7 @@ export function FarmSwitcher() {
         type="button"
         onClick={() => setOpen((o) => !o)}
         disabled={isPending}
-        className="hidden items-center gap-1.5 rounded-lg border border-border bg-white px-3 py-1.5 text-sm font-semibold transition hover:border-primary/50 disabled:opacity-60 lg:flex"
+        className="flex items-center gap-1.5 rounded-lg border border-border bg-white px-3 py-1.5 text-sm font-semibold transition hover:border-primary/50 disabled:opacity-60"
       >
         <Building2 className="size-4 text-muted-foreground" />
         <span className="max-w-[140px] truncate">

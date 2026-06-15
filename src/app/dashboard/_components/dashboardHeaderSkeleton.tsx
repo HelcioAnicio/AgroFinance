@@ -2,20 +2,19 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export function DashboardHeaderSkeleton() {
   return (
-    <header className="flex w-full items-center justify-between p-2">
-      <div className="w-1/3">
-        <Skeleton className="size-16 rounded-md" />
+    <header className="fixed left-0 right-0 top-0 z-30 flex h-14 items-center border-b bg-white">
+      {/* Logo area */}
+      <div className="flex h-full shrink-0 items-center gap-2.5 px-5 lg:w-56 lg:border-r">
+        <Skeleton className="size-9 rounded-md" />
+        <Skeleton className="h-4 w-24" />
       </div>
-      <nav className="flex w-full flex-col items-end gap-4">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1">
-            <Skeleton className="h-4 w-24" />
-            <Skeleton className="size-8 rounded-full" />
-          </div>
-          <Skeleton className="h-7 w-10 rounded-md" />
-          <Skeleton className="size-8 rounded-md" />
-        </div>
-      </nav>
+
+      {/* Right side */}
+      <div className="ml-auto flex items-center gap-2 px-4">
+        <Skeleton className="h-8 w-28 rounded-lg" />
+        <Skeleton className="size-8 rounded-md" />
+        <Skeleton className="hidden h-8 w-14 rounded-md lg:block" />
+      </div>
     </header>
   );
 }

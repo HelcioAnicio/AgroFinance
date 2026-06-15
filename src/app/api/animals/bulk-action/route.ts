@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { requireFarmContext } from '@/lib/tenant';
+import { createAuditLog, requireFarmContext } from '@/lib/tenant';
 
 export async function POST(request: Request) {
   const { context, error, status } = await requireFarmContext('manage_animals');
@@ -36,32 +36,61 @@ export async function POST(request: Request) {
   const newStatus = action === 'sell' ? 'sold' : 'trash';
   const today = new Date();
 
+  const auditAction = action === 'sell' ? 'animal.bulk_sell' : 'animal.bulk_trash';
+
   if (action === 'sell' && saleData) {
-    // Atomic: update all animals + create one pending financial record per animal
-    await prisma.$transaction([
-      prisma.animal.updateMany({
+    await prisma.$transaction(async (tx) => {
+      await tx.animal.updateMany({
         where: { id: { in: animalIds } },
         data: { status: newStatus },
-      }),
-      ...animals.map((animal) =>
-        prisma.transaction.create({
-          data: {
-            userId: context.user.id,
-            farmId: context.farm.id,
-            type: 'income',
-            category: 'Venda de animal',
-            amount: saleData.pricePerHead,
-            date: new Date(saleData.date),
-            description: `Venda do animal ${animal.manualId} — ${animal.weight ?? 0} kg`,
-            status: false, // pending — financial team confirms later
-          },
-        })
-      ),
-    ]);
+      });
+      await Promise.all(
+        animals.map((animal) =>
+          tx.transaction.create({
+            data: {
+              userId: context.user.id,
+              farmId: context.farm.id,
+              type: 'income',
+              category: 'Venda de animal',
+              amount: saleData.pricePerHead,
+              date: new Date(saleData.date),
+              description: `Venda do animal ${animal.manualId} — ${animal.weight ?? 0} kg`,
+              status: false,
+            },
+          })
+        )
+      );
+      await createAuditLog(tx, {
+        farmId: context.farm.id,
+        actorUserId: context.user.id,
+        action: auditAction,
+        entityType: 'Animal',
+        entityId: null,
+        metadata: {
+          animalIds,
+          manualIds: animals.map((a) => a.manualId),
+          pricePerHead: saleData.pricePerHead,
+          totalValue: saleData.totalValue,
+        },
+      });
+    });
   } else {
-    await prisma.animal.updateMany({
-      where: { id: { in: animalIds } },
-      data: { status: newStatus },
+    await prisma.$transaction(async (tx) => {
+      await tx.animal.updateMany({
+        where: { id: { in: animalIds } },
+        data: { status: newStatus },
+      });
+      await createAuditLog(tx, {
+        farmId: context.farm.id,
+        actorUserId: context.user.id,
+        action: auditAction,
+        entityType: 'Animal',
+        entityId: null,
+        metadata: {
+          animalIds,
+          manualIds: animals.map((a) => a.manualId),
+        },
+      });
     });
   }
 

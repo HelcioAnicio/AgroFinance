@@ -610,7 +610,7 @@ export const Table: React.FC<TableProps> = ({
                   open={importDialogOpen}
                   onOpenChange={setImportDialogOpen}
                 >
-                  <DialogTrigger className="flex items-center rounded-md border border-foreground p-2 text-xs">
+                  <DialogTrigger className="flex w-full items-center justify-center gap-1 rounded-md border border-foreground p-2 text-xs min-[410px]:w-max">
                     Importar animais
                     <FaFileArrowDown size={16} />
                   </DialogTrigger>
@@ -1233,8 +1233,11 @@ export const Table: React.FC<TableProps> = ({
                       {selectedIds.size > 1 && (
                         <span>Peso médio: <strong>{avgWeight.toFixed(0)} kg</strong></span>
                       )}
+                      {selectedIds.size === 1 && (
+                        <span>Arroba: <strong>{((selectedAnimals[0]?.weight ?? 0) / 15).toFixed(1)} @</strong></span>
+                      )}
                       {selectedIds.size > 1 && (
-                        <span>Arroba bruta: <strong>{arrobaCount.toFixed(1)} @</strong></span>
+                        <span>Arroba média: <strong>{arrobaCount.toFixed(1)} @</strong></span>
                       )}
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
@@ -1296,6 +1299,11 @@ export const Table: React.FC<TableProps> = ({
                   {selectedIds.size > 1 && (
                     <span>
                       Peso médio: <strong>{avgWeight.toFixed(0)} kg</strong>
+                    </span>
+                  )}
+                  {selectedIds.size === 1 && (
+                    <span>
+                      Arroba: <strong>{(selectedAnimals[0]?.weight ?? 0) / 15 > 0 ? ((selectedAnimals[0]?.weight ?? 0) / 15).toFixed(1) : arrobaCount.toFixed(1)} @</strong>
                     </span>
                   )}
                   {selectedIds.size > 1 && (

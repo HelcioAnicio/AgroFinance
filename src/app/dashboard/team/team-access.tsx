@@ -29,9 +29,53 @@ type AuditLog = {
   action: string;
   entityType: string;
   entityId: string | null;
+  before: Record<string, unknown> | null;
+  after: Record<string, unknown> | null;
+  metadata: Record<string, unknown> | null;
   createdAt: string;
   actor: { name: string | null; email: string | null } | null;
 };
+
+const actionLabels: Record<string, string> = {
+  'animal.create': 'Criou animal',
+  'animal.update': 'Editou animal',
+  'animal.delete': 'Excluiu animal',
+  'animal.import': 'Importou animais',
+  'animal.bulk_sell': 'Vendeu animais (lote)',
+  'animal.bulk_trash': 'Descartou animais (lote)',
+  'member.role_update': 'Atualizou função de membro',
+  'invite.create': 'Criou convite',
+  'invite.delete': 'Excluiu convite',
+  'sanitary.create': 'Adicionou registro sanitário',
+  'reproduction.create': 'Criou manejo reprodutivo',
+  'reproduction.update': 'Editou manejo reprodutivo',
+  'reproduction.delete': 'Excluiu manejo reprodutivo',
+};
+
+function translateAction(action: string): string {
+  return actionLabels[action] ?? action.replace(/\./g, ' ').replace(/_/g, ' ');
+}
+
+function getAnimalLabel(log: AuditLog): string | null {
+  const data = (log.after ?? log.before) as Record<string, unknown> | null;
+  if (!data) return null;
+  const manualId = data.manualId as string | undefined;
+  return manualId ? `Animal ${manualId.toUpperCase()}` : null;
+}
+
+function getEntityLabel(log: AuditLog): string | null {
+  // Bulk actions store manualIds in metadata
+  if (log.action === 'animal.bulk_sell' || log.action === 'animal.bulk_trash') {
+    const ids = log.metadata?.manualIds as string[] | undefined;
+    if (ids?.length) return ids.map((id) => id.toUpperCase()).join(', ');
+    return null;
+  }
+  const label = getAnimalLabel(log);
+  if (label) return label;
+  if (log.entityType === 'Animal' && log.entityId) return `Animal ${log.entityId.slice(0, 8)}…`;
+  if (log.entityType !== 'Animal') return log.entityType;
+  return null;
+}
 
 type TeamData = {
   members: Member[];
@@ -391,16 +435,24 @@ export default function TeamAccess() {
             <p className="text-xs text-muted-foreground">Sem registros.</p>
           )}
           <div className="max-h-[calc(15*3rem)] overflow-y-auto pr-1">
-            {filteredLogs.map((log) => (
-              <div
-                key={log.id}
-                className="mb-2 grid gap-1 rounded-md bg-[#f7f6f1] p-3 text-xs md:grid-cols-[1fr_1fr_180px]"
-              >
-                <span>{log.actor?.name ?? log.actor?.email ?? 'Sistema'}</span>
-                <span>{log.action} em {log.entityType}</span>
-                <span className="text-muted-foreground">{new Date(log.createdAt).toLocaleString('pt-BR')}</span>
-              </div>
-            ))}
+            {filteredLogs.map((log) => {
+              const entityLabel = getEntityLabel(log);
+              return (
+                <div
+                  key={log.id}
+                  className="mb-2 grid gap-1 rounded-md bg-[#f7f6f1] p-3 text-xs md:grid-cols-[1fr_1.5fr_160px]"
+                >
+                  <span className="font-medium">{log.actor?.name ?? log.actor?.email ?? 'Sistema'}</span>
+                  <span>
+                    {translateAction(log.action)}
+                    {entityLabel && (
+                      <span className="ml-1 font-semibold text-primary">— {entityLabel}</span>
+                    )}
+                  </span>
+                  <span className="text-muted-foreground">{new Date(log.createdAt).toLocaleString('pt-BR')}</span>
+                </div>
+              );
+            })}
           </div>
           {filteredLogs.length > 0 && (
             <p className="text-right text-xs text-muted-foreground">{filteredLogs.length} registros</p>
