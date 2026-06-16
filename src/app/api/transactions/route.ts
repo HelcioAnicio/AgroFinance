@@ -30,10 +30,7 @@ export async function GET(request: Request) {
   const end = url.searchParams.get('end');
   
   const where: Prisma.TransactionWhereInput = {
-    OR: [
-      { farmId: context.farm.id },
-      { farmId: null, userId: context.user.id },
-    ],
+    farmId: context.farm.id,
   };
 
   if (start && end) {
@@ -138,13 +135,7 @@ export async function PATCH(request: Request) {
   }
 
   const transaction = await prisma.transaction.findFirst({
-    where: {
-      id,
-      OR: [
-        { farmId: context.farm.id },
-        { farmId: null, userId: context.user.id },
-      ],
-    },
+    where: { id, farmId: context.farm.id },
   });
 
   if (!transaction) {
