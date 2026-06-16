@@ -1,6 +1,6 @@
 'use client';
 
-import { Animal, AnimalWeightHistory } from '@/types/animal';
+import { Animal, AnimalCalfLossHistory, AnimalWeightHistory } from '@/types/animal';
 import { Vaccine } from '@/types/vaccine';
 import { ExternalBull } from '@/types/externalBull';
 import { useEffect, useState } from 'react';
@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardTitle } from '@/components/ui/card';
 import { CardReproduction } from './isNotEditing/cardReproduction';
+import { ReproductiveHistorySection } from './isNotEditing/reproductiveHistorySection';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Check, Pencil, Plus, Trash2, Users, X } from 'lucide-react';
 import { FormBasicInformation } from './isEditing/formBasicInformation';
@@ -187,6 +188,18 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     fatherType: '',
     fatherId: '',
   });
+  const [calfLossHistories, setCalfLossHistories] = useState<AnimalCalfLossHistory[]>(
+    animal.calfLossHistories ?? []
+  );
+
+  const handleLossAdded = (loss: AnimalCalfLossHistory) =>
+    setCalfLossHistories((prev) =>
+      [loss, ...prev].sort(
+        (a, b) => new Date(b.lossDate).getTime() - new Date(a.lossDate).getTime()
+      )
+    );
+  const handleLossDeleted = (id: string) =>
+    setCalfLossHistories((prev) => prev.filter((h) => h.id !== id));
   const router = useRouter();
 
   const previousReproductiveStatus = String(
@@ -1630,33 +1643,17 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
               )}
             </div>
 
-            {/* Calf loss history */}
-            {(allDataForm.calfLossHistories?.length ?? 0) > 0 && (
-              <div className="rounded-2xl border bg-white p-5 shadow-sm">
-                <h2 className="mb-3 font-bold">Histórico de perda de cria</h2>
-                <div className="space-y-2">
-                  {allDataForm.calfLossHistories?.map((h) => (
-                    <div
-                      key={h.id}
-                      className="rounded-xl bg-muted/20 px-3 py-3 text-sm"
-                    >
-                      <p>
-                        <strong>Data:</strong>{' '}
-                        {new Date(h.lossDate).toLocaleDateString('pt-BR')}
-                      </p>
-                      <p>
-                        <strong>Motivo:</strong> {h.reason || 'N/A'}
-                      </p>
-                      <p>
-                        <strong>Pai:</strong>{' '}
-                        {h.fatherType === 'external'
-                          ? `Externo — ${h.externalBull?.name ?? 'N/A'}`
-                          : `Interno — ${h.fatherAnimal?.manualId ?? 'N/A'}`}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
+            {/* Reproductive history (births + losses) — females only */}
+            {allDataForm.gender === 'female' && (
+              <ReproductiveHistorySection
+                offspringFromMother={femaleOffspring}
+                calfLossHistories={calfLossHistories}
+                animals={animals}
+                externalBulls={externalBulls}
+                animalId={allDataForm.id}
+                onLossAdded={handleLossAdded}
+                onLossDeleted={handleLossDeleted}
+              />
             )}
           </div>
         </div>
