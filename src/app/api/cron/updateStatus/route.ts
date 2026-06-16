@@ -53,7 +53,12 @@ function buildSanitaryNotifyAt(expiryDate: Date) {
   return notifyAt.isBefore(dayjs()) ? new Date() : notifyAt.toDate();
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const authHeader = request.headers.get('authorization');
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const changedAt = new Date();
     const now = changedAt;
