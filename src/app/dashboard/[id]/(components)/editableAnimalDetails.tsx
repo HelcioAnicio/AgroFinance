@@ -191,6 +191,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   const [calfLossHistories, setCalfLossHistories] = useState<AnimalCalfLossHistory[]>(
     animal.calfLossHistories ?? []
   );
+  const [pevDays, setPevDays] = useState(30);
 
   const handleLossAdded = (loss: AnimalCalfLossHistory) =>
     setCalfLossHistories((prev) =>
@@ -783,6 +784,14 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
             }
           : { confirmed: false },
     };
+
+    if (formData.reproductiveStatus === 'pev') {
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + pevDays);
+      dataToSubmit.pevExpiresAt = expiresAt.toISOString();
+    } else {
+      dataToSubmit.pevExpiresAt = null;
+    }
 
     delete dataToSubmit.bull;
     delete dataToSubmit.offspringFromBull;
@@ -1733,6 +1742,8 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                         allDataForm={allDataForm}
                         handleInputValues={handleInputValues}
                         animals={animals}
+                        pevDays={pevDays}
+                        onPevDaysChange={setPevDays}
                       />
                     )}
 

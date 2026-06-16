@@ -161,6 +161,7 @@ model Animal {
   dewormingName         String?
   status                String         @default("active")
   isForFattening        Boolean        @default(false)
+  pevExpiresAt          DateTime?
   vaccineDate           DateTime?
   vaccineExpiry         DateTime?
   vaccineName           String?

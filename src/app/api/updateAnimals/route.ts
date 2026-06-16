@@ -120,6 +120,13 @@ export async function PUT(req: Request) {
       allDataForm.expectedDueDate = parsedExpectedDueDate;
     }
 
+    if (allDataForm.reproductiveStatus !== 'pev') {
+      allDataForm.pevExpiresAt = null;
+    } else if (allDataForm.pevExpiresAt != null) {
+      const parsed = new Date(allDataForm.pevExpiresAt as string);
+      allDataForm.pevExpiresAt = Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+
     const existingAnimal = await prisma.animal.findUnique({
       where: { id: allDataForm.id },
       select: {

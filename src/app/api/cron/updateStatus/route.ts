@@ -53,15 +53,25 @@ function buildSanitaryNotifyAt(expiryDate: Date) {
   return notifyAt.isBefore(dayjs()) ? new Date() : notifyAt.toDate();
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const authHeader = request.headers.get('authorization');
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
-    const limite = dayjs().add(30, 'day').toDate();
     const changedAt = new Date();
+    const now = changedAt;
+    const limite = dayjs().add(30, 'day').toDate();
+
+    // pevExpiresAt added to schema — resolves fully after `prisma generate` post-migration
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const pevWhere = { reproductiveStatus: 'pev', pevExpiresAt: { lte: now } } as any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const pevUpdateData = { reproductiveStatus: 'empty', pevExpiresAt: null } as any;
 
     const animalsToUpdate = await prisma.animal.findMany({
-      where: {
-        reproductiveStatus: 'pev',
-      },
+      where: pevWhere,
       select: {
         id: true,
         ownerId: true,
@@ -70,12 +80,8 @@ export async function GET() {
     });
 
     const result = await prisma.animal.updateMany({
-      where: {
-        reproductiveStatus: 'pev',
-      },
-      data: {
-        reproductiveStatus: 'empty',
-      },
+      where: pevWhere,
+      data: pevUpdateData,
     });
 
     if (animalsToUpdate.length > 0) {
@@ -100,7 +106,7 @@ export async function GET() {
           data: {
             id: uuidv4(),
             message: `Seu animal ${animal.manualId} saiu do status PEV e está vazio novamente.`,
-            notifyAt: limite,
+            notifyAt: now,
             read: false,
             userId: animal.ownerId,
             animalId: animal.id,
@@ -187,11 +193,39 @@ export async function GET() {
       }
     }
 
+    // Age-based category updates
+    const threeMonthsAgo = dayjs().subtract(3, 'month').toDate();
+    const twelveMonthsAgo = dayjs().subtract(12, 'month').toDate();
+    const twentyFourMonthsAgo = dayjs().subtract(24, 'month').toDate();
+
+    // neonate → calf (age >= 3 months, any gender)
+    const neonateToCalf = await prisma.animal.updateMany({
+      where: { category: 'neonate', birthDate: { lte: threeMonthsAgo }, status: 'active' },
+      data: { category: 'calf' },
+    });
+
+    // calf → steer (male, age >= 12 months)
+    const calfToSteer = await prisma.animal.updateMany({
+      where: { category: 'calf', gender: 'male', birthDate: { lte: twelveMonthsAgo }, status: 'active' },
+      data: { category: 'steer' },
+    });
+
+    // calf → cow (female, age >= 24 months)
+    const calfToCow = await prisma.animal.updateMany({
+      where: { category: 'calf', gender: 'female', birthDate: { lte: twentyFourMonthsAgo }, status: 'active' },
+      data: { category: 'cow' },
+    });
+
     return Response.json({
       message: 'Status atualizados com sucesso',
       updated: result.count,
       notificationsCreated: notifications.length,
       notifications,
+      categoryUpdates: {
+        neonateToCalf: neonateToCalf.count,
+        calfToSteer: calfToSteer.count,
+        calfToCow: calfToCow.count,
+      },
     });
   } catch (error) {
     console.error('Erro ao executar o cron:', error);

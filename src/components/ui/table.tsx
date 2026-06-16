@@ -124,7 +124,7 @@ const getCategoryLabel = (animal: Animal) => {
   return '-';
 };
 
-const getStatusBarColor = (status: string) => {
+const _getStatusBarColor = (status: string) => {
   const colors: Record<string, string> = {
     active: 'bg-green-500',
     inactive: 'bg-gray-500',
@@ -184,7 +184,7 @@ export const Table: React.FC<TableProps> = ({
     );
   }, [livestockStats, selectedStatsYear]);
 
-  const maxMonthlyValue = useMemo(() => {
+  const _maxMonthlyValue = useMemo(() => {
     if (!selectedYearStats) return 1;
     return Math.max(
       ...selectedYearStats.months.flatMap((month) => [
@@ -758,29 +758,47 @@ export const Table: React.FC<TableProps> = ({
           <div className="my-1.5 flex flex-row gap-2">
             <div className="flex flex-1 items-center gap-2 rounded-lg border-l-4 border-primary bg-white px-3 py-1.5 shadow-sm">
               <div>
-                <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Total</p>
-                <p className="text-base font-black leading-tight text-primary">{listAnimals.length}</p>
-                <p className="hidden text-[9px] text-muted-foreground xs:block">Com filtros aplicados</p>
+                <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+                  Total
+                </p>
+                <p className="text-base font-black leading-tight text-primary">
+                  {listAnimals.length}
+                </p>
+                <p className="hidden text-[9px] text-muted-foreground xs:block">
+                  Com filtros aplicados
+                </p>
               </div>
             </div>
             <div className="flex flex-1 items-center gap-2 rounded-lg border-l-4 border-green-500 bg-white px-3 py-1.5 shadow-sm">
               <div className="flex-1">
-                <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Ativos</p>
+                <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+                  Ativos
+                </p>
                 <p className="text-base font-black leading-tight text-foreground">
-                  {listAnimals.filter((a) => a.status === 'active' && a.category !== 'neonate').length}
+                  {
+                    listAnimals.filter(
+                      (a) => a.status === 'active' && a.category !== 'neonate'
+                    ).length
+                  }
                 </p>
                 <div className="mt-1 h-0.5 w-full rounded-full bg-muted">
                   <div
                     className="h-full rounded-full bg-green-500"
-                    style={{ width: `${listAnimals.length ? (listAnimals.filter((a) => a.status === 'active').length / listAnimals.length) * 100 : 0}%` }}
+                    style={{
+                      width: `${listAnimals.length ? (listAnimals.filter((a) => a.status === 'active').length / listAnimals.length) * 100 : 0}%`,
+                    }}
                   />
                 </div>
               </div>
             </div>
             <div className="flex flex-1 items-center gap-2 rounded-lg border-l-4 border-fuchsia-500 bg-white px-3 py-1.5 shadow-sm">
               <div>
-                <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Prenhas</p>
-                <p className="text-base font-black leading-tight text-foreground">{pregnantCowsCount}</p>
+                <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+                  Prenhas
+                </p>
+                <p className="text-base font-black leading-tight text-foreground">
+                  {pregnantCowsCount}
+                </p>
                 <p className="hidden text-[9px] italic text-muted-foreground xs:block">
                   {pregnantCowsCount === 0 ? 'Nenhuma prenha' : 'Vacas prenhas'}
                 </p>
@@ -788,10 +806,16 @@ export const Table: React.FC<TableProps> = ({
             </div>
             <div className="flex flex-1 items-center gap-2 rounded-lg border-l-4 border-slate-400 bg-white px-3 py-1.5 shadow-sm">
               <div>
-                <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Vazias</p>
-                <p className="text-base font-black leading-tight text-foreground">{emptyCowsCount}</p>
+                <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+                  Vazias
+                </p>
+                <p className="text-base font-black leading-tight text-foreground">
+                  {emptyCowsCount}
+                </p>
                 {emptyCowsCount > 0 && (
-                  <p className="hidden text-[9px] text-red-500 xs:block">Atenção requerida</p>
+                  <p className="hidden text-[9px] text-red-500 xs:block">
+                    Atenção requerida
+                  </p>
                 )}
               </div>
             </div>
@@ -962,7 +986,8 @@ export const Table: React.FC<TableProps> = ({
                 <div className="flex items-center justify-between rounded-xl border bg-white px-3 py-2 shadow-2xl">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-semibold text-foreground">
-                      {selectedIds.size} animal{selectedIds.size !== 1 ? 'is' : ''}
+                      {selectedIds.size} animal
+                      {selectedIds.size !== 1 ? 'is' : ''}
                     </span>
                     <span className="text-xs text-muted-foreground">
                       · {totalWeight.toFixed(0)} kg
@@ -976,13 +1001,19 @@ export const Table: React.FC<TableProps> = ({
                   </div>
                   <div className="flex gap-2">
                     <button
-                      onClick={() => { setSaleAction('trash'); setSaleDialogOpen(true); }}
+                      onClick={() => {
+                        setSaleAction('trash');
+                        setSaleDialogOpen(true);
+                      }}
                       className="rounded-lg border border-red-300 bg-red-50 px-2 py-1 text-xs font-semibold text-red-700"
                     >
                       Descarte
                     </button>
                     <button
-                      onClick={() => { setSaleAction('sell'); setSaleDialogOpen(true); }}
+                      onClick={() => {
+                        setSaleAction('sell');
+                        setSaleDialogOpen(true);
+                      }}
                       className="rounded-lg bg-primary px-2 py-1 text-xs font-semibold text-primary-foreground"
                     >
                       Vender
@@ -1003,7 +1034,9 @@ export const Table: React.FC<TableProps> = ({
                   >
                     <div className="mb-3 flex items-center justify-between">
                       <h3 className="text-sm font-bold">
-                        {selectedIds.size} animal{selectedIds.size !== 1 ? 'is' : ''} selecionado{selectedIds.size !== 1 ? 's' : ''}
+                        {selectedIds.size} animal
+                        {selectedIds.size !== 1 ? 'is' : ''} selecionado
+                        {selectedIds.size !== 1 ? 's' : ''}
                       </h3>
                       <button
                         onClick={() => setMobileSummaryOpen(false)}
@@ -1013,31 +1046,55 @@ export const Table: React.FC<TableProps> = ({
                       </button>
                     </div>
                     <div className="mb-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                      <span>Peso total: <strong>{totalWeight.toFixed(0)} kg</strong></span>
+                      <span>
+                        Peso total: <strong>{totalWeight.toFixed(0)} kg</strong>
+                      </span>
                       {selectedIds.size > 1 && (
-                        <span>Peso médio: <strong>{avgWeight.toFixed(0)} kg</strong></span>
+                        <span>
+                          Peso médio: <strong>{avgWeight.toFixed(0)} kg</strong>
+                        </span>
                       )}
                       {selectedIds.size === 1 && (
-                        <span>Arroba: <strong>{((selectedAnimals[0]?.weight ?? 0) / 15).toFixed(1)} @</strong></span>
+                        <span>
+                          Arroba:{' '}
+                          <strong>
+                            {((selectedAnimals[0]?.weight ?? 0) / 15).toFixed(
+                              1
+                            )}{' '}
+                            @
+                          </strong>
+                        </span>
                       )}
                       {selectedIds.size > 1 && (
-                        <span>Arroba média: <strong>{arrobaCount.toFixed(1)} @</strong></span>
+                        <span>
+                          Arroba média:{' '}
+                          <strong>{arrobaCount.toFixed(1)} @</strong>
+                        </span>
                       )}
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
                       <div className="flex items-center gap-1 text-xs">
-                        <label className="font-medium text-muted-foreground">% Carcaça</label>
+                        <label className="font-medium text-muted-foreground">
+                          % Carcaça
+                        </label>
                         <input
-                          type="number" min={1} max={100} step={1}
+                          type="number"
+                          min={1}
+                          max={100}
+                          step={1}
                           value={carcassPercent}
                           onChange={(e) => setCarcassPercent(e.target.value)}
                           className="w-14 rounded border px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-primary"
                         />
                       </div>
                       <div className="flex items-center gap-1 text-xs">
-                        <label className="font-medium text-muted-foreground">R$/@</label>
+                        <label className="font-medium text-muted-foreground">
+                          R$/@
+                        </label>
                         <input
-                          type="number" min={0} step={1}
+                          type="number"
+                          min={0}
+                          step={1}
                           value={pricePerArroba}
                           onChange={(e) => setPricePerArroba(e.target.value)}
                           placeholder="0"
@@ -1046,20 +1103,46 @@ export const Table: React.FC<TableProps> = ({
                       </div>
                       {pricePerArrobaNum > 0 && (
                         <>
-                          <span className="text-xs">Por cabeça: <strong>R$ {pricePerHead.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></span>
-                          <span className="text-xs">Total: <strong className="text-primary">R$ {totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></span>
+                          <span className="text-xs">
+                            Por cabeça:{' '}
+                            <strong>
+                              R${' '}
+                              {pricePerHead.toLocaleString('pt-BR', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              })}
+                            </strong>
+                          </span>
+                          <span className="text-xs">
+                            Total:{' '}
+                            <strong className="text-primary">
+                              R${' '}
+                              {totalValue.toLocaleString('pt-BR', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              })}
+                            </strong>
+                          </span>
                         </>
                       )}
                     </div>
                     <div className="mt-3 flex gap-2">
                       <button
-                        onClick={() => { setSaleAction('trash'); setMobileSummaryOpen(false); setSaleDialogOpen(true); }}
+                        onClick={() => {
+                          setSaleAction('trash');
+                          setMobileSummaryOpen(false);
+                          setSaleDialogOpen(true);
+                        }}
                         className="flex-1 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700"
                       >
                         Alterar para descarte
                       </button>
                       <button
-                        onClick={() => { setSaleAction('sell'); setMobileSummaryOpen(false); setSaleDialogOpen(true); }}
+                        onClick={() => {
+                          setSaleAction('sell');
+                          setMobileSummaryOpen(false);
+                          setSaleDialogOpen(true);
+                        }}
                         className="flex-1 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground"
                       >
                         Vender animais
@@ -1074,8 +1157,9 @@ export const Table: React.FC<TableProps> = ({
                 {/* Summary row */}
                 <div className="mb-2 flex flex-wrap gap-3 text-xs text-muted-foreground">
                   <span className="font-semibold text-foreground">
-                    {selectedIds.size} animal{selectedIds.size !== 1 ? 'is' : ''}{' '}
-                    selecionado{selectedIds.size !== 1 ? 's' : ''}
+                    {selectedIds.size} animal
+                    {selectedIds.size !== 1 ? 'is' : ''} selecionado
+                    {selectedIds.size !== 1 ? 's' : ''}
                   </span>
                   <span>
                     Peso total: <strong>{totalWeight.toFixed(0)} kg</strong>
@@ -1087,7 +1171,13 @@ export const Table: React.FC<TableProps> = ({
                   )}
                   {selectedIds.size === 1 && (
                     <span>
-                      Arroba: <strong>{(selectedAnimals[0]?.weight ?? 0) / 15 > 0 ? ((selectedAnimals[0]?.weight ?? 0) / 15).toFixed(1) : arrobaCount.toFixed(1)} @</strong>
+                      Arroba:{' '}
+                      <strong>
+                        {(selectedAnimals[0]?.weight ?? 0) / 15 > 0
+                          ? ((selectedAnimals[0]?.weight ?? 0) / 15).toFixed(1)
+                          : arrobaCount.toFixed(1)}{' '}
+                        @
+                      </strong>
                     </span>
                   )}
                   {selectedIds.size > 1 && (
@@ -1100,18 +1190,27 @@ export const Table: React.FC<TableProps> = ({
                 {/* Inputs + actions row */}
                 <div className="flex flex-wrap items-center gap-2">
                   <div className="flex items-center gap-1 text-xs">
-                    <label className="font-medium text-muted-foreground">% Carcaça</label>
+                    <label className="font-medium text-muted-foreground">
+                      % Carcaça
+                    </label>
                     <input
-                      type="number" min={1} max={100} step={1}
+                      type="number"
+                      min={1}
+                      max={100}
+                      step={1}
                       value={carcassPercent}
                       onChange={(e) => setCarcassPercent(e.target.value)}
                       className="w-14 rounded border px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
                   <div className="flex items-center gap-1 text-xs">
-                    <label className="font-medium text-muted-foreground">R$/@</label>
+                    <label className="font-medium text-muted-foreground">
+                      R$/@
+                    </label>
                     <input
-                      type="number" min={0} step={1}
+                      type="number"
+                      min={0}
+                      step={1}
                       value={pricePerArroba}
                       onChange={(e) => setPricePerArroba(e.target.value)}
                       placeholder="0"
@@ -1121,22 +1220,42 @@ export const Table: React.FC<TableProps> = ({
                   {pricePerArrobaNum > 0 && (
                     <>
                       <span className="text-xs">
-                        Por cabeça: <strong>R$ {pricePerHead.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                        Por cabeça:{' '}
+                        <strong>
+                          R${' '}
+                          {pricePerHead.toLocaleString('pt-BR', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                        </strong>
                       </span>
                       <span className="text-xs">
-                        Total: <strong className="text-primary">R$ {totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                        Total:{' '}
+                        <strong className="text-primary">
+                          R${' '}
+                          {totalValue.toLocaleString('pt-BR', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                        </strong>
                       </span>
                     </>
                   )}
                   <div className="ml-auto flex gap-2">
                     <button
-                      onClick={() => { setSaleAction('trash'); setSaleDialogOpen(true); }}
+                      onClick={() => {
+                        setSaleAction('trash');
+                        setSaleDialogOpen(true);
+                      }}
                       className="rounded-lg border border-red-300 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-100"
                     >
                       Alterar para descarte
                     </button>
                     <button
-                      onClick={() => { setSaleAction('sell'); setSaleDialogOpen(true); }}
+                      onClick={() => {
+                        setSaleAction('sell');
+                        setSaleDialogOpen(true);
+                      }}
                       className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition hover:opacity-90"
                     >
                       Vender animais
