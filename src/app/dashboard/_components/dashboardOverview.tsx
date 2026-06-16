@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { CirclePlus } from 'lucide-react';
+import { CirclePlus, Loader2 } from 'lucide-react';
 import { FaCheckCircle } from 'react-icons/fa';
 import { FaFileArrowDown } from 'react-icons/fa6';
 import {
@@ -112,6 +112,7 @@ export function DashboardOverview() {
   const [importIssues, setImportIssues] = useState<
     Array<{ row: number; message: string }>
   >([]);
+  const [isImporting, setIsImporting] = useState(false);
 
   const router = useRouter();
 
@@ -270,8 +271,7 @@ export function DashboardOverview() {
 
   async function handleUpload() {
     if (!inputFile || parsedJson.length === 0) return;
-    const wasLoading = isLoading;
-    void wasLoading;
+    setIsImporting(true);
     try {
       const res = await fetch('/api/importAnimals', {
         method: 'POST',
@@ -289,6 +289,8 @@ export function DashboardOverview() {
       }
     } catch {
       toast.error('Erro com o arquivo');
+    } finally {
+      setIsImporting(false);
     }
   }
 
@@ -404,7 +406,16 @@ export function DashboardOverview() {
                   Cancelar
                 </Button>
                 {inputFile && (
-                  <Button onClick={handleUpload}>Cadastrar animais</Button>
+                  <Button onClick={handleUpload} disabled={isImporting}>
+                    {isImporting ? (
+                      <>
+                        <Loader2 className="mr-2 size-4 animate-spin" />
+                        Importando...
+                      </>
+                    ) : (
+                      'Cadastrar animais'
+                    )}
+                  </Button>
                 )}
               </DialogFooter>
             </DialogContent>
