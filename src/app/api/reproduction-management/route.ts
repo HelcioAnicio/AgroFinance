@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { requireFarmContext } from '@/lib/tenant';
 
 function normalizeStatus(status: unknown): string {
   return typeof status === 'string' ? status.trim().toLowerCase() : '';
@@ -58,25 +57,14 @@ async function getLatestInseminationSource(animalId: string) {
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    const email = session?.user?.email;
-    if (!email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { email },
-      select: { id: true },
-    });
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 401 });
-    }
+    const { context, error, status } = await requireFarmContext('view_animals');
+    if (!context) return NextResponse.json({ error }, { status });
 
     const { searchParams } = new URL(request.url);
     const stage = searchParams.get('stage');
     const animalId = searchParams.get('animalId');
 
-    const where: Record<string, unknown> = { animal: { ownerId: user.id } };
+    const where: Record<string, unknown> = { animal: { farmId: context.farm.id } };
     if (stage) where.stage = stage;
     if (animalId) where.animalId = animalId;
 
@@ -98,19 +86,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    const email = session?.user?.email;
-    if (!email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { email },
-      select: { id: true },
-    });
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 401 });
-    }
+    const { context, error, status } = await requireFarmContext('manage_animals');
+    if (!context) return NextResponse.json({ error }, { status });
 
     const body = await request.json();
     const {
@@ -128,9 +105,9 @@ export async function POST(request: NextRequest) {
       ressinc,
     } = body;
 
-    // Verify animal belongs to user
+    // Verify animal belongs to the current farm
     const animal = await prisma.animal.findFirst({
-      where: { id: animalId, ownerId: user.id },
+      where: { id: animalId, farmId: context.farm.id },
     });
     if (!animal) {
       return NextResponse.json({ error: 'Animal not found' }, { status: 404 });
@@ -231,7 +208,7 @@ export async function POST(request: NextRequest) {
           data: {
             message: `Animal ${animal.manualId} is now pregnant`,
             notifyAt: new Date(),
-            userId: user.id,
+            userId: context.user.id,
             animalId,
           },
         });
@@ -250,25 +227,14 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    const email = session?.user?.email;
-    if (!email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { email },
-      select: { id: true },
-    });
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 401 });
-    }
+    const { context, error, status } = await requireFarmContext('manage_animals');
+    if (!context) return NextResponse.json({ error }, { status });
 
     const body = await request.json();
     const { id, newReproductiveStatus, ...updates } = body;
 
     const management = await prisma.reproductionManagement.findFirst({
-      where: { id, animal: { ownerId: user.id } },
+      where: { id, animal: { farmId: context.farm.id } },
     });
     if (!management) {
       return NextResponse.json(
@@ -348,7 +314,7 @@ export async function PUT(request: NextRequest) {
             data: {
               message: `Animal ${animal.manualId} is now pregnant`,
               notifyAt: new Date(),
-              userId: user.id,
+              userId: context.user.id,
               animalId: management.animalId,
             },
           });
