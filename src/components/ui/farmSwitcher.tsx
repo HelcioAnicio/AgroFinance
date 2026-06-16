@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
 import { ChevronDown, Check, Building2 } from 'lucide-react';
 
 interface FarmEntry {
@@ -20,7 +19,6 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 export function FarmSwitcher() {
-  const router = useRouter();
   const [farms, setFarms] = useState<FarmEntry[]>([]);
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -44,12 +42,7 @@ export function FarmSwitcher() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ farmId }),
       });
-      // Hard refresh so Next.js server components re-run with the new active farm
-      router.refresh();
-      // Update local state
-      setFarms((prev) =>
-        prev.map((f) => ({ ...f, isActive: f.farmId === farmId }))
-      );
+      window.location.reload();
     });
   };
 
