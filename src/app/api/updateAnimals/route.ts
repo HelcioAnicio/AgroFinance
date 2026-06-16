@@ -76,6 +76,7 @@ export async function PUT(req: Request) {
       'calfLossHistories',
       'farm',
       'createdAt',
+      'updatedAt',
     ];
     fieldsToRemove.forEach((field) => delete allDataForm[field]);
 
@@ -93,6 +94,17 @@ export async function PUT(req: Request) {
 
     if (allDataForm.bodyConditionScore !== null) {
       allDataForm.bodyConditionScore = Number(allDataForm.bodyConditionScore);
+    }
+
+    if (allDataForm.birthDate) {
+      const parsedBirthDate = new Date(allDataForm.birthDate);
+      if (Number.isNaN(parsedBirthDate.getTime())) {
+        return NextResponse.json(
+          { message: 'Data de nascimento invalida.' },
+          { status: 400 }
+        );
+      }
+      allDataForm.birthDate = parsedBirthDate;
     }
 
     if (allDataForm.expectedDueDate === '') {
@@ -124,7 +136,17 @@ export async function PUT(req: Request) {
       },
     });
 
-    if (!existingAnimal || existingAnimal.farmId !== context.farm.id) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const farmOwnerId = (context.farm as any).ownerUserId as string | null;
+    const isInFarm =
+      existingAnimal !== null &&
+      (existingAnimal.farmId === context.farm.id ||
+        // Allow editing animals not yet migrated (farmId null) if owned by the farm owner
+        (existingAnimal.farmId === null &&
+          (existingAnimal.ownerId === farmOwnerId ||
+            existingAnimal.ownerId === context.user.id)));
+
+    if (!isInFarm) {
       return NextResponse.json(
         { message: 'Animal nao encontrado' },
         { status: 404 }

@@ -17,7 +17,7 @@ export const fetchAnimals = async (
     const ownerConditions = allOwnerIds.map((id) => ({ ownerId: id }));
     const animals = await prisma.animal.findMany({
       where: farmId
-        ? { OR: [{ farmId }, ...ownerConditions] }
+        ? { farmId }
         : ownerConditions.length === 1
           ? { ownerId: allOwnerIds[0] }
           : { OR: ownerConditions },
@@ -105,7 +105,7 @@ export const fetchExternalBulls = async (
 
   const externalBulls = await prisma.externalBull.findMany({
     where: farmId
-      ? { OR: [{ farmId }, ...ownerConditions] }
+      ? { farmId }
       : ownerConditions.length === 1
         ? { ownerId: allOwnerIds[0] }
         : { OR: ownerConditions },
@@ -214,7 +214,7 @@ export const fetchLivestockStats = async (
 
   const animals = await prisma.animal.findMany({
     where: farmId
-      ? { OR: [{ farmId }, ...ownerConditions] }
+      ? { farmId }
       : ownerWhere,
     select: {
       id: true,
