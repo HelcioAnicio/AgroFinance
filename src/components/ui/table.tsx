@@ -263,7 +263,9 @@ export const Table: React.FC<TableProps> = ({
             // This prevents description rows (which may contain "manualId do pai" in
             // a later column) from being mistaken for the header row.
             const hasBrinco = row.slice(0, 5).some((cell) => {
-              if (typeof cell !== 'string') return false;
+              // Cell must be a short string (\u226430 chars) \u2014 description rows
+              // have long explanatory text and must not match.
+              if (typeof cell !== 'string' || cell.length > 30) return false;
               const norm = cell
                 .normalize('NFD')
                 .replace(/[\u0300-\u036f]/g, '')
