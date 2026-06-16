@@ -259,12 +259,9 @@ export const Table: React.FC<TableProps> = ({
         for (let i = 0; i < Math.min(allRows.length, 10); i++) {
           const row = allRows[i];
           if (Array.isArray(row)) {
-            // Only check the first 5 columns \u2014 the ID column is always near the start.
-            // This prevents description rows (which may contain "manualId do pai" in
-            // a later column) from being mistaken for the header row.
+            // Only check first 5 columns \u2014 the ID column is always near the start.
+            // Cells longer than 30 chars are description rows, not header rows.
             const hasBrinco = row.slice(0, 5).some((cell) => {
-              // Cell must be a short string (\u226430 chars) \u2014 description rows
-              // have long explanatory text and must not match.
               if (typeof cell !== 'string' || cell.length > 30) return false;
               const norm = cell
                 .normalize('NFD')
