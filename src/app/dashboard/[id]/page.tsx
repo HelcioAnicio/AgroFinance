@@ -20,13 +20,20 @@ const DetailAnimalId = async ({
   const { context } = await requireFarmContext('view_animals');
   if (!context) redirect('/login');
 
-  const animals = await fetchAnimals(context.user.id, context.farm.id);
-  const externalBulls = await fetchExternalBulls(
-    context.user.id,
-    context.farm.id
-  );
+  const animals = await fetchAnimals(undefined, context.farm.id);
+  const externalBulls = await fetchExternalBulls(undefined, context.farm.id);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const farmOwnerId = (context.farm as any).ownerUserId as string | null;
   const animal = await prisma.animal.findFirst({
-    where: { id, farmId: context.farm.id },
+    where: {
+      id,
+      OR: [
+        { farmId: context.farm.id },
+        // Fallback for animals not yet migrated (farmId still null)
+        ...(farmOwnerId ? [{ farmId: null, ownerId: farmOwnerId }] : []),
+      ],
+    },
     include: {
       bull: true,
       offspringFromBull: {

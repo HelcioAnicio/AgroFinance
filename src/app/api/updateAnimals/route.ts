@@ -124,7 +124,16 @@ export async function PUT(req: Request) {
       },
     });
 
-    if (!existingAnimal || existingAnimal.farmId !== context.farm.id) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const farmOwnerId = (context.farm as any).ownerUserId as string | null;
+    const isInFarm =
+      existingAnimal.farmId === context.farm.id ||
+      // Allow editing animals not yet migrated (farmId null) if owned by the farm owner
+      (existingAnimal.farmId === null &&
+        (existingAnimal.ownerId === farmOwnerId ||
+          existingAnimal.ownerId === context.user.id));
+
+    if (!existingAnimal || !isInFarm) {
       return NextResponse.json(
         { message: 'Animal nao encontrado' },
         { status: 404 }
