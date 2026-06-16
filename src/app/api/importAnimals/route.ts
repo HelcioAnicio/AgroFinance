@@ -1287,8 +1287,8 @@ export async function POST(req: Request) {
         };
       },
       {
-        maxWait: 30000, // 30 segundos de espera máxima
-        timeout: 60000, // 60 segundos de timeout total
+        maxWait: 30000,
+        timeout: 300000, // 5 minutos — necessário para importações grandes (160+ animais)
       }
     );
 

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { CirclePlus } from 'lucide-react';
+import { CirclePlus, Loader2 } from 'lucide-react';
 import { FaCheckCircle } from 'react-icons/fa';
 import { FaFileArrowDown } from 'react-icons/fa6';
 import {
@@ -112,6 +112,7 @@ export function DashboardOverview() {
   const [importIssues, setImportIssues] = useState<
     Array<{ row: number; message: string }>
   >([]);
+  const [isImporting, setIsImporting] = useState(false);
 
   const router = useRouter();
 
@@ -232,12 +233,14 @@ export function DashboardOverview() {
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const allRows = XLSX.utils.sheet_to_json<any[]>(sheet, { header: 1 });
-        let headerRowIndex = 0;
+        let headerRowIndex = -1;
         for (let i = 0; i < Math.min(allRows.length, 10); i++) {
           const row = allRows[i];
           if (Array.isArray(row)) {
-            const hasBrinco = row.some((cell) => {
-              if (typeof cell !== 'string') return false;
+            // Only check first 5 columns — the ID column is always near the start.
+            // Cells longer than 30 chars are description rows, not header rows.
+            const hasBrinco = row.slice(0, 5).some((cell) => {
+              if (typeof cell !== 'string' || cell.length > 30) return false;
               const norm = cell
                 .normalize('NFD')
                 .replace(/[̀-ͯ]/g, '')
@@ -245,7 +248,8 @@ export function DashboardOverview() {
               return (
                 norm.includes('brinco') ||
                 norm.includes('manualid') ||
-                norm.includes('id manual')
+                norm.includes('id manual') ||
+                norm === 'id'
               );
             });
             if (hasBrinco) {
@@ -256,7 +260,7 @@ export function DashboardOverview() {
         }
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const json = XLSX.utils.sheet_to_json<any>(sheet, {
-          range: headerRowIndex || 2,
+          range: headerRowIndex >= 0 ? headerRowIndex : 0,
           defval: '',
         });
         setParsedJson(json);
@@ -267,8 +271,7 @@ export function DashboardOverview() {
 
   async function handleUpload() {
     if (!inputFile || parsedJson.length === 0) return;
-    const wasLoading = isLoading;
-    void wasLoading;
+    setIsImporting(true);
     try {
       const res = await fetch('/api/importAnimals', {
         method: 'POST',
@@ -286,6 +289,8 @@ export function DashboardOverview() {
       }
     } catch {
       toast.error('Erro com o arquivo');
+    } finally {
+      setIsImporting(false);
     }
   }
 
@@ -401,7 +406,16 @@ export function DashboardOverview() {
                   Cancelar
                 </Button>
                 {inputFile && (
-                  <Button onClick={handleUpload}>Cadastrar animais</Button>
+                  <Button onClick={handleUpload} disabled={isImporting}>
+                    {isImporting ? (
+                      <>
+                        <Loader2 className="mr-2 size-4 animate-spin" />
+                        Importando...
+                      </>
+                    ) : (
+                      'Cadastrar animais'
+                    )}
+                  </Button>
                 )}
               </DialogFooter>
             </DialogContent>
