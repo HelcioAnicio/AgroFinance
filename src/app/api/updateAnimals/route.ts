@@ -76,6 +76,7 @@ export async function PUT(req: Request) {
       'calfLossHistories',
       'farm',
       'createdAt',
+      'updatedAt',
     ];
     fieldsToRemove.forEach((field) => delete allDataForm[field]);
 
@@ -93,6 +94,17 @@ export async function PUT(req: Request) {
 
     if (allDataForm.bodyConditionScore !== null) {
       allDataForm.bodyConditionScore = Number(allDataForm.bodyConditionScore);
+    }
+
+    if (allDataForm.birthDate) {
+      const parsedBirthDate = new Date(allDataForm.birthDate);
+      if (Number.isNaN(parsedBirthDate.getTime())) {
+        return NextResponse.json(
+          { message: 'Data de nascimento invalida.' },
+          { status: 400 }
+        );
+      }
+      allDataForm.birthDate = parsedBirthDate;
     }
 
     if (allDataForm.expectedDueDate === '') {
