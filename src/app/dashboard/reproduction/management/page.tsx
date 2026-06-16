@@ -125,7 +125,7 @@ const ReproductionManagementPage = () => {
     let base: Animal[] = [];
     switch (currentStage) {
       case 'D0': {
-        const empty = animals.filter((a) => isCow(a) && a.reproductiveStatus?.toLowerCase() === 'empty');
+        const empty = animals.filter((a) => isCow(a) && (!a.reproductiveStatus || a.reproductiveStatus.toLowerCase() === 'empty'));
         const ressinc = animals.filter((a) => isCow(a) && managements.some((m) => m.animalId === a.id && m.stage === 'DG' && m.ressinc));
         base = [...empty, ...ressinc.filter((r) => !empty.some((e) => e.id === r.id))];
         break;
