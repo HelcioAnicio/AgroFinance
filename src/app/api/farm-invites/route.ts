@@ -6,6 +6,7 @@ import { getAppUrl } from '@/lib/appUrl';
 
 const VALID_ROLES = [
   'OWNER',
+  'MANAGER',
   'EMPLOYEE',
   'CAREGIVER_VETERINARIAN',
   'FINANCIAL',

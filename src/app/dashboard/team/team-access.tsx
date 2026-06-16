@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { Copy, Send, RefreshCw, Pencil, Trash2, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-type Role = 'OWNER' | 'EMPLOYEE' | 'CAREGIVER_VETERINARIAN' | 'FINANCIAL';
+type Role = 'OWNER' | 'MANAGER' | 'EMPLOYEE' | 'CAREGIVER_VETERINARIAN' | 'FINANCIAL';
 
 type Member = {
   id: string;
@@ -85,6 +85,7 @@ type TeamData = {
 
 const roleLabels: Record<Role, string> = {
   OWNER: 'Dono',
+  MANAGER: 'Gerente',
   EMPLOYEE: 'Funcionário',
   CAREGIVER_VETERINARIAN: 'Cuidador/Veterinário',
   FINANCIAL: 'Financeiro',

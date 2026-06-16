@@ -78,6 +78,7 @@ export interface Animal {
   weightHistories?: AnimalWeightHistory[];
   calfLossHistories?: AnimalCalfLossHistory[];
   isForFattening?: boolean;
+  pevExpiresAt?: Date | string | null;
   weightRecordType?: WeightRecordType;
   weightRecordDate?: string | Date | null;
   statusChangeDate?: string | Date | null;
