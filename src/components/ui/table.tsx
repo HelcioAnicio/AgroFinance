@@ -255,11 +255,14 @@ export const Table: React.FC<TableProps> = ({
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const allRows = XLSX.utils.sheet_to_json<any[]>(sheet, { header: 1 });
-        let headerRowIndex = 0;
+        let headerRowIndex = -1;
         for (let i = 0; i < Math.min(allRows.length, 10); i++) {
           const row = allRows[i];
           if (Array.isArray(row)) {
-            const hasBrinco = row.some((cell) => {
+            // Only check the first 5 columns \u2014 the ID column is always near the start.
+            // This prevents description rows (which may contain "manualId do pai" in
+            // a later column) from being mistaken for the header row.
+            const hasBrinco = row.slice(0, 5).some((cell) => {
               if (typeof cell !== 'string') return false;
               const norm = cell
                 .normalize('NFD')
@@ -268,7 +271,8 @@ export const Table: React.FC<TableProps> = ({
               return (
                 norm.includes('brinco') ||
                 norm.includes('manualid') ||
-                norm.includes('id manual')
+                norm.includes('id manual') ||
+                norm === 'id'
               );
             });
             if (hasBrinco) {
@@ -280,7 +284,9 @@ export const Table: React.FC<TableProps> = ({
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const json = XLSX.utils.sheet_to_json<any>(sheet, {
-          range: headerRowIndex || 2,
+          // headerRowIndex >= 0 means we found the header; use it directly.
+          // Fallback to 0 (first row) if not detected.
+          range: headerRowIndex >= 0 ? headerRowIndex : 0,
           defval: '',
         });
         setParsedJson(json);
