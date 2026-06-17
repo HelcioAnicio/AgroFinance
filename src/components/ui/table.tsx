@@ -640,7 +640,7 @@ export const Table: React.FC<TableProps> = ({
                 >
                   {isSaleMode
                     ? `Selecionando (${selectedIds.size})`
-                    : 'Selecionar venda'}
+                    : 'Selecionar animais'}
                 </button>
                 {isSaleMode && (
                   <button
