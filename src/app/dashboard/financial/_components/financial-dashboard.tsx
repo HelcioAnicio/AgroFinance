@@ -9,6 +9,7 @@ import {
   Plus,
   Wallet,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -68,6 +69,7 @@ const CURRENCY_FORMATTER = new Intl.NumberFormat('pt-BR', {
 interface FinancialDashboardProps {
   userId: string;
   userName: string;
+  role: string;
 }
 
 interface TransactionFormState {
@@ -126,12 +128,14 @@ const TRANSACTIONS_API = '/api/transactions';
 async function fetchTransactions(
   userId: string,
   start?: string,
-  end?: string
+  end?: string,
+  mine?: boolean
 ): Promise<FinancialTransaction[]> {
   const params = new URLSearchParams({ userId });
 
   if (start) params.set('start', start);
   if (end) params.set('end', end);
+  if (mine) params.set('mine', 'true');
 
   const response = await fetch(`${TRANSACTIONS_API}?${params.toString()}`);
 
@@ -147,7 +151,9 @@ async function fetchTransactions(
 export function FinancialDashboard({
   userId,
   userName,
+  role,
 }: FinancialDashboardProps) {
+  const isLimitedView = role === 'EMPLOYEE' || role === 'CAREGIVER_VETERINARIAN';
   const [monthKey, setMonthKey] = useState(getMonthKey);
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [monthlyTransactions, setMonthlyTransactions] = useState<
@@ -177,8 +183,8 @@ export function FinancialDashboard({
 
       try {
         const [monthlyTransactions, allTransactions] = await Promise.all([
-          fetchTransactions(userId, start, end),
-          fetchTransactions(userId),
+          fetchTransactions(userId, start, end, isLimitedView),
+          fetchTransactions(userId, undefined, undefined, isLimitedView),
         ]);
 
         if (!isMounted) return;
@@ -314,8 +320,8 @@ export function FinancialDashboard({
     const { start, end } = getMonthBounds(monthKey);
 
     const [monthlyTransactions, allTransactions] = await Promise.all([
-      fetchTransactions(userId, start, end),
-      fetchTransactions(userId),
+      fetchTransactions(userId, start, end, isLimitedView),
+      fetchTransactions(userId, undefined, undefined, isLimitedView),
     ]);
 
     setMonthlyTransactions(monthlyTransactions);
@@ -405,14 +411,20 @@ export function FinancialDashboard({
         setFormState(createInitialFormState());
         setEditingTransaction(null);
         setIsDialogOpen(false);
+        toast.success(
+          editingTransaction
+            ? 'Lançamento atualizado com sucesso.'
+            : 'Lançamento adicionado com sucesso.'
+        );
       } catch (error) {
-        setError(
+        const message =
           error instanceof Error
             ? error.message
             : editingTransaction
-              ? 'Nao foi possivel atualizar o lancamento.'
-              : 'Nao foi possivel adicionar o lancamento.'
-        );
+              ? 'Não foi possível atualizar o lançamento.'
+              : 'Não foi possível adicionar o lançamento.';
+        setError(message);
+        toast.error(message);
       }
     });
   }
@@ -651,14 +663,15 @@ export function FinancialDashboard({
           <div className="flex items-center gap-2">
             <Wallet className="h-4 w-4 text-primary" />
             <span>
-              {userName}, os indicadores abaixo consideram todas as transações
-              da fazenda ativa e o recorte mensal selecionado.
+              {isLimitedView
+                ? `${userName}, você pode registrar lançamentos. O extrato exibe apenas os seus próprios registros.`
+                : `${userName}, os indicadores abaixo consideram todas as transações da fazenda ativa e o recorte mensal selecionado.`}
             </span>
           </div>
         </div>
       </section>
 
-      <section className="grid gap-4 xl:grid-cols-[1.15fr_1.15fr_1fr]">
+      {!isLimitedView && <section className="grid gap-4 xl:grid-cols-[1.15fr_1.15fr_1fr]">
         <article className="rounded-3xl border border-emerald-200 bg-white p-5 shadow-sm">
           <div className="mb-4 flex items-start justify-between">
             <div>
@@ -747,9 +760,9 @@ export function FinancialDashboard({
             </div>
           </div>
         </article>
-      </section>
+      </section>}
 
-      <section className="grid gap-6 xl:grid-cols-[1.5fr_0.85fr]">
+      <section className={`grid gap-6 ${isLimitedView ? '' : 'xl:grid-cols-[1.5fr_0.85fr]'}`}>
         <div className="rounded-3xl border bg-white p-5 shadow-sm md:p-6">
           <div className="mb-6 flex flex-col gap-4 border-b border-slate-100 pb-5 lg:flex-row lg:flex-wrap lg:items-center lg:justify-between">
             <div className="w-full space-y-1">
@@ -885,15 +898,17 @@ export function FinancialDashboard({
                                 >
                                   {transaction.status ? 'Pago' : 'Pendente'}
                                 </Badge>
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  className="h-7 rounded-full px-2 text-xs"
-                                  onClick={() => openEditDialog(transaction)}
-                                >
-                                  <Pencil className="mr-1 h-3.5 w-3.5" />
-                                  Editar
-                                </Button>
+                                {!isLimitedView && (
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="h-7 rounded-full px-2 text-xs"
+                                    onClick={() => openEditDialog(transaction)}
+                                  >
+                                    <Pencil className="mr-1 h-3.5 w-3.5" />
+                                    Editar
+                                  </Button>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -926,7 +941,7 @@ export function FinancialDashboard({
           )}
         </div>
 
-        <aside className="space-y-4">
+        {!isLimitedView && <aside className="space-y-4">
           <div className="rounded-3xl border bg-white p-5 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
               Resumo Rapido
@@ -981,7 +996,7 @@ export function FinancialDashboard({
               mes, sempre amarrado ao usuario autenticado.
             </p>
           </div>
-        </aside>
+        </aside>}
       </section>
     </div>
   );
