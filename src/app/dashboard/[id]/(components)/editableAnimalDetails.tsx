@@ -2106,12 +2106,12 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                   {offspringMales}♂ / {offspringFemales}♀
                 </p>
               </div>
-              <div className="rounded-xl border-l-4 border-green-400 bg-muted/30 px-3 py-2">
+              <div className="rounded-xl border-l-4 border-amber-400 bg-muted/30 px-3 py-2">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                  Peso médio
+                  Peso médio desmame
                 </p>
-                <p className="text-2xl font-black text-green-600">
-                  {avgOffspringWeight ? `${avgOffspringWeight} kg` : 'N/A'}
+                <p className="text-2xl font-black text-amber-600">
+                  {avgWeaningWeight ? `${avgWeaningWeight} kg` : 'N/A'}
                 </p>
               </div>
             </div>
@@ -2143,10 +2143,10 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
               </div>
               <div className="rounded-lg border bg-muted/20 px-3 py-2">
                 <p className="text-xs text-muted-foreground">
-                  Peso médio desmame
+                  Peso médio atual
                 </p>
                 <p className="font-semibold">
-                  {avgWeaningWeight ? `${avgWeaningWeight} kg` : 'N/A'}
+                  {avgOffspringWeight ? `${avgOffspringWeight} kg` : 'N/A'}
                 </p>
               </div>
               <div className="rounded-lg border bg-muted/20 px-3 py-2">
@@ -2165,26 +2165,40 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                 Listagem
               </p>
               <div className="max-h-52 space-y-2 overflow-y-auto">
-                {offspring.map((child) => (
-                  <div
-                    key={child.id}
-                    className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono font-bold text-primary">
-                        {child.manualId.charAt(0).toUpperCase() +
-                          child.manualId.slice(1)}
-                      </span>
-                      <span className="text-muted-foreground">
-                        {child.gender === 'male' ? '♂' : '♀'}
-                      </span>
+                {offspring.map((child) => {
+                  const pdRecord = child.weightHistories?.find((w) => w.recordType === 'PD');
+                  const isSold = child.status === 'sold' || child.status === 'vendido';
+                  return (
+                    <div
+                      key={child.id}
+                      className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-bold text-primary">
+                          {child.manualId.charAt(0).toUpperCase() +
+                            child.manualId.slice(1)}
+                        </span>
+                        <span className="text-muted-foreground">
+                          {child.gender === 'male' ? '♂' : '♀'}
+                        </span>
+                      </div>
+                      <div className="flex flex-col items-end gap-0.5 text-xs">
+                        <span className="text-sm font-medium">{child.weight} kg</span>
+                        {pdRecord && (
+                          <span className="font-medium text-amber-600">
+                            PD: {Number(pdRecord.weight).toFixed(0)} kg
+                          </span>
+                        )}
+                        {isSold && (
+                          <span className="font-medium text-green-600">
+                            Venda: {child.weight} kg
+                          </span>
+                        )}
+                        <div className="mt-0.5">{getStatusNode(child.status)}</div>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span>{child.weight} kg</span>
-                      {getStatusNode(child.status)}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>

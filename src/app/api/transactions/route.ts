@@ -22,15 +22,19 @@ function toFinancialTransaction(
 }
 
 export async function GET(request: Request) {
-  const { context, error, status } = await requireFarmContext('view_finance');
-  if (!context) return NextResponse.json({ message: error }, { status });
-
   const url = new URL(request.url);
+  const mine = url.searchParams.get('mine') === 'true';
   const start = url.searchParams.get('start');
   const end = url.searchParams.get('end');
-  
+
+  // mine=true: any farm member can see their own transactions
+  const permission = mine ? 'view_animals' : 'view_finance';
+  const { context, error, status } = await requireFarmContext(permission);
+  if (!context) return NextResponse.json({ message: error }, { status });
+
   const where: Prisma.TransactionWhereInput = {
     farmId: context.farm.id,
+    ...(mine ? { userId: context.user.id } : {}),
   };
 
   if (start && end) {
@@ -42,9 +46,7 @@ export async function GET(request: Request) {
 
   const transactions = await prisma.transaction.findMany({
     where,
-    orderBy: {
-      date: 'desc',
-    },
+    orderBy: { date: 'desc' },
   });
 
   return NextResponse.json(
@@ -54,7 +56,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const { context, error, status: authStatus } =
-    await requireFarmContext('manage_finance');
+    await requireFarmContext('view_animals');
   if (!context) return NextResponse.json({ message: error }, { status: authStatus });
 
   const body = await request.json();
