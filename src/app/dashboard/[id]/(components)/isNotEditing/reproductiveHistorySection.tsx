@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Trash2, CirclePlus } from 'lucide-react';
+import { Trash2, CirclePlus, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 import { Animal, AnimalCalfLossHistory } from '@/types/animal';
 import { ExternalBull } from '@/types/externalBull';
@@ -27,6 +27,7 @@ interface Props {
   animalId: string;
   onLossAdded: (loss: AnimalCalfLossHistory) => void;
   onLossDeleted: (id: string) => void;
+  onLossUpdated: (loss: AnimalCalfLossHistory) => void;
 }
 
 const REASONS = ['Aborto', 'Natimorto', 'Parto prematuro', 'Outro'];
@@ -48,8 +49,10 @@ export function ReproductiveHistorySection({
   animalId,
   onLossAdded,
   onLossDeleted,
+  onLossUpdated,
 }: Props) {
   const [open, setOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(defaultForm());
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -69,6 +72,27 @@ export function ReproductiveHistorySection({
 
   const bulls = animals.filter((a) => a.gender === 'male');
 
+  function openAdd() {
+    setEditingId(null);
+    setForm(defaultForm());
+    setOpen(true);
+  }
+
+  function openEdit(h: AnimalCalfLossHistory) {
+    setEditingId(h.id);
+    setForm({
+      lossDate: new Date(h.lossDate).toISOString().split('T')[0],
+      reason: h.reason ?? '',
+      expectedDueDate: h.expectedDueDate
+        ? new Date(h.expectedDueDate).toISOString().split('T')[0]
+        : '',
+      fatherType: (h.fatherType as 'internal' | 'external' | 'none') ?? 'none',
+      fatherAnimalId: h.fatherAnimalId ?? '',
+      externalBullId: h.externalBullId ?? '',
+    });
+    setOpen(true);
+  }
+
   async function handleSave() {
     if (!form.lossDate || !form.reason) {
       toast.error('Data e motivo são obrigatórios.');
@@ -85,28 +109,37 @@ export function ReproductiveHistorySection({
 
     setSaving(true);
     try {
-      const res = await fetch('/api/calfLoss', {
-        method: 'POST',
+      const payload = {
+        animalId,
+        lossDate: form.lossDate,
+        reason: form.reason,
+        expectedDueDate: form.expectedDueDate || undefined,
+        fatherType: form.fatherType,
+        fatherAnimalId: form.fatherType === 'internal' ? form.fatherAnimalId : undefined,
+        externalBullId: form.fatherType === 'external' ? form.externalBullId : undefined,
+      };
+
+      const isEdit = !!editingId;
+      const res = await fetch(isEdit ? `/api/calfLoss?id=${editingId}` : '/api/calfLoss', {
+        method: isEdit ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          animalId,
-          lossDate: form.lossDate,
-          reason: form.reason,
-          expectedDueDate: form.expectedDueDate || undefined,
-          fatherType: form.fatherType,
-          fatherAnimalId: form.fatherType === 'internal' ? form.fatherAnimalId : undefined,
-          externalBullId: form.fatherType === 'external' ? form.externalBullId : undefined,
-        }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) {
         toast.error(data.message ?? 'Erro ao salvar.');
         return;
       }
-      onLossAdded(data.data as AnimalCalfLossHistory);
-      toast.success('Perda registrada.');
+      if (isEdit) {
+        onLossUpdated(data.data as AnimalCalfLossHistory);
+        toast.success('Registro atualizado.');
+      } else {
+        onLossAdded(data.data as AnimalCalfLossHistory);
+        toast.success('Perda registrada.');
+      }
       setOpen(false);
       setForm(defaultForm());
+      setEditingId(null);
     } catch {
       toast.error('Erro de conexão.');
     } finally {
@@ -139,7 +172,7 @@ export function ReproductiveHistorySection({
           <h2 className="font-bold">Histórico Reprodutivo</h2>
           <button
             type="button"
-            onClick={() => setOpen(true)}
+            onClick={openAdd}
             className="flex items-center gap-1 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors hover:bg-muted"
           >
             <CirclePlus className="size-3.5" />
@@ -157,37 +190,40 @@ export function ReproductiveHistorySection({
               if (ev.kind === 'birth') {
                 const pdRecord = ev.animal.weightHistories?.find((w) => w.recordType === 'PD');
                 const isSold = ev.animal.status === 'sold' || ev.animal.status === 'vendido';
+                const displayId =
+                  ev.animal.manualId.charAt(0).toUpperCase() + ev.animal.manualId.slice(1);
                 return (
                   <div
                     key={`birth-${ev.animal.id}`}
                     className="flex items-center justify-between rounded-xl border-l-4 border-green-500 bg-muted/20 px-3 py-3 text-sm"
                   >
-                    <div className="flex items-center gap-3">
-                      <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">
+                    <div className="flex items-start gap-3">
+                      <span className="mt-0.5 shrink-0 rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">
                         Parto
                       </span>
-                      <span>
-                        {ev.date.toLocaleDateString('pt-BR')}
-                        {' — '}
+                      <div className="flex flex-col">
+                        <span className="text-xs text-muted-foreground">
+                          {ev.date.toLocaleDateString('pt-BR')}
+                        </span>
                         <Link
                           href={`/dashboard/${ev.animal.id}`}
-                          className="font-mono text-primary underline-offset-2 hover:underline"
+                          className="font-mono font-semibold text-primary underline-offset-2 hover:underline"
                         >
-                          {ev.animal.manualId}
+                          {displayId}
                         </Link>
-                        {ev.animal.gender === 'male' ? ' (Macho)' : ' (Fêmea)'}
-                      </span>
-                    </div>
-                    <div className="flex flex-col items-end gap-0.5 text-xs text-muted-foreground">
-                      <span>{ev.animal.weight} kg</span>
-                      {pdRecord && (
-                        <span className="font-medium text-amber-600">
-                          PD: {Number(pdRecord.weight).toFixed(0)} kg
+                        <span className="text-xs text-muted-foreground">
+                          {ev.animal.gender === 'male' ? 'Macho' : 'Fêmea'}
                         </span>
-                      )}
-                      {isSold && (
-                        <span className="font-medium text-green-600">
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-0.5 text-xs">
+                      {isSold ? (
+                        <span className="font-semibold text-green-600">
                           Venda: {ev.animal.weight} kg
+                        </span>
+                      ) : (
+                        <span className="font-semibold text-amber-600">
+                          {pdRecord ? `PD: ${Number(pdRecord.weight).toFixed(0)} kg` : 'PD: N/A'}
                         </span>
                       )}
                     </div>
@@ -201,29 +237,45 @@ export function ReproductiveHistorySection({
                   key={`loss-${h.id}-${i}`}
                   className="flex items-center justify-between rounded-xl border-l-4 border-red-400 bg-muted/20 px-3 py-3 text-sm"
                 >
-                  <div className="flex items-center gap-3">
-                    <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-600">
+                  <div className="flex items-start gap-3">
+                    <span className="mt-0.5 shrink-0 rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-600">
                       Perda
                     </span>
-                    <span>
-                      {ev.date.toLocaleDateString('pt-BR')}
-                      {h.reason ? ` — ${h.reason}` : ''}
-                      {h.fatherType === 'external' && h.externalBull
-                        ? ` (Touro: ${h.externalBull.name})`
-                        : h.fatherType === 'internal' && h.fatherAnimal
-                          ? ` (Pai: ${h.fatherAnimal.manualId})`
-                          : ''}
-                    </span>
+                    <div className="flex flex-col">
+                      <span className="text-xs text-muted-foreground">
+                        {ev.date.toLocaleDateString('pt-BR')}
+                      </span>
+                      {h.reason && <span className="font-medium">{h.reason}</span>}
+                      {h.fatherType === 'external' && h.externalBull ? (
+                        <span className="text-xs text-muted-foreground">
+                          Touro: {h.externalBull.name}
+                        </span>
+                      ) : h.fatherType === 'internal' && h.fatherAnimal ? (
+                        <span className="text-xs text-muted-foreground">
+                          Pai: {h.fatherAnimal.manualId}
+                        </span>
+                      ) : null}
+                    </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(h.id)}
-                    disabled={deletingId === h.id}
-                    className="ml-2 rounded p-1 text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-500 disabled:opacity-50"
-                    title="Remover registro"
-                  >
-                    <Trash2 className="size-3.5" />
-                  </button>
+                  <div className="flex shrink-0 items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => openEdit(h)}
+                      className="rounded p-1 text-muted-foreground transition-colors hover:bg-white hover:text-primary"
+                      title="Editar registro"
+                    >
+                      <Pencil className="size-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(h.id)}
+                      disabled={deletingId === h.id}
+                      className="rounded p-1 text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-500 disabled:opacity-50"
+                      title="Remover registro"
+                    >
+                      <Trash2 className="size-3.5" />
+                    </button>
+                  </div>
                 </div>
               );
             })}
@@ -234,7 +286,9 @@ export function ReproductiveHistorySection({
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Registrar Perda de Cria</DialogTitle>
+            <DialogTitle>
+              {editingId ? 'Editar Perda de Cria' : 'Registrar Perda de Cria'}
+            </DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4 text-sm">

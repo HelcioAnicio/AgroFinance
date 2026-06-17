@@ -132,6 +132,72 @@ export async function POST(req: Request) {
   }
 }
 
+export async function PUT(req: Request) {
+  const { context, error, status } = await requireFarmContext('manage_animals');
+  if (!context) return NextResponse.json({ error }, { status });
+
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get('id');
+    if (!id) return NextResponse.json({ message: 'ID nao fornecido.' }, { status: 400 });
+
+    const body = await req.json();
+    const { lossDate: lossDateRaw, reason, expectedDueDate: expectedDueDateRaw, fatherType, fatherAnimalId, externalBullId } = body;
+
+    if (!lossDateRaw || !reason || !fatherType) {
+      return NextResponse.json({ message: 'Campos obrigatorios: lossDate, reason, fatherType.' }, { status: 400 });
+    }
+
+    const lossDate = new Date(lossDateRaw);
+    if (Number.isNaN(lossDate.getTime())) return NextResponse.json({ message: 'Data invalida.' }, { status: 400 });
+
+    const expectedDueDate = expectedDueDateRaw ? new Date(expectedDueDateRaw) : null;
+
+    const calfLossDelegate = (
+      prisma as unknown as {
+        animalCalfLossHistory?: {
+          findUnique: (args: object) => Promise<{ id: string; animal: { farmId: string } } | null>;
+          update: (args: object) => Promise<unknown>;
+        };
+      }
+    ).animalCalfLossHistory;
+
+    if (!calfLossDelegate?.findUnique) {
+      return NextResponse.json({ message: 'Funcionalidade indisponivel.' }, { status: 503 });
+    }
+
+    const record = await calfLossDelegate.findUnique({
+      where: { id },
+      include: { animal: { select: { farmId: true } } },
+    } as object);
+
+    if (!record || record.animal.farmId !== context.farm.id) {
+      return NextResponse.json({ message: 'Registro nao encontrado.' }, { status: 404 });
+    }
+
+    const updated = await calfLossDelegate.update({
+      where: { id },
+      data: {
+        lossDate,
+        reason: reason ?? null,
+        expectedDueDate,
+        fatherType,
+        fatherAnimalId: fatherType === 'internal' ? (fatherAnimalId ?? null) : null,
+        externalBullId: fatherType === 'external' ? (externalBullId ?? null) : null,
+      },
+      include: {
+        fatherAnimal: { select: { id: true, manualId: true } },
+        externalBull: { select: { id: true, name: true } },
+      },
+    } as object);
+
+    return NextResponse.json({ data: updated });
+  } catch (err) {
+    console.error('Erro ao editar perda de cria:', err);
+    return NextResponse.json({ message: 'Erro interno.' }, { status: 500 });
+  }
+}
+
 export async function DELETE(req: Request) {
   const { context, error, status } = await requireFarmContext('manage_animals');
   if (!context) return NextResponse.json({ error }, { status });

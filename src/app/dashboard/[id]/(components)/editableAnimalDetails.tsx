@@ -201,6 +201,12 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     );
   const handleLossDeleted = (id: string) =>
     setCalfLossHistories((prev) => prev.filter((h) => h.id !== id));
+  const handleLossUpdated = (loss: AnimalCalfLossHistory) =>
+    setCalfLossHistories((prev) =>
+      prev
+        .map((h) => (h.id === loss.id ? loss : h))
+        .sort((a, b) => new Date(b.lossDate).getTime() - new Date(a.lossDate).getTime())
+    );
   const router = useRouter();
 
   const previousReproductiveStatus = String(
@@ -1072,7 +1078,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
             </div>
 
             {/* DADOS REPRODUTIVOS */}
-            <div className="flex flex-col gap-4">
+            <div className="hidden flex-col gap-4 lg:flex">
               <div className="rounded-2xl border bg-white p-5 shadow-sm">
                 <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
                   Dados reprodutivos
@@ -1132,65 +1138,71 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                 )}
               </div>
 
-              {/* Estimated value (view mode) */}
-              <div className="rounded-2xl border bg-white p-5 shadow-sm">
-                <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
-                  Valor estimado
-                </p>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Peso</span>
-                    <span className="font-semibold">{weightKg} kg</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Arrobas brutas</span>
-                    <span className="font-semibold">
-                      {arrobas.toFixed(1)} @
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="shrink-0 text-xs text-muted-foreground">% Carcaça</span>
-                    <input
-                      type="number"
-                      min="1"
-                      max="100"
-                      value={carcassPercent}
-                      onChange={(e) => setCarcassPercent(e.target.value)}
-                      className="w-16 rounded-lg border px-2 py-1 text-xs outline-none focus:border-primary"
-                    />
-                    <span className="text-xs text-muted-foreground">→ {carcassArrobas.toFixed(1)} @</span>
-                  </div>
-                  <div className="flex gap-2 pt-1">
-                    <input
-                      type="text"
-                      inputMode="decimal"
-                      placeholder="R$/@ ex: 320,00"
-                      value={pricePerArroba}
-                      onChange={(e) => setPricePerArroba(e.target.value)}
-                      className="min-w-0 flex-1 rounded-lg border px-2.5 py-1.5 text-xs outline-none focus:border-primary"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => fetchArrobaPrice()}
-                      className="shrink-0 rounded-lg border border-primary/40 bg-primary/5 px-2.5 py-1.5 text-xs font-semibold text-primary hover:bg-primary/10"
-                    >
-                      Buscar
-                    </button>
-                  </div>
-                  {estimatedValue !== null && (
-                    <div className="rounded-lg bg-primary/5 px-3 py-2">
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                        Estimado
-                      </p>
-                      <p className="text-lg font-black text-primary">
-                        {estimatedValue.toLocaleString('pt-BR', {
-                          style: 'currency',
-                          currency: 'BRL',
-                        })}
-                      </p>
-                    </div>
-                  )}
+            </div>
+          </div>
+
+          {/* Row 2: CardReproduction + Valor Estimado */}
+          <div className="flex flex-wrap gap-4">
+            <div className="min-w-[250px] flex-1">
+              <CardReproduction allDataForm={allDataForm as Animal} />
+            </div>
+            <div className="min-w-[250px] flex-1 rounded-2xl border bg-white p-5 shadow-sm">
+              <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+                Valor estimado
+              </p>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Peso</span>
+                  <span className="font-semibold">{weightKg} kg</span>
                 </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Arrobas brutas</span>
+                  <span className="font-semibold">
+                    {arrobas.toFixed(1)} @
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="shrink-0 text-xs text-muted-foreground">% Carcaça</span>
+                  <input
+                    type="number"
+                    min="1"
+                    max="100"
+                    value={carcassPercent}
+                    onChange={(e) => setCarcassPercent(e.target.value)}
+                    className="w-16 rounded-lg border px-2 py-1 text-xs outline-none focus:border-primary"
+                  />
+                  <span className="text-xs text-muted-foreground">→ {carcassArrobas.toFixed(1)} @</span>
+                </div>
+                <div className="flex gap-2 pt-1">
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="R$/@ ex: 320,00"
+                    value={pricePerArroba}
+                    onChange={(e) => setPricePerArroba(e.target.value)}
+                    className="min-w-0 flex-1 rounded-lg border px-2.5 py-1.5 text-xs outline-none focus:border-primary"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fetchArrobaPrice()}
+                    className="shrink-0 rounded-lg border border-primary/40 bg-primary/5 px-2.5 py-1.5 text-xs font-semibold text-primary hover:bg-primary/10"
+                  >
+                    Buscar
+                  </button>
+                </div>
+                {estimatedValue !== null && (
+                  <div className="rounded-lg bg-primary/5 px-3 py-2">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                      Estimado
+                    </p>
+                    <p className="text-lg font-black text-primary">
+                      {estimatedValue.toLocaleString('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL',
+                      })}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -1295,11 +1307,9 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
             )}
           </div>
 
-          {/* Reproduction + efficiency */}
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <CardReproduction allDataForm={allDataForm as Animal} />
-
-            <div className="rounded-2xl border bg-white p-5 shadow-sm">
+          {/* Eficiência reprodutiva + Histórico Reprodutivo */}
+          <div className="flex flex-wrap gap-4">
+            <div className="min-w-[250px] flex-1 rounded-2xl border bg-white p-5 shadow-sm">
               <h2 className="mb-4 font-bold">Eficiência reprodutiva</h2>
               {allDataForm.gender === 'male' ? (
                 <div className="grid grid-cols-2 gap-3">
@@ -1378,11 +1388,25 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                 </div>
               )}
             </div>
+            {allDataForm.gender === 'female' && (
+              <div className="min-w-[250px] flex-1">
+                <ReproductiveHistorySection
+                  offspringFromMother={femaleOffspring}
+                  calfLossHistories={calfLossHistories}
+                  animals={animals}
+                  externalBulls={externalBulls}
+                  animalId={allDataForm.id}
+                  onLossAdded={handleLossAdded}
+                  onLossDeleted={handleLossDeleted}
+                  onLossUpdated={handleLossUpdated}
+                />
+              </div>
+            )}
           </div>
 
-          {/* Weight history + GMD */}
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <div className="rounded-2xl border bg-white p-5 shadow-sm">
+          {/* Histórico de Peso + Registros Sanitários */}
+          <div className="flex flex-wrap gap-4">
+            <div className="min-w-[250px] flex-1 rounded-2xl border bg-white p-5 shadow-sm">
               <h2 className="mb-3 font-bold">Histórico de peso</h2>
               {allDataForm.weightHistories?.length ? (
                 <div className="space-y-2">
@@ -1440,34 +1464,36 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                             </div>
                           </div>
                         ) : (
-                          <div className="flex items-center justify-between gap-2">
-                            <div className="grid flex-1 grid-cols-3 gap-1">
-                              <span className="text-muted-foreground">{weightRecordTypeLabel(h.recordType)}</span>
-                              <span className="font-semibold text-primary">{h.weight} kg</span>
-                              <span className="text-right text-muted-foreground">{new Date(h.measuredAt).toLocaleDateString('pt-BR')}</span>
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="font-semibold">{weightRecordTypeLabel(h.recordType)}</span>
+                              <div className="flex shrink-0 items-center gap-1">
+                                <button
+                                  onClick={() => {
+                                    setEditingWeightId(h.id);
+                                    setEditingWeightData({
+                                      weight: String(h.weight),
+                                      recordType: h.recordType ?? 'OTHER',
+                                      measuredAt: new Date(h.measuredAt).toISOString().split('T')[0],
+                                    });
+                                  }}
+                                  className="rounded p-1 text-muted-foreground hover:bg-white hover:text-primary"
+                                  title="Editar"
+                                >
+                                  <Pencil className="size-3" />
+                                </button>
+                                <button
+                                  onClick={() => deleteWeightHistory(h.id)}
+                                  className="rounded p-1 text-muted-foreground hover:bg-white hover:text-red-500"
+                                  title="Excluir"
+                                >
+                                  <Trash2 className="size-3" />
+                                </button>
+                              </div>
                             </div>
-                            <div className="flex shrink-0 items-center gap-1">
-                              <button
-                                onClick={() => {
-                                  setEditingWeightId(h.id);
-                                  setEditingWeightData({
-                                    weight: String(h.weight),
-                                    recordType: h.recordType ?? 'OTHER',
-                                    measuredAt: new Date(h.measuredAt).toISOString().split('T')[0],
-                                  });
-                                }}
-                                className="rounded p-1 text-muted-foreground hover:bg-white hover:text-primary"
-                                title="Editar"
-                              >
-                                <Pencil className="size-3" />
-                              </button>
-                              <button
-                                onClick={() => deleteWeightHistory(h.id)}
-                                className="rounded p-1 text-muted-foreground hover:bg-white hover:text-red-500"
-                                title="Excluir"
-                              >
-                                <Trash2 className="size-3" />
-                              </button>
+                            <div className="flex gap-3 text-xs text-muted-foreground">
+                              <span>{new Date(h.measuredAt).toLocaleDateString('pt-BR')}</span>
+                              <span className="font-semibold text-primary">{h.weight} kg</span>
                             </div>
                           </div>
                         )}
@@ -1483,7 +1509,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
             </div>
 
             {allDataForm.isForFattening && (
-            <div className="rounded-2xl border bg-white p-5 shadow-sm">
+            <div className="min-w-[250px] flex-1 rounded-2xl border bg-white p-5 shadow-sm">
               <h2 className="mb-3 font-bold">GMD — Ganho de massa diária</h2>
               {formattedAverageGmd !== null ? (
                 <div className="space-y-3">
@@ -1519,14 +1545,9 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
               )}
             </div>
             )}
-          </div>
 
-          {/* Calf loss history + Sanitary records side by side */}
-          <div
-            className={`grid grid-cols-1 gap-4 ${(allDataForm.calfLossHistories?.length ?? 0) > 0 ? 'lg:grid-cols-2' : ''}`}
-          >
             {/* Sanitary records */}
-            <div className="rounded-2xl border bg-white p-5 shadow-sm">
+            <div className="min-w-[250px] flex-1 rounded-2xl border bg-white p-5 shadow-sm">
               <h2 className="mb-3 font-bold">Registros sanitários</h2>
               {sanitaryRecords.length > 0 ? (
                 <div className="space-y-2">
@@ -1596,14 +1617,9 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                             </div>
                           </div>
                         ) : (
-                          <div>
-                            <div className="mb-1 flex items-center justify-between gap-2">
-                              <div className="flex items-center gap-2">
-                                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
-                                  {r.typeLabel}
-                                </span>
-                                <span className="font-semibold">{r.name}</span>
-                              </div>
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="font-semibold">{r.name}</span>
                               <div className="flex shrink-0 items-center gap-1">
                                 <button
                                   onClick={() => {
@@ -1630,11 +1646,12 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                                 </button>
                               </div>
                             </div>
-                            {r.description && (
-                              <p className="text-xs text-muted-foreground">{r.description}</p>
-                            )}
-                            <div className="mt-1 flex gap-4 text-xs text-muted-foreground">
+                            <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
                               <span>{r.date ? new Date(r.date).toLocaleDateString('pt-BR') : 'N/A'}</span>
+                              <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
+                                {r.typeLabel}
+                              </span>
+                              {r.description && <span>{r.description}</span>}
                               {r.expiryDate && (
                                 <span>Vence: {new Date(r.expiryDate).toLocaleDateString('pt-BR')}</span>
                               )}
@@ -1652,18 +1669,6 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
               )}
             </div>
 
-            {/* Reproductive history (births + losses) — females only */}
-            {allDataForm.gender === 'female' && (
-              <ReproductiveHistorySection
-                offspringFromMother={femaleOffspring}
-                calfLossHistories={calfLossHistories}
-                animals={animals}
-                externalBulls={externalBulls}
-                animalId={allDataForm.id}
-                onLossAdded={handleLossAdded}
-                onLossDeleted={handleLossDeleted}
-              />
-            )}
           </div>
         </div>
       )}
@@ -1932,45 +1937,8 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
             </div>
           </div>
 
-          {/* Right: GENEALOGIA + RESUMO DA FICHA */}
+          {/* Right: RESUMO DA FICHA */}
           <div className="space-y-4">
-            {/* Genealogia */}
-            <div className="rounded-2xl border bg-white p-5 shadow-sm">
-              <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
-                Genealogia
-              </p>
-              <div className="space-y-3">
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                    ID Mãe (Matriz)
-                  </p>
-                  <div className="mt-1 flex items-center gap-2 rounded-lg border bg-muted/20 px-3 py-2 text-sm">
-                    <span className="text-pink-500">♀</span>
-                    <span className="font-semibold">
-                      {allDataForm.mother?.manualId
-                        ? allDataForm.mother.manualId.charAt(0).toUpperCase() +
-                          allDataForm.mother.manualId.slice(1)
-                        : 'Comercial'}
-                    </span>
-                  </div>
-                </div>
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                    ID Pai (Reprodutor)
-                  </p>
-                  <div className="mt-1 flex items-center gap-2 rounded-lg border bg-muted/20 px-3 py-2 text-sm">
-                    <span className="text-blue-500">♂</span>
-                    <span className="font-semibold">
-                      {allDataForm.father?.manualId
-                        ? allDataForm.father.manualId.charAt(0).toUpperCase() +
-                          allDataForm.father.manualId.slice(1)
-                        : 'Comercial'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
             {/* RESUMO DA FICHA — dark green card */}
             <div className="rounded-2xl bg-foreground p-5 text-primary-foreground shadow-sm">
               <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-primary-foreground/60">
