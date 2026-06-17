@@ -169,6 +169,10 @@ export const Table: React.FC<TableProps> = ({
   const [saleDialogOpen, setSaleDialogOpen] = useState(false);
   const [saleAction, setSaleAction] = useState<'sell' | 'trash'>('sell');
   const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false);
+  const [bulkSanitaryOpen, setBulkSanitaryOpen] = useState(false);
+  const [bulkSanitaryType, setBulkSanitaryType] = useState<'vaccine' | 'deworming' | 'disease'>('vaccine');
+  const [bulkSanitaryForm, setBulkSanitaryForm] = useState({ name: '', date: '', expiryDate: '', description: '' });
+  const [bulkSanitaryLoading, setBulkSanitaryLoading] = useState(false);
 
   const router = useRouter();
 
@@ -443,6 +447,43 @@ export const Table: React.FC<TableProps> = ({
     } catch {
       toast.dismiss(loadingId);
       toast.error('Erro ao executar ação.');
+    }
+  };
+
+  const handleBulkSanitary = async () => {
+    if (!bulkSanitaryForm.name || !bulkSanitaryForm.date) {
+      toast.error('Nome e data são obrigatórios.');
+      return;
+    }
+    setBulkSanitaryLoading(true);
+    const loadingId = toast.loading(`Aplicando ${bulkSanitaryType === 'vaccine' ? 'vacina' : bulkSanitaryType === 'deworming' ? 'vermífugo' : 'doença'} em ${selectedIds.size} animais...`);
+    try {
+      const res = await fetch('/api/bulkSanitary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          animalIds: [...selectedIds],
+          type: bulkSanitaryType,
+          name: bulkSanitaryForm.name,
+          date: bulkSanitaryForm.date,
+          expiryDate: bulkSanitaryForm.expiryDate || null,
+          description: bulkSanitaryForm.description || null,
+        }),
+      });
+      const data = await res.json();
+      toast.dismiss(loadingId);
+      if (res.ok) {
+        toast.success(data.message);
+        setBulkSanitaryOpen(false);
+        setBulkSanitaryForm({ name: '', date: '', expiryDate: '', description: '' });
+      } else {
+        toast.error(data.error ?? 'Erro ao aplicar registro sanitário.');
+      }
+    } catch {
+      toast.dismiss(loadingId);
+      toast.error('Erro de conexão.');
+    } finally {
+      setBulkSanitaryLoading(false);
     }
   };
 
@@ -1001,6 +1042,12 @@ export const Table: React.FC<TableProps> = ({
                   </div>
                   <div className="flex gap-2">
                     <button
+                      onClick={() => setBulkSanitaryOpen(true)}
+                      className="rounded-lg border border-blue-300 bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700"
+                    >
+                      Sanitário
+                    </button>
+                    <button
                       onClick={() => {
                         setSaleAction('trash');
                         setSaleDialogOpen(true);
@@ -1126,7 +1173,16 @@ export const Table: React.FC<TableProps> = ({
                         </>
                       )}
                     </div>
-                    <div className="mt-3 flex gap-2">
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <button
+                        onClick={() => {
+                          setMobileSummaryOpen(false);
+                          setBulkSanitaryOpen(true);
+                        }}
+                        className="flex-1 rounded-lg border border-blue-300 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700"
+                      >
+                        Aplicar sanitário
+                      </button>
                       <button
                         onClick={() => {
                           setSaleAction('trash');
@@ -1243,6 +1299,12 @@ export const Table: React.FC<TableProps> = ({
                   )}
                   <div className="ml-auto flex gap-2">
                     <button
+                      onClick={() => setBulkSanitaryOpen(true)}
+                      className="rounded-lg border border-blue-300 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-100"
+                    >
+                      Aplicar sanitário
+                    </button>
+                    <button
                       onClick={() => {
                         setSaleAction('trash');
                         setSaleDialogOpen(true);
@@ -1264,6 +1326,109 @@ export const Table: React.FC<TableProps> = ({
                 </div>
               </div>
             </>
+          )}
+
+          {/* Bulk sanitary dialog */}
+          {bulkSanitaryOpen && (
+            <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4">
+              <div className="w-full max-w-md rounded-2xl border bg-white p-6 shadow-2xl">
+                <h3 className="mb-1 text-base font-bold">Aplicar registro sanitário</h3>
+                <p className="mb-4 text-sm text-muted-foreground">
+                  Será aplicado em {selectedIds.size} animal(is) selecionado(s).
+                </p>
+
+                {/* Type selector */}
+                <div className="mb-4 flex rounded-xl border p-1">
+                  {(['vaccine', 'deworming', 'disease'] as const).map((t) => (
+                    <button
+                      key={t}
+                      onClick={() => setBulkSanitaryType(t)}
+                      className={`flex-1 rounded-lg py-1.5 text-xs font-semibold transition ${
+                        bulkSanitaryType === t
+                          ? 'bg-primary text-primary-foreground'
+                          : 'text-muted-foreground hover:bg-muted'
+                      }`}
+                    >
+                      {t === 'vaccine' ? 'Vacina' : t === 'deworming' ? 'Vermífugo' : 'Doença'}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <label className="mb-1 block text-xs font-medium">
+                      {bulkSanitaryType === 'vaccine'
+                        ? 'Nome da vacina'
+                        : bulkSanitaryType === 'deworming'
+                          ? 'Nome do vermífugo'
+                          : 'Nome da doença'}{' '}
+                      *
+                    </label>
+                    <input
+                      type="text"
+                      value={bulkSanitaryForm.name}
+                      onChange={(e) => setBulkSanitaryForm((f) => ({ ...f, name: e.target.value }))}
+                      placeholder="Ex: Febre Aftosa"
+                      className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="mb-1 block text-xs font-medium">Data *</label>
+                      <input
+                        type="date"
+                        value={bulkSanitaryForm.date}
+                        onChange={(e) => setBulkSanitaryForm((f) => ({ ...f, date: e.target.value }))}
+                        className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary"
+                      />
+                    </div>
+                    {bulkSanitaryType !== 'disease' && (
+                      <div>
+                        <label className="mb-1 block text-xs font-medium">Vencimento</label>
+                        <input
+                          type="date"
+                          value={bulkSanitaryForm.expiryDate}
+                          onChange={(e) => setBulkSanitaryForm((f) => ({ ...f, expiryDate: e.target.value }))}
+                          className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="mb-1 block text-xs font-medium">Observação</label>
+                    <input
+                      type="text"
+                      value={bulkSanitaryForm.description}
+                      onChange={(e) => setBulkSanitaryForm((f) => ({ ...f, description: e.target.value }))}
+                      placeholder="Opcional"
+                      className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-5 flex gap-2">
+                  <button
+                    onClick={() => {
+                      setBulkSanitaryOpen(false);
+                      setBulkSanitaryForm({ name: '', date: '', expiryDate: '', description: '' });
+                    }}
+                    disabled={bulkSanitaryLoading}
+                    className="flex-1 rounded-lg border px-4 py-2 text-sm font-medium transition hover:bg-muted disabled:opacity-50"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleBulkSanitary}
+                    disabled={bulkSanitaryLoading}
+                    className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
+                  >
+                    {bulkSanitaryLoading ? 'Aplicando...' : 'Aplicar'}
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
 
           {/* Execution confirmation dialog */}

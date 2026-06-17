@@ -155,6 +155,8 @@ export function ReproductiveHistorySection({
           <div className="space-y-2">
             {events.map((ev, i) => {
               if (ev.kind === 'birth') {
+                const pdRecord = ev.animal.weightHistories?.find((w) => w.recordType === 'PD');
+                const isSold = ev.animal.status === 'sold' || ev.animal.status === 'vendido';
                 return (
                   <div
                     key={`birth-${ev.animal.id}`}
@@ -175,6 +177,19 @@ export function ReproductiveHistorySection({
                         </Link>
                         {ev.animal.gender === 'male' ? ' (Macho)' : ' (Fêmea)'}
                       </span>
+                    </div>
+                    <div className="flex flex-col items-end gap-0.5 text-xs text-muted-foreground">
+                      <span>{ev.animal.weight} kg</span>
+                      {pdRecord && (
+                        <span className="font-medium text-amber-600">
+                          PD: {Number(pdRecord.weight).toFixed(0)} kg
+                        </span>
+                      )}
+                      {isSold && (
+                        <span className="font-medium text-green-600">
+                          Venda: {ev.animal.weight} kg
+                        </span>
+                      )}
                     </div>
                   </div>
                 );
