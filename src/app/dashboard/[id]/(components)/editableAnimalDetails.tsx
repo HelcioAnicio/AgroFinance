@@ -1,6 +1,10 @@
 'use client';
 
-import { Animal, AnimalCalfLossHistory, AnimalWeightHistory } from '@/types/animal';
+import {
+  Animal,
+  AnimalCalfLossHistory,
+  AnimalWeightHistory,
+} from '@/types/animal';
 import { Vaccine } from '@/types/vaccine';
 import { ExternalBull } from '@/types/externalBull';
 import { useEffect, useState } from 'react';
@@ -28,7 +32,10 @@ import {
   TbZoomQuestionFilled,
   TbTrashXFilled,
 } from 'react-icons/tb';
-import { weightRecordOptions, weightRecordTypeLabel } from '@/lib/weightHistory';
+import {
+  weightRecordOptions,
+  weightRecordTypeLabel,
+} from '@/lib/weightHistory';
 import {
   buildExternalBullValue,
   extractExternalBullId,
@@ -155,12 +162,22 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
 
   // Weight history inline edit
   const [editingWeightId, setEditingWeightId] = useState<string | null>(null);
-  const [editingWeightData, setEditingWeightData] = useState({ weight: '', recordType: 'OTHER', measuredAt: '' });
+  const [editingWeightData, setEditingWeightData] = useState({
+    weight: '',
+    recordType: 'OTHER',
+    measuredAt: '',
+  });
 
   // Sanitary inline edit
-  const [editingSanitaryId, setEditingSanitaryId] = useState<string | null>(null);
-  const [editingSanitaryType, setEditingSanitaryType] = useState<string>('vaccine');
-  const [editingSanitaryData, setEditingSanitaryData] = useState({ name: '', description: '', date: '', expiryDate: '' });
+  const [editingSanitaryId, setEditingSanitaryId] = useState<string | null>(
+    null
+  );
+  const [editingSanitaryData, setEditingSanitaryData] = useState({
+    name: '',
+    description: '',
+    date: '',
+    expiryDate: '',
+  });
   const [pricePerArroba, setPricePerArroba] = useState<string>(() =>
     typeof window !== 'undefined'
       ? (localStorage.getItem('agrofinance_arroba_price') ?? '')
@@ -188,9 +205,9 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     fatherType: '',
     fatherId: '',
   });
-  const [calfLossHistories, setCalfLossHistories] = useState<AnimalCalfLossHistory[]>(
-    animal.calfLossHistories ?? []
-  );
+  const [calfLossHistories, setCalfLossHistories] = useState<
+    AnimalCalfLossHistory[]
+  >(animal.calfLossHistories ?? []);
   const [pevDays, setPevDays] = useState(30);
 
   // Restore form from localStorage if a pending save was interrupted by a stale-data reload
@@ -204,17 +221,20 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
       setAllDataForm((prev) => ({ ...prev, ...parsed }));
       setIsEditing(true);
       localStorage.removeItem(key);
-      toast.info('Suas alterações foram restauradas. Os dados do animal foram atualizados por outro usuário — revise e salve novamente.');
+      toast.info(
+        'Suas alterações foram restauradas. Os dados do animal foram atualizados por outro usuário — revise e salve novamente.'
+      );
     } catch {
       localStorage.removeItem(key);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [animal.id]);
 
   const handleLossAdded = (loss: AnimalCalfLossHistory) =>
     setCalfLossHistories((prev) =>
       [loss, ...prev].sort(
-        (a, b) => new Date(b.lossDate).getTime() - new Date(a.lossDate).getTime()
+        (a, b) =>
+          new Date(b.lossDate).getTime() - new Date(a.lossDate).getTime()
       )
     );
   const handleLossDeleted = (id: string) =>
@@ -223,7 +243,10 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     setCalfLossHistories((prev) =>
       prev
         .map((h) => (h.id === loss.id ? loss : h))
-        .sort((a, b) => new Date(b.lossDate).getTime() - new Date(a.lossDate).getTime())
+        .sort(
+          (a, b) =>
+            new Date(b.lossDate).getTime() - new Date(a.lossDate).getTime()
+        )
     );
   const router = useRouter();
 
@@ -322,7 +345,9 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   );
   const avgWeaningWeight =
     weaningWeights.length > 0
-      ? (weaningWeights.reduce((a, b) => a + b, 0) / weaningWeights.length).toFixed(0)
+      ? (
+          weaningWeights.reduce((a, b) => a + b, 0) / weaningWeights.length
+        ).toFixed(0)
       : null;
 
   // Average sale weight (current weight of sold offspring)
@@ -338,7 +363,8 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   // Estimated value calculation
   const weightKg = Number(allDataForm.weight) || 0;
   const arrobas = weightKg / 15;
-  const carcassFactor = Math.min(Math.max(Number(carcassPercent) || 100, 1), 100) / 100;
+  const carcassFactor =
+    Math.min(Math.max(Number(carcassPercent) || 100, 1), 100) / 100;
   const carcassArrobas = arrobas * carcassFactor;
   const priceNum = parseFloat(pricePerArroba.replace(',', '.'));
   const estimatedValue =
@@ -535,7 +561,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     if (currentCategory !== newCategory) {
       setAllDataForm((prev) => ({ ...prev, category: newCategory }));
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allDataForm.birthDate, allDataForm.gender]);
 
   useEffect(() => {
@@ -564,7 +590,15 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
       setAllDataForm((prev) => ({
         ...prev,
         weightHistories: (prev.weightHistories ?? []).map((h) =>
-          h.id === id ? { ...h, weight: Number(editingWeightData.weight), recordType: editingWeightData.recordType as AnimalWeightHistory['recordType'], measuredAt: new Date(editingWeightData.measuredAt) } : h
+          h.id === id
+            ? {
+                ...h,
+                weight: Number(editingWeightData.weight),
+                recordType:
+                  editingWeightData.recordType as AnimalWeightHistory['recordType'],
+                measuredAt: new Date(editingWeightData.measuredAt),
+              }
+            : h
         ),
       }));
       setEditingWeightId(null);
@@ -578,13 +612,17 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     if (!window.confirm('Excluir esta pesagem?')) return;
     const tid = toast.loading('Excluindo pesagem...');
     try {
-      const res = await fetch(`/api/weight-history?id=${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/weight-history?id=${id}`, {
+        method: 'DELETE',
+      });
       if (!res.ok) throw new Error((await res.json()).error ?? 'Erro');
       toast.dismiss(tid);
       toast.success('Pesagem excluída.');
       setAllDataForm((prev) => ({
         ...prev,
-        weightHistories: (prev.weightHistories ?? []).filter((h) => h.id !== id),
+        weightHistories: (prev.weightHistories ?? []).filter(
+          (h) => h.id !== id
+        ),
       }));
     } catch (e) {
       toast.dismiss(tid);
@@ -605,9 +643,18 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
       toast.dismiss(tid);
       toast.success('Registro atualizado.');
       const updated = data.data;
-      if (type === 'vaccine') setListVaccines((prev) => prev.map((v) => (v.id === id ? { ...v, ...updated } : v)));
-      if (type === 'deworming') setListDewormings((prev) => prev.map((d) => (d.id === id ? { ...d, ...updated } : d)));
-      if (type === 'disease') setListDiseases((prev) => prev.map((d) => (d.id === id ? { ...d, ...updated } : d)));
+      if (type === 'vaccine')
+        setListVaccines((prev) =>
+          prev.map((v) => (v.id === id ? { ...v, ...updated } : v))
+        );
+      if (type === 'deworming')
+        setListDewormings((prev) =>
+          prev.map((d) => (d.id === id ? { ...d, ...updated } : d))
+        );
+      if (type === 'disease')
+        setListDiseases((prev) =>
+          prev.map((d) => (d.id === id ? { ...d, ...updated } : d))
+        );
       setEditingSanitaryId(null);
     } catch (e) {
       toast.dismiss(tid);
@@ -619,13 +666,18 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     if (!window.confirm('Excluir este registro sanitário?')) return;
     const tid = toast.loading('Excluindo...');
     try {
-      const res = await fetch(`/api/sanitary?id=${id}&type=${type}`, { method: 'DELETE' });
+      const res = await fetch(`/api/sanitary?id=${id}&type=${type}`, {
+        method: 'DELETE',
+      });
       if (!res.ok) throw new Error((await res.json()).error ?? 'Erro');
       toast.dismiss(tid);
       toast.success('Registro excluído.');
-      if (type === 'vaccine') setListVaccines((prev) => prev.filter((v) => v.id !== id));
-      if (type === 'deworming') setListDewormings((prev) => prev.filter((d) => d.id !== id));
-      if (type === 'disease') setListDiseases((prev) => prev.filter((d) => d.id !== id));
+      if (type === 'vaccine')
+        setListVaccines((prev) => prev.filter((v) => v.id !== id));
+      if (type === 'deworming')
+        setListDewormings((prev) => prev.filter((d) => d.id !== id));
+      if (type === 'disease')
+        setListDiseases((prev) => prev.filter((d) => d.id !== id));
     } catch (e) {
       toast.dismiss(tid);
       toast.error(e instanceof Error ? e.message : 'Erro ao excluir.');
@@ -836,7 +888,9 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     try {
       // Staleness check: verify no one else updated this animal since page load
       try {
-        const checkRes = await fetch(`/api/updateAnimals?id=${dataToSubmit.id}`);
+        const checkRes = await fetch(
+          `/api/updateAnimals?id=${dataToSubmit.id}`
+        );
         if (checkRes.ok) {
           const { updatedAt: serverUpdatedAt } = await checkRes.json();
           const serverTs = new Date(serverUpdatedAt).getTime();
@@ -1147,7 +1201,9 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                   <span className="font-semibold">{arrobas.toFixed(1)} @</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="shrink-0 text-xs text-muted-foreground">% Carcaça</span>
+                  <span className="shrink-0 text-xs text-muted-foreground">
+                    % Carcaça
+                  </span>
                   <input
                     type="number"
                     min="1"
@@ -1156,7 +1212,9 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                     onChange={(e) => setCarcassPercent(e.target.value)}
                     className="w-14 rounded-lg border px-2 py-1 text-xs outline-none focus:border-primary"
                   />
-                  <span className="text-xs text-muted-foreground">→ {carcassArrobas.toFixed(1)} @</span>
+                  <span className="text-xs text-muted-foreground">
+                    → {carcassArrobas.toFixed(1)} @
+                  </span>
                 </div>
                 <div className="flex gap-2 pt-1">
                   <input
@@ -1208,7 +1266,9 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                   <span className="font-semibold">{arrobas.toFixed(1)} @</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="shrink-0 text-xs text-muted-foreground">% Carcaça</span>
+                  <span className="shrink-0 text-xs text-muted-foreground">
+                    % Carcaça
+                  </span>
                   <input
                     type="number"
                     min="1"
@@ -1217,7 +1277,9 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                     onChange={(e) => setCarcassPercent(e.target.value)}
                     className="w-16 rounded-lg border px-2 py-1 text-xs outline-none focus:border-primary"
                   />
-                  <span className="text-xs text-muted-foreground">→ {carcassArrobas.toFixed(1)} @</span>
+                  <span className="text-xs text-muted-foreground">
+                    → {carcassArrobas.toFixed(1)} @
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <input
@@ -1238,7 +1300,9 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                 </div>
                 {estimatedValue !== null && (
                   <div className="flex items-center gap-2 rounded-lg bg-primary/5 px-3 py-1.5">
-                    <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Estimado:</span>
+                    <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                      Estimado:
+                    </span>
                     <span className="text-lg font-black text-primary">
                       {estimatedValue.toLocaleString('pt-BR', {
                         style: 'currency',
@@ -1470,37 +1534,63 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                   {allDataForm.weightHistories.map((h: AnimalWeightHistory) => {
                     const isEditingThis = editingWeightId === h.id;
                     return (
-                      <div key={h.id} className="rounded-lg bg-muted/20 px-3 py-2 text-sm">
+                      <div
+                        key={h.id}
+                        className="rounded-lg bg-muted/20 px-3 py-2 text-sm"
+                      >
                         {isEditingThis ? (
                           <div className="flex flex-col gap-2">
                             <div className="grid grid-cols-3 gap-2">
                               <div>
-                                <label className="text-[10px] font-semibold uppercase text-muted-foreground">Peso (kg)</label>
+                                <label className="text-[10px] font-semibold uppercase text-muted-foreground">
+                                  Peso (kg)
+                                </label>
                                 <input
                                   type="number"
                                   value={editingWeightData.weight}
-                                  onChange={(e) => setEditingWeightData((p) => ({ ...p, weight: e.target.value }))}
+                                  onChange={(e) =>
+                                    setEditingWeightData((p) => ({
+                                      ...p,
+                                      weight: e.target.value,
+                                    }))
+                                  }
                                   className="w-full rounded border border-input px-2 py-1 text-xs outline-none focus:border-primary"
                                 />
                               </div>
                               <div>
-                                <label className="text-[10px] font-semibold uppercase text-muted-foreground">Tipo</label>
+                                <label className="text-[10px] font-semibold uppercase text-muted-foreground">
+                                  Tipo
+                                </label>
                                 <select
                                   value={editingWeightData.recordType}
-                                  onChange={(e) => setEditingWeightData((p) => ({ ...p, recordType: e.target.value }))}
+                                  onChange={(e) =>
+                                    setEditingWeightData((p) => ({
+                                      ...p,
+                                      recordType: e.target.value,
+                                    }))
+                                  }
                                   className="w-full rounded border border-input px-2 py-1 text-xs outline-none focus:border-primary"
                                 >
                                   {weightRecordOptions.map((o) => (
-                                    <option key={o.value} value={o.value}>{o.label}</option>
+                                    <option key={o.value} value={o.value}>
+                                      {o.label}
+                                    </option>
                                   ))}
                                 </select>
                               </div>
                               <div>
-                                <label className="text-[10px] font-semibold uppercase text-muted-foreground">Data</label>
+                                <label className="text-[10px] font-semibold uppercase text-muted-foreground">
+                                  Data
+                                </label>
                                 <input
                                   type="date"
                                   value={editingWeightData.measuredAt}
-                                  onChange={(e) => setEditingWeightData((p) => ({ ...p, measuredAt: e.target.value }))}
+                                  onChange={(e) =>
+                                    setEditingWeightData((p) => ({
+                                      ...p,
+                                      measuredAt: e.target.value,
+                                    }))
+                                  }
                                   className="w-full rounded border border-input px-2 py-1 text-xs outline-none focus:border-primary"
                                 />
                               </div>
@@ -1523,7 +1613,9 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                         ) : (
                           <div className="flex flex-col gap-1">
                             <div className="flex items-center justify-between gap-2">
-                              <span className="font-semibold">{weightRecordTypeLabel(h.recordType)}</span>
+                              <span className="font-semibold">
+                                {weightRecordTypeLabel(h.recordType)}
+                              </span>
                               <div className="flex shrink-0 items-center gap-1">
                                 <button
                                   onClick={() => {
@@ -1531,7 +1623,9 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                                     setEditingWeightData({
                                       weight: String(h.weight),
                                       recordType: h.recordType ?? 'OTHER',
-                                      measuredAt: new Date(h.measuredAt).toISOString().split('T')[0],
+                                      measuredAt: new Date(h.measuredAt)
+                                        .toISOString()
+                                        .split('T')[0],
                                     });
                                   }}
                                   className="rounded p-1 text-muted-foreground hover:bg-white hover:text-primary"
@@ -1549,8 +1643,14 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                               </div>
                             </div>
                             <div className="flex gap-3 text-xs text-muted-foreground">
-                              <span>{new Date(h.measuredAt).toLocaleDateString('pt-BR')}</span>
-                              <span className="font-semibold text-primary">{h.weight} kg</span>
+                              <span>
+                                {new Date(h.measuredAt).toLocaleDateString(
+                                  'pt-BR'
+                                )}
+                              </span>
+                              <span className="font-semibold text-primary">
+                                {h.weight} kg
+                              </span>
                             </div>
                           </div>
                         )}
@@ -1566,41 +1666,41 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
             </div>
 
             {allDataForm.isForFattening && (
-            <div className="min-w-[250px] flex-1 rounded-2xl border bg-white p-5 shadow-sm">
-              <h2 className="mb-3 font-bold">GMD — Ganho de massa diária</h2>
-              {formattedAverageGmd !== null ? (
-                <div className="space-y-3">
-                  <div className="rounded-xl border-l-4 border-primary bg-muted/20 px-3 py-2">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                      GMD médio
-                    </p>
-                    <p className="text-2xl font-black text-primary">
-                      {formattedAverageGmd}{' '}
-                      <span className="text-sm">kg/dia</span>
-                    </p>
-                  </div>
-                  <div
-                    className={`rounded-xl border-l-4 ${averageGmd && averageGmd >= PROFITABLE_GMD_THRESHOLD ? 'border-green-400' : 'border-red-400'} bg-muted/20 px-3 py-2`}
-                  >
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                      Situação
-                    </p>
-                    <p
-                      className={`font-semibold ${averageGmd && averageGmd >= PROFITABLE_GMD_THRESHOLD ? 'text-green-600' : 'text-red-600'}`}
+              <div className="min-w-[250px] flex-1 rounded-2xl border bg-white p-5 shadow-sm">
+                <h2 className="mb-3 font-bold">GMD — Ganho de massa diária</h2>
+                {formattedAverageGmd !== null ? (
+                  <div className="space-y-3">
+                    <div className="rounded-xl border-l-4 border-primary bg-muted/20 px-3 py-2">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                        GMD médio
+                      </p>
+                      <p className="text-2xl font-black text-primary">
+                        {formattedAverageGmd}{' '}
+                        <span className="text-sm">kg/dia</span>
+                      </p>
+                    </div>
+                    <div
+                      className={`rounded-xl border-l-4 ${averageGmd && averageGmd >= PROFITABLE_GMD_THRESHOLD ? 'border-green-400' : 'border-red-400'} bg-muted/20 px-3 py-2`}
                     >
-                      {gmdStatus}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      GMD ideal: acima de 0,850 kg/dia
-                    </p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                        Situação
+                      </p>
+                      <p
+                        className={`font-semibold ${averageGmd && averageGmd >= PROFITABLE_GMD_THRESHOLD ? 'text-green-600' : 'text-red-600'}`}
+                      >
+                        {gmdStatus}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        GMD ideal: acima de 0,850 kg/dia
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  Registre pelo menos duas pesagens para calcular o GMD.
-                </p>
-              )}
-            </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Registre pelo menos duas pesagens para calcular o GMD.
+                  </p>
+                )}
+              </div>
             )}
 
             {/* Sanitary records */}
@@ -1609,50 +1709,86 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
               {sanitaryRecords.length > 0 ? (
                 <div className="space-y-2">
                   {sanitaryRecords.map((r) => {
-                    const rawType = r.typeLabel === 'Vacina' ? 'vaccine' : r.typeLabel === 'Vermifugação' ? 'deworming' : 'disease';
+                    const rawType =
+                      r.typeLabel === 'Vacina'
+                        ? 'vaccine'
+                        : r.typeLabel === 'Vermifugação'
+                          ? 'deworming'
+                          : 'disease';
                     const hasExpiry = rawType === 'vaccine';
                     const isEditingThis = editingSanitaryId === r.id;
                     return (
-                      <div key={`${r.typeLabel}-${r.id}`} className="rounded-xl bg-muted/20 px-3 py-3 text-sm">
+                      <div
+                        key={`${r.typeLabel}-${r.id}`}
+                        className="rounded-xl bg-muted/20 px-3 py-3 text-sm"
+                      >
                         {isEditingThis ? (
                           <div className="flex flex-col gap-2">
                             <div className="grid grid-cols-2 gap-2">
                               <div className="col-span-2">
-                                <label className="text-[10px] font-semibold uppercase text-muted-foreground">Nome</label>
+                                <label className="text-[10px] font-semibold uppercase text-muted-foreground">
+                                  Nome
+                                </label>
                                 <input
                                   type="text"
                                   value={editingSanitaryData.name}
-                                  onChange={(e) => setEditingSanitaryData((p) => ({ ...p, name: e.target.value }))}
+                                  onChange={(e) =>
+                                    setEditingSanitaryData((p) => ({
+                                      ...p,
+                                      name: e.target.value,
+                                    }))
+                                  }
                                   className="w-full rounded border border-input px-2 py-1 text-xs outline-none focus:border-primary"
                                 />
                               </div>
                               {rawType !== 'deworming' && (
                                 <div className="col-span-2">
-                                  <label className="text-[10px] font-semibold uppercase text-muted-foreground">Descrição</label>
+                                  <label className="text-[10px] font-semibold uppercase text-muted-foreground">
+                                    Descrição
+                                  </label>
                                   <input
                                     type="text"
                                     value={editingSanitaryData.description}
-                                    onChange={(e) => setEditingSanitaryData((p) => ({ ...p, description: e.target.value }))}
+                                    onChange={(e) =>
+                                      setEditingSanitaryData((p) => ({
+                                        ...p,
+                                        description: e.target.value,
+                                      }))
+                                    }
                                     className="w-full rounded border border-input px-2 py-1 text-xs outline-none focus:border-primary"
                                   />
                                 </div>
                               )}
                               <div>
-                                <label className="text-[10px] font-semibold uppercase text-muted-foreground">Data</label>
+                                <label className="text-[10px] font-semibold uppercase text-muted-foreground">
+                                  Data
+                                </label>
                                 <input
                                   type="date"
                                   value={editingSanitaryData.date}
-                                  onChange={(e) => setEditingSanitaryData((p) => ({ ...p, date: e.target.value }))}
+                                  onChange={(e) =>
+                                    setEditingSanitaryData((p) => ({
+                                      ...p,
+                                      date: e.target.value,
+                                    }))
+                                  }
                                   className="w-full rounded border border-input px-2 py-1 text-xs outline-none focus:border-primary"
                                 />
                               </div>
                               {hasExpiry && (
                                 <div>
-                                  <label className="text-[10px] font-semibold uppercase text-muted-foreground">Vencimento</label>
+                                  <label className="text-[10px] font-semibold uppercase text-muted-foreground">
+                                    Vencimento
+                                  </label>
                                   <input
                                     type="date"
                                     value={editingSanitaryData.expiryDate}
-                                    onChange={(e) => setEditingSanitaryData((p) => ({ ...p, expiryDate: e.target.value }))}
+                                    onChange={(e) =>
+                                      setEditingSanitaryData((p) => ({
+                                        ...p,
+                                        expiryDate: e.target.value,
+                                      }))
+                                    }
                                     className="w-full rounded border border-input px-2 py-1 text-xs outline-none focus:border-primary"
                                   />
                                 </div>
@@ -1681,12 +1817,19 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                                 <button
                                   onClick={() => {
                                     setEditingSanitaryId(r.id);
-                                    setEditingSanitaryType(rawType);
                                     setEditingSanitaryData({
                                       name: r.name,
                                       description: r.description ?? '',
-                                      date: r.date ? new Date(r.date).toISOString().split('T')[0] : '',
-                                      expiryDate: r.expiryDate ? new Date(r.expiryDate).toISOString().split('T')[0] : '',
+                                      date: r.date
+                                        ? new Date(r.date)
+                                            .toISOString()
+                                            .split('T')[0]
+                                        : '',
+                                      expiryDate: r.expiryDate
+                                        ? new Date(r.expiryDate)
+                                            .toISOString()
+                                            .split('T')[0]
+                                        : '',
                                     });
                                   }}
                                   className="rounded p-1 text-muted-foreground hover:bg-white hover:text-primary"
@@ -1704,13 +1847,22 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                               </div>
                             </div>
                             <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                              <span>{r.date ? new Date(r.date).toLocaleDateString('pt-BR') : 'N/A'}</span>
+                              <span>
+                                {r.date
+                                  ? new Date(r.date).toLocaleDateString('pt-BR')
+                                  : 'N/A'}
+                              </span>
                               <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
                                 {r.typeLabel}
                               </span>
                               {r.description && <span>{r.description}</span>}
                               {r.expiryDate && (
-                                <span>Vence: {new Date(r.expiryDate).toLocaleDateString('pt-BR')}</span>
+                                <span>
+                                  Vence:{' '}
+                                  {new Date(r.expiryDate).toLocaleDateString(
+                                    'pt-BR'
+                                  )}
+                                </span>
                               )}
                             </div>
                           </div>
@@ -1725,7 +1877,6 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                 </p>
               )}
             </div>
-
           </div>
         </div>
       )}
@@ -1989,7 +2140,8 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                 <span className="text-sm font-medium">Animal de engorda</span>
               </label>
               <p className="mt-1.5 text-xs text-muted-foreground">
-                Quando marcado, o GMD (Ganho de Massa Diária) será exibido na ficha do animal.
+                Quando marcado, o GMD (Ganho de Massa Diária) será exibido na
+                ficha do animal.
               </p>
             </div>
           </div>
@@ -2021,7 +2173,9 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                     Valor Estimado
                   </p>
                   <div className="mb-1.5 flex items-center gap-2">
-                    <span className="text-xs text-primary-foreground/60">% Carcaça</span>
+                    <span className="text-xs text-primary-foreground/60">
+                      % Carcaça
+                    </span>
                     <input
                       type="number"
                       min="1"
@@ -2030,7 +2184,9 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                       onChange={(e) => setCarcassPercent(e.target.value)}
                       className="w-14 rounded-lg border border-white/20 bg-white/10 px-2 py-1 text-xs text-white outline-none focus:border-white/40"
                     />
-                    <span className="text-xs text-primary-foreground/50">→ {carcassArrobas.toFixed(1)} @</span>
+                    <span className="text-xs text-primary-foreground/50">
+                      → {carcassArrobas.toFixed(1)} @
+                    </span>
                   </div>
                   <div className="flex gap-2">
                     <input
@@ -2191,8 +2347,11 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
               </p>
               <div className="max-h-52 space-y-2 overflow-y-auto">
                 {offspring.map((child) => {
-                  const pdRecord = child.weightHistories?.find((w) => w.recordType === 'PD');
-                  const isSold = child.status === 'sold' || child.status === 'vendido';
+                  const pdRecord = child.weightHistories?.find(
+                    (w) => w.recordType === 'PD'
+                  );
+                  const isSold =
+                    child.status === 'sold' || child.status === 'vendido';
                   return (
                     <div
                       key={child.id}
@@ -2208,7 +2367,9 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                         </span>
                       </div>
                       <div className="flex flex-col items-end gap-0.5 text-xs">
-                        <span className="text-sm font-medium">{child.weight} kg</span>
+                        <span className="text-sm font-medium">
+                          {child.weight} kg
+                        </span>
                         {pdRecord && (
                           <span className="font-medium text-amber-600">
                             PD: {Number(pdRecord.weight).toFixed(0)} kg
@@ -2219,7 +2380,9 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                             Venda: {child.weight} kg
                           </span>
                         )}
-                        <div className="mt-0.5">{getStatusNode(child.status)}</div>
+                        <div className="mt-0.5">
+                          {getStatusNode(child.status)}
+                        </div>
                       </div>
                     </div>
                   );

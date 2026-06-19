@@ -124,23 +124,6 @@ const getCategoryLabel = (animal: Animal) => {
   return '-';
 };
 
-const _getStatusBarColor = (status: string) => {
-  const colors: Record<string, string> = {
-    active: 'bg-green-500',
-    inactive: 'bg-gray-500',
-    dead: 'bg-black',
-    sold: 'bg-yellow-600',
-    lost: 'bg-amber-500',
-    trash: 'bg-red-500',
-    empty: 'bg-slate-500',
-    pregnant: 'bg-fuchsia-500',
-    waiting: 'bg-indigo-500',
-    pev: 'bg-cyan-500',
-  };
-
-  return colors[status] ?? 'bg-primary';
-};
-
 export const Table: React.FC<TableProps> = ({
   animals,
   users,
@@ -170,8 +153,15 @@ export const Table: React.FC<TableProps> = ({
   const [saleAction, setSaleAction] = useState<'sell' | 'trash'>('sell');
   const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false);
   const [bulkSanitaryOpen, setBulkSanitaryOpen] = useState(false);
-  const [bulkSanitaryType, setBulkSanitaryType] = useState<'vaccine' | 'deworming' | 'disease'>('vaccine');
-  const [bulkSanitaryForm, setBulkSanitaryForm] = useState({ name: '', date: '', expiryDate: '', description: '' });
+  const [bulkSanitaryType, setBulkSanitaryType] = useState<
+    'vaccine' | 'deworming' | 'disease'
+  >('vaccine');
+  const [bulkSanitaryForm, setBulkSanitaryForm] = useState({
+    name: '',
+    date: '',
+    expiryDate: '',
+    description: '',
+  });
   const [bulkSanitaryLoading, setBulkSanitaryLoading] = useState(false);
 
   const router = useRouter();
@@ -187,18 +177,6 @@ export const Table: React.FC<TableProps> = ({
       livestockStats.find((item) => item.year === selectedStatsYear) ?? null
     );
   }, [livestockStats, selectedStatsYear]);
-
-  const _maxMonthlyValue = useMemo(() => {
-    if (!selectedYearStats) return 1;
-    return Math.max(
-      ...selectedYearStats.months.flatMap((month) => [
-        month.maleBirths,
-        month.femaleBirths,
-        month.deaths,
-      ]),
-      1
-    );
-  }, [selectedYearStats]);
 
   useEffect(() => {
     if (dataLoading) return;
