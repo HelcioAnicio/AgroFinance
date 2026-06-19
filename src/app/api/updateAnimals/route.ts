@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
+import { revalidateTag } from 'next/cache';
 import prisma from '@/lib/prisma';
 import {
   parseWeightRecordDate,
@@ -443,6 +444,8 @@ export async function PUT(req: Request) {
         externalBullId,
       });
     }
+
+    revalidateTag(`animal-${data.id}`);
 
     return NextResponse.json({
       message: 'Animal atualizado com sucesso',

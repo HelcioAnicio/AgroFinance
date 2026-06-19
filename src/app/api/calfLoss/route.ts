@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import prisma from '@/lib/prisma';
 import { createAuditLog, requireFarmContext } from '@/lib/tenant';
 
@@ -125,6 +126,7 @@ export async function POST(req: Request) {
       },
     });
 
+    revalidateTag(`animal-${animalId}`);
     return NextResponse.json({ data: full }, { status: 201 });
   } catch (err) {
     console.error('Erro ao registrar perda de cria:', err);
@@ -156,7 +158,7 @@ export async function PUT(req: Request) {
     const calfLossDelegate = (
       prisma as unknown as {
         animalCalfLossHistory?: {
-          findUnique: (args: object) => Promise<{ id: string; animal: { farmId: string } } | null>;
+          findUnique: (args: object) => Promise<{ id: string; animalId: string; animal: { farmId: string } } | null>;
           update: (args: object) => Promise<unknown>;
         };
       }
@@ -191,6 +193,7 @@ export async function PUT(req: Request) {
       },
     } as object);
 
+    revalidateTag(`animal-${record.animalId}`);
     return NextResponse.json({ data: updated });
   } catch (err) {
     console.error('Erro ao editar perda de cria:', err);
@@ -213,7 +216,7 @@ export async function DELETE(req: Request) {
     const calfLossDelegate = (
       prisma as unknown as {
         animalCalfLossHistory?: {
-          findUnique: (args: object) => Promise<{ id: string; animal: { farmId: string } } | null>;
+          findUnique: (args: object) => Promise<{ id: string; animalId: string; animal: { farmId: string } } | null>;
           delete: (args: object) => Promise<unknown>;
         };
       }
@@ -234,6 +237,7 @@ export async function DELETE(req: Request) {
 
     await calfLossDelegate.delete({ where: { id } } as object);
 
+    revalidateTag(`animal-${record.animalId}`);
     return NextResponse.json({ message: 'Registro removido.' });
   } catch (err) {
     console.error('Erro ao deletar perda de cria:', err);

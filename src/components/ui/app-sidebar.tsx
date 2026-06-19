@@ -65,7 +65,7 @@ export function AppSidebar() {
 
   return (
     /* Starts at top-14 (below the fixed header) */
-    <aside className="fixed left-0 top-14 z-40 hidden h-[calc(100vh-56px)] w-56 flex-col border-r bg-white lg:flex">
+    <aside className="sticky top-14 hidden h-[calc(100vh-56px)] w-56 shrink-0 flex-col border-r bg-white lg:flex">
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto px-3 py-5">
         <p className="mb-2 px-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
