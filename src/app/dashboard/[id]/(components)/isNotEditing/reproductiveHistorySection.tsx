@@ -185,100 +185,93 @@ export function ReproductiveHistorySection({
             Nenhum evento reprodutivo registrado.
           </p>
         ) : (
-          <div className="space-y-2">
-            {events.map((ev, i) => {
-              if (ev.kind === 'birth') {
-                const pdRecord = ev.animal.weightHistories?.find((w) => w.recordType === 'PD');
-                const isSold = ev.animal.status === 'sold' || ev.animal.status === 'vendido';
-                const displayId =
-                  ev.animal.manualId.charAt(0).toUpperCase() + ev.animal.manualId.slice(1);
-                return (
-                  <div
-                    key={`birth-${ev.animal.id}`}
-                    className="flex items-center justify-between rounded-xl border-l-4 border-green-500 bg-muted/20 px-3 py-3 text-sm"
-                  >
-                    <div className="flex items-start gap-3">
-                      <span className="mt-0.5 shrink-0 rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">
-                        Parto
-                      </span>
-                      <div className="flex flex-col">
-                        <span className="text-xs text-muted-foreground">
-                          {ev.date.toLocaleDateString('pt-BR')}
-                        </span>
-                        <Link
-                          href={`/dashboard/${ev.animal.id}`}
-                          className="font-mono font-semibold text-primary underline-offset-2 hover:underline"
-                        >
-                          {displayId}
-                        </Link>
-                        <span className="text-xs text-muted-foreground">
-                          {ev.animal.gender === 'male' ? 'Macho' : 'Fêmea'}
+          <div className="overflow-x-auto pb-2">
+            <div className="grid grid-flow-col grid-rows-2 gap-2" style={{ width: 'max-content' }}>
+              {events.map((ev, i) => {
+                if (ev.kind === 'birth') {
+                  const pdRecord = ev.animal.weightHistories?.find((w) => w.recordType === 'PD');
+                  const isSold = ev.animal.status === 'sold' || ev.animal.status === 'vendido';
+                  const displayId =
+                    ev.animal.manualId.charAt(0).toUpperCase() + ev.animal.manualId.slice(1);
+                  return (
+                    <div
+                      key={`birth-${ev.animal.id}`}
+                      className="w-[148px] rounded-xl border-l-4 border-green-500 bg-muted/20 px-2.5 py-2 text-xs"
+                    >
+                      <div className="flex items-start justify-between gap-1">
+                        <div className="min-w-0 flex-1">
+                          <span className="rounded-full bg-green-100 px-1.5 py-0.5 text-[10px] font-bold text-green-700">
+                            Parto
+                          </span>
+                          <Link
+                            href={`/dashboard/${ev.animal.id}`}
+                            className="mt-1 block truncate font-mono font-bold text-primary underline-offset-2 hover:underline"
+                          >
+                            {displayId}
+                          </Link>
+                        </div>
+                        <span className="shrink-0 text-[10px] font-semibold text-muted-foreground">
+                          {ev.animal.gender === 'male' ? '♂' : '♀'}
                         </span>
                       </div>
-                    </div>
-                    <div className="flex flex-col items-end gap-0.5 text-xs">
-                      {isSold ? (
-                        <span className="font-semibold text-green-600">
-                          Venda: {ev.animal.weight} kg
-                        </span>
-                      ) : (
-                        <span className="font-semibold text-amber-600">
-                          {pdRecord ? `PD: ${Number(pdRecord.weight).toFixed(0)} kg` : 'PD: N/A'}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                );
-              }
-
-              const h = ev.loss;
-              return (
-                <div
-                  key={`loss-${h.id}-${i}`}
-                  className="flex items-center justify-between rounded-xl border-l-4 border-red-400 bg-muted/20 px-3 py-3 text-sm"
-                >
-                  <div className="flex items-start gap-3">
-                    <span className="mt-0.5 shrink-0 rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-600">
-                      Perda
-                    </span>
-                    <div className="flex flex-col">
-                      <span className="text-xs text-muted-foreground">
+                      <span className="mt-1 block text-[10px] text-muted-foreground">
                         {ev.date.toLocaleDateString('pt-BR')}
                       </span>
-                      {h.reason && <span className="font-medium">{h.reason}</span>}
-                      {h.fatherType === 'external' && h.externalBull ? (
-                        <span className="text-xs text-muted-foreground">
-                          Touro: {h.externalBull.name}
+                      {isSold ? (
+                        <span className="text-[10px] font-semibold text-green-600">
+                          Venda: {ev.animal.weight} kg
                         </span>
-                      ) : h.fatherType === 'internal' && h.fatherAnimal ? (
-                        <span className="text-xs text-muted-foreground">
-                          Pai: {h.fatherAnimal.manualId}
+                      ) : pdRecord ? (
+                        <span className="text-[10px] font-semibold text-amber-600">
+                          PD: {Number(pdRecord.weight).toFixed(0)} kg
                         </span>
                       ) : null}
                     </div>
+                  );
+                }
+
+                const h = ev.loss;
+                return (
+                  <div
+                    key={`loss-${h.id}-${i}`}
+                    className="w-[148px] rounded-xl border-l-4 border-red-400 bg-muted/20 px-2.5 py-2 text-xs"
+                  >
+                    <div className="flex items-start justify-between gap-1">
+                      <div className="min-w-0 flex-1">
+                        <span className="rounded-full bg-red-100 px-1.5 py-0.5 text-[10px] font-bold text-red-600">
+                          Perda
+                        </span>
+                        {h.reason && (
+                          <p className="mt-1 truncate font-medium">{h.reason}</p>
+                        )}
+                      </div>
+                      <div className="flex shrink-0 gap-0.5">
+                        <button
+                          type="button"
+                          onClick={() => openEdit(h)}
+                          className="rounded p-0.5 text-muted-foreground hover:bg-white hover:text-primary"
+                          title="Editar"
+                        >
+                          <Pencil className="size-3" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(h.id)}
+                          disabled={deletingId === h.id}
+                          className="rounded p-0.5 text-muted-foreground hover:bg-red-50 hover:text-red-500 disabled:opacity-50"
+                          title="Remover"
+                        >
+                          <Trash2 className="size-3" />
+                        </button>
+                      </div>
+                    </div>
+                    <span className="mt-1 block text-[10px] text-muted-foreground">
+                      {ev.date.toLocaleDateString('pt-BR')}
+                    </span>
                   </div>
-                  <div className="flex shrink-0 items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => openEdit(h)}
-                      className="rounded p-1 text-muted-foreground transition-colors hover:bg-white hover:text-primary"
-                      title="Editar registro"
-                    >
-                      <Pencil className="size-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(h.id)}
-                      disabled={deletingId === h.id}
-                      className="rounded p-1 text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-500 disabled:opacity-50"
-                      title="Remover registro"
-                    >
-                      <Trash2 className="size-3.5" />
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         )}
       </div>

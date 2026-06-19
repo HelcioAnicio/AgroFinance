@@ -193,6 +193,24 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   );
   const [pevDays, setPevDays] = useState(30);
 
+  // Restore form from localStorage if a pending save was interrupted by a stale-data reload
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const key = `agrofinance_pending_form_${animal.id}`;
+    const saved = localStorage.getItem(key);
+    if (!saved) return;
+    try {
+      const parsed = JSON.parse(saved) as Animal;
+      setAllDataForm((prev) => ({ ...prev, ...parsed }));
+      setIsEditing(true);
+      localStorage.removeItem(key);
+      toast.info('Suas alterações foram restauradas. Os dados do animal foram atualizados por outro usuário — revise e salve novamente.');
+    } catch {
+      localStorage.removeItem(key);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [animal.id]);
+
   const handleLossAdded = (loss: AnimalCalfLossHistory) =>
     setCalfLossHistories((prev) =>
       [loss, ...prev].sort(
@@ -250,8 +268,13 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     });
   })();
 
-  const offspring =
-    allDataForm.gender === 'male' ? maleOffspring : femaleOffspring;
+  const offspring = (
+    allDataForm.gender === 'male' ? maleOffspring : femaleOffspring
+  ).sort(
+    (a, b) =>
+      new Date(b.birthDate as unknown as string).getTime() -
+      new Date(a.birthDate as unknown as string).getTime()
+  );
 
   const totalBirths = offspring.length;
   const totalLosses = allDataForm?.calfLossHistories?.length ?? 0;
@@ -811,6 +834,28 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
 
     const loadingId = toast.loading('Salvando alterações...');
     try {
+      // Staleness check: verify no one else updated this animal since page load
+      try {
+        const checkRes = await fetch(`/api/updateAnimals?id=${dataToSubmit.id}`);
+        if (checkRes.ok) {
+          const { updatedAt: serverUpdatedAt } = await checkRes.json();
+          const serverTs = new Date(serverUpdatedAt).getTime();
+          const localTs = new Date(animal.updatedAt).getTime();
+          if (serverTs > localTs) {
+            const pendingKey = `agrofinance_pending_form_${dataToSubmit.id}`;
+            localStorage.setItem(pendingKey, JSON.stringify(dataToSubmit));
+            toast.dismiss(loadingId);
+            toast.warning(
+              'Os dados do animal foram atualizados por outro usuário. Suas alterações foram salvas e serão restauradas após o recarregamento.'
+            );
+            router.refresh();
+            return;
+          }
+        }
+      } catch {
+        // staleness check failed — proceed with submit
+      }
+
       await axios.put(
         `/api/updateAnimals?id=${dataToSubmit.id}`,
         dataToSubmit,
@@ -966,10 +1011,10 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
       {/* VIEW MODE */}
       {!isEditing && (
         <div className="mx-auto max-w-5xl space-y-4 px-4 py-5">
-          {/* Row 1: DADOS BÁSICOS (2/3) + DADOS REPRODUTIVOS (1/3) */}
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          {/* Row 1: DADOS BÁSICOS | CardReproduction — side by side ≥750px */}
+          <div className="flex flex-col gap-4 min-[750px]:flex-row min-[750px]:items-stretch">
             {/* DADOS BÁSICOS */}
-            <div className="rounded-2xl border bg-white p-5 shadow-sm lg:col-span-2">
+            <div className="min-w-0 rounded-2xl border bg-white p-5 shadow-sm min-[750px]:flex-[2]">
               <div className="mb-4 flex items-start justify-between">
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
                   Dados básicos
@@ -1077,76 +1122,18 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
               )}
             </div>
 
-            {/* DADOS REPRODUTIVOS */}
-            <div className="hidden flex-col gap-4 lg:flex">
-              <div className="rounded-2xl border bg-white p-5 shadow-sm">
-                <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
-                  Dados reprodutivos
-                </p>
-                {allDataForm.gender === 'female' ? (
-                  <div className="space-y-4">
-                    <div>
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                        Status reprodutivo
-                      </p>
-                      <span className="mt-1.5 inline-flex items-center rounded-full bg-foreground px-3 py-1 text-xs font-semibold text-primary-foreground">
-                        {allDataForm.reproductiveStatus === 'pregnant'
-                          ? 'Prenha'
-                          : allDataForm.reproductiveStatus === 'empty'
-                            ? 'Vazia'
-                            : allDataForm.reproductiveStatus === 'waiting'
-                              ? 'Em espera'
-                              : allDataForm.reproductiveStatus === 'pev'
-                                ? 'PEV'
-                                : (allDataForm.reproductiveStatus ?? 'N/A')}
-                      </span>
-                    </div>
-                    {allDataForm.handlingType && (
-                      <div>
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                          Manejo utilizado
-                        </p>
-                        <p className="mt-0.5 font-semibold">
-                          {allDataForm.handlingType === 'naturalMating'
-                            ? '🐂 Monta natural'
-                            : '🔬 Inseminação artificial'}
-                        </p>
-                      </div>
-                    )}
-                    {allDataForm.expectedDueDate && (
-                      <div>
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                          Previsão de parto
-                        </p>
-                        <p className="mt-0.5 font-semibold">
-                          {new Date(
-                            allDataForm.expectedDueDate
-                          ).toLocaleDateString('pt-BR')}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                      Exame andrológico
-                    </p>
-                    <p className="mt-0.5 font-semibold">
-                      {allDataForm.andrological ? 'Aprovado' : 'N/A'}
-                    </p>
-                  </div>
-                )}
-              </div>
-
+            {/* CardReproduction — desktop ≥750px only */}
+            <div className="hidden min-[750px]:flex min-[750px]:flex-1 min-[750px]:flex-col">
+              <CardReproduction allDataForm={allDataForm as Animal} />
             </div>
           </div>
 
-          {/* Row 2: CardReproduction + Valor Estimado */}
-          <div className="flex flex-wrap gap-4">
-            <div className="min-w-[250px] flex-1">
+          {/* Row 2 mobile: CardReproduction | VALOR ESTIMADO — equal height */}
+          <div className="flex items-stretch gap-4 min-[750px]:hidden">
+            <div className="min-w-0 flex-1">
               <CardReproduction allDataForm={allDataForm as Animal} />
             </div>
-            <div className="min-w-[250px] flex-1 rounded-2xl border bg-white p-5 shadow-sm">
+            <div className="min-w-0 flex-1 rounded-2xl border bg-white p-5 shadow-sm">
               <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
                 Valor estimado
               </p>
@@ -1157,9 +1144,68 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Arrobas brutas</span>
-                  <span className="font-semibold">
-                    {arrobas.toFixed(1)} @
-                  </span>
+                  <span className="font-semibold">{arrobas.toFixed(1)} @</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="shrink-0 text-xs text-muted-foreground">% Carcaça</span>
+                  <input
+                    type="number"
+                    min="1"
+                    max="100"
+                    value={carcassPercent}
+                    onChange={(e) => setCarcassPercent(e.target.value)}
+                    className="w-14 rounded-lg border px-2 py-1 text-xs outline-none focus:border-primary"
+                  />
+                  <span className="text-xs text-muted-foreground">→ {carcassArrobas.toFixed(1)} @</span>
+                </div>
+                <div className="flex gap-2 pt-1">
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="R$/@"
+                    value={pricePerArroba}
+                    onChange={(e) => setPricePerArroba(e.target.value)}
+                    className="min-w-0 flex-1 rounded-lg border px-2 py-1.5 text-xs outline-none focus:border-primary"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fetchArrobaPrice()}
+                    className="shrink-0 rounded-lg border border-primary/40 bg-primary/5 px-2 py-1.5 text-xs font-semibold text-primary hover:bg-primary/10"
+                  >
+                    Buscar
+                  </button>
+                </div>
+                {estimatedValue !== null && (
+                  <div className="rounded-lg bg-primary/5 px-3 py-2">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                      Estimado
+                    </p>
+                    <p className="text-base font-black text-primary">
+                      {estimatedValue.toLocaleString('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL',
+                      })}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* VALOR ESTIMADO — desktop ≥750px only */}
+          <div className="hidden min-[750px]:block">
+            <div className="rounded-2xl border bg-white p-5 shadow-sm">
+              <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+                Valor estimado
+              </p>
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground">Peso:</span>
+                  <span className="font-semibold">{weightKg} kg</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground">Arrobas brutas:</span>
+                  <span className="font-semibold">{arrobas.toFixed(1)} @</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="shrink-0 text-xs text-muted-foreground">% Carcaça</span>
@@ -1173,41 +1219,39 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                   />
                   <span className="text-xs text-muted-foreground">→ {carcassArrobas.toFixed(1)} @</span>
                 </div>
-                <div className="flex gap-2 pt-1">
+                <div className="flex items-center gap-2">
                   <input
                     type="text"
                     inputMode="decimal"
                     placeholder="R$/@ ex: 320,00"
                     value={pricePerArroba}
                     onChange={(e) => setPricePerArroba(e.target.value)}
-                    className="min-w-0 flex-1 rounded-lg border px-2.5 py-1.5 text-xs outline-none focus:border-primary"
+                    className="w-36 rounded-lg border px-2.5 py-1.5 text-xs outline-none focus:border-primary"
                   />
                   <button
                     type="button"
                     onClick={() => fetchArrobaPrice()}
                     className="shrink-0 rounded-lg border border-primary/40 bg-primary/5 px-2.5 py-1.5 text-xs font-semibold text-primary hover:bg-primary/10"
                   >
-                    Buscar
+                    Buscar preço
                   </button>
                 </div>
                 {estimatedValue !== null && (
-                  <div className="rounded-lg bg-primary/5 px-3 py-2">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                      Estimado
-                    </p>
-                    <p className="text-lg font-black text-primary">
+                  <div className="flex items-center gap-2 rounded-lg bg-primary/5 px-3 py-1.5">
+                    <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Estimado:</span>
+                    <span className="text-lg font-black text-primary">
                       {estimatedValue.toLocaleString('pt-BR', {
                         style: 'currency',
                         currency: 'BRL',
                       })}
-                    </p>
+                    </span>
                   </div>
                 )}
               </div>
             </div>
           </div>
 
-          {/* Offspring */}
+          {/* Filhos */}
           <div className="rounded-2xl border bg-white p-5 shadow-sm">
             <div className="mb-4 flex items-center justify-between">
               <div>
@@ -1293,6 +1337,21 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                             {child.weight} Kg
                           </span>
                         </div>
+                        {(() => {
+                          const pdRecord = child.weightHistories?.find(
+                            (w) => w.recordType === 'PD'
+                          );
+                          return pdRecord ? (
+                            <div className="flex justify-between gap-2">
+                              <span className="text-muted-foreground">
+                                Desmama:
+                              </span>
+                              <span className="font-bold text-amber-600">
+                                {pdRecord.weight} Kg
+                              </span>
+                            </div>
+                          ) : null;
+                        })()}
                         <div className="flex justify-between gap-2">
                           <span className="text-muted-foreground">Cat:</span>
                           <span className="font-semibold text-green-700">
@@ -1307,102 +1366,100 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
             )}
           </div>
 
-          {/* Eficiência reprodutiva + Histórico Reprodutivo */}
-          <div className="flex flex-wrap gap-4">
-            <div className="min-w-[250px] flex-1 rounded-2xl border bg-white p-5 shadow-sm">
-              <h2 className="mb-4 font-bold">Eficiência reprodutiva</h2>
-              {allDataForm.gender === 'male' ? (
-                <div className="grid grid-cols-2 gap-3">
-                  {[
-                    {
-                      label: 'Filhos registrados',
-                      value: maleOffspring.length,
-                      color: 'border-purple-400',
-                    },
-                    {
-                      label: 'Nascimentos',
-                      value: totalBirths,
-                      color: 'border-green-400',
-                    },
-                    {
-                      label: 'Perdas',
-                      value: totalLosses,
-                      color: 'border-red-400',
-                    },
-                    {
-                      label: 'Eficiência',
-                      value:
-                        maleOffspring.length > 0 ? `${efficiencyRate}%` : '—',
-                      color: 'border-primary',
-                    },
-                  ].map((item) => (
-                    <div
-                      key={item.label}
-                      className={`rounded-xl border-l-4 ${item.color} bg-muted/20 px-3 py-2`}
-                    >
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                        {item.label}
-                      </p>
-                      <p className="text-xl font-black text-foreground">
-                        {item.value}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-3">
-                  {[
-                    {
-                      label: 'Prenhezes',
-                      value: totalPregnancies,
-                      color: 'border-purple-400',
-                    },
-                    {
-                      label: 'Nascimentos',
-                      value: totalBirths,
-                      color: 'border-green-400',
-                    },
-                    {
-                      label: 'Perdas',
-                      value: totalLosses,
-                      color: 'border-red-400',
-                    },
-                    {
-                      label: 'Eficiência',
-                      value: `${efficiencyRate}%`,
-                      color: 'border-primary',
-                    },
-                  ].map((item) => (
-                    <div
-                      key={item.label}
-                      className={`rounded-xl border-l-4 ${item.color} bg-muted/20 px-3 py-2`}
-                    >
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                        {item.label}
-                      </p>
-                      <p className="text-xl font-black text-foreground">
-                        {item.value}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            {allDataForm.gender === 'female' && (
-              <div className="min-w-[250px] flex-1">
-                <ReproductiveHistorySection
-                  offspringFromMother={femaleOffspring}
-                  calfLossHistories={calfLossHistories}
-                  animals={animals}
-                  externalBulls={externalBulls}
-                  animalId={allDataForm.id}
-                  onLossAdded={handleLossAdded}
-                  onLossDeleted={handleLossDeleted}
-                  onLossUpdated={handleLossUpdated}
-                />
+          {/* Eficiência reprodutiva — full width */}
+          <div className="rounded-2xl border bg-white p-5 shadow-sm">
+            <h2 className="mb-4 font-bold">Eficiência reprodutiva</h2>
+            {allDataForm.gender === 'male' ? (
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {[
+                  {
+                    label: 'Filhos registrados',
+                    value: maleOffspring.length,
+                    color: 'border-purple-400',
+                  },
+                  {
+                    label: 'Nascimentos',
+                    value: totalBirths,
+                    color: 'border-green-400',
+                  },
+                  {
+                    label: 'Perdas',
+                    value: totalLosses,
+                    color: 'border-red-400',
+                  },
+                  {
+                    label: 'Eficiência',
+                    value:
+                      maleOffspring.length > 0 ? `${efficiencyRate}%` : '—',
+                    color: 'border-primary',
+                  },
+                ].map((item) => (
+                  <div
+                    key={item.label}
+                    className={`rounded-xl border-l-4 ${item.color} bg-muted/20 px-3 py-2`}
+                  >
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                      {item.label}
+                    </p>
+                    <p className="text-xl font-black text-foreground">
+                      {item.value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {[
+                  {
+                    label: 'Prenhezes',
+                    value: totalPregnancies,
+                    color: 'border-purple-400',
+                  },
+                  {
+                    label: 'Nascimentos',
+                    value: totalBirths,
+                    color: 'border-green-400',
+                  },
+                  {
+                    label: 'Perdas',
+                    value: totalLosses,
+                    color: 'border-red-400',
+                  },
+                  {
+                    label: 'Eficiência',
+                    value: `${efficiencyRate}%`,
+                    color: 'border-primary',
+                  },
+                ].map((item) => (
+                  <div
+                    key={item.label}
+                    className={`rounded-xl border-l-4 ${item.color} bg-muted/20 px-3 py-2`}
+                  >
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                      {item.label}
+                    </p>
+                    <p className="text-xl font-black text-foreground">
+                      {item.value}
+                    </p>
+                  </div>
+                ))}
               </div>
             )}
           </div>
+
+          {/* Histórico Reprodutivo — full width, females only */}
+          {allDataForm.gender === 'female' && (
+            <ReproductiveHistorySection
+              offspringFromMother={femaleOffspring}
+              calfLossHistories={calfLossHistories}
+              animals={animals}
+              externalBulls={externalBulls}
+              animalId={allDataForm.id}
+              onLossAdded={handleLossAdded}
+              onLossDeleted={handleLossDeleted}
+              onLossUpdated={handleLossUpdated}
+            />
+          )}
 
           {/* Histórico de Peso + Registros Sanitários */}
           <div className="flex flex-wrap gap-4">

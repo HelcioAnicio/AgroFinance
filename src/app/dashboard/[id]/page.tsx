@@ -20,79 +20,81 @@ const DetailAnimalId = async ({
   const { context } = await requireFarmContext('view_animals');
   if (!context) redirect('/login');
 
-  const animals = await fetchAnimals(undefined, context.farm.id);
-  const externalBulls = await fetchExternalBulls(undefined, context.farm.id);
-
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const farmOwnerId = (context.farm as any).ownerUserId as string | null;
-  const animal = await prisma.animal.findFirst({
-    where: {
-      id,
-      OR: [
-        { farmId: context.farm.id },
-        // Fallback for animals not yet migrated (farmId still null)
-        ...(farmOwnerId ? [{ farmId: null, ownerId: farmOwnerId }] : []),
-      ],
-    },
-    include: {
-      bull: true,
-      offspringFromBull: {
-        include: {
-          weightHistories: { where: { recordType: 'PD' } },
+
+  const [animals, externalBulls, animal] = await Promise.all([
+    fetchAnimals(undefined, context.farm.id),
+    fetchExternalBulls(undefined, context.farm.id),
+    prisma.animal.findFirst({
+      where: {
+        id,
+        OR: [
+          { farmId: context.farm.id },
+          // Fallback for animals not yet migrated (farmId still null)
+          ...(farmOwnerId ? [{ farmId: null, ownerId: farmOwnerId }] : []),
+        ],
+      },
+      include: {
+        bull: true,
+        offspringFromBull: {
+          include: {
+            weightHistories: { where: { recordType: 'PD' } },
+          },
+        },
+        bullIatfRel: true,
+        offspringFromBullIatf: {
+          include: {
+            weightHistories: { where: { recordType: 'PD' } },
+          },
+        },
+        externalBull: true,
+        externalBullIatfRel: true,
+        father: true,
+        offspringFromFather: {
+          include: {
+            weightHistories: { where: { recordType: 'PD' } },
+          },
+        },
+        mother: true,
+        offspringFromMother: {
+          include: {
+            weightHistories: { where: { recordType: 'PD' } },
+          },
+        },
+        owner: true,
+        weightHistories: {
+          orderBy: {
+            measuredAt: 'desc',
+          },
+        },
+        calfLossHistories: {
+          include: {
+            fatherAnimal: true,
+            externalBull: true,
+          },
+          orderBy: {
+            lossDate: 'desc',
+          },
+        },
+        dewormings: {
+          orderBy: {
+            date: 'desc',
+          },
+        },
+        diseases: {
+          orderBy: {
+            date: 'desc',
+          },
+        },
+        vaccines: {
+          orderBy: {
+            date: 'desc',
+          },
         },
       },
-      bullIatfRel: true,
-      offspringFromBullIatf: {
-        include: {
-          weightHistories: { where: { recordType: 'PD' } },
-        },
-      },
-      externalBull: true,
-      externalBullIatfRel: true,
-      father: true,
-      offspringFromFather: {
-        include: {
-          weightHistories: { where: { recordType: 'PD' } },
-        },
-      },
-      mother: true,
-      offspringFromMother: {
-        include: {
-          weightHistories: { where: { recordType: 'PD' } },
-        },
-      },
-      owner: true,
-      weightHistories: {
-        orderBy: {
-          measuredAt: 'desc',
-        },
-      },
-      calfLossHistories: {
-        include: {
-          fatherAnimal: true,
-          externalBull: true,
-        },
-        orderBy: {
-          lossDate: 'desc',
-        },
-      },
-      dewormings: {
-        orderBy: {
-          date: 'desc',
-        },
-      },
-      diseases: {
-        orderBy: {
-          date: 'desc',
-        },
-      },
-      vaccines: {
-        orderBy: {
-          date: 'desc',
-        },
-      },
-    },
-  });
+    }),
+  ]);
   if (!animal) redirect('/dashboard');
 
   const vaccines = await fetchVaccines(animal.id);

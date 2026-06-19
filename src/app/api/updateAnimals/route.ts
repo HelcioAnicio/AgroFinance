@@ -40,6 +40,23 @@ const createCalfLossHistorySafely = async (payload: {
   );
 };
 
+export async function GET(req: Request) {
+  const { context, error, status } = await requireFarmContext('view_animals');
+  if (!context) return NextResponse.json({ message: error }, { status });
+
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get('id');
+  if (!id) return NextResponse.json({ message: 'ID nao fornecido' }, { status: 400 });
+
+  const found = await prisma.animal.findFirst({
+    where: { id, farmId: context.farm.id },
+    select: { id: true, updatedAt: true },
+  });
+
+  if (!found) return NextResponse.json({ message: 'Animal nao encontrado' }, { status: 404 });
+  return NextResponse.json(found);
+}
+
 export async function PUT(req: Request) {
   try {
     const { context, error, status } =

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,7 +18,13 @@ import { format } from 'date-fns';
 import { ReproductionManagement } from '@/types/reproduction';
 import { Animal } from '@/types/animal';
 import { ExternalBull } from '@/types/externalBull';
-import { Pencil, CheckCircle2, Circle, Download, Search, X } from 'lucide-react';
+import { Pencil, CheckCircle2, Circle, Download, Search, X, BarChart2 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 const STAGES = ['D0', 'Manejo', 'Insemination', 'DG'] as const;
 type Stage = (typeof STAGES)[number];
@@ -54,6 +60,7 @@ const ReproductionManagementPage = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [stageDates, setStageDates] = useState<Record<string, string>>({ D0: '', Manejo: '', Insemination: '', DG: '' });
   const [formData, setFormData] = useState(emptyForm);
+  const [reportOpen, setReportOpen] = useState(false);
 
   const toLocalDateString = (date: string | Date) => {
     const d = new Date(date);
@@ -69,19 +76,45 @@ const ReproductionManagementPage = () => {
     return dates;
   }, []);
 
-  const fetchData = useCallback(async () => {
+  const ANIMALS_CACHE_KEY = 'agrofinance_animals_cache';
+  const ANIMALS_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+  const fetchData = useCallback(async (forceFresh = false) => {
     try {
-      const [mRes, aRes, bRes] = await Promise.all([
+      // Use cached animals if fresh enough
+      let animalsData: Animal[] = [];
+      let usedCache = false;
+      if (!forceFresh && typeof window !== 'undefined') {
+        const cached = localStorage.getItem(ANIMALS_CACHE_KEY);
+        if (cached) {
+          const { data, timestamp } = JSON.parse(cached) as { data: Animal[]; timestamp: number };
+          if (Date.now() - timestamp < ANIMALS_CACHE_TTL) {
+            animalsData = data;
+            usedCache = true;
+          }
+        }
+      }
+
+      const fetches: Promise<Response>[] = [
         fetch('/api/reproduction-management'),
-        fetch('/api/dashboard-table-data'),
+        ...(usedCache ? [] : [fetch('/api/dashboard-table-data')]),
         fetch('/api/external-bulls'),
-      ]);
-      const mData = await mRes.json();
-      const aData = await aRes.json();
-      const bData = await bRes.json();
+      ];
+      const results = await Promise.all(fetches);
+      const mData = await results[0].json();
+      const bData = await results[usedCache ? 1 : 2].json();
+
+      if (!usedCache) {
+        const aData = await results[1].json();
+        animalsData = aData.animals || [];
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(ANIMALS_CACHE_KEY, JSON.stringify({ data: animalsData, timestamp: Date.now() }));
+        }
+      }
+
       setManagements(mData);
       setStageDates(computeStageDates(mData));
-      setAnimals(aData.animals || []);
+      setAnimals(animalsData);
       setExternalBulls(Array.isArray(bData) ? bData : bData?.externalBulls || []);
     } catch (e) { console.error(e); }
   }, [computeStageDates]);
@@ -208,6 +241,39 @@ const ReproductionManagementPage = () => {
       newReproductiveStatus: m.newReproductiveStatus ?? '',
     });
   };
+
+  // Protocol report: group animals by D0 date, most recent first
+  const protocolGroups = useMemo(() => {
+    const d0Records = managements.filter((m) => m.stage === 'D0');
+    const dateMap = new Map<string, {
+      date: string;
+      entries: Array<{
+        animalId: string;
+        manualId: string;
+        d0: ReproductionManagement;
+        manejo?: ReproductionManagement;
+        insemination?: ReproductionManagement;
+        dg?: ReproductionManagement;
+      }>;
+    }>();
+
+    d0Records.forEach((m) => {
+      const dateStr = toLocalDateString(m.date);
+      if (!dateMap.has(dateStr)) dateMap.set(dateStr, { date: dateStr, entries: [] });
+      const group = dateMap.get(dateStr)!;
+      const animal = animals.find((a) => a.id === m.animalId);
+      group.entries.push({
+        animalId: m.animalId,
+        manualId: animal?.manualId ?? m.animalId,
+        d0: m,
+        manejo: managements.find((x) => x.animalId === m.animalId && x.stage === 'Manejo'),
+        insemination: managements.find((x) => x.animalId === m.animalId && x.stage === 'Insemination'),
+        dg: managements.find((x) => x.animalId === m.animalId && x.stage === 'DG'),
+      });
+    });
+
+    return Array.from(dateMap.values()).sort((a, b) => b.date.localeCompare(a.date));
+  }, [managements, animals]);
 
   const stageManagements = managements.filter((m) => m.stage === currentStage);
   const baseFiltered = getFilteredAnimals();
@@ -529,9 +595,18 @@ const ReproductionManagementPage = () => {
               <h2 className="font-bold">Registros — {stageLabels[currentStage]}</h2>
               <p className="text-xs text-muted-foreground">{stageManagements.length} registros</p>
             </div>
-            <button type="button" className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:border-primary/40 hover:text-foreground">
-              <Download className="size-3.5" /> Exportar
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setReportOpen(true)}
+                className="flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/10"
+              >
+                <BarChart2 className="size-3.5" /> Relatório
+              </button>
+              <button type="button" className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:border-primary/40 hover:text-foreground">
+                <Download className="size-3.5" /> Exportar
+              </button>
+            </div>
           </div>
 
           {stageManagements.length === 0 ? (
@@ -606,6 +681,132 @@ const ReproductionManagementPage = () => {
           )}
         </div>
       </div>
+
+      {/* Protocol Report Modal */}
+      <Dialog open={reportOpen} onOpenChange={setReportOpen}>
+        <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Relatório de Protocolos</DialogTitle>
+          </DialogHeader>
+
+          {protocolGroups.length === 0 ? (
+            <p className="py-8 text-center text-sm text-muted-foreground">
+              Nenhum protocolo registrado ainda.
+            </p>
+          ) : (
+            <div className="space-y-8">
+              {protocolGroups.map((group) => {
+                const finishedCount = group.entries.filter((e) => e.dg).length;
+                const inProgress = finishedCount < group.entries.length;
+                const lastDate = group.entries
+                  .flatMap((e) =>
+                    [e.dg, e.insemination, e.manejo, e.d0].filter(Boolean)
+                  )
+                  .map((m) => toLocalDateString(m!.date))
+                  .sort()
+                  .at(-1);
+
+                return (
+                  <div key={group.date} className="rounded-2xl border bg-white shadow-sm overflow-hidden">
+                    <div className="flex items-center justify-between border-b bg-muted/30 px-5 py-3">
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                          Protocolo iniciado em
+                        </p>
+                        <p className="text-base font-bold">
+                          {new Date(`${group.date}T12:00:00`).toLocaleDateString('pt-BR')}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-3 text-xs">
+                        <span className="text-muted-foreground">
+                          {group.entries.length} animais · {finishedCount} finalizados
+                        </span>
+                        <span
+                          className={`rounded-full px-2.5 py-1 font-semibold ${
+                            inProgress
+                              ? 'bg-amber-100 text-amber-700'
+                              : 'bg-green-100 text-green-700'
+                          }`}
+                        >
+                          {inProgress ? 'Em andamento' : `Concluído em ${new Date(`${lastDate}T12:00:00`).toLocaleDateString('pt-BR')}`}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                      <table className="w-full min-w-[560px] text-sm">
+                        <thead>
+                          <tr className="border-b bg-muted/20">
+                            <th className="px-4 py-2 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Animal</th>
+                            <th className="px-4 py-2 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">D0</th>
+                            <th className="px-4 py-2 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Manejo</th>
+                            <th className="px-4 py-2 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Inseminação</th>
+                            <th className="px-4 py-2 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">DG</th>
+                            <th className="px-4 py-2 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Resultado</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y">
+                          {group.entries.map((entry) => (
+                            <tr key={entry.animalId} className="hover:bg-muted/20 transition-colors">
+                              <td className="px-4 py-2">
+                                <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 font-mono text-xs font-bold text-primary">
+                                  {entry.manualId}
+                                </span>
+                              </td>
+                              <td className="px-4 py-2 text-xs text-muted-foreground">
+                                {format(new Date(entry.d0.date), 'dd/MM/yy')}
+                                {entry.d0.implant && <span className="ml-1 text-[10px] text-blue-600">({entry.d0.implant})</span>}
+                              </td>
+                              <td className="px-4 py-2 text-xs text-muted-foreground">
+                                {entry.manejo
+                                  ? format(new Date(entry.manejo.date), 'dd/MM/yy')
+                                  : <span className="text-slate-300">—</span>}
+                              </td>
+                              <td className="px-4 py-2 text-xs text-muted-foreground">
+                                {entry.insemination
+                                  ? format(new Date(entry.insemination.date), 'dd/MM/yy')
+                                  : <span className="text-slate-300">—</span>}
+                              </td>
+                              <td className="px-4 py-2 text-xs text-muted-foreground">
+                                {entry.dg
+                                  ? format(new Date(entry.dg.date), 'dd/MM/yy')
+                                  : <span className="text-slate-300">—</span>}
+                              </td>
+                              <td className="px-4 py-2">
+                                {entry.dg ? (
+                                  <span
+                                    className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                                      entry.dg.newReproductiveStatus === 'pregnant'
+                                        ? 'bg-green-100 text-green-700'
+                                        : entry.dg.newReproductiveStatus === 'empty'
+                                          ? 'bg-rose-100 text-rose-700'
+                                          : 'bg-slate-100 text-slate-600'
+                                    }`}
+                                  >
+                                    {entry.dg.newReproductiveStatus === 'pregnant'
+                                      ? 'Prenha'
+                                      : entry.dg.newReproductiveStatus === 'empty'
+                                        ? 'Vazia'
+                                        : entry.dg.newReproductiveStatus || 'Concluído'}
+                                  </span>
+                                ) : (
+                                  <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-600">
+                                    Em andamento
+                                  </span>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
