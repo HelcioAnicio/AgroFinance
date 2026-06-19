@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 import { revalidateTag } from 'next/cache';
+import { sendPushToUser } from '@/lib/webPush';
 import prisma from '@/lib/prisma';
 import {
   parseWeightRecordDate,
@@ -446,6 +447,20 @@ export async function PUT(req: Request) {
     }
 
     revalidateTag(`animal-${data.id}`);
+
+    // Send push immediately if notification is active now (or very soon)
+    if (createNotification) {
+      const notifyAt = new Date(createNotification.notifyAt);
+      const diff = notifyAt.getTime() - Date.now();
+      if (diff <= 60_000) {
+        void sendPushToUser(data.ownerId, {
+          title: 'AgroFinance',
+          body: createNotification.message,
+          url: `/dashboard/${data.id}`,
+          tag: `notification-${createNotification.id}`,
+        });
+      }
+    }
 
     return NextResponse.json({
       message: 'Animal atualizado com sucesso',

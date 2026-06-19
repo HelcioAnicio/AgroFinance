@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { LayoutDashboard, Users, BarChart2, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, BarChart2, LogOut, Bell } from 'lucide-react';
 import { GiCow } from 'react-icons/gi';
 import { IoMaleFemaleSharp } from 'react-icons/io5';
 import { FaRegMoneyBillAlt } from 'react-icons/fa';
@@ -47,6 +47,11 @@ const NAV_ITEMS: NavItem[] = [
     href: '/dashboard/team',
     label: 'Equipe',
     icon: <Users size={17} />,
+  },
+  {
+    href: '/dashboard/notifications',
+    label: 'Notificações',
+    icon: <Bell size={17} />,
   },
   {
     href: '/dashboard/profile',

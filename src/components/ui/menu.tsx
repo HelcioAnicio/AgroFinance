@@ -12,6 +12,7 @@ import {
   LogOut,
   Settings,
   X,
+  Bell,
 } from 'lucide-react';
 import { GiCow } from 'react-icons/gi';
 import { IoMaleFemaleSharp } from 'react-icons/io5';
@@ -56,6 +57,11 @@ const ALL_ROUTES: RouteItem[] = [
     href: '/dashboard/team',
     label: 'Equipe',
     icon: <Users size={20} />,
+  },
+  {
+    href: '/dashboard/notifications',
+    label: 'Notificações',
+    icon: <Bell size={20} />,
   },
   {
     href: '/dashboard/profile',
