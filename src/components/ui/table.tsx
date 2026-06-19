@@ -589,7 +589,7 @@ export const Table: React.FC<TableProps> = ({
         <>
           <div className="sticky right-0 top-0 z-30 max-h-max w-full">
             <div className="relative flex w-full justify-between gap-4 py-3">
-              <div className="flex w-full flex-wrap items-center justify-start gap-3">
+              <div className="flex min-w-0 flex-1 flex-wrap items-center justify-start gap-3">
                 <Sheet>
                   <SheetTrigger asChild>
                     <FaFilter className="size-7 cursor-pointer" />

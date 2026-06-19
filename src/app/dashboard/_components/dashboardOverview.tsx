@@ -307,7 +307,7 @@ export function DashboardOverview() {
             <Skeleton className="h-9 w-28" />
           </div>
         </div>
-        <div className="mb-8 flex flex-wrap gap-4">
+        <div className="mb-8 grid grid-cols-2 gap-4 min-[740px]:flex min-[740px]:flex-wrap">
           {Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className="h-28 min-w-[160px] flex-1 rounded-xl" />
           ))}
@@ -327,7 +327,7 @@ export function DashboardOverview() {
       {/* Header */}
       <header className="mb-6 flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
         <div>
-          <h1 className="text-2xl font-black tracking-tight text-foreground lg:text-3xl">
+          <h1 className="text-xl font-black tracking-tight text-foreground sm:text-2xl lg:text-3xl">
             Gerenciamento de Rebanho
           </h1>
           <p className="text-sm text-muted-foreground">
@@ -449,7 +449,7 @@ export function DashboardOverview() {
       </header>
 
       {/* Summary Cards */}
-      <div className="mb-8 flex flex-wrap gap-4">
+      <div className="mb-8 grid grid-cols-2 gap-4 min-[740px]:flex min-[740px]:flex-wrap">
         <div className="min-w-[160px] flex-1 rounded-xl border-l-4 border-primary bg-white p-4 shadow-sm">
           <p className="mb-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
             Total de animais
