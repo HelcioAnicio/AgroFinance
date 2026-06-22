@@ -34,7 +34,7 @@ export default function RootLayout({
         cz-shortcut-listen="true"
         className={`${geistSans.variable} ${geistMono.variable} w-full text-sm antialiased`}
       >
-        <div className="m-auto min-h-full w-full max-w-screen-xl">
+        <div className="min-h-full w-full">
           <AuthProvider>{children}</AuthProvider>
         </div>
         <Toaster richColors />

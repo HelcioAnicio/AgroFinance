@@ -4,6 +4,10 @@
     {
       "path": "/api/cron/updateStatus",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/push/send-scheduled",
+      "schedule": "0 6 * * *"
     }
   ]
 }

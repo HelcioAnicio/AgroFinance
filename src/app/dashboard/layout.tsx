@@ -30,17 +30,15 @@ export default async function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Fixed full-width header (z-30) — spans edge to edge */}
+      {/* Fixed full-width header */}
       <Suspense fallback={<DashboardHeaderSkeleton />}>
         <DashboardHeaderSection />
       </Suspense>
 
-      {/* Desktop sidebar — fixed, starts below the header (top-14) */}
-      <AppSidebar />
-
-      {/* Main content — offset top by header height, offset left by sidebar on desktop */}
-      <div className="pt-14 lg:pl-56">
-        <main className="w-full pb-24 lg:pb-8">
+      {/* Content wrapper: centers on large screens, sidebar + main side by side */}
+      <div className="mx-auto flex max-w-[1600px] pt-14">
+        <AppSidebar />
+        <main className="min-w-0 flex-1 pb-24 lg:pb-8">
           {children}
         </main>
       </div>

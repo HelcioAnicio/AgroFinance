@@ -124,23 +124,6 @@ const getCategoryLabel = (animal: Animal) => {
   return '-';
 };
 
-const _getStatusBarColor = (status: string) => {
-  const colors: Record<string, string> = {
-    active: 'bg-green-500',
-    inactive: 'bg-gray-500',
-    dead: 'bg-black',
-    sold: 'bg-yellow-600',
-    lost: 'bg-amber-500',
-    trash: 'bg-red-500',
-    empty: 'bg-slate-500',
-    pregnant: 'bg-fuchsia-500',
-    waiting: 'bg-indigo-500',
-    pev: 'bg-cyan-500',
-  };
-
-  return colors[status] ?? 'bg-primary';
-};
-
 export const Table: React.FC<TableProps> = ({
   animals,
   users,
@@ -170,8 +153,15 @@ export const Table: React.FC<TableProps> = ({
   const [saleAction, setSaleAction] = useState<'sell' | 'trash'>('sell');
   const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false);
   const [bulkSanitaryOpen, setBulkSanitaryOpen] = useState(false);
-  const [bulkSanitaryType, setBulkSanitaryType] = useState<'vaccine' | 'deworming' | 'disease'>('vaccine');
-  const [bulkSanitaryForm, setBulkSanitaryForm] = useState({ name: '', date: '', expiryDate: '', description: '' });
+  const [bulkSanitaryType, setBulkSanitaryType] = useState<
+    'vaccine' | 'deworming' | 'disease'
+  >('vaccine');
+  const [bulkSanitaryForm, setBulkSanitaryForm] = useState({
+    name: '',
+    date: '',
+    expiryDate: '',
+    description: '',
+  });
   const [bulkSanitaryLoading, setBulkSanitaryLoading] = useState(false);
 
   const router = useRouter();
@@ -187,18 +177,6 @@ export const Table: React.FC<TableProps> = ({
       livestockStats.find((item) => item.year === selectedStatsYear) ?? null
     );
   }, [livestockStats, selectedStatsYear]);
-
-  const _maxMonthlyValue = useMemo(() => {
-    if (!selectedYearStats) return 1;
-    return Math.max(
-      ...selectedYearStats.months.flatMap((month) => [
-        month.maleBirths,
-        month.femaleBirths,
-        month.deaths,
-      ]),
-      1
-    );
-  }, [selectedYearStats]);
 
   useEffect(() => {
     if (dataLoading) return;
@@ -604,14 +582,14 @@ export const Table: React.FC<TableProps> = ({
   }
 
   return (
-    <main className="relative mx-auto flex h-[calc(100vh-100px)] w-[90%] flex-col overflow-x-auto overflow-y-hidden lg:h-full">
+    <main className="relative mx-auto flex h-[calc(100vh-100px)] w-full max-w-[1500px] flex-col overflow-x-auto overflow-y-hidden px-4 lg:h-full lg:px-6">
       {isLoading ? (
         <Loading />
       ) : (
         <>
           <div className="sticky right-0 top-0 z-30 max-h-max w-full">
             <div className="relative flex w-full justify-between gap-4 py-3">
-              <div className="flex w-full flex-wrap items-center justify-start gap-3">
+              <div className="flex min-w-0 flex-1 flex-wrap items-center justify-start gap-3">
                 <Sheet>
                   <SheetTrigger asChild>
                     <FaFilter className="size-7 cursor-pointer" />
@@ -651,12 +629,12 @@ export const Table: React.FC<TableProps> = ({
                   </button>
                 )}
               </div>
-              <div className="flex flex-col gap-3 min-[500px]:flex-row">
+              <div className="flex flex-wrap gap-2">
                 <Dialog
                   open={importDialogOpen}
                   onOpenChange={setImportDialogOpen}
                 >
-                  <DialogTrigger className="flex w-full items-center justify-center gap-1 rounded-md border border-foreground p-2 text-xs min-[410px]:w-max">
+                  <DialogTrigger className="flex h-8 shrink-0 items-center gap-1 rounded-md border border-foreground px-3 text-xs">
                     Importar animais
                     <FaFileArrowDown size={16} />
                   </DialogTrigger>
@@ -769,7 +747,7 @@ export const Table: React.FC<TableProps> = ({
 
                 <Sheet>
                   <SheetTrigger asChild className="sm:hidden">
-                    <Button className="flex gap-2 p-1 sm:hidden">
+                    <Button className="flex h-8 shrink-0 gap-2 px-3 sm:hidden">
                       Adicionar <CirclePlus className="size-4" />
                     </Button>
                   </SheetTrigger>
@@ -781,7 +759,7 @@ export const Table: React.FC<TableProps> = ({
                   />
                 </Sheet>
                 <Dialog>
-                  <DialogTrigger className="hidden items-center justify-center gap-2 rounded-sm bg-primary p-1 text-background sm:flex">
+                  <DialogTrigger className="hidden h-8 shrink-0 items-center justify-center gap-2 rounded-sm bg-primary px-3 text-background sm:flex">
                     Adicionar <CirclePlus className="size-4" />
                   </DialogTrigger>
                   <AddAnimalDesktop

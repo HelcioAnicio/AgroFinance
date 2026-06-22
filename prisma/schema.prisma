@@ -30,9 +30,10 @@ model User {
   farmMemberships FarmMembership[]
   sentFarmInvites FarmInvite[]  @relation("FarmInviteInviter")
   acceptedInvites FarmInvite[]  @relation("FarmInviteAccepter")
-  auditLogs     AuditLog[]
-  transactions  Transaction[]
-  sessions      Session[]
+  auditLogs        AuditLog[]
+  transactions     Transaction[]
+  sessions         Session[]
+  pushSubscriptions PushSubscription[]
 }
 
 enum FarmRole {
@@ -381,6 +382,16 @@ model Notification {
   createdAt DateTime @default(now()) @db.Timestamp(6)
   Animal    Animal?  @relation(fields: [animalId], references: [id], onDelete: Cascade, map: "fk_notification_animal")
   User      User     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "fk_notification_user")
+}
+
+model PushSubscription {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Transaction {

@@ -307,9 +307,9 @@ export function DashboardOverview() {
             <Skeleton className="h-9 w-28" />
           </div>
         </div>
-        <div className="mb-8 flex flex-row gap-4">
+        <div className="mb-8 grid grid-cols-2 gap-4 min-[740px]:flex min-[740px]:flex-wrap">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-28 min-w-[calc(50%-8px)] flex-1 rounded-xl sm:flex-none sm:w-36" />
+            <Skeleton key={i} className="h-28 min-w-[160px] flex-1 rounded-xl" />
           ))}
         </div>
         <div className="grid gap-6 xl:grid-cols-12">
@@ -327,17 +327,17 @@ export function DashboardOverview() {
       {/* Header */}
       <header className="mb-6 flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
         <div>
-          <h1 className="text-2xl font-black tracking-tight text-foreground lg:text-3xl">
+          <h1 className="text-xl font-black tracking-tight text-foreground sm:text-2xl lg:text-3xl">
             Gerenciamento de Rebanho
           </h1>
           <p className="text-sm text-muted-foreground">
             Visão geral da sua propriedade
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap gap-2">
           <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
             <DialogTrigger asChild>
-              <button className="flex w-full items-center justify-center gap-2 rounded-lg border border-foreground/30 px-4 py-2 text-sm font-medium transition-colors hover:bg-muted min-[410px]:w-max">
+              <button className="flex h-9 shrink-0 items-center gap-2 rounded-lg border border-foreground/30 px-4 text-sm font-medium transition-colors hover:bg-muted">
                 <FaFileArrowDown size={16} />
                 Importar animais
               </button>
@@ -423,7 +423,7 @@ export function DashboardOverview() {
 
           <Sheet>
             <SheetTrigger asChild className="sm:hidden">
-              <Button className="flex gap-2 sm:hidden">
+              <Button className="flex h-9 shrink-0 gap-2 sm:hidden">
                 Adicionar <CirclePlus className="size-4" />
               </Button>
             </SheetTrigger>
@@ -435,7 +435,7 @@ export function DashboardOverview() {
             />
           </Sheet>
           <Dialog>
-            <DialogTrigger className="hidden items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 sm:flex">
+            <DialogTrigger className="hidden h-9 shrink-0 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 sm:flex">
               Adicionar <CirclePlus className="size-4" />
             </DialogTrigger>
             <AddAnimalDesktop
@@ -449,8 +449,8 @@ export function DashboardOverview() {
       </header>
 
       {/* Summary Cards */}
-      <div className="mb-8 flex flex-row gap-4">
-        <div className="flex-1 rounded-xl border-l-4 border-primary bg-white p-3 pr-6 shadow-sm sm:pr-10">
+      <div className="mb-8 grid grid-cols-2 gap-4 min-[740px]:flex min-[740px]:flex-wrap">
+        <div className="min-w-[160px] flex-1 rounded-xl border-l-4 border-primary bg-white p-4 shadow-sm">
           <p className="mb-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
             Total de animais
           </p>
@@ -460,7 +460,7 @@ export function DashboardOverview() {
           </p>
         </div>
 
-        <div className="flex-1 rounded-xl border-l-4 border-green-500 bg-white p-3 pr-6 shadow-sm sm:pr-10">
+        <div className="min-w-[160px] flex-1 rounded-xl border-l-4 border-green-500 bg-white p-4 shadow-sm">
           <p className="mb-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
             Animais ativos
           </p>
@@ -477,7 +477,7 @@ export function DashboardOverview() {
           </div>
         </div>
 
-        <div className="flex-1 rounded-xl border-l-4 border-fuchsia-500 bg-white p-3 pr-6 shadow-sm sm:pr-10">
+        <div className="min-w-[160px] flex-1 rounded-xl border-l-4 border-fuchsia-500 bg-white p-4 shadow-sm">
           <p className="mb-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
             Vacas prenhas
           </p>
@@ -491,7 +491,7 @@ export function DashboardOverview() {
           </p>
         </div>
 
-        <div className="flex-1 rounded-xl border-l-4 border-slate-400 bg-white p-3 pr-6 shadow-sm sm:pr-10">
+        <div className="min-w-[160px] flex-1 rounded-xl border-l-4 border-slate-400 bg-white p-4 shadow-sm">
           <p className="mb-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
             Vacas vazias
           </p>

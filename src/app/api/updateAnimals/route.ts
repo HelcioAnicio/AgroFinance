@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
+import { revalidateTag } from 'next/cache';
+import { sendPushToUser } from '@/lib/webPush';
 import prisma from '@/lib/prisma';
 import {
   parseWeightRecordDate,
@@ -39,6 +41,23 @@ const createCalfLossHistorySafely = async (payload: {
     'animalCalfLossHistory delegate indisponivel no Prisma Client. Registro de perda ignorado; execute migrate/generate.'
   );
 };
+
+export async function GET(req: Request) {
+  const { context, error, status } = await requireFarmContext('view_animals');
+  if (!context) return NextResponse.json({ message: error }, { status });
+
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get('id');
+  if (!id) return NextResponse.json({ message: 'ID nao fornecido' }, { status: 400 });
+
+  const found = await prisma.animal.findFirst({
+    where: { id, farmId: context.farm.id },
+    select: { id: true, updatedAt: true },
+  });
+
+  if (!found) return NextResponse.json({ message: 'Animal nao encontrado' }, { status: 404 });
+  return NextResponse.json(found);
+}
 
 export async function PUT(req: Request) {
   try {
@@ -425,6 +444,22 @@ export async function PUT(req: Request) {
         fatherAnimalId,
         externalBullId,
       });
+    }
+
+    revalidateTag(`animal-${data.id}`);
+
+    // Send push immediately if notification is active now (or very soon)
+    if (createNotification) {
+      const notifyAt = new Date(createNotification.notifyAt);
+      const diff = notifyAt.getTime() - Date.now();
+      if (diff <= 60_000) {
+        void sendPushToUser(data.ownerId, {
+          title: 'AgroFinance',
+          body: createNotification.message,
+          url: `/dashboard/${data.id}`,
+          tag: `notification-${createNotification.id}`,
+        });
+      }
     }
 
     return NextResponse.json({

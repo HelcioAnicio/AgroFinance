@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { LayoutDashboard, Users, BarChart2, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, BarChart2, LogOut, Bell } from 'lucide-react';
 import { GiCow } from 'react-icons/gi';
 import { IoMaleFemaleSharp } from 'react-icons/io5';
 import { FaRegMoneyBillAlt } from 'react-icons/fa';
@@ -49,6 +49,11 @@ const NAV_ITEMS: NavItem[] = [
     icon: <Users size={17} />,
   },
   {
+    href: '/dashboard/notifications',
+    label: 'Notificações',
+    icon: <Bell size={17} />,
+  },
+  {
     href: '/dashboard/profile',
     label: 'Perfil',
     icon: <CgProfile size={17} />,
@@ -65,7 +70,7 @@ export function AppSidebar() {
 
   return (
     /* Starts at top-14 (below the fixed header) */
-    <aside className="fixed left-0 top-14 z-40 hidden h-[calc(100vh-56px)] w-56 flex-col border-r bg-white lg:flex">
+    <aside className="sticky top-14 hidden h-[calc(100vh-56px)] w-56 shrink-0 flex-col border-r bg-white lg:flex">
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto px-3 py-5">
         <p className="mb-2 px-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">

@@ -7,6 +7,7 @@ import {
   CalendarDays,
   Pencil,
   Plus,
+  Trash2,
   Wallet,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -154,6 +155,7 @@ export function FinancialDashboard({
   role,
 }: FinancialDashboardProps) {
   const isLimitedView = role === 'EMPLOYEE' || role === 'CAREGIVER_VETERINARIAN';
+  const canManageFinance = role === 'OWNER' || role === 'MANAGER';
   const [monthKey, setMonthKey] = useState(getMonthKey);
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [monthlyTransactions, setMonthlyTransactions] = useState<
@@ -354,6 +356,27 @@ export function FinancialDashboard({
       status: transaction.status,
     });
     setIsDialogOpen(true);
+  }
+
+  async function handleDeleteTransaction(id: string) {
+    if (!window.confirm('Tem certeza que deseja excluir este lançamento?')) return;
+    try {
+      const response = await fetch(`${TRANSACTIONS_API}?id=${id}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        throw new Error(data?.message ?? 'Não foi possível excluir o lançamento.');
+      }
+      await refreshCurrentMonth();
+      toast.success('Lançamento excluído com sucesso.');
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Não foi possível excluir o lançamento.';
+      toast.error(message);
+    }
   }
 
   function handleDialogOpenChange(open: boolean) {
@@ -907,6 +930,17 @@ export function FinancialDashboard({
                                   >
                                     <Pencil className="mr-1 h-3.5 w-3.5" />
                                     Editar
+                                  </Button>
+                                )}
+                                {canManageFinance && (
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="h-7 rounded-full px-2 text-xs text-red-600 hover:border-red-300 hover:text-red-700"
+                                    onClick={() => handleDeleteTransaction(transaction.id)}
+                                  >
+                                    <Trash2 className="mr-1 h-3.5 w-3.5" />
+                                    Excluir
                                   </Button>
                                 )}
                               </div>

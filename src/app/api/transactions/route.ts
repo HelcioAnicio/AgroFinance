@@ -102,6 +102,36 @@ export async function POST(request: Request) {
   return NextResponse.json(toFinancialTransaction(createdTransaction));
 }
 
+export async function DELETE(request: Request) {
+  const { context, error, status: authStatus } =
+    await requireFarmContext('manage_finance');
+  if (!context) return NextResponse.json({ message: error }, { status: authStatus });
+
+  const url = new URL(request.url);
+  const id = url.searchParams.get('id');
+
+  if (!id) {
+    return NextResponse.json(
+      { message: 'Informe o id do lancamento.' },
+      { status: 400 }
+    );
+  }
+
+  const transaction = await prisma.transaction.findFirst({
+    where: { id, farmId: context.farm.id },
+  });
+
+  if (!transaction) {
+    return NextResponse.json(
+      { message: 'Lancamento nao encontrado.' },
+      { status: 404 }
+    );
+  }
+
+  await prisma.transaction.delete({ where: { id } });
+  return NextResponse.json({ message: 'Lancamento excluido com sucesso.' });
+}
+
 export async function PATCH(request: Request) {
   const { context, error, status: authStatus } =
     await requireFarmContext('manage_finance');

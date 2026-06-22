@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import prisma from '@/lib/prisma';
 import { requireFarmContext } from '@/lib/tenant';
 import { parseWeightRecordType } from '@/lib/weightHistory';
@@ -21,7 +22,7 @@ export async function PUT(request: Request) {
   // Verify the record belongs to an animal in this farm
   const existing = await prisma.animalWeightHistory.findFirst({
     where: { id },
-    include: { animal: { select: { farmId: true } } },
+    include: { animal: { select: { id: true, farmId: true } } },
   });
   if (!existing || existing.animal.farmId !== context.farm.id) {
     return NextResponse.json({ error: 'Registro não encontrado.' }, { status: 404 });
@@ -41,6 +42,7 @@ export async function PUT(request: Request) {
     },
   });
 
+  revalidateTag(`animal-${existing.animal.id}`);
   return NextResponse.json({ data: updated });
 }
 
@@ -54,12 +56,13 @@ export async function DELETE(request: Request) {
 
   const existing = await prisma.animalWeightHistory.findFirst({
     where: { id },
-    include: { animal: { select: { farmId: true } } },
+    include: { animal: { select: { id: true, farmId: true } } },
   });
   if (!existing || existing.animal.farmId !== context.farm.id) {
     return NextResponse.json({ error: 'Registro não encontrado.' }, { status: 404 });
   }
 
   await prisma.animalWeightHistory.delete({ where: { id } });
+  revalidateTag(`animal-${existing.animal.id}`);
   return NextResponse.json({ ok: true });
 }

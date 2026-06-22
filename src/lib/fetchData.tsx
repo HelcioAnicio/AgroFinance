@@ -1,4 +1,5 @@
 // src/lib/fetchData.ts
+import { unstable_cache } from 'next/cache';
 import prisma from '@/lib/prisma';
 import { Animal } from '@/types/animal';
 import { LivestockStatsYear } from '@/types/livestockStats';
@@ -7,7 +8,7 @@ import { Vaccine } from '@/types/vaccine';
 import { Notification } from '@/types/notification';
 import { ExternalBull } from '@/types/externalBull';
 
-export const fetchAnimals = async (
+const _fetchAnimalsRaw = async (
   ownerId?: string,
   farmId?: string,
   extraOwnerIds?: string[]
@@ -41,6 +42,19 @@ export const fetchAnimals = async (
     console.error('Error fetching animals:', error);
     throw new Error('Could not fetch animals.');
   }
+};
+
+export const fetchAnimals = (
+  ownerId?: string,
+  farmId?: string,
+  extraOwnerIds?: string[]
+): Promise<Animal[]> => {
+  const cacheKey = farmId ?? ownerId ?? 'all';
+  return unstable_cache(
+    () => _fetchAnimalsRaw(ownerId, farmId, extraOwnerIds),
+    ['animals', cacheKey],
+    { revalidate: 30 }
+  )();
 };
 
 export const fetchUsers = async (): Promise<User[]> => {

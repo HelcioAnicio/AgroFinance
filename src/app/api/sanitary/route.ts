@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import prisma from '@/lib/prisma';
 import { requireFarmContext } from '@/lib/tenant';
 
@@ -52,6 +53,7 @@ export async function PUT(request: Request) {
         expiryDate: parsedExpiry ?? parsedDate,
       },
     });
+    revalidateTag(`animal-${existing.animalId}`);
     return NextResponse.json({ data: updated });
   }
 
@@ -68,6 +70,7 @@ export async function PUT(request: Request) {
         date: parsedDate,
       },
     });
+    revalidateTag(`animal-${existing.animalId}`);
     return NextResponse.json({ data: updated });
   }
 
@@ -85,6 +88,7 @@ export async function PUT(request: Request) {
         date: parsedDate,
       },
     });
+    revalidateTag(`animal-${existing.animalId}`);
     return NextResponse.json({ data: updated });
   }
 
@@ -110,6 +114,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'Não autorizado.' }, { status: 403 });
     }
     await prisma.vaccine.delete({ where: { id } });
+    revalidateTag(`animal-${existing.animalId}`);
     return NextResponse.json({ ok: true });
   }
 
@@ -120,6 +125,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'Não autorizado.' }, { status: 403 });
     }
     await prisma.deworming.delete({ where: { id } });
+    revalidateTag(`animal-${existing.animalId}`);
     return NextResponse.json({ ok: true });
   }
 
@@ -130,6 +136,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'Não autorizado.' }, { status: 403 });
     }
     await prisma.disease.delete({ where: { id } });
+    revalidateTag(`animal-${existing.animalId}`);
     return NextResponse.json({ ok: true });
   }
 
