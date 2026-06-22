@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { createAuditLog, requireFarmContext } from '@/lib/tenant';
+import { createAuditLog, hasFarmPermission, requireFarmContext } from '@/lib/tenant';
 
 export async function POST(request: Request) {
   const { context, error, status } = await requireFarmContext('manage_animals');
@@ -21,6 +21,11 @@ export async function POST(request: Request) {
 
   if (!animalIds?.length || !action) {
     return NextResponse.json({ message: 'animalIds e action são obrigatórios.' }, { status: 400 });
+  }
+
+  // Descarte (trash) é equivalente a deletar — apenas OWNER e MANAGER podem fazer isso
+  if (action === 'trash' && !hasFarmPermission(context.role, 'delete_animals')) {
+    return NextResponse.json({ message: 'Apenas o dono ou gerente pode descartar animais.' }, { status: 403 });
   }
 
   // Verify all animals belong to the farm

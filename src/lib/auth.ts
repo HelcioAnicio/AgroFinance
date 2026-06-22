@@ -58,6 +58,32 @@ export const authOptions: NextAuthOptions = {
 
       if (existingMembership) return;
 
+      // Verifica se existe um convite pendente para este e-mail (ex: cadastro via Google)
+      const pendingInvite = await prisma.farmInvite.findFirst({
+        where: {
+          email: { equals: user.email, mode: 'insensitive' },
+          status: 'PENDING',
+          expiresAt: { gt: new Date() },
+        },
+      });
+
+      if (pendingInvite) {
+        await prisma.$transaction(async (tx) => {
+          await tx.farmMembership.create({
+            data: { farmId: pendingInvite.farmId, userId: user.id!, role: pendingInvite.role },
+          });
+          await tx.farmInvite.update({
+            where: { id: pendingInvite.id },
+            data: { status: 'ACCEPTED', acceptedById: user.id, acceptedAt: new Date() },
+          });
+          await tx.user.update({
+            where: { id: user.id! },
+            data: { activeFarmId: pendingInvite.farmId },
+          });
+        });
+        return;
+      }
+
       const trialEndsAt = new Date();
 
       const farm = await prisma.farm.create({

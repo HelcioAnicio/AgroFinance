@@ -42,6 +42,7 @@ enum FarmRole {
   EMPLOYEE
   CAREGIVER_VETERINARIAN
   FINANCIAL
+  VIEWER
 }
 
 enum FarmInviteStatus {

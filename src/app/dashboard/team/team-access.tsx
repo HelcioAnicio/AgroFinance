@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { Copy, Send, RefreshCw, Pencil, Trash2, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-type Role = 'OWNER' | 'MANAGER' | 'EMPLOYEE' | 'CAREGIVER_VETERINARIAN' | 'FINANCIAL';
+type Role = 'OWNER' | 'MANAGER' | 'EMPLOYEE' | 'CAREGIVER_VETERINARIAN' | 'FINANCIAL' | 'VIEWER';
 
 type Member = {
   id: string;
@@ -89,6 +89,7 @@ const roleLabels: Record<Role, string> = {
   EMPLOYEE: 'Funcionário',
   CAREGIVER_VETERINARIAN: 'Cuidador/Veterinário',
   FINANCIAL: 'Financeiro',
+  VIEWER: 'Visualizador (gratuito)',
 };
 
 const statusLabels: Record<string, { label: string; color: string }> = {
@@ -251,6 +252,15 @@ export default function TeamAccess() {
           <strong>Novo usuário</strong> → link de cadastro.{' '}
           <strong>Usuário existente</strong> → link de aceite.
         </p>
+        <div className="mt-3 rounded-md border bg-[#f7f6f1] p-3 text-xs text-muted-foreground">
+          <p className="mb-1 font-semibold text-foreground">Permissões por função:</p>
+          <ul className="flex flex-col gap-0.5">
+            <li><strong>Gerente</strong> — tudo exceto configurações da fazenda</li>
+            <li><strong>Funcionário / Cuidador</strong> — cadastrar e editar animais (sem excluir)</li>
+            <li><strong>Financeiro</strong> — lançamentos financeiros</li>
+            <li><strong className="text-green-700">Visualizador</strong> — somente leitura, <strong className="text-green-700">não é cobrado</strong> na assinatura</li>
+          </ul>
+        </div>
       </section>
 
       <section className="grid gap-4 lg:grid-cols-2">
