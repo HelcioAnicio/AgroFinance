@@ -12,7 +12,7 @@ export default async function NotificationsPage() {
   if (!session?.user?.email) redirect('/');
 
   const user = await fetchUserByEmail(session.user.email);
-  if (!user) redirect('/');
+  if (!user || !user.id) redirect('/');
 
   const notifications = await fetchNotifications(user.id);
 
