@@ -119,6 +119,8 @@ export async function POST(request: Request) {
         typeof metadata?.planInterval === 'string'
           ? metadata.planInterval
           : null;
+      const planId =
+        typeof metadata?.planId === 'string' ? metadata.planId : null;
       const isAnnualPayment = planInterval === 'year' && !subscriptionId;
 
       if ((!customerId || !subscriptionId) && typeof object.id === 'string') {
@@ -149,11 +151,19 @@ export async function POST(request: Request) {
         stripeCustomerId?: string | null;
         stripeSubscriptionId?: string | null;
         stripeSubscriptionItemId?: string | null;
+        stripePlanTier?: string | null;
         trialEndsAt?: Date;
       } = {
         subscriptionStatus: isAnnualPayment ? 'ACTIVE' : 'TRIALING',
         trialEndsAt: accessUntil,
       };
+
+      // Salva o tier do plano para verificação de limite de assentos
+      if (planId) {
+        const { getBillingPlan } = await import('@/lib/billing');
+        const plan = getBillingPlan(planId);
+        if (plan) updateData.stripePlanTier = plan.tier;
+      }
 
       if (customerId) updateData.stripeCustomerId = customerId;
       if (subscriptionId) {

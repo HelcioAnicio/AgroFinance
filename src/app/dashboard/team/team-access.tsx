@@ -77,10 +77,17 @@ function getEntityLabel(log: AuditLog): string | null {
   return null;
 }
 
+type SeatInfo = {
+  planTier: string | null;
+  seatLimit: number | null;
+  billableCount: number;
+};
+
 type TeamData = {
   members: Member[];
   invites: Invite[];
   auditLogs: AuditLog[];
+  seatInfo: SeatInfo;
 };
 
 const roleLabels: Record<Role, string> = {
@@ -221,6 +228,45 @@ export default function TeamAccess() {
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-secondary">Equipe</p>
         <h1 className="text-2xl font-bold">Acessos da fazenda</h1>
       </section>
+
+      {/* Seat usage bar */}
+      {data?.seatInfo && (
+        <section className="rounded-md border bg-white p-4 shadow-sm">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex-1">
+              <div className="mb-1.5 flex items-center justify-between text-xs font-semibold">
+                <span className="text-muted-foreground">
+                  Assentos ocupados
+                  {data.seatInfo.planTier ? ` — Plano ${data.seatInfo.planTier}` : ''}
+                </span>
+                <span className={data.seatInfo.seatLimit !== null && data.seatInfo.billableCount >= data.seatInfo.seatLimit ? 'text-red-600' : 'text-foreground'}>
+                  {data.seatInfo.billableCount}
+                  {data.seatInfo.seatLimit !== null ? ` / ${data.seatInfo.seatLimit}` : ' (ilimitado)'}
+                </span>
+              </div>
+              {data.seatInfo.seatLimit !== null && (
+                <div className="h-2 w-full overflow-hidden rounded-full bg-[#e9eddf]">
+                  <div
+                    className={`h-full rounded-full transition-all ${
+                      data.seatInfo.billableCount >= data.seatInfo.seatLimit
+                        ? 'bg-red-500'
+                        : data.seatInfo.billableCount / data.seatInfo.seatLimit >= 0.8
+                          ? 'bg-amber-500'
+                          : 'bg-[#49651f]'
+                    }`}
+                    style={{ width: `${Math.min(100, (data.seatInfo.billableCount / data.seatInfo.seatLimit) * 100)}%` }}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+          {data.seatInfo.seatLimit !== null && data.seatInfo.billableCount >= data.seatInfo.seatLimit && (
+            <p className="mt-2 text-xs text-red-600">
+              Limite atingido. Faça upgrade do plano para adicionar mais membros. Visualizadores podem ser adicionados sem custo.
+            </p>
+          )}
+        </section>
+      )}
 
       {/* Invite form */}
       <section className="rounded-md border bg-white p-4 shadow-sm">

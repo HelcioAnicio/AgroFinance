@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { randomBytes } from 'crypto';
 import { requireFarmContext } from '@/lib/tenant';
-import { updateStripeSeats } from '@/lib/stripeSeats';
+import { updateStripeSeats, getBillableSeatCount } from '@/lib/stripeSeats';
+import { getSeatLimitForTier } from '@/lib/billing';
 import prisma from '@/lib/prisma';
 import { getAppUrl } from '@/lib/appUrl';
 
@@ -19,7 +20,7 @@ export async function GET(request: Request) {
   if (!context) return NextResponse.json({ error }, { status });
 
   const appUrl = getAppUrl(request);
-  const [members, invites, auditLogs] = await Promise.all([
+  const [members, invites, auditLogs, farmData] = await Promise.all([
     prisma.farmMembership.findMany({
       where: { farmId: context.farm.id },
       include: { user: { select: { name: true, email: true, image: true } } },
@@ -36,7 +37,17 @@ export async function GET(request: Request) {
       orderBy: { createdAt: 'desc' },
       take: 100,
     }),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (prisma.farm.findUnique as any)({
+      where: { id: context.farm.id },
+      select: { stripePlanTier: true },
+    }) as Promise<{ stripePlanTier: string | null } | null>,
   ]);
+
+  const { getSeatLimitForTier: getLimit } = await import('@/lib/billing');
+  const planTier = farmData?.stripePlanTier ?? null;
+  const seatLimit = planTier ? getLimit(planTier) : null;
+  const billableCount = members.filter((m) => m.role !== 'VIEWER').length;
 
   return NextResponse.json({
     members,
@@ -45,6 +56,11 @@ export async function GET(request: Request) {
       link: `${appUrl}/register?invite=${invite.token}`,
     })),
     auditLogs,
+    seatInfo: {
+      planTier,
+      seatLimit,
+      billableCount,
+    },
   });
 }
 
@@ -136,6 +152,30 @@ export async function POST(request: Request) {
       { error: 'Informe email e nivel de acesso validos.' },
       { status: 400 }
     );
+  }
+
+  // Verifica limite de assentos do plano — VIEWER não conta
+  if (role !== 'VIEWER') {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const farm = await (prisma.farm.findUnique as any)({
+      where: { id: context.farm.id },
+      select: { stripePlanTier: true },
+    }) as { stripePlanTier: string | null } | null;
+
+    const tier = farm?.stripePlanTier ?? null;
+    const seatLimit = tier ? getSeatLimitForTier(tier) : null;
+
+    if (seatLimit !== null) {
+      const currentSeats = await getBillableSeatCount(context.farm.id);
+      if (currentSeats >= seatLimit) {
+        return NextResponse.json(
+          {
+            error: `Limite de ${seatLimit} membros atingido para o plano ${tier}. Faça upgrade para adicionar mais membros.`,
+          },
+          { status: 403 }
+        );
+      }
+    }
   }
 
   const expiresAt = new Date();

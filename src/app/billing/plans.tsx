@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { Check, CreditCard, Layers3, Sparkles } from 'lucide-react';
+import { Check, CreditCard, Layers3, Sparkles, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { BILLING_PLANS } from '@/lib/billing';
 
@@ -144,6 +144,10 @@ export default function BillingPlans({
                       {plan.tier}
                     </p>
                     <h2 className="mt-3 text-2xl font-bold">{plan.name}</h2>
+                    <div className="mt-1 flex items-center gap-1 text-xs font-semibold text-[#6b705c]">
+                      <Users className="size-3.5" />
+                      {plan.maxSeats === null ? 'Membros ilimitados' : `Ate ${plan.maxSeats} membros`}
+                    </div>
                   </div>
                   {plan.tier === 'Empresarial' ? (
                     <Sparkles className={`size-5 ${style.icon}`} />

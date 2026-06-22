@@ -69,6 +69,7 @@ model Farm {
   stripeCustomerId          String?
   stripeSubscriptionId      String?
   stripeSubscriptionItemId  String?
+  stripePlanTier            String?
   subscriptionStatus        SubscriptionStatus @default(TRIALING)
   createdAt             DateTime        @default(now())
   updatedAt             DateTime        @updatedAt
