@@ -66,9 +66,10 @@ model Farm {
   ownerUserId           String
   trialStartedAt        DateTime        @default(now())
   trialEndsAt           DateTime
-  stripeCustomerId      String?
-  stripeSubscriptionId  String?
-  subscriptionStatus    SubscriptionStatus @default(TRIALING)
+  stripeCustomerId          String?
+  stripeSubscriptionId      String?
+  stripeSubscriptionItemId  String?
+  subscriptionStatus        SubscriptionStatus @default(TRIALING)
   createdAt             DateTime        @default(now())
   updatedAt             DateTime        @updatedAt
   animals               Animal[]

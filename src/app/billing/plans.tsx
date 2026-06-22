@@ -81,6 +81,9 @@ export default function BillingPlans({
 
   return (
     <div className="flex flex-col gap-5">
+      <div className="rounded-md border border-[#d4e6b5] bg-[#f4f9ec] px-4 py-3 text-sm text-[#415d1d]">
+        <strong>Cobrança por assento:</strong> o valor é multiplicado pelo número de membros ativos da fazenda (excluindo Visualizadores, que são gratuitos). Membros que entram ou saem no meio do mês são cobrados proporcionalmente.
+      </div>
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="flex w-fit rounded-md border border-[#d9d5c8] bg-white p-1">
           <button
@@ -157,17 +160,17 @@ export default function BillingPlans({
                         : plan.amountInCents
                     )}
                     <span className="ml-1 text-sm font-semibold text-[#6b705c]">
-                      /mes
+                      /assento/mês
                     </span>
                   </p>
                   {plan.interval === 'year' ? (
                     <p className="mt-1 text-xs font-medium text-[#6b705c]">
-                      Total anual de {formatCurrency(plan.amountInCents)} com
+                      {formatCurrency(plan.amountInCents)}/assento/ano com
                       opcao de parcelamento no cartao.
                     </p>
                   ) : (
                     <p className="mt-1 text-xs font-medium text-[#6b705c]">
-                      Cobranca mensal recorrente com validacao no Stripe.
+                      Cobranca proporcional ao numero de membros da fazenda.
                     </p>
                   )}
                 </div>

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getBillingPlan } from '@/lib/billing';
 import { requireFarmContext } from '@/lib/tenant';
+import { getBillableSeatCount, fetchSubscriptionItemId } from '@/lib/stripeSeats';
 import prisma from '@/lib/prisma';
 import { getAppUrl } from '@/lib/appUrl';
 
@@ -25,6 +26,7 @@ export async function POST(request: Request) {
     );
   }
 
+  const seatCount = await getBillableSeatCount(context.farm.id);
   const secretKey = process.env.STRIPE_SECRET_KEY;
   const appUrl = getAppUrl(request);
 
@@ -90,7 +92,7 @@ export async function POST(request: Request) {
       'cancel'
     );
   }
-  params.set('line_items[0][quantity]', '1');
+  params.set('line_items[0][quantity]', String(seatCount));
   params.set('line_items[0][price_data][currency]', 'brl');
   params.set(
     'line_items[0][price_data][unit_amount]',
@@ -149,6 +151,7 @@ export async function POST(request: Request) {
   const updateData: {
     stripeCustomerId?: string;
     stripeSubscriptionId?: string;
+    stripeSubscriptionItemId?: string;
   } = {};
 
   if (typeof checkoutCustomerId === 'string') {
@@ -157,9 +160,15 @@ export async function POST(request: Request) {
 
   if (checkoutSubscriptionId) {
     updateData.stripeSubscriptionId = checkoutSubscriptionId;
+    // Para assinaturas mensais, busca o item ID para futuras atualizações de assentos
+    if (!isAnnualPayment) {
+      const itemId = await fetchSubscriptionItemId(checkoutSubscriptionId);
+      if (itemId) updateData.stripeSubscriptionItemId = itemId;
+    }
   }
 
-  await prisma.farm.update({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (prisma.farm.update as any)({
     where: { id: context.farm.id },
     data: updateData,
   });

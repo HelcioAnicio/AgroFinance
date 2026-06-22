@@ -1,6 +1,7 @@
 import NextAuth, { NextAuthOptions } from 'next-auth';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import prisma from '@/lib/prisma';
+import { updateStripeSeats } from '@/lib/stripeSeats';
 import GoogleProvider from 'next-auth/providers/google';
 // import EmailProvider from 'next-auth/providers/email';
 import CredentialsProvider from 'next-auth/providers/credentials';
@@ -81,6 +82,9 @@ export const authOptions: NextAuthOptions = {
             data: { activeFarmId: pendingInvite.farmId },
           });
         });
+        if (pendingInvite.role !== 'VIEWER') {
+          void updateStripeSeats(pendingInvite.farmId, +1);
+        }
         return;
       }
 
