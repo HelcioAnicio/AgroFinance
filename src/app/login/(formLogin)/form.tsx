@@ -9,7 +9,7 @@ import { IoLockClosedOutline } from 'react-icons/io5';
 import { FaRegEyeSlash, FaRegEye } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
 import React, { SyntheticEvent, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { User } from '@/types/user';
 import { toast } from 'sonner';
 import { Loading } from '@/components/ui/loading';
@@ -26,6 +26,7 @@ interface FormLoginProps {
 export const FormLogin: React.FC<FormLoginProps> = ({ fetchedUsers }) => {
   const { status } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [error, setError] = useState({ email: false, password: false });
   const [screenLoading, setScreenLoading] = useState(false);
   const [statusPassword, setStatusPassword] = useState(false);
@@ -67,7 +68,13 @@ export const FormLogin: React.FC<FormLoginProps> = ({ fetchedUsers }) => {
 
     toast.success('Sucesso no login, aguarde o carregamento...');
     setScreenLoading(true);
-    router.replace('/dashboard');
+    // If the user came from an invite link, go straight to dashboard (already joined the farm)
+    const inviteToken = searchParams.get('invite');
+    if (inviteToken) {
+      window.location.href = '/dashboard';
+    } else {
+      router.replace('/dashboard');
+    }
   };
 
   useEffect(() => {

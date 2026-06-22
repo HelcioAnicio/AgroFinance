@@ -109,6 +109,11 @@ export async function POST(request: NextRequest) {
             acceptedAt: new Date(),
           },
         });
+        // Set activeFarmId so the user lands on the right farm after login
+        await tx.user.update({
+          where: { id: user.id },
+          data: { activeFarmId: invite.farmId },
+        });
         return user;
       }
 
