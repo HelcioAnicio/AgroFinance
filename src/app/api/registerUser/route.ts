@@ -1,6 +1,7 @@
 import prisma from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
+import { updateStripeSeats } from '@/lib/stripeSeats';
 
 export async function POST(request: NextRequest) {
   try {
@@ -114,7 +115,7 @@ export async function POST(request: NextRequest) {
           where: { id: user.id },
           data: { activeFarmId: invite.farmId },
         });
-        return user;
+        return { user, inviteFarmId: invite.farmId, inviteRole: invite.role };
       }
 
       const farm = await tx.farm.create({
@@ -134,16 +135,21 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      return user;
+      return { user, inviteFarmId: null, inviteRole: null };
     });
+
+    // Incrementa seat no Stripe se o novo usuário não é VIEWER
+    if (registerNewUser.inviteFarmId && registerNewUser.inviteRole !== 'VIEWER') {
+      void updateStripeSeats(registerNewUser.inviteFarmId, +1);
+    }
 
     return NextResponse.json(
       {
         message: 'Usuario cadastrado com sucesso',
         user: {
-          id: registerNewUser.id,
-          name: registerNewUser.name,
-          email: registerNewUser.email,
+          id: registerNewUser.user.id,
+          name: registerNewUser.user.name,
+          email: registerNewUser.user.email,
         },
       },
       { status: 201 }

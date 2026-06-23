@@ -34,6 +34,7 @@ model User {
   transactions     Transaction[]
   sessions         Session[]
   pushSubscriptions PushSubscription[]
+  farmSessions      FarmSession[]
 }
 
 enum FarmRole {
@@ -66,9 +67,11 @@ model Farm {
   ownerUserId           String
   trialStartedAt        DateTime        @default(now())
   trialEndsAt           DateTime
-  stripeCustomerId      String?
-  stripeSubscriptionId  String?
-  subscriptionStatus    SubscriptionStatus @default(TRIALING)
+  stripeCustomerId          String?
+  stripeSubscriptionId      String?
+  stripeSubscriptionItemId  String?
+  stripePlanTier            String?
+  subscriptionStatus        SubscriptionStatus @default(TRIALING)
   createdAt             DateTime        @default(now())
   updatedAt             DateTime        @updatedAt
   animals               Animal[]
@@ -78,6 +81,7 @@ model Farm {
   invites               FarmInvite[]
   auditLogs             AuditLog[]
   activeForUsers        User[]           @relation("UserActiveFarm")
+  farmSessions          FarmSession[]
 
   @@index([ownerUserId])
 }
@@ -393,6 +397,21 @@ model PushSubscription {
   auth      String
   createdAt DateTime @default(now()) @db.Timestamp(6)
   User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model FarmSession {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  jti        String   @unique
+  userId     String
+  farmId     String
+  role       String
+  lastSeenAt DateTime @default(now()) @db.Timestamp(6)
+  createdAt  DateTime @default(now()) @db.Timestamp(6)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  farm       Farm     @relation(fields: [farmId], references: [id], onDelete: Cascade)
+
+  @@index([farmId, lastSeenAt])
+  @@index([userId])
 }
 
 model Transaction {
