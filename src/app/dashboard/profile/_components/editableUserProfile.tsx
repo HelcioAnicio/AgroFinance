@@ -328,6 +328,7 @@ const EditableUserProfile: React.FC<EditableUserProfileProps> = ({ user }) => {
               </div>
             </section>
 
+            {/* Billing card — só o cabeçalho e botão ficam na coluna direita */}
             <section className="rounded-md border border-[#e1ded3] bg-white p-5 shadow-sm">
               <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                 <div>
@@ -360,7 +361,7 @@ const EditableUserProfile: React.FC<EditableUserProfileProps> = ({ user }) => {
                   plano.
                 </div>
               ) : membership?.role === 'OWNER' ? (
-                <div className="mt-5 flex flex-col gap-4">
+                <div className="mt-5">
                   <Button
                     type="button"
                     className="w-full bg-[#49651f] text-white hover:bg-[#3f571b] md:w-fit"
@@ -368,9 +369,6 @@ const EditableUserProfile: React.FC<EditableUserProfileProps> = ({ user }) => {
                   >
                     {showPlans ? 'Ocultar planos' : 'Escolher ou alterar plano'}
                   </Button>
-                  {showPlans ? (
-                    <BillingPlans plans={BILLING_PLANS} compact />
-                  ) : null}
                 </div>
               ) : (
                 <div className="mt-5 rounded-md border border-[#e1ded3] bg-[#f8f7f3] p-4 text-sm text-[#5e654f]">
@@ -380,6 +378,11 @@ const EditableUserProfile: React.FC<EditableUserProfileProps> = ({ user }) => {
             </section>
           </main>
         </div>
+
+        {/* Planos expandidos fora do grid — ocupa largura total em telas grandes */}
+        {showPlans && membership?.role === 'OWNER' && hasDocument && (
+          <BillingPlans plans={BILLING_PLANS} />
+        )}
 
         <section className="grid gap-4 md:grid-cols-3">
           {helperCards.map((card) => {

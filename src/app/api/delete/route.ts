@@ -5,7 +5,7 @@ import { createAuditLog, requireFarmContext } from '@/lib/tenant';
 export async function PUT(req: Request) {
   try {
     const { context, error, status } =
-      await requireFarmContext('manage_animals');
+      await requireFarmContext('delete_animals');
     if (!context) return NextResponse.json({ error }, { status });
 
     const { searchParams } = new URL(req.url);

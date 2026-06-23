@@ -7,6 +7,7 @@ export type FarmPermission =
   | 'manage_farm'
   | 'manage_team'
   | 'manage_animals'
+  | 'delete_animals'
   | 'view_animals'
   | 'manage_finance'
   | 'view_finance';
@@ -16,6 +17,7 @@ const ROLE_PERMISSIONS: Record<string, FarmPermission[]> = {
     'manage_farm',
     'manage_team',
     'manage_animals',
+    'delete_animals',
     'view_animals',
     'manage_finance',
     'view_finance',
@@ -23,6 +25,7 @@ const ROLE_PERMISSIONS: Record<string, FarmPermission[]> = {
   MANAGER: [
     'manage_team',
     'manage_animals',
+    'delete_animals',
     'view_animals',
     'manage_finance',
     'view_finance',
@@ -30,6 +33,8 @@ const ROLE_PERMISSIONS: Record<string, FarmPermission[]> = {
   EMPLOYEE: ['manage_animals', 'view_animals'],
   CAREGIVER_VETERINARIAN: ['manage_animals', 'view_animals'],
   FINANCIAL: ['manage_finance', 'view_finance'],
+  // VIEWER: somente leitura, não é cobrado na assinatura
+  VIEWER: ['view_animals', 'view_finance'],
 };
 
 export function hasFarmPermission(

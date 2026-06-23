@@ -83,8 +83,8 @@ const Register = () => {
         { headers: { 'Content-Type': 'application/json' } }
       );
       setUserRegister(emptyForm);
-      toast.success('Registrado com sucesso, redirecionando...');
-      router.replace('/login');
+      toast.success('Cadastro realizado! Faça login para acessar a fazenda.');
+      router.replace(inviteToken ? `/login?invite=${inviteToken}` : '/login');
     } catch (error) {
       console.error(error);
       toast.error('Erro, verifique os dados preenchidos e tente novamente.');
