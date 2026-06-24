@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { LayoutDashboard, Users, BarChart2, LogOut, Bell } from 'lucide-react';
+import { LayoutDashboard, Users, BarChart2, LogOut, Bell, TrendingUp, Package } from 'lucide-react';
 import { GiCow } from 'react-icons/gi';
 import { IoMaleFemaleSharp } from 'react-icons/io5';
 import { FaRegMoneyBillAlt } from 'react-icons/fa';
@@ -39,9 +39,19 @@ const NAV_ITEMS: NavItem[] = [
     icon: <FaRegMoneyBillAlt size={17} />,
   },
   {
+    href: '/dashboard/insumos',
+    label: 'Insumos',
+    icon: <Package size={17} />,
+  },
+  {
     href: '/dashboard/reports/birth-mortality',
     label: 'Natalidade',
     icon: <BarChart2 size={17} />,
+  },
+  {
+    href: '/dashboard/reports/lucro-prejuizo',
+    label: 'Relatório L/P',
+    icon: <TrendingUp size={17} />,
   },
   {
     href: '/dashboard/team',

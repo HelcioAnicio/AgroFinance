@@ -851,13 +851,25 @@ export function FinancialDashboard({
             </div>
           ) : groupedTransactions.length === 0 ? (
             <div className="rounded-3xl border border-dashed border-slate-200 bg-slate-50/70 p-8 text-center">
+              <p className="text-2xl mb-2">💰</p>
               <p className="text-lg font-medium text-slate-800">
-                Nenhum lancamento encontrado
+                {allTransactions.length === 0
+                  ? 'Nenhum lançamento ainda'
+                  : 'Nenhum lançamento encontrado'}
               </p>
-              <p className="mt-2 text-sm text-slate-600">
-                Ajuste o mes, remova o filtro ou crie um novo registro para
-                iniciar o fluxo financeiro.
+              <p className="mt-1 text-sm text-slate-600">
+                {allTransactions.length === 0
+                  ? 'Registre receitas e despesas para acompanhar o fluxo financeiro da sua fazenda.'
+                  : 'Ajuste o mês, remova o filtro ou crie um novo registro.'}
               </p>
+              {allTransactions.length === 0 && canManageFinance && (
+                <button
+                  onClick={() => { setFormState(createInitialFormState()); setIsDialogOpen(true); }}
+                  className="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+                >
+                  + Registrar primeiro lançamento
+                </button>
+              )}
             </div>
           ) : (
             <div className="space-y-8">

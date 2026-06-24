@@ -863,6 +863,23 @@ export const Table: React.FC<TableProps> = ({
                       </tr>
                     </thead>
                     <tbody className="divide-y overflow-y-auto scroll-smooth">
+                      {!dataLoading && listAnimals.length === 0 && (
+                        <tr>
+                          <td colSpan={10} className="py-16 text-center">
+                            <div className="flex flex-col items-center gap-2">
+                              <span className="text-4xl">🐄</span>
+                              <p className="font-semibold text-muted-foreground">
+                                {inputValue ? 'Nenhum animal encontrado com esse filtro' : 'Nenhum animal cadastrado ainda'}
+                              </p>
+                              {!inputValue && (
+                                <p className="text-sm text-muted-foreground">
+                                  Clique em <strong>&quot;Adicionar animal&quot;</strong> para começar o controle do seu rebanho.
+                                </p>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
                       {listAnimals.map((animal: Animal) => {
                         const mother = animals.find(
                           (a) => a.id === animal.motherId

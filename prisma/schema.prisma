@@ -82,6 +82,7 @@ model Farm {
   auditLogs             AuditLog[]
   activeForUsers        User[]           @relation("UserActiveFarm")
   farmSessions          FarmSession[]
+  insumos               Insumo[]
 
   @@index([ownerUserId])
 }
@@ -457,4 +458,52 @@ model ReproductionManagement {
   animal        Animal   @relation(fields: [animalId], references: [id], onDelete: Cascade)
 
   @@index([animalId, stage])
+}
+
+// ─── Insumos (Inventory) ──────────────────────────────────────────────────────
+
+enum InsumoCategoria {
+  RACAO
+  VACINA
+  VERMIFUGO
+  ANTIBIOTICO
+  MINERAL
+  OUTROS
+}
+
+enum InsumoMovimentoTipo {
+  ENTRADA
+  SAIDA
+  AJUSTE
+}
+
+model Insumo {
+  id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  farmId       String
+  nome         String
+  categoria    InsumoCategoria
+  unidade      String         // "kg", "L", "dose", "un"
+  quantidade   Decimal        @db.Decimal(10, 3) @default(0)
+  estoqueMin   Decimal?       @db.Decimal(10, 3)
+  custoPorUnid Decimal        @db.Decimal(14, 2) @default(0)
+  observacoes  String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  farm         Farm           @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  movimentos   InsumoMovimento[]
+
+  @@index([farmId])
+}
+
+model InsumoMovimento {
+  id         String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  insumoId   String              @db.Uuid
+  tipo       InsumoMovimentoTipo
+  quantidade Decimal             @db.Decimal(10, 3)
+  notas      String?
+  data       DateTime            @db.Date
+  createdAt  DateTime            @default(now())
+  insumo     Insumo              @relation(fields: [insumoId], references: [id], onDelete: Cascade)
+
+  @@index([insumoId, data])
 }

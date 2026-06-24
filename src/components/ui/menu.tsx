@@ -13,6 +13,8 @@ import {
   Settings,
   X,
   Bell,
+  TrendingUp,
+  Package,
 } from 'lucide-react';
 import { GiCow } from 'react-icons/gi';
 import { IoMaleFemaleSharp } from 'react-icons/io5';
@@ -49,9 +51,19 @@ const ALL_ROUTES: RouteItem[] = [
     icon: <FaRegMoneyBillAlt size={20} />,
   },
   {
+    href: '/dashboard/insumos',
+    label: 'Insumos',
+    icon: <Package size={20} />,
+  },
+  {
     href: '/dashboard/reports/birth-mortality',
     label: 'Natalidade e Mortalidade',
     icon: <BarChart2 size={20} />,
+  },
+  {
+    href: '/dashboard/reports/lucro-prejuizo',
+    label: 'Relatório L/P',
+    icon: <TrendingUp size={20} />,
   },
   {
     href: '/dashboard/team',

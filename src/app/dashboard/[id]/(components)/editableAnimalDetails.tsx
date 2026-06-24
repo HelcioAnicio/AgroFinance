@@ -5,6 +5,15 @@ import {
   AnimalCalfLossHistory,
   AnimalWeightHistory,
 } from '@/types/animal';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+} from 'recharts';
 import { Vaccine } from '@/types/vaccine';
 import { ExternalBull } from '@/types/externalBull';
 import { useEffect, useState } from 'react';
@@ -1662,6 +1671,41 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                 <p className="text-sm text-muted-foreground">
                   Nenhum histórico de peso registrado.
                 </p>
+              )}
+
+              {allDataForm.isForFattening && allDataForm.weightHistories && allDataForm.weightHistories.length >= 2 && (
+                <div className="mt-4">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Curva de peso
+                  </p>
+                  <ResponsiveContainer width="100%" height={120}>
+                    <LineChart
+                      data={[...allDataForm.weightHistories]
+                        .sort((a, b) => new Date(a.measuredAt).getTime() - new Date(b.measuredAt).getTime())
+                        .map((h) => ({
+                          data: new Date(h.measuredAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+                          peso: Number(h.weight),
+                        }))}
+                      margin={{ top: 4, right: 8, left: -20, bottom: 0 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                      <XAxis dataKey="data" tick={{ fontSize: 10 }} />
+                      <YAxis tick={{ fontSize: 10 }} />
+                      <Tooltip
+                        formatter={(v) => [`${v} kg`, 'Peso']}
+                        contentStyle={{ fontSize: 12 }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="peso"
+                        stroke="hsl(var(--primary))"
+                        strokeWidth={2}
+                        dot={{ r: 3 }}
+                        activeDot={{ r: 5 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
               )}
             </div>
 
