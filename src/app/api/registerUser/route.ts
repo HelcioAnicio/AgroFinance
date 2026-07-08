@@ -159,6 +159,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       { message: 'Erro ao cadastrar usuario', error: String(error) },
+      { message: 'Erro ao cadastrar usuario', error: String(error) },
       { status: 500 }
     );
   }

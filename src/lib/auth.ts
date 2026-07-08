@@ -2,7 +2,6 @@ import NextAuth, { NextAuthOptions } from 'next-auth';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import prisma from '@/lib/prisma';
 import GoogleProvider from 'next-auth/providers/google';
-// import EmailProvider from 'next-auth/providers/email';
 import CredentialsProvider from 'next-auth/providers/credentials';
 
 export const authOptions: NextAuthOptions = {
@@ -13,11 +12,6 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.GOOGLE_CLIENT_ID || '',
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
     }),
-    // EmailProvider({
-    //   server: process.env.EMAIL_SERVER,
-    //   from: process.env.EMAIL_FROM,
-    //   // maxAge: 24 * 60 * 60, // How long email links are valid for (default 24h)
-    // }),
     CredentialsProvider({
       name: 'credentials',
       credentials: {
@@ -25,21 +19,18 @@ export const authOptions: NextAuthOptions = {
         password: { type: 'password' },
       },
       async authorize(credentials) {
+        if (!credentials?.email || !credentials.password) return null;
+
         const user = await prisma.user.findUnique({
-          where: { email: credentials?.email },
+          where: { email: credentials.email },
         });
 
-        if (user && credentials?.password === user.password) {
+        if (user && user.password === credentials.password) {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { password, ...userWithoutPass } = user;
-          return userWithoutPass as {
-            id: string;
-            name?: string | null;
-            email?: string | null;
-            emailVerified?: Date | null;
-            image?: string | null;
-          };
+          return userWithoutPass as AdapterUser;
         }
+
         return null;
       },
     }),
