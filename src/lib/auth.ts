@@ -1,4 +1,5 @@
 import NextAuth, { NextAuthOptions } from 'next-auth';
+import bcrypt from 'bcrypt';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import { randomUUID } from 'crypto';
 import prisma from '@/lib/prisma';
@@ -32,7 +33,10 @@ export const authOptions: NextAuthOptions = {
           where: { email: credentials?.email },
         });
 
-        if (user && credentials?.password === user.password) {
+        const passwordMatch = user?.password
+          ? await bcrypt.compare(credentials?.password ?? '', user.password)
+          : false;
+        if (user && passwordMatch) {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { password, ...userWithoutPass } = user;
           return userWithoutPass as {

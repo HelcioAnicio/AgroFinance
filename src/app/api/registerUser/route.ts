@@ -2,6 +2,7 @@ import prisma from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 import { updateStripeSeats } from '@/lib/stripeSeats';
+import bcrypt from 'bcrypt';
 
 export async function POST(request: NextRequest) {
   try {
@@ -78,7 +79,7 @@ export async function POST(request: NextRequest) {
           email: createPayload.email,
           ...(createPayload.cnpj ? { cnpj: createPayload.cnpj } : {}),
           ...(createPayload.password
-            ? { password: createPayload.password }
+            ? { password: await bcrypt.hash(createPayload.password, 10) }
             : {}),
           ...(createPayload.image ? { image: createPayload.image } : {}),
         },
