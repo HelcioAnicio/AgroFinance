@@ -140,7 +140,10 @@ export async function POST(request: NextRequest) {
     });
 
     // Incrementa seat no Stripe se o novo usuário não é VIEWER
-    if (registerNewUser.inviteFarmId && registerNewUser.inviteRole !== 'VIEWER') {
+    if (
+      registerNewUser.inviteFarmId &&
+      registerNewUser.inviteRole !== 'VIEWER'
+    ) {
       void updateStripeSeats(registerNewUser.inviteFarmId, +1);
     }
 
