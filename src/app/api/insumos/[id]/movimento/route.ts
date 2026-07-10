@@ -4,8 +4,11 @@ import { requireFarmContext } from '@/lib/tenant';
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
+  const params = await props.params;
+  const id = params.id;
+
   const { context, status } = await requireFarmContext('manage_animals');
   if (!context)
     return NextResponse.json(
@@ -15,7 +18,7 @@ export async function POST(
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const insumo = await (prisma as any).insumo.findFirst({
-    where: { id: params.id, farmId: context.farm.id },
+    where: { id: id, farmId: context.farm.id },
   });
   if (!insumo)
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
@@ -45,7 +48,7 @@ export async function POST(
   const resultado = await (prisma as any).$transaction(async (tx: any) => {
     await tx.insumoMovimento.create({
       data: {
-        insumoId: params.id,
+        insumoId: id,
         tipo,
         quantidade: qty,
         notas: notas || null,
@@ -56,7 +59,7 @@ export async function POST(
     const newQty = isAjuste ? qty : Number(insumo.quantidade) + delta;
 
     return tx.insumo.update({
-      where: { id: params.id },
+      where: { id: id },
       data: { quantidade: newQty },
       include: {
         movimentos: { orderBy: { data: 'desc' }, take: 20 },
