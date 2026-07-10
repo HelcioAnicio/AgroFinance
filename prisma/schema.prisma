@@ -9,34 +9,36 @@ datasource db {
 }
 
 model User {
-  id            String          @id @default(dbgenerated("gen_random_uuid()"))
-  name          String
-  email         String          @unique
-  cnpj          String?         @unique
-  password      String?
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-  emailVerified DateTime?
-  image         String?
-  activeFarmId  String?
-  activeFarm    Farm?           @relation("UserActiveFarm", fields: [activeFarmId], references: [id])
-  accounts      Account[]
-  animals       Animal[]
-  Authenticator Authenticator[]
-  Notification  Notification[]
+  id                    String                  @id @default(dbgenerated("gen_random_uuid()"))
+  name                  String
+  email                 String                  @unique
+  cnpj                  String?                 @unique
+  password              String?
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  emailVerified         DateTime?
+  image                 String?
+  activeFarmId          String?
+  activeFarm            Farm?                   @relation("UserActiveFarm", fields: [activeFarmId], references: [id])
+  accounts              Account[]
+  animals               Animal[]
+  Authenticator         Authenticator[]
+  Notification          Notification[]
   animalStatusHistories AnimalStatusHistory[]
-  calfLossHistories AnimalCalfLossHistory[]
-  externalBulls ExternalBull[]
-  farmMemberships FarmMembership[]
-  sentFarmInvites FarmInvite[]  @relation("FarmInviteInviter")
-  acceptedInvites FarmInvite[]  @relation("FarmInviteAccepter")
-  auditLogs        AuditLog[]
-  transactions     Transaction[]
-  sessions         Session[]
-  pushSubscriptions PushSubscription[]
+  calfLossHistories     AnimalCalfLossHistory[]
+  externalBulls         ExternalBull[]
+  farmMemberships       FarmMembership[]
+  sentFarmInvites       FarmInvite[]            @relation("FarmInviteInviter")
+  acceptedInvites       FarmInvite[]            @relation("FarmInviteAccepter")
+  auditLogs             AuditLog[]
+  transactions          Transaction[]
+  sessions              Session[]
+  pushSubscriptions     PushSubscription[]
+  farmSessions          FarmSession[]
 }
 
 enum FarmRole {
+  VIEWER
   OWNER
   MANAGER
   EMPLOYEE
@@ -60,23 +62,24 @@ enum SubscriptionStatus {
 }
 
 model Farm {
-  id                    String          @id @default(dbgenerated("gen_random_uuid()"))
-  name                  String
-  ownerUserId           String
-  trialStartedAt        DateTime        @default(now())
-  trialEndsAt           DateTime
-  stripeCustomerId      String?
-  stripeSubscriptionId  String?
-  subscriptionStatus    SubscriptionStatus @default(TRIALING)
-  createdAt             DateTime        @default(now())
-  updatedAt             DateTime        @updatedAt
-  animals               Animal[]
-  externalBulls         ExternalBull[]
-  transactions          Transaction[]
-  memberships           FarmMembership[]
-  invites               FarmInvite[]
-  auditLogs             AuditLog[]
-  activeForUsers        User[]           @relation("UserActiveFarm")
+  id                   String             @id @default(dbgenerated("gen_random_uuid()"))
+  name                 String
+  ownerUserId          String
+  trialStartedAt       DateTime           @default(now())
+  trialEndsAt          DateTime
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  subscriptionStatus   SubscriptionStatus @default(TRIALING)
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  animals              Animal[]
+  externalBulls        ExternalBull[]
+  transactions         Transaction[]
+  memberships          FarmMembership[]
+  invites              FarmInvite[]
+  auditLogs            AuditLog[]
+  activeForUsers       User[]             @relation("UserActiveFarm")
+  farmSessions         FarmSession[]
 
   @@index([ownerUserId])
 }
@@ -96,21 +99,21 @@ model FarmMembership {
 }
 
 model FarmInvite {
-  id             String           @id @default(dbgenerated("gen_random_uuid()"))
-  farmId         String
-  email          String
-  role           FarmRole
-  token          String           @unique
-  status         FarmInviteStatus @default(PENDING)
-  invitedById    String
-  acceptedById   String?
-  expiresAt      DateTime
-  acceptedAt     DateTime?
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  farm           Farm             @relation(fields: [farmId], references: [id], onDelete: Cascade)
-  invitedBy      User             @relation("FarmInviteInviter", fields: [invitedById], references: [id], onDelete: Cascade)
-  acceptedBy     User?            @relation("FarmInviteAccepter", fields: [acceptedById], references: [id])
+  id           String           @id @default(dbgenerated("gen_random_uuid()"))
+  farmId       String
+  email        String
+  role         FarmRole
+  token        String           @unique
+  status       FarmInviteStatus @default(PENDING)
+  invitedById  String
+  acceptedById String?
+  expiresAt    DateTime
+  acceptedAt   DateTime?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  farm         Farm             @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  invitedBy    User             @relation("FarmInviteInviter", fields: [invitedById], references: [id], onDelete: Cascade)
+  acceptedBy   User?            @relation("FarmInviteAccepter", fields: [acceptedById], references: [id])
 
   @@index([farmId, status])
   @@index([email])
@@ -135,60 +138,62 @@ model AuditLog {
 }
 
 model Animal {
-  id                    String         @id @default(dbgenerated("gen_random_uuid()"))
-  manualId              String
-  gender                String
-  birthDate             DateTime
-  weight                Float
-  breed                 String
-  category              String         @default("") @map("category")
-  motherId              String?
-  fatherId              String?
-  reproductiveStatus    String?
-  handlingType          String?
-  bullId                String?
-  protocol              String?
-  andrological          String?
-  expectedDueDate       DateTime?
-  fetalGender           String?
-  bodyConditionScore    Float?
-  observations          String?
-  ownerId               String
-  farmId                String?
-  createdAt             DateTime       @default(now())
-  updatedAt             DateTime       @updatedAt
-  dewormingDate         DateTime?
-  dewormingExpiry       DateTime?
-  dewormingName         String?
-  status                String         @default("active")
-  isForFattening        Boolean        @default(false)
-  pevExpiresAt          DateTime?
-  vaccineDate           DateTime?
-  vaccineExpiry         DateTime?
-  vaccineName           String?
-  bullIatfId            String?
-  externalBullId        String?
-  externalBullIatfId    String?
-  bull                  Animal?        @relation("BullHandling", fields: [bullId], references: [id])
-  offspringFromBull     Animal[]       @relation("BullHandling")
-  father                Animal?        @relation("FatherOffspring", fields: [fatherId], references: [id])
-  offspringFromFather   Animal[]       @relation("FatherOffspring")
-  mother                Animal?        @relation("MotherOffspring", fields: [motherId], references: [id])
-  offspringFromMother   Animal[]       @relation("MotherOffspring")
-  owner                 User           @relation(fields: [ownerId], references: [id])
-  farm                  Farm?          @relation(fields: [farmId], references: [id], onDelete: SetNull)
-  bullIatfRel           Animal?        @relation("BullIatfHandling", fields: [bullIatfId], references: [id])
-  offspringFromBullIatf Animal[]       @relation("BullIatfHandling")
-  externalBull          ExternalBull?  @relation("ExternalBullHandling", fields: [externalBullId], references: [id])
-  externalBullIatfRel   ExternalBull?  @relation("ExternalBullIatfHandling", fields: [externalBullIatfId], references: [id])
-  dewormings            Deworming[]    @relation("AnimalDewormings")
-  diseases              Disease[]      @relation("AnimalDiseases")
-  Notification          Notification[]
-  vaccines              Vaccine[]      @relation("AnimalVaccines")
-  weightHistories       AnimalWeightHistory[]
-  statusHistories       AnimalStatusHistory[]
-  calfLossHistories     AnimalCalfLossHistory[] @relation("AnimalCalfLossMother")
-  calfLossFatherHistories AnimalCalfLossHistory[] @relation("AnimalCalfLossFather")
+  id                      String                   @id @default(dbgenerated("gen_random_uuid()"))
+  manualId                String
+  gender                  String
+  birthDate               DateTime
+  weight                  Float
+  breed                   String
+  category                String                   @default("") @map("category")
+  motherId                String?
+  fatherId                String?
+  reproductiveStatus      String?
+  handlingType            String?
+  bullId                  String?
+  protocol                String?
+  andrological            String?
+  expectedDueDate         DateTime?
+  fetalGender             String?
+  bodyConditionScore      Float?
+  observations            String?
+  ownerId                 String
+  farmId                  String?
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+  dewormingDate           DateTime?
+  dewormingExpiry         DateTime?
+  dewormingName           String?
+  status                  String                   @default("active")
+  isForFattening          Boolean                  @default(false)
+  pevExpiresAt            DateTime?
+  vaccineDate             DateTime?
+  vaccineExpiry           DateTime?
+  vaccineName             String?
+  bullIatfId              String?
+  externalBullId          String?
+  externalBullIatfId      String?
+  externalBullFatherId    String?
+  bull                    Animal?                  @relation("BullHandling", fields: [bullId], references: [id])
+  offspringFromBull       Animal[]                 @relation("BullHandling")
+  father                  Animal?                  @relation("FatherOffspring", fields: [fatherId], references: [id])
+  offspringFromFather     Animal[]                 @relation("FatherOffspring")
+  mother                  Animal?                  @relation("MotherOffspring", fields: [motherId], references: [id])
+  offspringFromMother     Animal[]                 @relation("MotherOffspring")
+  owner                   User                     @relation(fields: [ownerId], references: [id])
+  farm                    Farm?                    @relation(fields: [farmId], references: [id], onDelete: SetNull)
+  bullIatfRel             Animal?                  @relation("BullIatfHandling", fields: [bullIatfId], references: [id])
+  offspringFromBullIatf   Animal[]                 @relation("BullIatfHandling")
+  externalBull            ExternalBull?            @relation("ExternalBullHandling", fields: [externalBullId], references: [id])
+  externalBullIatfRel     ExternalBull?            @relation("ExternalBullIatfHandling", fields: [externalBullIatfId], references: [id])
+  externalBullFather      ExternalBull?            @relation("ExternalBullFather", fields: [externalBullFatherId], references: [id])
+  dewormings              Deworming[]              @relation("AnimalDewormings")
+  diseases                Disease[]                @relation("AnimalDiseases")
+  Notification            Notification[]
+  vaccines                Vaccine[]                @relation("AnimalVaccines")
+  weightHistories         AnimalWeightHistory[]
+  statusHistories         AnimalStatusHistory[]
+  calfLossHistories       AnimalCalfLossHistory[]  @relation("AnimalCalfLossMother")
+  calfLossFatherHistories AnimalCalfLossHistory[]  @relation("AnimalCalfLossFather")
   reproductionManagements ReproductionManagement[]
 
   @@unique([manualId, ownerId])
@@ -196,20 +201,21 @@ model Animal {
 }
 
 model ExternalBull {
-  id               String   @id @default(dbgenerated("gen_random_uuid()"))
-  name             String
-  breed            String
-  batches          String[]
-  sourceCompany    String
-  dosesAvailable   Int
-  ownerId          String
-  farmId           String?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  owner            User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  farm             Farm?    @relation(fields: [farmId], references: [id], onDelete: SetNull)
-  usedInHandling   Animal[] @relation("ExternalBullHandling")
-  usedInIatf       Animal[] @relation("ExternalBullIatfHandling")
+  id                String                  @id @default(dbgenerated("gen_random_uuid()"))
+  name              String
+  breed             String
+  batches           String[]
+  sourceCompany     String
+  dosesAvailable    Int
+  ownerId           String
+  farmId            String?
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+  owner             User                    @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  farm              Farm?                   @relation(fields: [farmId], references: [id], onDelete: SetNull)
+  usedInHandling    Animal[]                @relation("ExternalBullHandling")
+  usedInIatf        Animal[]                @relation("ExternalBullIatfHandling")
+  usedInFather      Animal[]                @relation("ExternalBullFather")
   calfLossHistories AnimalCalfLossHistory[]
 
   @@index([ownerId])
@@ -217,7 +223,7 @@ model ExternalBull {
 }
 
 model AnimalCalfLossHistory {
-  id              String       @id @default(dbgenerated("gen_random_uuid()"))
+  id              String        @id @default(dbgenerated("gen_random_uuid()"))
   animalId        String
   ownerId         String
   previousStatus  String?
@@ -228,11 +234,11 @@ model AnimalCalfLossHistory {
   fatherType      String
   fatherAnimalId  String?
   externalBullId  String?
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-  animal          Animal       @relation("AnimalCalfLossMother", fields: [animalId], references: [id], onDelete: Cascade)
-  owner           User         @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  fatherAnimal    Animal?      @relation("AnimalCalfLossFather", fields: [fatherAnimalId], references: [id], onDelete: SetNull)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  animal          Animal        @relation("AnimalCalfLossMother", fields: [animalId], references: [id], onDelete: Cascade)
+  owner           User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  fatherAnimal    Animal?       @relation("AnimalCalfLossFather", fields: [fatherAnimalId], references: [id], onDelete: SetNull)
   externalBull    ExternalBull? @relation(fields: [externalBullId], references: [id], onDelete: SetNull)
 
   @@index([animalId, lossDate])
@@ -309,7 +315,6 @@ model Vaccine {
   expiryDate  DateTime
   id          String   @id @default(dbgenerated("gen_random_uuid()"))
   animal      Animal   @relation("AnimalVaccines", fields: [animalId], references: [id])
-
 }
 
 model Deworming {
@@ -394,6 +399,21 @@ model PushSubscription {
   User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model FarmSession {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  jti        String   @unique
+  userId     String
+  farmId     String
+  role       String
+  lastSeenAt DateTime @default(now()) @db.Timestamp(6)
+  createdAt  DateTime @default(now()) @db.Timestamp(6)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  farm       Farm     @relation(fields: [farmId], references: [id], onDelete: Cascade)
+
+  @@index([farmId, lastSeenAt])
+  @@index([userId])
+}
+
 model Transaction {
   id          String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userId      String          @map("userId")
@@ -417,24 +437,24 @@ model Transaction {
 }
 
 model ReproductionManagement {
-  id            String   @id @default(dbgenerated("gen_random_uuid()"))
-  animalId      String
-  stage         String   // D0, Manejo, Insemination, DG
-  date          DateTime
-  protocolo     Boolean? // for D0 and subsequent
-  implant       String?  // for D0
-  obs           String?
-  ecc           Float?
-  touroId       String?  // for Insemination, can be Animal.id or ExternalBull.id
-  touroType     String?  // 'internal' or 'external'
-  partida       String?  // for Insemination
-  cio           String?  // for Insemination
-  ressinc       Boolean? // for DG
-  ressincCount  Int      @default(0)
-  ressincHistory Json?   // array of {date: string, obs: string}
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  animal        Animal   @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  id             String   @id @default(dbgenerated("gen_random_uuid()"))
+  animalId       String
+  stage          String // D0, Manejo, Insemination, DG
+  date           DateTime
+  protocolo      Boolean? // for D0 and subsequent
+  implant        String? // for D0
+  obs            String?
+  ecc            Float?
+  touroId        String? // for Insemination, can be Animal.id or ExternalBull.id
+  touroType      String? // 'internal' or 'external'
+  partida        String? // for Insemination
+  cio            String? // for Insemination
+  ressinc        Boolean? // for DG
+  ressincCount   Int      @default(0)
+  ressincHistory Json? // array of {date: string, obs: string}
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  animal         Animal   @relation(fields: [animalId], references: [id], onDelete: Cascade)
 
   @@index([animalId, stage])
 }

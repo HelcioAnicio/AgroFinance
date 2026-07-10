@@ -3,17 +3,17 @@ import { ExternalBull } from '@/types/externalBull';
 import { buildExternalBullValue } from '@/lib/externalBull';
 
 interface FormWaitingStatusProps {
-  allDataForm: Animal;
+  animal: Animal;
   handleInputValues: (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
   animals: Animal[];
   externalBulls: ExternalBull[];
-  animal: Animal | null;
+  // animal: Animal | null;
 }
 
 export const FormWaitingStatus: React.FC<FormWaitingStatusProps> = ({
-  allDataForm,
+  animal,
   handleInputValues,
   animals,
   externalBulls,
@@ -35,7 +35,7 @@ export const FormWaitingStatus: React.FC<FormWaitingStatusProps> = ({
             name="handlingType"
             id="handlingType"
             className="w-44 border border-b border-b-primary bg-transparent outline-none"
-            value={allDataForm.handlingType ?? ''}
+            value={animal.handlingType ?? ''}
             onChange={handleInputValues}
           >
             <option disabled value=""></option>
@@ -56,9 +56,9 @@ export const FormWaitingStatus: React.FC<FormWaitingStatusProps> = ({
           <select
             name="bullId"
             id="bullId"
-            className={`min-w-24 flex-1 border border-b border-b-primary bg-transparent outline-none ${allDataForm.handlingType === 'naturalMating' && 'bg-gray-300'}`}
-            disabled={allDataForm.handlingType === 'artificialInsemination'}
-            value={allDataForm.bullId ?? ''}
+            className={`min-w-24 flex-1 border border-b border-b-primary bg-transparent outline-none ${animal.handlingType === 'naturalMating' && 'bg-gray-300'}`}
+            disabled={animal.handlingType === 'artificialInsemination'}
+            value={animal.bullId ?? ''}
             onChange={handleInputValues}
           >
             <option disabled value=""></option>
@@ -88,10 +88,10 @@ export const FormWaitingStatus: React.FC<FormWaitingStatusProps> = ({
           <select
             name="protocol"
             id="protocol"
-            className={`flex[1_1_100px] w-full min-w-20 rounded-t-md border border-b border-b-primary bg-transparent outline-none ${allDataForm.handlingType === 'naturalMating' && 'bg-gray-300'}`}
-            value={allDataForm.protocol ?? ''}
+            className={`flex[1_1_100px] w-full min-w-20 rounded-t-md border border-b border-b-primary bg-transparent outline-none ${animal.handlingType === 'naturalMating' && 'bg-gray-300'}`}
+            value={animal.protocol ?? ''}
             onChange={handleInputValues}
-            disabled={allDataForm.handlingType === 'naturalMating'}
+            disabled={animal.handlingType === 'naturalMating'}
           >
             <option disabled value=""></option>
             <option value="protocol1">Inseminação artificial</option>
@@ -108,9 +108,9 @@ export const FormWaitingStatus: React.FC<FormWaitingStatusProps> = ({
           <select
             name="bullIatfId"
             id="bullIatfId"
-            className={`min-w-24 flex-1 border border-b border-b-primary bg-transparent outline-none ${allDataForm.handlingType === 'naturalMating' && 'bg-gray-300'}`}
-            disabled={allDataForm.handlingType === 'naturalMating'}
-            value={allDataForm.bullIatfId ?? ''}
+            className={`min-w-24 flex-1 border border-b border-b-primary bg-transparent outline-none ${animal.handlingType === 'naturalMating' && 'bg-gray-300'}`}
+            disabled={animal.handlingType === 'naturalMating'}
+            value={animal.bullIatfId ?? ''}
             onChange={handleInputValues}
           >
             <option disabled value=""></option>

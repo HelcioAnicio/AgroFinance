@@ -106,7 +106,18 @@ export const AddAnimalDesktop: React.FC<AddAnimalProps> = ({
       motherId:
         allDataForm.motherId === 'comercial' ? null : allDataForm.motherId,
       fatherId:
-        allDataForm.fatherId === 'comercial' ? null : allDataForm.fatherId,
+        allDataForm.fatherId === 'comercial' ||
+        isExternalBullValue(allDataForm.fatherId)
+          ? null
+          : allDataForm.fatherId,
+
+      // Novo campo mapeado no frontend para enviar à API se o pai for externo
+      externalBullFatherId:
+        allDataForm.fatherId === 'comercial'
+          ? null
+          : isExternalBullValue(allDataForm.fatherId)
+            ? extractExternalBullId(allDataForm.fatherId)
+            : null,
       bullId:
         allDataForm.bullId === 'comercial' ||
         isExternalBullValue(allDataForm.bullId) ||
@@ -200,23 +211,24 @@ export const AddAnimalDesktop: React.FC<AddAnimalProps> = ({
           <TabsContent value="principais" className="mt-0">
             <CardFormMain
               animals={animals}
-              handleInputValues={handleInputValues}
               allDataForm={allDataForm}
-              setTabValue={setTabValue}
               breedArray={breedArray}
+              externalBulls={externalBulls}
+              handleInputValues={handleInputValues}
               setAllDataForm={setAllDataForm}
+              setTabValue={setTabValue}
             />
           </TabsContent>
 
           <TabsContent value="reproducao" className="mt-0">
             <CardFormReproduction
               animals={animals}
+              allDataForm={allDataForm}
               externalBulls={externalBulls}
               handleInputValues={handleInputValues}
-              allDataForm={allDataForm}
               submitForm={submitForm}
-              setTabValue={setTabValue}
               setAllDataForm={setAllDataForm}
+              setTabValue={setTabValue}
             />
           </TabsContent>
         </div>

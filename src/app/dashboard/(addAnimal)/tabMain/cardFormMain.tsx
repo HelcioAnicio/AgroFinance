@@ -10,29 +10,33 @@ import { RadioForm } from '@/components/ui/radioForm';
 import { SelectForm } from '@/components/ui/selectForm';
 import { toast } from 'sonner';
 import { weightRecordOptions } from '@/lib/weightHistory';
+import { ExternalBull } from '@/types/externalBull';
 
 interface CardFormMainProps {
   allDataForm: Animal;
+  animals: Animal[];
+  breedArray?: string[];
+  externalBulls: ExternalBull[];
   handleInputValues: (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
-  animals: Animal[];
-  breedArray?: string[];
-  setTabValue: (value: string) => void;
   setAllDataForm: React.Dispatch<React.SetStateAction<Animal>>;
+  setTabValue: (value: string) => void;
 }
 
 export const CardFormMain: React.FC<CardFormMainProps> = ({
   animals,
   allDataForm,
+  externalBulls,
   handleInputValues,
-  setTabValue,
   setAllDataForm,
+  setTabValue,
 }) => {
   const checked = animals.find(
     (animal) =>
       animal?.manualId?.toLowerCase() === allDataForm?.manualId?.toLowerCase()
   );
+  console.log('allDataForm: ', allDataForm);
 
   useEffect(() => {
     if (checked !== undefined) {
@@ -84,7 +88,7 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
   ];
 
   const [isReproductive, setIsReproductive] = useState<boolean>(false);
-
+  console.log('ExternalBull:', externalBulls);
   const statusLabels = {
     active: 'Ativado',
     inactive: 'Inativado',
@@ -428,6 +432,10 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                       label: `Touro ${animal.manualId}`,
                       value: animal.id,
                     })),
+                  ...externalBulls.map((bull) => ({
+                    label: `Touro Externo ${bull.name}`,
+                    value: bull.id,
+                  })),
                 ]}
                 defaultOption="Escolha o pai"
               />

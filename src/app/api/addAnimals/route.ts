@@ -29,10 +29,30 @@ export async function POST(req: NextRequest) {
       weightRecordDate,
       weightRecordType,
       statusChangeDate,
+      fatherId,
       ...animalData
     } = allDataForm;
     animalData.ownerId = ownerId;
     animalData.farmId = context.farm.id;
+
+    let finalFatherId = null;
+    let finalExternalBullFatherId = null;
+
+    if (fatherId && fatherId !== 'comercial') {
+      const isExternalBull = await prisma.externalBull.findUnique({
+        where: { id: fatherId },
+        select: { id: true },
+      });
+
+      if (isExternalBull) {
+        finalExternalBullFatherId = fatherId;
+      } else {
+        finalFatherId = fatherId;
+      }
+    }
+
+    animalData.fatherId = finalFatherId;
+    animalData.externalBullFatherId = finalExternalBullFatherId;
 
     const createAnimal = await prisma.$transaction(async (tx) => {
       const animal = await tx.animal.create({ data: animalData });
@@ -41,8 +61,13 @@ export async function POST(req: NextRequest) {
         tx,
         ownerId,
         [],
-        [animalData.externalBullId, animalData.externalBullIatfId]
+        [
+          animalData.externalBullId,
+          animalData.externalBullIatfId,
+          finalExternalBullFatherId,
+        ].filter(Boolean)
       );
+
       const changedAt =
         animal.status === 'active'
           ? new Date(animal.birthDate)

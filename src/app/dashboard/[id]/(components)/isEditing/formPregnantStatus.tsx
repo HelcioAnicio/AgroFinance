@@ -3,17 +3,17 @@ import { ExternalBull } from '@/types/externalBull';
 import { buildExternalBullValue } from '@/lib/externalBull';
 
 interface FormPregnantStatusProps {
-  allDataForm: Animal;
+  animal: Animal;
   handleInputValues: (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
   animals: Animal[];
   externalBulls: ExternalBull[];
-  animal: Animal | null;
+  // animal: Animal | null;
 }
 
 export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
-  allDataForm,
+  animal,
   handleInputValues,
   animals,
   externalBulls,
@@ -35,7 +35,7 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
             name="handlingType"
             id="handlingType"
             className="w-44 border border-b border-b-primary bg-transparent outline-none"
-            value={allDataForm.handlingType ?? ''}
+            value={animal.handlingType ?? ''}
             onChange={handleInputValues}
           >
             <option value=""></option>
@@ -56,9 +56,9 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
           <select
             name="bullId"
             id="bullId"
-            className={`min-w-24 flex-1 border border-b border-b-primary bg-transparent outline-none ${allDataForm.handlingType == 'bullMating' && 'bg-gray-300'}`}
-            disabled={allDataForm.handlingType === 'artificialInsemination'}
-            value={allDataForm.bullId ?? ''}
+            className={`min-w-24 flex-1 border border-b border-b-primary bg-transparent outline-none ${animal.handlingType == 'bullMating' && 'bg-gray-300'}`}
+            disabled={animal.handlingType === 'artificialInsemination'}
+            value={animal.bullId ?? ''}
             onChange={handleInputValues}
           >
             <option disabled value=""></option>
@@ -88,10 +88,10 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
           <select
             name="protocol"
             id="protocol"
-            className={`flex[1_1_100px] w-full min-w-20 rounded-t-md border border-b border-b-primary outline-none ${allDataForm.handlingType == 'bullMating' ? 'rounded-t-md bg-gray-300' : 'bg-transparent'}`}
-            value={allDataForm.protocol ?? ''}
+            className={`flex[1_1_100px] w-full min-w-20 rounded-t-md border border-b border-b-primary outline-none ${animal.handlingType == 'bullMating' ? 'rounded-t-md bg-gray-300' : 'bg-transparent'}`}
+            value={animal.protocol ?? ''}
             onChange={handleInputValues}
-            disabled={allDataForm.handlingType === 'naturalMating'}
+            disabled={animal.handlingType === 'naturalMating'}
           >
             <option disabled value="">
               Protocolo
@@ -112,7 +112,7 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
               name="fetalGender"
               id="female"
               value="female"
-              checked={allDataForm.fetalGender === 'female'}
+              checked={animal.fetalGender === 'female'}
               onChange={handleInputValues}
               className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
             />
@@ -125,7 +125,7 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
               name="fetalGender"
               id="male"
               value="male"
-              checked={allDataForm.fetalGender === 'male'}
+              checked={animal.fetalGender === 'male'}
               onChange={handleInputValues}
               className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
             />
@@ -144,10 +144,8 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
             name="expectedDueDate"
             id="expectedDueDate"
             value={
-              allDataForm.expectedDueDate
-                ? new Date(allDataForm.expectedDueDate)
-                    .toISOString()
-                    .split('T')[0]
+              animal.expectedDueDate
+                ? new Date(animal.expectedDueDate).toISOString().split('T')[0]
                 : ''
             }
             onChange={handleInputValues}
@@ -162,9 +160,9 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
           <select
             name="bullIatfId"
             id="bullIatfId"
-            className={`min-w-24 max-w-40 flex-1 border border-b border-b-primary outline-none ${allDataForm.handlingType == 'bullMating' ? 'rounded-t-md bg-gray-400' : 'bg-transparent'}`}
-            disabled={allDataForm.handlingType === 'naturalMating'}
-            value={allDataForm.bullIatfId ?? ''}
+            className={`min-w-24 max-w-40 flex-1 border border-b border-b-primary outline-none ${animal.handlingType == 'bullMating' ? 'rounded-t-md bg-gray-400' : 'bg-transparent'}`}
+            disabled={animal.handlingType === 'naturalMating'}
+            value={animal.bullIatfId ?? ''}
             onChange={handleInputValues}
           >
             <option disabled value=""></option>

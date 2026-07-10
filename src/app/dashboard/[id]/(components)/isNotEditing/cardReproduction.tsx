@@ -2,49 +2,54 @@ import React from 'react';
 import { Animal } from '@/types/animal';
 
 interface ReproductionProps {
-  allDataForm: Animal | null;
+  animal: Animal | null;
 }
 
-export const CardReproduction: React.FC<ReproductionProps> = ({ allDataForm }) => {
+export const CardReproduction: React.FC<ReproductionProps> = ({ animal }) => {
   const bullMatingLabel =
-    allDataForm?.bull?.manualId ?? allDataForm?.externalBull?.name ?? 'Comercial';
+    animal?.bull?.manualId ?? animal?.externalBull?.name ?? 'Comercial';
   const bullIatfLabel =
-    allDataForm?.bullIatfRel?.manualId ?? allDataForm?.externalBullIatfRel?.name ?? 'Comercial';
+    animal?.bullIatfRel?.manualId ??
+    animal?.externalBullIatfRel?.name ??
+    'Comercial';
 
   const fieldClass = 'rounded-xl bg-muted/20 px-3 py-2';
-  const fieldLabel = 'text-[10px] font-bold uppercase tracking-widest text-muted-foreground';
+  const fieldLabel =
+    'text-[10px] font-bold uppercase tracking-widest text-muted-foreground';
   const fieldValue = 'mt-0.5 text-sm font-semibold';
 
   return (
     <div className="rounded-2xl border bg-white p-5 shadow-sm">
       <h2 className="mb-4 font-bold">Dados Reprodutivos</h2>
 
-      {allDataForm?.gender === 'male' && (
+      {animal?.gender === 'male' && (
         <div className={fieldClass}>
           <p className={fieldLabel}>Exame andrológico</p>
           <p className={fieldValue}>
-            {allDataForm?.andrological === 'positive'
+            {animal?.andrological === 'positive'
               ? 'Positivo'
-              : allDataForm?.andrological === 'negative'
+              : animal?.andrological === 'negative'
                 ? 'Negativo'
                 : 'Não realizado'}
           </p>
         </div>
       )}
 
-      {allDataForm?.gender === 'female' && (
+      {animal?.gender === 'female' && (
         <div className="space-y-3">
-          {allDataForm?.reproductiveStatus === 'empty' && (
+          {animal?.reproductiveStatus === 'empty' && (
             <>
               <div className={fieldClass}>
                 <p className={fieldLabel}>Status reprodutivo</p>
                 <p className={fieldValue}>Vazia</p>
               </div>
-              <p className="text-xs text-muted-foreground">Animal vazio, pronto para reprodução.</p>
+              <p className="text-xs text-muted-foreground">
+                Animal vazio, pronto para reprodução.
+              </p>
             </>
           )}
 
-          {allDataForm?.reproductiveStatus === 'pregnant' && (
+          {animal?.reproductiveStatus === 'pregnant' && (
             <>
               <div className={fieldClass}>
                 <p className={fieldLabel}>Status reprodutivo</p>
@@ -53,26 +58,26 @@ export const CardReproduction: React.FC<ReproductionProps> = ({ allDataForm }) =
               <div className={fieldClass}>
                 <p className={fieldLabel}>Tipo de manejo</p>
                 <p className={fieldValue}>
-                  {allDataForm?.handlingType === 'bullMating'
+                  {animal?.handlingType === 'bullMating'
                     ? 'Monta natural'
-                    : allDataForm?.handlingType === 'artificialInsemination'
+                    : animal?.handlingType === 'artificialInsemination'
                       ? 'Inseminação artificial'
                       : 'Todos os manejos'}
                 </p>
               </div>
-              {allDataForm?.handlingType === 'bullMating' && (
+              {animal?.handlingType === 'bullMating' && (
                 <div className={fieldClass}>
                   <p className={fieldLabel}>Touro (monta)</p>
                   <p className={fieldValue}>{bullMatingLabel}</p>
                 </div>
               )}
-              {allDataForm?.handlingType === 'artificialInsemination' && (
+              {animal?.handlingType === 'artificialInsemination' && (
                 <div className={fieldClass}>
                   <p className={fieldLabel}>Touro IATF</p>
                   <p className={fieldValue}>{bullIatfLabel}</p>
                 </div>
               )}
-              {allDataForm?.handlingType === null && (
+              {animal?.handlingType === null && (
                 <>
                   <div className={fieldClass}>
                     <p className={fieldLabel}>Touro (monta)</p>
@@ -84,36 +89,38 @@ export const CardReproduction: React.FC<ReproductionProps> = ({ allDataForm }) =
                   </div>
                 </>
               )}
-              {allDataForm?.fetalGender !== undefined && (
+              {animal?.fetalGender !== undefined && (
                 <div className={fieldClass}>
                   <p className={fieldLabel}>Sexo fetal</p>
                   <p className={fieldValue}>
-                    {allDataForm?.fetalGender === null
+                    {animal?.fetalGender === null
                       ? 'N/A'
-                      : allDataForm?.fetalGender === 'male'
+                      : animal?.fetalGender === 'male'
                         ? 'Macho'
                         : 'Fêmea'}
                   </p>
                 </div>
               )}
-              {allDataForm?.expectedDueDate && (
+              {animal?.expectedDueDate && (
                 <div className={fieldClass}>
                   <p className={fieldLabel}>Previsão de parto</p>
                   <p className={fieldValue}>
-                    {new Date(allDataForm.expectedDueDate).toLocaleDateString('pt-BR')}
+                    {new Date(animal.expectedDueDate).toLocaleDateString(
+                      'pt-BR'
+                    )}
                   </p>
                 </div>
               )}
-              {allDataForm?.bodyConditionScore && (
+              {animal?.bodyConditionScore && (
                 <div className={fieldClass}>
                   <p className={fieldLabel}>ECC</p>
-                  <p className={fieldValue}>{allDataForm.bodyConditionScore}</p>
+                  <p className={fieldValue}>{animal.bodyConditionScore}</p>
                 </div>
               )}
             </>
           )}
 
-          {allDataForm?.reproductiveStatus === 'waiting' && (
+          {animal?.reproductiveStatus === 'waiting' && (
             <>
               <div className={fieldClass}>
                 <p className={fieldLabel}>Status reprodutivo</p>
@@ -122,34 +129,34 @@ export const CardReproduction: React.FC<ReproductionProps> = ({ allDataForm }) =
               <div className={fieldClass}>
                 <p className={fieldLabel}>Manejo utilizado</p>
                 <p className={fieldValue}>
-                  {allDataForm.handlingType === 'naturalMating'
+                  {animal.handlingType === 'naturalMating'
                     ? 'Monta natural'
-                    : allDataForm.handlingType === 'artificialInsemination'
+                    : animal.handlingType === 'artificialInsemination'
                       ? 'Inseminação artificial'
                       : 'Todos os métodos'}
                 </p>
               </div>
-              {allDataForm.handlingType === 'naturalMating' && (
+              {animal.handlingType === 'naturalMating' && (
                 <div className={fieldClass}>
                   <p className={fieldLabel}>Touro (monta)</p>
                   <p className={fieldValue}>{bullMatingLabel}</p>
                 </div>
               )}
-              {allDataForm.handlingType === 'artificialInsemination' && (
+              {animal.handlingType === 'artificialInsemination' && (
                 <div className={fieldClass}>
                   <p className={fieldLabel}>Touro IATF</p>
                   <p className={fieldValue}>{bullIatfLabel}</p>
                 </div>
               )}
-              {allDataForm?.protocol && (
+              {animal?.protocol && (
                 <div className={fieldClass}>
                   <p className={fieldLabel}>Protocolo</p>
                   <p className={fieldValue}>
-                    {allDataForm.protocol === '3 handlings'
+                    {animal.protocol === '3 handlings'
                       ? '3 manejos'
-                      : allDataForm.protocol === '4 handlings'
+                      : animal.protocol === '4 handlings'
                         ? '4 manejos'
-                        : allDataForm.protocol === 'mixed'
+                        : animal.protocol === 'mixed'
                           ? 'Misto'
                           : 'N/A'}
                   </p>
@@ -158,15 +165,17 @@ export const CardReproduction: React.FC<ReproductionProps> = ({ allDataForm }) =
             </>
           )}
 
-          {allDataForm?.reproductiveStatus === 'pev' && (
+          {animal?.reproductiveStatus === 'pev' && (
             <div className={fieldClass}>
               <p className={fieldLabel}>Status reprodutivo</p>
               <p className={fieldValue}>PEV</p>
             </div>
           )}
 
-          {!allDataForm?.reproductiveStatus && (
-            <p className="text-sm text-muted-foreground">Status reprodutivo não informado.</p>
+          {!animal?.reproductiveStatus && (
+            <p className="text-sm text-muted-foreground">
+              Status reprodutivo não informado.
+            </p>
           )}
         </div>
       )}

@@ -37,7 +37,7 @@ import {
   weightRecordTypeLabel,
 } from '@/lib/weightHistory';
 import {
-  buildExternalBullValue,
+  // buildExternalBullValue,
   extractExternalBullId,
   isExternalBullValue,
 } from '@/lib/externalBull';
@@ -51,6 +51,8 @@ import {
 } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Deworming, Disease } from '@/types/sanitary';
+
+import { useAppGlobal } from '@/context/appContext';
 
 interface CalfLossDraft {
   confirmed: boolean | null;
@@ -139,23 +141,24 @@ function getStatusNode(status?: string | null) {
 }
 
 const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
-  animal,
+  animal: initialAnimal,
   animals,
   externalBulls,
   vaccines,
 }) => {
   const [arrobaPriceLoaded, setArrobaPriceLoaded] = useState(false);
-  const [allDataForm, setAllDataForm] = useState<Animal>({
-    ...animal,
-    bullId: animal.externalBullId
-      ? buildExternalBullValue(animal.externalBullId)
-      : animal.bullId,
-    bullIatfId: animal.externalBullIatfId
-      ? buildExternalBullValue(animal.externalBullIatfId)
-      : animal.bullIatfId,
-    weightRecordType: 'OTHER',
-    weightRecordDate: new Date().toISOString().split('T')[0],
-  });
+  const { animal: appAnimal, setAnimal } = useAppGlobal();
+  const animal = appAnimal ?? initialAnimal;
+  //   {...animal,
+  //   bullId: animal.externalBullId
+  //     ? buildExternalBullValue(animal.externalBullId)
+  //     : animal.bullId,
+  //   bullIatfId: animal.externalBullIatfId
+  //     ? buildExternalBullValue(animal.externalBullIatfId)
+  //     : animal.bullIatfId,
+  //   weightRecordType: 'OTHER',
+  //   weightRecordDate: new Date().toISOString().split('T')[0],
+  // }
   const [isEditing, setIsEditing] = useState(false);
   const [openSanitaryModal, setOpenSanitaryModal] = useState(false);
   const [openGenealogyModal, setOpenGenealogyModal] = useState(false);
@@ -218,7 +221,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     if (!saved) return;
     try {
       const parsed = JSON.parse(saved) as Animal;
-      setAllDataForm((prev) => ({ ...prev, ...parsed }));
+      setAnimal(parsed);
       setIsEditing(true);
       localStorage.removeItem(key);
       toast.info(
@@ -254,10 +257,10 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     animal.reproductiveStatus ?? ''
   ).toLowerCase();
   const currentReproductiveStatus = String(
-    allDataForm.reproductiveStatus ?? ''
+    animal.reproductiveStatus ?? ''
   ).toLowerCase();
-  const dueDate = allDataForm.expectedDueDate
-    ? new Date(allDataForm.expectedDueDate)
+  const dueDate = animal.expectedDueDate
+    ? new Date(animal.expectedDueDate)
     : null;
   const isPevEarlyBeforeDueDate =
     currentReproductiveStatus === 'pev' &&
@@ -274,14 +277,14 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   );
 
   // Offspring stats
-  const femaleOffspring = allDataForm?.offspringFromMother ?? [];
+  const femaleOffspring = animal?.offspringFromMother ?? [];
 
   // For males: union of all sire relationships
   const maleOffspring = (() => {
     const all = [
-      ...(allDataForm?.offspringFromFather ?? []),
-      ...(allDataForm?.offspringFromBull ?? []),
-      ...(allDataForm?.offspringFromBullIatf ?? []),
+      ...(animal?.offspringFromFather ?? []),
+      ...(animal?.offspringFromBull ?? []),
+      ...(animal?.offspringFromBullIatf ?? []),
     ];
     const seen = new Set<string>();
     return all.filter((o) => {
@@ -292,7 +295,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   })();
 
   const offspring = (
-    allDataForm.gender === 'male' ? maleOffspring : femaleOffspring
+    animal.gender === 'male' ? maleOffspring : femaleOffspring
   ).sort(
     (a, b) =>
       new Date(b.birthDate as unknown as string).getTime() -
@@ -300,9 +303,9 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   );
 
   const totalBirths = offspring.length;
-  const totalLosses = allDataForm?.calfLossHistories?.length ?? 0;
+  const totalLosses = animal?.calfLossHistories?.length ?? 0;
   const totalPregnancies =
-    allDataForm.gender === 'female'
+    animal.gender === 'female'
       ? totalBirths +
         totalLosses +
         (currentReproductiveStatus === 'pregnant' ? 1 : 0)
@@ -361,7 +364,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
       : null;
 
   // Estimated value calculation
-  const weightKg = Number(allDataForm.weight) || 0;
+  const weightKg = Number(animal.weight) || 0;
   const arrobas = weightKg / 15;
   const carcassFactor =
     Math.min(Math.max(Number(carcassPercent) || 100, 1), 100) / 100;
@@ -402,7 +405,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
 
   // Weight history
   const getWeightHistoriesWithDates = () => {
-    return (allDataForm.weightHistories ?? [])
+    return (animal.weightHistories ?? [])
       .map((history) => ({
         ...history,
         measuredAt: new Date(history.measuredAt),
@@ -522,16 +525,16 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
 
   // Auto-categorize when birthDate or gender changes (mirrors cardFormMain logic)
   useEffect(() => {
-    if (!allDataForm.birthDate) return;
-    const birth = new Date(allDataForm.birthDate);
+    if (!animal.birthDate) return;
+    const birth = new Date(animal.birthDate);
     const today = new Date();
     const ageInMonths =
       (today.getFullYear() - birth.getFullYear()) * 12 +
       (today.getMonth() - birth.getMonth()) +
       (today.getDate() < birth.getDate() ? -1 : 0);
 
-    const gender = allDataForm.gender;
-    const currentCategory = allDataForm.category;
+    const gender = animal.gender;
+    const currentCategory = animal.category;
     const isCurrentlyReproductive =
       currentCategory === 'bull' || currentCategory === 'old bull';
 
@@ -559,10 +562,10 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     }
 
     if (currentCategory !== newCategory) {
-      setAllDataForm((prev) => ({ ...prev, category: newCategory }));
+      setAnimal({ ...animal, category: newCategory });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allDataForm.birthDate, allDataForm.gender]);
+  }, [animal.birthDate, animal.gender]);
 
   useEffect(() => {
     if (!arrobaPriceLoaded) {
@@ -587,9 +590,9 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
       if (!res.ok) throw new Error(data.error ?? 'Erro');
       toast.dismiss(tid);
       toast.success('Pesagem atualizada.');
-      setAllDataForm((prev) => ({
-        ...prev,
-        weightHistories: (prev.weightHistories ?? []).map((h) =>
+      setAnimal({
+        ...animal,
+        weightHistories: (animal.weightHistories ?? []).map((h) =>
           h.id === id
             ? {
                 ...h,
@@ -600,7 +603,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
               }
             : h
         ),
-      }));
+      });
       setEditingWeightId(null);
     } catch (e) {
       toast.dismiss(tid);
@@ -618,12 +621,12 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
       if (!res.ok) throw new Error((await res.json()).error ?? 'Erro');
       toast.dismiss(tid);
       toast.success('Pesagem excluída.');
-      setAllDataForm((prev) => ({
-        ...prev,
-        weightHistories: (prev.weightHistories ?? []).filter(
+      setAnimal({
+        ...animal,
+        weightHistories: (animal.weightHistories ?? []).filter(
           (h) => h.id !== id
         ),
-      }));
+      });
     } catch (e) {
       toast.dismiss(tid);
       toast.error(e instanceof Error ? e.message : 'Erro ao excluir.');
@@ -685,8 +688,8 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   };
 
   const calcLifetime = () => {
-    if (!allDataForm.birthDate) return 'N/A';
-    const birth = new Date(allDataForm.birthDate);
+    if (!animal.birthDate) return 'N/A';
+    const birth = new Date(animal.birthDate);
     const now = new Date();
     const totalMonths =
       (now.getFullYear() - birth.getFullYear()) * 12 +
@@ -711,15 +714,15 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
         : type === 'number' || type === 'range'
           ? parseInt(value)
           : value;
-    setAllDataForm((prev) => ({ ...prev, [name]: newValue }));
+    setAnimal({ ...animal, [name]: newValue });
   };
 
   useEffect(() => {
-    if (allDataForm.gender === 'female') {
-      setAllDataForm((prev) => ({ ...prev, andrological: null }));
-      if (allDataForm.reproductiveStatus === 'empty') {
-        setAllDataForm((prev) => ({
-          ...prev,
+    if (animal.gender === 'female') {
+      setAnimal({ ...animal, andrological: null });
+      if (animal.reproductiveStatus === 'empty') {
+        setAnimal({
+          ...animal,
           handlingType: null,
           bullId: null,
           externalBullId: null,
@@ -728,20 +731,20 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
           fetalGender: null,
           bullIatfId: null,
           externalBullIatfId: null,
-        }));
+        });
         return;
       }
-      if (allDataForm.reproductiveStatus === 'waiting') {
-        setAllDataForm((prev) => ({
-          ...prev,
+      if (animal.reproductiveStatus === 'waiting') {
+        setAnimal({
+          ...animal,
           expectedDueDate: null,
           fetalGender: null,
-        }));
+        });
         return;
       }
-      if (allDataForm.reproductiveStatus === 'pev') {
-        setAllDataForm((prev) => ({
-          ...prev,
+      if (animal.reproductiveStatus === 'pev') {
+        setAnimal({
+          ...animal,
           handlingType: null,
           bullId: null,
           externalBullId: null,
@@ -750,12 +753,12 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
           fetalGender: null,
           bullIatfId: null,
           externalBullIatfId: null,
-        }));
+        });
       }
     }
-    if (allDataForm.gender === 'male') {
-      setAllDataForm((prev) => ({
-        ...prev,
+    if (animal.gender === 'male') {
+      setAnimal({
+        ...animal,
         reproductiveStatus: null,
         handlingType: null,
         bullId: null,
@@ -765,27 +768,27 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
         fetalGender: null,
         bullIatfId: null,
         externalBullIatfId: null,
-      }));
+      });
     }
-  }, [allDataForm.gender, allDataForm.reproductiveStatus]);
+  }, [animal.gender, animal.reproductiveStatus]);
 
   useEffect(() => {
-    if (allDataForm.handlingType === 'naturalMating') {
-      setAllDataForm((prev) => ({
-        ...prev,
+    if (animal.handlingType === 'naturalMating') {
+      setAnimal({
+        ...animal,
         protocol: null,
         bullIatfId: null,
         externalBullIatfId: null,
-      }));
+      });
     }
-    if (allDataForm.handlingType === 'artificialInsemination') {
-      setAllDataForm((prev) => ({
-        ...prev,
+    if (animal.handlingType === 'artificialInsemination') {
+      setAnimal({
+        ...animal,
         bullId: null,
         externalBullId: null,
-      }));
+      });
     }
-  }, [allDataForm.handlingType]);
+  }, [animal.handlingType]);
 
   const handleSanitaryInput = (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -922,16 +925,16 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
         formData.fatherId === 'Comercial' ? null : formData.fatherId;
       const savedMotherId =
         formData.motherId === 'Comercial' ? null : formData.motherId;
-      setAllDataForm((prev) => ({
-        ...prev,
+      setAnimal({
+        ...animal,
         ...formData,
         father: savedFatherId
-          ? (animals.find((a) => a.id === savedFatherId) ?? prev.father)
+          ? (animals.find((a) => a.id === savedFatherId) ?? animal.father)
           : undefined,
         mother: savedMotherId
-          ? (animals.find((a) => a.id === savedMotherId) ?? prev.mother)
+          ? (animals.find((a) => a.id === savedMotherId) ?? animal.mother)
           : undefined,
-      }));
+      });
       toast.success('Animal atualizado com sucesso!');
       router.refresh();
       setIsEditing(false);
@@ -952,7 +955,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
         '/api/addSanitary',
         {
           type: sanitaryForm.type,
-          animalId: allDataForm.id,
+          animalId: animal.id,
           name: sanitaryForm.name.trim(),
           description: sanitaryForm.description.trim() || null,
           date: sanitaryForm.date,
@@ -987,7 +990,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     if (!window.confirm('Tem certeza que deseja excluir este animal?')) return;
     const loadingId = toast.loading('Excluindo animal...');
     try {
-      await axios.put(`/api/delete?id=${allDataForm.id}`, allDataForm, {
+      await axios.put(`/api/delete?id=${animal.id}`, animal, {
         headers: { 'Content-Type': 'application/json' },
       });
       toast.dismiss(loadingId);
@@ -1002,8 +1005,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   const sanitaryFieldClass =
     'w-full border border-b border-b-primary bg-transparent outline-none';
   const animalTitle =
-    allDataForm.manualId.charAt(0).toUpperCase() +
-    allDataForm.manualId.slice(1);
+    animal.manualId.charAt(0).toUpperCase() + animal.manualId.slice(1);
 
   return (
     <div className="pb-14">
@@ -1052,7 +1054,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                 >
                   Cancelar
                 </Button>
-                <Button size="sm" onClick={() => submitForm(allDataForm)}>
+                <Button size="sm" onClick={() => submitForm(animal)}>
                   Salvar alterações
                 </Button>
               </>
@@ -1073,7 +1075,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
                   Dados básicos
                 </p>
-                {getStatusNode(allDataForm.status)}
+                {getStatusNode(animal.status)}
               </div>
 
               <div className="grid grid-cols-3 gap-x-6 gap-y-4 text-sm">
@@ -1090,7 +1092,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                     Sexo
                   </p>
                   <p className="mt-0.5 font-semibold">
-                    {allDataForm.gender === 'male' ? 'Macho ♂' : 'Fêmea ♀'}
+                    {animal.gender === 'male' ? 'Macho ♂' : 'Fêmea ♀'}
                   </p>
                 </div>
                 <div>
@@ -1098,10 +1100,8 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                     Nascimento
                   </p>
                   <p className="mt-0.5 font-semibold">
-                    {allDataForm.birthDate
-                      ? new Date(allDataForm.birthDate).toLocaleDateString(
-                          'pt-BR'
-                        )
+                    {animal.birthDate
+                      ? new Date(animal.birthDate).toLocaleDateString('pt-BR')
                       : 'N/A'}
                   </p>
                 </div>
@@ -1110,7 +1110,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                     Peso atual
                   </p>
                   <p className="mt-0.5 text-xl font-black text-primary">
-                    {allDataForm.weight}{' '}
+                    {animal.weight}{' '}
                     <span className="text-sm font-semibold">kg</span>
                   </p>
                 </div>
@@ -1119,7 +1119,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                     Raça
                   </p>
                   <p className="mt-0.5 font-semibold">
-                    {allDataForm.breed ?? 'N/A'}
+                    {animal.breed ?? 'N/A'}
                   </p>
                 </div>
                 <div>
@@ -1127,7 +1127,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                     Categoria
                   </p>
                   <p className="mt-0.5 font-semibold">
-                    {categoryLabel(allDataForm.category, allDataForm.gender)}
+                    {categoryLabel(animal.category, animal.gender)}
                   </p>
                 </div>
               </div>
@@ -1143,9 +1143,9 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                       ID Mãe
                     </p>
                     <p className="font-bold">
-                      {allDataForm.mother?.manualId
-                        ? allDataForm.mother.manualId.charAt(0).toUpperCase() +
-                          allDataForm.mother.manualId.slice(1)
+                      {animal.mother?.manualId
+                        ? animal.mother.manualId.charAt(0).toUpperCase() +
+                          animal.mother.manualId.slice(1)
                         : 'Comercial'}
                     </p>
                   </div>
@@ -1159,9 +1159,9 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                       ID Pai
                     </p>
                     <p className="font-bold">
-                      {allDataForm.father?.manualId
-                        ? allDataForm.father.manualId.charAt(0).toUpperCase() +
-                          allDataForm.father.manualId.slice(1)
+                      {animal.father?.manualId
+                        ? animal.father.manualId.charAt(0).toUpperCase() +
+                          animal.father.manualId.slice(1)
                         : 'Comercial'}
                     </p>
                   </div>
@@ -1169,23 +1169,23 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
               </div>
 
               {/* Observations */}
-              {allDataForm.observations && (
+              {animal.observations && (
                 <blockquote className="mt-4 rounded-xl border-l-4 border-primary/30 bg-muted/20 px-4 py-3 text-sm italic text-muted-foreground">
-                  &ldquo;{allDataForm.observations}&rdquo;
+                  &ldquo;{animal.observations}&rdquo;
                 </blockquote>
               )}
             </div>
 
             {/* CardReproduction — desktop ≥750px only */}
             <div className="hidden min-[750px]:flex min-[750px]:flex-1 min-[750px]:flex-col">
-              <CardReproduction allDataForm={allDataForm as Animal} />
+              <CardReproduction animal={animal} />
             </div>
           </div>
 
           {/* Row 2 mobile: CardReproduction | VALOR ESTIMADO — equal height */}
           <div className="flex items-stretch gap-4 min-[750px]:hidden">
             <div className="min-w-0 flex-1">
-              <CardReproduction allDataForm={allDataForm as Animal} />
+              <CardReproduction animal={animal} />
             </div>
             <div className="min-w-0 flex-1 rounded-2xl border bg-white p-5 shadow-sm">
               <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
@@ -1433,7 +1433,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
           {/* Eficiência reprodutiva — full width */}
           <div className="rounded-2xl border bg-white p-5 shadow-sm">
             <h2 className="mb-4 font-bold">Eficiência reprodutiva</h2>
-            {allDataForm.gender === 'male' ? (
+            {animal.gender === 'male' ? (
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {[
                   {
@@ -1512,13 +1512,13 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
           </div>
 
           {/* Histórico Reprodutivo — full width, females only */}
-          {allDataForm.gender === 'female' && (
+          {animal.gender === 'female' && (
             <ReproductiveHistorySection
               offspringFromMother={femaleOffspring}
               calfLossHistories={calfLossHistories}
               animals={animals}
               externalBulls={externalBulls}
-              animalId={allDataForm.id}
+              animalId={animal.id}
               onLossAdded={handleLossAdded}
               onLossDeleted={handleLossDeleted}
               onLossUpdated={handleLossUpdated}
@@ -1529,9 +1529,9 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
           <div className="flex flex-wrap gap-4">
             <div className="min-w-[250px] flex-1 rounded-2xl border bg-white p-5 shadow-sm">
               <h2 className="mb-3 font-bold">Histórico de peso</h2>
-              {allDataForm.weightHistories?.length ? (
+              {animal.weightHistories?.length ? (
                 <div className="space-y-2">
-                  {allDataForm.weightHistories.map((h: AnimalWeightHistory) => {
+                  {animal.weightHistories.map((h: AnimalWeightHistory) => {
                     const isEditingThis = editingWeightId === h.id;
                     return (
                       <div
@@ -1665,7 +1665,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
               )}
             </div>
 
-            {allDataForm.isForFattening && (
+            {animal.isForFattening && (
               <div className="min-w-[250px] flex-1 rounded-2xl border bg-white p-5 shadow-sm">
                 <h2 className="mb-3 font-bold">GMD — Ganho de massa diária</h2>
                 {formattedAverageGmd !== null ? (
@@ -1888,9 +1888,8 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
           <div className="space-y-4 lg:col-span-2">
             <div>
               <FormBasicInformation
-                allDataForm={allDataForm}
+                animal={animal}
                 handleInputValues={handleInputValues}
-                animal={animal as Animal}
                 animals={animals}
                 breedArray={breedArray}
                 scores={scores}
@@ -1902,11 +1901,10 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                 Dados reprodutivos
               </p>
               <section className="flex w-full max-w-sm flex-col gap-4">
-                {allDataForm.gender === 'male' ? (
+                {animal.gender === 'male' ? (
                   <FormMaleReproductive
-                    allDataForm={allDataForm}
+                    animal={animal}
                     handleInputValues={handleInputValues}
-                    animal={animal as Animal}
                   />
                 ) : (
                   <>
@@ -1921,7 +1919,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                         name="reproductiveStatus"
                         id="reproductiveStatus"
                         className="w-full rounded-lg border border-input bg-white px-3 py-2 text-sm outline-none transition focus:border-primary"
-                        value={allDataForm.reproductiveStatus ?? ''}
+                        value={animal.reproductiveStatus ?? ''}
                         onChange={handleInputValues}
                       >
                         <option disabled value=""></option>
@@ -1932,27 +1930,25 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                       </select>
                     </article>
 
-                    {allDataForm.reproductiveStatus === 'pregnant' && (
+                    {animal.reproductiveStatus === 'pregnant' && (
                       <FormPregnantStatus
-                        allDataForm={allDataForm}
+                        animal={animal}
                         handleInputValues={handleInputValues}
-                        animal={animal as Animal}
                         animals={animals}
                         externalBulls={externalBulls}
                       />
                     )}
-                    {allDataForm.reproductiveStatus === 'waiting' && (
+                    {animal.reproductiveStatus === 'waiting' && (
                       <FormWaitingStatus
-                        allDataForm={allDataForm}
+                        animal={animal}
                         handleInputValues={handleInputValues}
-                        animal={animal as Animal}
                         animals={animals}
                         externalBulls={externalBulls}
                       />
                     )}
-                    {allDataForm.reproductiveStatus === 'pev' && (
+                    {animal.reproductiveStatus === 'pev' && (
                       <FormPevStatus
-                        allDataForm={allDataForm}
+                        animal={animal}
                         handleInputValues={handleInputValues}
                         animals={animals}
                         pevDays={pevDays}
@@ -2133,7 +2129,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                 <input
                   type="checkbox"
                   name="isForFattening"
-                  checked={!!allDataForm.isForFattening}
+                  checked={!!animal.isForFattening}
                   onChange={handleInputValues}
                   className="size-4 rounded border-input accent-primary"
                 />

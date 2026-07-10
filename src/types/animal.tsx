@@ -53,6 +53,7 @@ export interface Animal {
   bullIatfId: string | null;
   externalBullId: string | null;
   externalBullIatfId: string | null;
+  externalBullFatherId: string | null;
   bodyConditionScore: number | null;
   observations: string | null;
   ownerId: string;
@@ -69,6 +70,7 @@ export interface Animal {
   bullIatfRel?: Animal;
   externalBull?: ExternalBull;
   externalBullIatfRel?: ExternalBull;
+  externalBullFather?: ExternalBull;
   offspringFromBullIatf?: Animal[];
   father?: Animal;
   offspringFromFather?: Animal[];

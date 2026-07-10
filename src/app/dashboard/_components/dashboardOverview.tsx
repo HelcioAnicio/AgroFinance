@@ -40,9 +40,10 @@ import {
 import { AddAnimal } from '../(addAnimal)/addAnimals';
 import { AddAnimalDesktop } from '../(addAnimal)/addAnimalsDesktop';
 
+import { useAppGlobal } from '@/context/appContext';
+
 const isFemale = (gender: string) =>
   gender === 'female' || gender === 'femea' || gender === 'fêmea';
-
 
 const getStatusNode = (status?: string) => {
   if (status === 'active' || status === 'ativo')
@@ -83,25 +84,29 @@ const getStatusNode = (status?: string) => {
   );
 };
 
-const getStatusBarColor = (status: string) => {
-  const colors: Record<string, string> = {
-    active: 'bg-green-500',
-    inactive: 'bg-gray-500',
-    dead: 'bg-black',
-    sold: 'bg-yellow-600',
-    lost: 'bg-amber-500',
-    trash: 'bg-red-500',
-    empty: 'bg-slate-500',
-    pregnant: 'bg-fuchsia-500',
-    waiting: 'bg-indigo-500',
-    pev: 'bg-cyan-500',
-  };
-  return colors[status] ?? 'bg-primary';
-};
+// const getStatusBarColor = (status: string) => {
+//   const colors: Record<string, string> = {
+//     active: 'bg-green-500',
+//     inactive: 'bg-gray-500',
+//     dead: 'bg-black',
+//     sold: 'bg-yellow-600',
+//     lost: 'bg-amber-500',
+//     trash: 'bg-red-500',
+//     empty: 'bg-slate-500',
+//     pregnant: 'bg-fuchsia-500',
+//     waiting: 'bg-indigo-500',
+//     pev: 'bg-cyan-500',
+//   };
+//   return colors[status] ?? 'bg-primary';
+// };
 
 export function DashboardOverview() {
   const [dataLoading, setDataLoading] = useState(true);
-  const [animals, setAnimals] = useState<Animal[]>([]);
+  // const [animals, setAnimals] = useState<Animal[]>([]);
+  const { animals, setAnimals } = useAppGlobal();
+  const { animal, setAnimal } = useAppGlobal();
+  console.log('animal: ', animal);
+  // const { animal, setAnimal } = useAppGlobal();
   const [users, setUsers] = useState<User[]>([]);
   const [externalBulls, setExternalBulls] = useState<ExternalBull[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -145,6 +150,7 @@ export function DashboardOverview() {
   const activeAnimals = animals.filter(
     (a) => a.status === 'active' && a.category !== 'neonate'
   );
+
   const pregnantCows = animals.filter(
     (a) =>
       (a.category === 'cow' || a.category === 'old cow') &&
@@ -212,11 +218,15 @@ export function DashboardOverview() {
   const handleNavigation = (id: string | null) => {
     if (!id) return;
     setIsLoading(true);
+    const selectedAnimal = animals.find((a) => a.id === id);
+    if (selectedAnimal) {
+      setAnimal(selectedAnimal);
+    }
     router.push(`/dashboard/${id}`);
   };
 
   const handleAnimalAdded = (newAnimal: Animal) => {
-    setAnimals((prev) => [newAnimal, ...prev]);
+    setAnimals([newAnimal, ...animals]);
   };
 
   const handleInputFileValue = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -309,7 +319,10 @@ export function DashboardOverview() {
         </div>
         <div className="mb-8 grid grid-cols-2 gap-4 min-[740px]:flex min-[740px]:flex-wrap">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-28 min-w-[160px] flex-1 rounded-xl" />
+            <Skeleton
+              key={i}
+              className="h-28 min-w-[160px] flex-1 rounded-xl"
+            />
           ))}
         </div>
         <div className="grid gap-6 xl:grid-cols-12">
@@ -544,6 +557,7 @@ export function DashboardOverview() {
                   <tr
                     key={animal.id}
                     className="cursor-pointer transition-colors hover:bg-muted/50"
+                    // prefetch={animal.id ? `/dashboard/${animal.id}` : undefined}
                     onClick={() => handleNavigation(animal.id)}
                   >
                     <td className="px-5 py-3">

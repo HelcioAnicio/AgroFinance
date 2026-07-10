@@ -2,22 +2,24 @@ import { Animal } from '@/types/animal';
 import { weightRecordOptions } from '@/lib/weightHistory';
 
 interface FormBasicInformationProps {
-  allDataForm: Animal;
+  animal: Animal;
   handleInputValues: (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
   breedArray: string[];
-  animal: Animal | null;
   animals: Animal[];
   scores: number[];
 }
 
-const labelClass = 'block text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1';
-const inputClass = 'w-full rounded-lg border border-input bg-white px-3 py-2 text-sm outline-none transition focus:border-primary';
-const selectClass = 'w-full rounded-lg border border-input bg-white px-3 py-2 text-sm outline-none transition focus:border-primary';
+const labelClass =
+  'block text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1';
+const inputClass =
+  'w-full rounded-lg border border-input bg-white px-3 py-2 text-sm outline-none transition focus:border-primary';
+const selectClass =
+  'w-full rounded-lg border border-input bg-white px-3 py-2 text-sm outline-none transition focus:border-primary';
 
 export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
-  allDataForm,
+  animal,
   handleInputValues,
   breedArray,
   animals,
@@ -25,26 +27,32 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
 }) => {
   return (
     <div className="w-full rounded-2xl border bg-white p-5 shadow-sm">
-      <p className="mb-5 text-sm font-bold text-foreground">Informações principais</p>
+      <p className="mb-5 text-sm font-bold text-foreground">
+        Informações principais
+      </p>
       <section className="flex flex-col gap-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className={labelClass} htmlFor="manualId">Id do animal</label>
+            <label className={labelClass} htmlFor="manualId">
+              Id do animal
+            </label>
             <input
               type="text"
               name="manualId"
               id="manualId"
-              value={allDataForm.manualId ?? ''}
+              value={animal.manualId ?? ''}
               onChange={handleInputValues}
               className={inputClass}
             />
           </div>
           <div>
-            <label className={labelClass} htmlFor="status">Status</label>
+            <label className={labelClass} htmlFor="status">
+              Status
+            </label>
             <select
               name="status"
               id="status"
-              value={allDataForm.status ?? ''}
+              value={animal.status ?? ''}
               onChange={handleInputValues}
               className={selectClass}
             >
@@ -56,16 +64,20 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
               <option value="trash">Descarte</option>
             </select>
           </div>
-          {allDataForm.status && allDataForm.status !== 'active' && (
+          {animal.status && animal.status !== 'active' && (
             <div>
-              <label className={labelClass} htmlFor="statusChangeDate">Data alteração status</label>
+              <label className={labelClass} htmlFor="statusChangeDate">
+                Data alteração status
+              </label>
               <input
                 type="date"
                 name="statusChangeDate"
                 id="statusChangeDate"
                 value={
-                  allDataForm.statusChangeDate
-                    ? new Date(allDataForm.statusChangeDate).toISOString().split('T')[0]
+                  animal.statusChangeDate
+                    ? new Date(animal.statusChangeDate)
+                        .toISOString()
+                        .split('T')[0]
                     : ''
                 }
                 onChange={handleInputValues}
@@ -77,14 +89,16 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className={labelClass} htmlFor="birthDate">Nascimento</label>
+            <label className={labelClass} htmlFor="birthDate">
+              Nascimento
+            </label>
             <input
               type="date"
               name="birthDate"
               id="birthDate"
               value={
-                allDataForm.birthDate
-                  ? new Date(allDataForm.birthDate).toISOString().split('T')[0]
+                animal.birthDate
+                  ? new Date(animal.birthDate).toISOString().split('T')[0]
                   : ''
               }
               onChange={handleInputValues}
@@ -93,57 +107,71 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
           </div>
 
           <div>
-            <label className={labelClass} htmlFor="weight">Peso atual (kg)</label>
+            <label className={labelClass} htmlFor="weight">
+              Peso atual (kg)
+            </label>
             <input
               type="number"
               name="weight"
               id="weight"
-              value={allDataForm.weight ?? ''}
+              value={animal.weight ?? ''}
               onChange={handleInputValues}
               className={inputClass}
             />
           </div>
 
           <div>
-            <label className={labelClass} htmlFor="bodyConditionScore">ECC (Escore de Condição Corporal)</label>
+            <label className={labelClass} htmlFor="bodyConditionScore">
+              ECC (Escore de Condição Corporal)
+            </label>
             <select
               name="bodyConditionScore"
               id="bodyConditionScore"
-              value={allDataForm.bodyConditionScore ?? ''}
+              value={animal.bodyConditionScore ?? ''}
               onChange={handleInputValues}
               className={selectClass}
             >
               <option value="">Escolha o ECC</option>
               {scores.map((score, index) => (
-                <option key={index} value={score}>ECC - {score}</option>
+                <option key={index} value={score}>
+                  ECC - {score}
+                </option>
               ))}
             </select>
           </div>
 
           <div>
-            <label className={labelClass} htmlFor="weightRecordType">Tipo pesagem</label>
+            <label className={labelClass} htmlFor="weightRecordType">
+              Tipo pesagem
+            </label>
             <select
               name="weightRecordType"
               id="weightRecordType"
-              value={allDataForm.weightRecordType ?? 'OTHER'}
+              value={animal.weightRecordType ?? 'OTHER'}
               onChange={handleInputValues}
               className={selectClass}
             >
               {weightRecordOptions.map((option) => (
-                <option key={option.value} value={option.value}>{option.label}</option>
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
               ))}
             </select>
           </div>
 
           <div>
-            <label className={labelClass} htmlFor="weightRecordDate">Data da pesagem</label>
+            <label className={labelClass} htmlFor="weightRecordDate">
+              Data da pesagem
+            </label>
             <input
               type="date"
               name="weightRecordDate"
               id="weightRecordDate"
               value={
-                allDataForm.weightRecordDate
-                  ? new Date(allDataForm.weightRecordDate).toISOString().split('T')[0]
+                animal.weightRecordDate
+                  ? new Date(animal.weightRecordDate)
+                      .toISOString()
+                      .split('T')[0]
                   : new Date().toISOString().split('T')[0]
               }
               onChange={handleInputValues}
@@ -152,27 +180,33 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
           </div>
 
           <div>
-            <label className={labelClass} htmlFor="breed">Raça</label>
+            <label className={labelClass} htmlFor="breed">
+              Raça
+            </label>
             <select
               name="breed"
               id="breed"
-              value={allDataForm.breed ?? ''}
+              value={animal.breed ?? ''}
               onChange={handleInputValues}
               className={selectClass}
             >
               <option value="" disabled></option>
               {breedArray.map((breed: string, id) => (
-                <option value={breed} key={id}>{breed}</option>
+                <option value={breed} key={id}>
+                  {breed}
+                </option>
               ))}
             </select>
           </div>
 
           <div>
-            <label className={labelClass} htmlFor="category">Categoria</label>
+            <label className={labelClass} htmlFor="category">
+              Categoria
+            </label>
             <select
               name="category"
               id="category"
-              value={allDataForm.category ?? ''}
+              value={animal.category ?? ''}
               onChange={handleInputValues}
               className={selectClass}
             >
@@ -180,15 +214,15 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
               <option value="neonate">Neonato (0–3 meses)</option>
               <option value="calf">Bezerro (4–12 meses)</option>
               <option value="steer">
-                {allDataForm.gender === 'male' ? 'Garrote' : 'Novilha'}
+                {animal.gender === 'male' ? 'Garrote' : 'Novilha'}
               </option>
-              <option value={allDataForm.gender === 'male' ? 'ox' : 'cow'}>
-                {allDataForm.gender === 'male' ? 'Boi' : 'Vaca'}
+              <option value={animal.gender === 'male' ? 'ox' : 'cow'}>
+                {animal.gender === 'male' ? 'Boi' : 'Vaca'}
               </option>
-              <option value={allDataForm.gender === 'male' ? 'old ox' : 'old cow'}>
-                {allDataForm.gender === 'male' ? 'Boi velho' : 'Vaca Velha'}
+              <option value={animal.gender === 'male' ? 'old ox' : 'old cow'}>
+                {animal.gender === 'male' ? 'Boi velho' : 'Vaca Velha'}
               </option>
-              {allDataForm.gender === 'male' && (
+              {animal.gender === 'male' && (
                 <>
                   <option value="bull">Touro</option>
                   <option value="old bull">Touro velho</option>
@@ -198,11 +232,13 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
           </div>
 
           <div>
-            <label className={labelClass} htmlFor="motherId">Mãe</label>
+            <label className={labelClass} htmlFor="motherId">
+              Mãe
+            </label>
             <select
               name="motherId"
               id="motherId"
-              value={allDataForm.motherId ?? 'Comercial'}
+              value={animal.motherId ?? 'Comercial'}
               onChange={handleInputValues}
               className={selectClass}
             >
@@ -225,11 +261,13 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
           </div>
 
           <div>
-            <label className={labelClass} htmlFor="fatherId">Pai</label>
+            <label className={labelClass} htmlFor="fatherId">
+              Pai
+            </label>
             <select
               name="fatherId"
               id="fatherId"
-              value={allDataForm.fatherId ?? 'Comercial'}
+              value={animal.fatherId ?? 'Comercial'}
               onChange={handleInputValues}
               className={selectClass}
             >
@@ -240,7 +278,8 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
                   (animal) =>
                     animal.gender === 'male' &&
                     animal.status === 'active' &&
-                    (animal.category === 'bull' || animal.category === 'old bull')
+                    (animal.category === 'bull' ||
+                      animal.category === 'old bull')
                 )
                 .map((animal) => (
                   <option key={animal.id} value={animal.id}>
