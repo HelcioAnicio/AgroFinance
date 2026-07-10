@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { sendPushToUser } from '@/lib/webPush';
 
-// Called by Vercel Cron every 2 hours
+// Called by Vercel Cron once per day at 6am (Hobby plan limit: 1x/day)
 // Authorization: Bearer CRON_SECRET
 export async function POST(req: Request) {
   const authHeader = req.headers.get('authorization');
@@ -14,7 +14,7 @@ export async function POST(req: Request) {
   }
 
   const now = new Date();
-  const window = new Date(now.getTime() + 2 * 60 * 60 * 1000); // next 2h
+  const window = new Date(now.getTime() + 24 * 60 * 60 * 1000); // next 24h
 
   const notifications = await prisma.notification.findMany({
     where: {

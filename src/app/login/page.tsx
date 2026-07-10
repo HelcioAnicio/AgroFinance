@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { fetchUsers } from '@/lib/fetchData';
 import { FormLogin } from './(formLogin)/form';
 import NoFarmContext from './noFarmContext';
@@ -27,7 +28,9 @@ const LoginPage = async () => {
 
   return (
     <div className="min-h-screen w-full">
-      <FormLogin fetchedUsers={fetchedUsers} />
+      <Suspense>
+        <FormLogin fetchedUsers={fetchedUsers} />
+      </Suspense>
     </div>
   );
 };

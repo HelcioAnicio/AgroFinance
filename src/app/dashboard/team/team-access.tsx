@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { Copy, Send, RefreshCw, Pencil, Trash2, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-type Role = 'OWNER' | 'MANAGER' | 'EMPLOYEE' | 'CAREGIVER_VETERINARIAN' | 'FINANCIAL';
+type Role = 'OWNER' | 'MANAGER' | 'EMPLOYEE' | 'CAREGIVER_VETERINARIAN' | 'FINANCIAL' | 'VIEWER';
 
 type Member = {
   id: string;
@@ -77,10 +77,17 @@ function getEntityLabel(log: AuditLog): string | null {
   return null;
 }
 
+type SeatInfo = {
+  planTier: string | null;
+  seatLimit: number | null;
+  billableCount: number;
+};
+
 type TeamData = {
   members: Member[];
   invites: Invite[];
   auditLogs: AuditLog[];
+  seatInfo: SeatInfo;
 };
 
 const roleLabels: Record<Role, string> = {
@@ -89,6 +96,7 @@ const roleLabels: Record<Role, string> = {
   EMPLOYEE: 'Funcionário',
   CAREGIVER_VETERINARIAN: 'Cuidador/Veterinário',
   FINANCIAL: 'Financeiro',
+  VIEWER: 'Visualizador (gratuito)',
 };
 
 const statusLabels: Record<string, { label: string; color: string }> = {
@@ -221,6 +229,45 @@ export default function TeamAccess() {
         <h1 className="text-2xl font-bold">Acessos da fazenda</h1>
       </section>
 
+      {/* Seat usage bar */}
+      {data?.seatInfo && (
+        <section className="rounded-md border bg-white p-4 shadow-sm">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex-1">
+              <div className="mb-1.5 flex items-center justify-between text-xs font-semibold">
+                <span className="text-muted-foreground">
+                  Assentos ocupados
+                  {data.seatInfo.planTier ? ` — Plano ${data.seatInfo.planTier}` : ''}
+                </span>
+                <span className={data.seatInfo.seatLimit !== null && data.seatInfo.billableCount >= data.seatInfo.seatLimit ? 'text-red-600' : 'text-foreground'}>
+                  {data.seatInfo.billableCount}
+                  {data.seatInfo.seatLimit !== null ? ` / ${data.seatInfo.seatLimit}` : ' (ilimitado)'}
+                </span>
+              </div>
+              {data.seatInfo.seatLimit !== null && (
+                <div className="h-2 w-full overflow-hidden rounded-full bg-[#e9eddf]">
+                  <div
+                    className={`h-full rounded-full transition-all ${
+                      data.seatInfo.billableCount >= data.seatInfo.seatLimit
+                        ? 'bg-red-500'
+                        : data.seatInfo.billableCount / data.seatInfo.seatLimit >= 0.8
+                          ? 'bg-amber-500'
+                          : 'bg-[#49651f]'
+                    }`}
+                    style={{ width: `${Math.min(100, (data.seatInfo.billableCount / data.seatInfo.seatLimit) * 100)}%` }}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+          {data.seatInfo.seatLimit !== null && data.seatInfo.billableCount >= data.seatInfo.seatLimit && (
+            <p className="mt-2 text-xs text-red-600">
+              Limite atingido. Faça upgrade do plano para adicionar mais membros. Visualizadores podem ser adicionados sem custo.
+            </p>
+          )}
+        </section>
+      )}
+
       {/* Invite form */}
       <section className="rounded-md border bg-white p-4 shadow-sm">
         <h2 className="mb-3 font-bold">Convidar novo membro</h2>
@@ -251,6 +298,15 @@ export default function TeamAccess() {
           <strong>Novo usuário</strong> → link de cadastro.{' '}
           <strong>Usuário existente</strong> → link de aceite.
         </p>
+        <div className="mt-3 rounded-md border bg-[#f7f6f1] p-3 text-xs text-muted-foreground">
+          <p className="mb-1 font-semibold text-foreground">Permissões por função:</p>
+          <ul className="flex flex-col gap-0.5">
+            <li><strong>Gerente</strong> — tudo exceto configurações da fazenda</li>
+            <li><strong>Funcionário / Cuidador</strong> — cadastrar e editar animais (sem excluir)</li>
+            <li><strong>Financeiro</strong> — lançamentos financeiros</li>
+            <li><strong className="text-green-700">Visualizador</strong> — somente leitura, <strong className="text-green-700">não é cobrado</strong> na assinatura</li>
+          </ul>
+        </div>
       </section>
 
       <section className="grid gap-4 lg:grid-cols-2">

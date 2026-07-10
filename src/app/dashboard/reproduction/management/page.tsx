@@ -295,7 +295,7 @@ const ReproductionManagementPage = () => {
   return (
     <div className="space-y-5">
       {/* Stage tabs */}
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         {STAGES.map((stage) => {
           const active = currentStage === stage;
           const count = managements.filter((m) => m.stage === stage).length;

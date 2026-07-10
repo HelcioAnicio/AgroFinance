@@ -3,6 +3,7 @@ import { AppSidebar } from '@/components/ui/app-sidebar';
 import { Suspense } from 'react';
 import { DashboardHeaderSkeleton } from './_components/dashboardHeaderSkeleton';
 import { DashboardHeaderSection } from './_components/dashboardHeaderSection';
+import { SessionGuard } from './_components/sessionGuard';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { redirect } from 'next/navigation';
@@ -30,6 +31,9 @@ export default async function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Detecta evicção de sessão e faz sign-out automático */}
+      <SessionGuard />
+
       {/* Fixed full-width header */}
       <Suspense fallback={<DashboardHeaderSkeleton />}>
         <DashboardHeaderSection />

@@ -31,7 +31,7 @@ export const Header: React.FC<HeaderProps> = ({ notifications }) => {
           height={36}
           className="size-9"
         />
-        <span className="text-sm font-bold text-foreground">AgroFinance</span>
+        <span className="hidden text-sm font-bold text-foreground min-[500px]:inline">AgroFinance</span>
       </Link>
 
       {/* Right-side actions — always visible, shifts right on desktop */}

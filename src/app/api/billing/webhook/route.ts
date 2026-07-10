@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { scheduleSubscriptionNotifications } from '@/lib/notifications';
+import { fetchSubscriptionItemId } from '@/lib/stripeSeats';
 
 export const runtime = 'nodejs';
 
@@ -118,6 +119,8 @@ export async function POST(request: Request) {
         typeof metadata?.planInterval === 'string'
           ? metadata.planInterval
           : null;
+      const planId =
+        typeof metadata?.planId === 'string' ? metadata.planId : null;
       const isAnnualPayment = planInterval === 'year' && !subscriptionId;
 
       if ((!customerId || !subscriptionId) && typeof object.id === 'string') {
@@ -147,16 +150,33 @@ export async function POST(request: Request) {
           | 'INCOMPLETE';
         stripeCustomerId?: string | null;
         stripeSubscriptionId?: string | null;
+        stripeSubscriptionItemId?: string | null;
+        stripePlanTier?: string | null;
         trialEndsAt?: Date;
       } = {
         subscriptionStatus: isAnnualPayment ? 'ACTIVE' : 'TRIALING',
         trialEndsAt: accessUntil,
       };
 
-      if (customerId) updateData.stripeCustomerId = customerId;
-      if (subscriptionId) updateData.stripeSubscriptionId = subscriptionId;
+      // Salva o tier do plano para verificação de limite de assentos
+      if (planId) {
+        const { getBillingPlan } = await import('@/lib/billing');
+        const plan = getBillingPlan(planId);
+        if (plan) updateData.stripePlanTier = plan.tier;
+      }
 
-      const updatedFarm = await prisma.farm.update({
+      if (customerId) updateData.stripeCustomerId = customerId;
+      if (subscriptionId) {
+        updateData.stripeSubscriptionId = subscriptionId;
+        // Para assinaturas mensais, guarda o item ID para futuras atualizações de assentos
+        if (!isAnnualPayment) {
+          const itemId = await fetchSubscriptionItemId(subscriptionId);
+          if (itemId) updateData.stripeSubscriptionItemId = itemId;
+        }
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const updatedFarm = await (prisma.farm.update as any)({
         where: { id: farmId },
         data: updateData,
       });

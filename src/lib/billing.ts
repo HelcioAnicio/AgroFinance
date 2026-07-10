@@ -1,3 +1,10 @@
+/** Limite de assentos por tier. null = ilimitado */
+export const SEAT_LIMITS: Record<string, number | null> = {
+  Essencial: 5,
+  Performance: 15,
+  Empresarial: null,
+};
+
 export const BILLING_PLANS = [
   {
     id: 'essential_monthly',
@@ -6,12 +13,14 @@ export const BILLING_PLANS = [
     interval: 'month',
     label: 'Mensal',
     amountInCents: 14900,
+    maxSeats: 5,
     support: 'Email',
     description: 'Para o pequeno produtor que quer sair do papel.',
     recommended: false,
     includesPrevious: false,
     inheritedFeatureCount: 0,
     features: [
+      'Ate 5 membros na fazenda',
       'Cadastro e rastreabilidade limitada',
       'Importacao via CSV com 35 campos',
       'Genealogia completa',
@@ -26,12 +35,14 @@ export const BILLING_PLANS = [
     interval: 'month',
     label: 'Mensal',
     amountInCents: 38900,
+    maxSeats: 15,
     support: 'WhatsApp',
     description: 'Para operacoes que buscam ROI com reproducao e GMD.',
     recommended: true,
     includesPrevious: true,
-    inheritedFeatureCount: 4,
+    inheritedFeatureCount: 5,
     features: [
+      'Ate 15 membros na fazenda',
       'Cadastro e rastreabilidade ilimitada',
       'Importacao via CSV com 35 campos',
       'Genealogia completa',
@@ -50,12 +61,14 @@ export const BILLING_PLANS = [
     interval: 'month',
     label: 'Mensal',
     amountInCents: 89900,
+    maxSeats: null,
     support: 'Consultivo 24/7',
     description: 'Para gestao agroindustrial com controle contabil completo.',
     recommended: false,
     includesPrevious: true,
-    inheritedFeatureCount: 9,
+    inheritedFeatureCount: 10,
     features: [
+      'Membros ilimitados',
       'Cadastro e rastreabilidade ilimitada',
       'Importacao via CSV com 35 campos',
       'Genealogia completa',
@@ -79,12 +92,14 @@ export const BILLING_PLANS = [
     interval: 'year',
     label: 'Anual',
     amountInCents: 178800,
+    maxSeats: 5,
     support: 'Email',
     description: 'Para o pequeno produtor que quer sair do papel.',
     recommended: false,
     includesPrevious: false,
     inheritedFeatureCount: 0,
     features: [
+      'Ate 5 membros na fazenda',
       'Cadastro e rastreabilidade limitada',
       'Importacao via CSV com 35 campos',
       'Genealogia completa',
@@ -99,12 +114,14 @@ export const BILLING_PLANS = [
     interval: 'year',
     label: 'Anual',
     amountInCents: 466800,
+    maxSeats: 15,
     support: 'WhatsApp',
     description: 'Para operacoes que buscam ROI com reproducao e GMD.',
     recommended: true,
     includesPrevious: true,
-    inheritedFeatureCount: 4,
+    inheritedFeatureCount: 5,
     features: [
+      'Ate 15 membros na fazenda',
       'Cadastro e rastreabilidade ilimitada',
       'Importacao via CSV com 35 campos',
       'Genealogia completa',
@@ -123,12 +140,14 @@ export const BILLING_PLANS = [
     interval: 'year',
     label: 'Anual',
     amountInCents: 1078800,
+    maxSeats: null,
     support: 'Consultivo 24/7',
     description: 'Para gestao agroindustrial com controle contabil completo.',
     recommended: false,
     includesPrevious: true,
-    inheritedFeatureCount: 9,
+    inheritedFeatureCount: 10,
     features: [
+      'Membros ilimitados',
       'Cadastro e rastreabilidade ilimitada',
       'Importacao via CSV com 35 campos',
       'Genealogia completa',
@@ -151,4 +170,12 @@ export type BillingPlanId = (typeof BILLING_PLANS)[number]['id'];
 
 export function getBillingPlan(planId: string) {
   return BILLING_PLANS.find((plan) => plan.id === planId);
+}
+
+/**
+ * Retorna o limite de assentos do tier de um plano.
+ * null = ilimitado (Empresarial).
+ */
+export function getSeatLimitForTier(tier: string): number | null {
+  return SEAT_LIMITS[tier] ?? null;
 }
