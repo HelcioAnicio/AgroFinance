@@ -80,6 +80,7 @@ model Farm {
   auditLogs            AuditLog[]
   activeForUsers       User[]             @relation("UserActiveFarm")
   farmSessions         FarmSession[]
+  insumos              Insumo[]
 
   @@index([ownerUserId])
 }
@@ -477,18 +478,18 @@ enum InsumoMovimentoTipo {
 }
 
 model Insumo {
-  id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id           String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   farmId       String
   nome         String
   categoria    InsumoCategoria
-  unidade      String         // "kg", "L", "dose", "un"
-  quantidade   Decimal        @db.Decimal(10, 3) @default(0)
-  estoqueMin   Decimal?       @db.Decimal(10, 3)
-  custoPorUnid Decimal        @db.Decimal(14, 2) @default(0)
+  unidade      String // "kg", "L", "dose", "un"
+  quantidade   Decimal           @default(0) @db.Decimal(10, 3)
+  estoqueMin   Decimal?          @db.Decimal(10, 3)
+  custoPorUnid Decimal           @default(0) @db.Decimal(14, 2)
   observacoes  String?
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  farm         Farm           @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  farm         Farm              @relation(fields: [farmId], references: [id], onDelete: Cascade)
   movimentos   InsumoMovimento[]
 
   @@index([farmId])
