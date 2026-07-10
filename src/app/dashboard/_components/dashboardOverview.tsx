@@ -105,7 +105,7 @@ export function DashboardOverview() {
   // const [animals, setAnimals] = useState<Animal[]>([]);
   const { animals, setAnimals } = useAppGlobal();
   const { animal, setAnimal } = useAppGlobal();
-  console.log('animal: ', animal);
+  const atoa = animal;
   // const { animal, setAnimal } = useAppGlobal();
   const [users, setUsers] = useState<User[]>([]);
   const [externalBulls, setExternalBulls] = useState<ExternalBull[]>([]);

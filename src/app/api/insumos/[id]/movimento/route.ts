@@ -2,21 +2,32 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { requireFarmContext } from '@/lib/tenant';
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
   const { context, status } = await requireFarmContext('manage_animals');
-  if (!context) return NextResponse.json({ error: 'Unauthorized' }, { status: status ?? 401 });
+  if (!context)
+    return NextResponse.json(
+      { error: 'Unauthorized' },
+      { status: status ?? 401 }
+    );
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const insumo = await (prisma as any).insumo.findFirst({
     where: { id: params.id, farmId: context.farm.id },
   });
-  if (!insumo) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  if (!insumo)
+    return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   const body = await req.json();
   const { tipo, quantidade, notas, data } = body;
 
   if (!tipo || !quantidade || !data) {
-    return NextResponse.json({ error: 'Campos obrigatórios ausentes' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'Campos obrigatórios ausentes' },
+      { status: 400 }
+    );
   }
 
   const qty = Number(quantidade);
@@ -30,6 +41,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   // AJUSTE: set absolute — handled differently
   const isAjuste = tipo === 'AJUSTE';
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const resultado = await (prisma as any).$transaction(async (tx: any) => {
     await tx.insumoMovimento.create({
       data: {
