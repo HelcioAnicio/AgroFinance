@@ -44,7 +44,6 @@ enum FarmRole {
   EMPLOYEE
   CAREGIVER_VETERINARIAN
   FINANCIAL
-  VIEWER
 }
 
 enum FarmInviteStatus {
@@ -398,21 +397,6 @@ model PushSubscription {
   auth      String
   createdAt DateTime @default(now()) @db.Timestamp(6)
   User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model FarmSession {
-  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  jti        String   @unique
-  userId     String
-  farmId     String
-  role       String
-  lastSeenAt DateTime @default(now()) @db.Timestamp(6)
-  createdAt  DateTime @default(now()) @db.Timestamp(6)
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  farm       Farm     @relation(fields: [farmId], references: [id], onDelete: Cascade)
-
-  @@index([farmId, lastSeenAt])
-  @@index([userId])
 }
 
 model FarmSession {
