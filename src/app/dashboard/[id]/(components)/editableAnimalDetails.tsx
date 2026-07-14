@@ -72,8 +72,6 @@ interface CalfLossDraft {
 }
 
 interface EditableAnimalDetailsProps {
-  animal: Animal;
-  animals: Animal[];
   externalBulls: ExternalBull[];
   vaccines: Vaccine[];
   vaccine: Vaccine;
@@ -150,21 +148,20 @@ function getStatusNode(status?: string | null) {
 }
 
 const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
-  animal: initialAnimal,
-  animals,
   externalBulls,
   vaccines,
 }) => {
   const [arrobaPriceLoaded, setArrobaPriceLoaded] = useState(false);
-  const { animal: appAnimal, setAnimal } = useAppGlobal();
-  const animal = appAnimal ?? initialAnimal;
+  const { animal, setAnimal } = useAppGlobal();
+  const { animals } = useAppGlobal();
+
   //   {...animal,
-  //   bullId: animal.externalBullId
-  //     ? buildExternalBullValue(animal.externalBullId)
-  //     : animal.bullId,
-  //   bullIatfId: animal.externalBullIatfId
-  //     ? buildExternalBullValue(animal.externalBullIatfId)
-  //     : animal.bullIatfId,
+  //   bullId: animal?.externalBullId
+  //     ? buildExternalBullValue(animal?.externalBullId)
+  //     : animal?.bullId,
+  //   bullIatfId: animal?.externalBullIatfId
+  //     ? buildExternalBullValue(animal?.externalBullIatfId)
+  //     : animal?.bullIatfId,
   //   weightRecordType: 'OTHER',
   //   weightRecordDate: new Date().toISOString().split('T')[0],
   // }
@@ -205,10 +202,10 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   });
   const [listVaccines, setListVaccines] = useState<Vaccine[]>(vaccines);
   const [listDewormings, setListDewormings] = useState<Deworming[]>(
-    animal.dewormings ?? []
+    animal?.dewormings ?? []
   );
   const [listDiseases, setListDiseases] = useState<Disease[]>(
-    animal.diseases ?? []
+    animal?.diseases ?? []
   );
   const [calfLossDraft, setCalfLossDraft] = useState<CalfLossDraft>({
     confirmed: null,
@@ -219,13 +216,13 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   });
   const [calfLossHistories, setCalfLossHistories] = useState<
     AnimalCalfLossHistory[]
-  >(animal.calfLossHistories ?? []);
+  >(animal?.calfLossHistories ?? []);
   const [pevDays, setPevDays] = useState(30);
 
   // Restore form from localStorage if a pending save was interrupted by a stale-data reload
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const key = `agrofinance_pending_form_${animal.id}`;
+    const key = `agrofinance_pending_form_${animal?.id}`;
     const saved = localStorage.getItem(key);
     if (!saved) return;
     try {
@@ -240,7 +237,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
       localStorage.removeItem(key);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [animal.id]);
+  }, [animal?.id]);
 
   const handleLossAdded = (loss: AnimalCalfLossHistory) =>
     setCalfLossHistories((prev) =>
@@ -263,13 +260,13 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   const router = useRouter();
 
   const previousReproductiveStatus = String(
-    animal.reproductiveStatus ?? ''
+    animal?.reproductiveStatus ?? ''
   ).toLowerCase();
   const currentReproductiveStatus = String(
-    animal.reproductiveStatus ?? ''
+    animal?.reproductiveStatus ?? ''
   ).toLowerCase();
-  const dueDate = animal.expectedDueDate
-    ? new Date(animal.expectedDueDate)
+  const dueDate = animal?.expectedDueDate
+    ? new Date(animal?.expectedDueDate)
     : null;
   const isPevEarlyBeforeDueDate =
     currentReproductiveStatus === 'pev' &&
@@ -304,7 +301,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   })();
 
   const offspring = (
-    animal.gender === 'male' ? maleOffspring : femaleOffspring
+    animal?.gender === 'male' ? maleOffspring : femaleOffspring
   ).sort(
     (a, b) =>
       new Date(b.birthDate as unknown as string).getTime() -
@@ -314,7 +311,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   const totalBirths = offspring.length;
   const totalLosses = animal?.calfLossHistories?.length ?? 0;
   const totalPregnancies =
-    animal.gender === 'female'
+    animal?.gender === 'female'
       ? totalBirths +
         totalLosses +
         (currentReproductiveStatus === 'pregnant' ? 1 : 0)
@@ -373,7 +370,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
       : null;
 
   // Estimated value calculation
-  const weightKg = Number(animal.weight) || 0;
+  const weightKg = Number(animal?.weight) || 0;
   const arrobas = weightKg / 15;
   const carcassFactor =
     Math.min(Math.max(Number(carcassPercent) || 100, 1), 100) / 100;
@@ -414,7 +411,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
 
   // Weight history
   const getWeightHistoriesWithDates = () => {
-    return (animal.weightHistories ?? [])
+    return (animal?.weightHistories ?? [])
       .map((history) => ({
         ...history,
         measuredAt: new Date(history.measuredAt),
@@ -534,16 +531,16 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
 
   // Auto-categorize when birthDate or gender changes (mirrors cardFormMain logic)
   useEffect(() => {
-    if (!animal.birthDate) return;
-    const birth = new Date(animal.birthDate);
+    if (!animal?.birthDate) return;
+    const birth = new Date(animal?.birthDate);
     const today = new Date();
     const ageInMonths =
       (today.getFullYear() - birth.getFullYear()) * 12 +
       (today.getMonth() - birth.getMonth()) +
       (today.getDate() < birth.getDate() ? -1 : 0);
 
-    const gender = animal.gender;
-    const currentCategory = animal.category;
+    const gender = animal?.gender;
+    const currentCategory = animal?.category;
     const isCurrentlyReproductive =
       currentCategory === 'bull' || currentCategory === 'old bull';
 
@@ -574,7 +571,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
       setAnimal({ ...animal, category: newCategory });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [animal.birthDate, animal.gender]);
+  }, [animal?.birthDate, animal?.gender]);
 
   useEffect(() => {
     if (!arrobaPriceLoaded) {
@@ -588,6 +585,8 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   }, []);
 
   const saveWeightHistory = async (id: string) => {
+    const currentAnimal = animal;
+    if (!currentAnimal) return;
     const tid = toast.loading('Salvando pesagem...');
     try {
       const res = await fetch(`/api/weight-history?id=${id}`, {
@@ -600,8 +599,8 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
       toast.dismiss(tid);
       toast.success('Pesagem atualizada.');
       setAnimal({
-        ...animal,
-        weightHistories: (animal.weightHistories ?? []).map((h) =>
+        ...currentAnimal,
+        weightHistories: (currentAnimal.weightHistories ?? []).map((h) =>
           h.id === id
             ? {
                 ...h,
@@ -621,6 +620,8 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   };
 
   const deleteWeightHistory = async (id: string) => {
+    const currentAnimal = animal;
+    if (!currentAnimal) return;
     if (!window.confirm('Excluir esta pesagem?')) return;
     const tid = toast.loading('Excluindo pesagem...');
     try {
@@ -631,8 +632,8 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
       toast.dismiss(tid);
       toast.success('Pesagem excluída.');
       setAnimal({
-        ...animal,
-        weightHistories: (animal.weightHistories ?? []).filter(
+        ...currentAnimal,
+        weightHistories: (currentAnimal.weightHistories ?? []).filter(
           (h) => h.id !== id
         ),
       });
@@ -697,8 +698,8 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   };
 
   const calcLifetime = () => {
-    if (!animal.birthDate) return 'N/A';
-    const birth = new Date(animal.birthDate);
+    if (!animal?.birthDate) return 'N/A';
+    const birth = new Date(animal?.birthDate);
     const now = new Date();
     const totalMonths =
       (now.getFullYear() - birth.getFullYear()) * 12 +
@@ -716,6 +717,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   const handleInputValues = (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
+    if (!animal) return;
     const { name, value, type } = event.target;
     const newValue =
       type === 'checkbox'
@@ -723,13 +725,13 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
         : type === 'number' || type === 'range'
           ? parseInt(value)
           : value;
-    setAnimal({ ...animal, [name]: newValue });
+    setAnimal({ ...animal, [name]: newValue } as Animal);
   };
 
   useEffect(() => {
-    if (animal.gender === 'female') {
+    if (animal?.gender === 'female') {
       setAnimal({ ...animal, andrological: null });
-      if (animal.reproductiveStatus === 'empty') {
+      if (animal?.reproductiveStatus === 'empty') {
         setAnimal({
           ...animal,
           handlingType: null,
@@ -743,7 +745,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
         });
         return;
       }
-      if (animal.reproductiveStatus === 'waiting') {
+      if (animal?.reproductiveStatus === 'waiting') {
         setAnimal({
           ...animal,
           expectedDueDate: null,
@@ -751,7 +753,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
         });
         return;
       }
-      if (animal.reproductiveStatus === 'pev') {
+      if (animal?.reproductiveStatus === 'pev') {
         setAnimal({
           ...animal,
           handlingType: null,
@@ -765,7 +767,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
         });
       }
     }
-    if (animal.gender === 'male') {
+    if (animal?.gender === 'male') {
       setAnimal({
         ...animal,
         reproductiveStatus: null,
@@ -779,10 +781,10 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
         externalBullIatfId: null,
       });
     }
-  }, [animal.gender, animal.reproductiveStatus]);
+  }, [animal?.gender, animal?.reproductiveStatus]);
 
   useEffect(() => {
-    if (animal.handlingType === 'naturalMating') {
+    if (animal?.handlingType === 'naturalMating') {
       setAnimal({
         ...animal,
         protocol: null,
@@ -790,14 +792,14 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
         externalBullIatfId: null,
       });
     }
-    if (animal.handlingType === 'artificialInsemination') {
+    if (animal?.handlingType === 'artificialInsemination') {
       setAnimal({
         ...animal,
         bullId: null,
         externalBullId: null,
       });
     }
-  }, [animal.handlingType]);
+  }, [animal?.handlingType]);
 
   const handleSanitaryInput = (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -906,7 +908,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
         if (checkRes.ok) {
           const { updatedAt: serverUpdatedAt } = await checkRes.json();
           const serverTs = new Date(serverUpdatedAt).getTime();
-          const localTs = new Date(animal.updatedAt).getTime();
+          const localTs = new Date(animal!.updatedAt).getTime();
           if (serverTs > localTs) {
             const pendingKey = `agrofinance_pending_form_${dataToSubmit.id}`;
             localStorage.setItem(pendingKey, JSON.stringify(dataToSubmit));
@@ -938,10 +940,10 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
         ...animal,
         ...formData,
         father: savedFatherId
-          ? (animals.find((a) => a.id === savedFatherId) ?? animal.father)
+          ? (animals.find((a) => a.id === savedFatherId) ?? animal?.father)
           : undefined,
         mother: savedMotherId
-          ? (animals.find((a) => a.id === savedMotherId) ?? animal.mother)
+          ? (animals.find((a) => a.id === savedMotherId) ?? animal?.mother)
           : undefined,
       });
       toast.success('Animal atualizado com sucesso!');
@@ -949,7 +951,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
       setIsEditing(false);
     } catch {
       toast.dismiss(loadingId);
-      toast.error('Ocorreu um erro ao atualizar o animal.');
+      toast.error('Ocorreu um erro ao atualizar o animal?.');
     }
   };
 
@@ -964,7 +966,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
         '/api/addSanitary',
         {
           type: sanitaryForm.type,
-          animalId: animal.id,
+          animalId: animal?.id,
           name: sanitaryForm.name.trim(),
           description: sanitaryForm.description.trim() || null,
           date: sanitaryForm.date,
@@ -997,9 +999,9 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
 
   const handleDelete = async () => {
     if (!window.confirm('Tem certeza que deseja excluir este animal?')) return;
-    const loadingId = toast.loading('Excluindo animal...');
+    const loadingId = toast.loading('Excluindo animal?...');
     try {
-      await axios.put(`/api/delete?id=${animal.id}`, animal, {
+      await axios.put(`/api/delete?id=${animal?.id}`, animal, {
         headers: { 'Content-Type': 'application/json' },
       });
       toast.dismiss(loadingId);
@@ -1007,14 +1009,14 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
       router.push('/dashboard');
     } catch {
       toast.dismiss(loadingId);
-      toast.error('Erro ao excluir o animal.');
+      toast.error('Erro ao excluir o animal?.');
     }
   };
 
   const sanitaryFieldClass =
     'w-full border border-b border-b-primary bg-transparent outline-none';
   const animalTitle =
-    animal.manualId.charAt(0).toUpperCase() + animal.manualId.slice(1);
+    animal!.manualId.charAt(0).toUpperCase() + animal!.manualId.slice(1);
 
   return (
     <div className="pb-14">
@@ -1063,7 +1065,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                 >
                   Cancelar
                 </Button>
-                <Button size="sm" onClick={() => submitForm(animal)}>
+                <Button size="sm" onClick={() => submitForm(animal!)}>
                   Salvar alterações
                 </Button>
               </>
@@ -1084,7 +1086,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
                   Dados básicos
                 </p>
-                {getStatusNode(animal.status)}
+                {getStatusNode(animal?.status)}
               </div>
 
               <div className="grid grid-cols-3 gap-x-6 gap-y-4 text-sm">
@@ -1101,7 +1103,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                     Sexo
                   </p>
                   <p className="mt-0.5 font-semibold">
-                    {animal.gender === 'male' ? 'Macho ♂' : 'Fêmea ♀'}
+                    {animal?.gender === 'male' ? 'Macho ♂' : 'Fêmea ♀'}
                   </p>
                 </div>
                 <div>
@@ -1109,8 +1111,8 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                     Nascimento
                   </p>
                   <p className="mt-0.5 font-semibold">
-                    {animal.birthDate
-                      ? new Date(animal.birthDate).toLocaleDateString('pt-BR')
+                    {animal?.birthDate
+                      ? new Date(animal?.birthDate).toLocaleDateString('pt-BR')
                       : 'N/A'}
                   </p>
                 </div>
@@ -1119,7 +1121,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                     Peso atual
                   </p>
                   <p className="mt-0.5 text-xl font-black text-primary">
-                    {animal.weight}{' '}
+                    {animal?.weight}{' '}
                     <span className="text-sm font-semibold">kg</span>
                   </p>
                 </div>
@@ -1128,7 +1130,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                     Raça
                   </p>
                   <p className="mt-0.5 font-semibold">
-                    {animal.breed ?? 'N/A'}
+                    {animal?.breed ?? 'N/A'}
                   </p>
                 </div>
                 <div>
@@ -1136,7 +1138,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                     Categoria
                   </p>
                   <p className="mt-0.5 font-semibold">
-                    {categoryLabel(animal.category, animal.gender)}
+                    {categoryLabel(animal?.category, animal?.gender)}
                   </p>
                 </div>
               </div>
@@ -1152,9 +1154,9 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                       ID Mãe
                     </p>
                     <p className="font-bold">
-                      {animal.mother?.manualId
-                        ? animal.mother.manualId.charAt(0).toUpperCase() +
-                          animal.mother.manualId.slice(1)
+                      {animal?.mother?.manualId
+                        ? animal?.mother.manualId.charAt(0).toUpperCase() +
+                          animal?.mother.manualId.slice(1)
                         : 'Comercial'}
                     </p>
                   </div>
@@ -1168,9 +1170,9 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                       ID Pai
                     </p>
                     <p className="font-bold">
-                      {animal.father?.manualId
-                        ? animal.father.manualId.charAt(0).toUpperCase() +
-                          animal.father.manualId.slice(1)
+                      {animal?.father?.manualId
+                        ? animal?.father.manualId.charAt(0).toUpperCase() +
+                          animal?.father.manualId.slice(1)
                         : 'Comercial'}
                     </p>
                   </div>
@@ -1178,9 +1180,9 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
               </div>
 
               {/* Observations */}
-              {animal.observations && (
+              {animal?.observations && (
                 <blockquote className="mt-4 rounded-xl border-l-4 border-primary/30 bg-muted/20 px-4 py-3 text-sm italic text-muted-foreground">
-                  &ldquo;{animal.observations}&rdquo;
+                  &ldquo;{animal?.observations}&rdquo;
                 </blockquote>
               )}
             </div>
@@ -1442,7 +1444,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
           {/* Eficiência reprodutiva — full width */}
           <div className="rounded-2xl border bg-white p-5 shadow-sm">
             <h2 className="mb-4 font-bold">Eficiência reprodutiva</h2>
-            {animal.gender === 'male' ? (
+            {animal?.gender === 'male' ? (
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {[
                   {
@@ -1521,13 +1523,13 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
           </div>
 
           {/* Histórico Reprodutivo — full width, females only */}
-          {animal.gender === 'female' && (
+          {animal?.gender === 'female' && (
             <ReproductiveHistorySection
               offspringFromMother={femaleOffspring}
               calfLossHistories={calfLossHistories}
               animals={animals}
               externalBulls={externalBulls}
-              animalId={animal.id}
+              animalId={animal?.id}
               onLossAdded={handleLossAdded}
               onLossDeleted={handleLossDeleted}
               onLossUpdated={handleLossUpdated}
@@ -1538,9 +1540,9 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
           <div className="flex flex-wrap gap-4">
             <div className="min-w-[250px] flex-1 rounded-2xl border bg-white p-5 shadow-sm">
               <h2 className="mb-3 font-bold">Histórico de peso</h2>
-              {animal.weightHistories?.length ? (
+              {animal?.weightHistories?.length ? (
                 <div className="space-y-2">
-                  {animal.weightHistories.map((h: AnimalWeightHistory) => {
+                  {animal?.weightHistories.map((h: AnimalWeightHistory) => {
                     const isEditingThis = editingWeightId === h.id;
                     return (
                       <div
@@ -1673,9 +1675,9 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                 </p>
               )}
 
-              {animal.isForFattening &&
-                animal.weightHistories &&
-                animal.weightHistories.length >= 2 && (
+              {animal?.isForFattening &&
+                animal?.weightHistories &&
+                animal?.weightHistories.length >= 2 && (
                   <div className="mt-4">
                     <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                       Curva de peso
@@ -1718,7 +1720,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                 )}
             </div>
 
-            {animal.isForFattening && (
+            {animal?.isForFattening && (
               <div className="min-w-[250px] flex-1 rounded-2xl border bg-white p-5 shadow-sm">
                 <h2 className="mb-3 font-bold">GMD — Ganho de massa diária</h2>
                 {formattedAverageGmd !== null ? (
@@ -1941,7 +1943,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
           <div className="space-y-4 lg:col-span-2">
             <div>
               <FormBasicInformation
-                animal={animal}
+                animal={animal!}
                 handleInputValues={handleInputValues}
                 animals={animals}
                 breedArray={breedArray}
@@ -1954,7 +1956,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                 Dados reprodutivos
               </p>
               <section className="flex w-full max-w-sm flex-col gap-4">
-                {animal.gender === 'male' ? (
+                {animal?.gender === 'male' ? (
                   <FormMaleReproductive
                     animal={animal}
                     handleInputValues={handleInputValues}
@@ -1972,7 +1974,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                         name="reproductiveStatus"
                         id="reproductiveStatus"
                         className="w-full rounded-lg border border-input bg-white px-3 py-2 text-sm outline-none transition focus:border-primary"
-                        value={animal.reproductiveStatus ?? ''}
+                        value={animal?.reproductiveStatus ?? ''}
                         onChange={handleInputValues}
                       >
                         <option disabled value=""></option>
@@ -1983,7 +1985,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                       </select>
                     </article>
 
-                    {animal.reproductiveStatus === 'pregnant' && (
+                    {animal?.reproductiveStatus === 'pregnant' && (
                       <FormPregnantStatus
                         animal={animal}
                         handleInputValues={handleInputValues}
@@ -1991,7 +1993,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                         externalBulls={externalBulls}
                       />
                     )}
-                    {animal.reproductiveStatus === 'waiting' && (
+                    {animal?.reproductiveStatus === 'waiting' && (
                       <FormWaitingStatus
                         animal={animal}
                         handleInputValues={handleInputValues}
@@ -1999,7 +2001,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                         externalBulls={externalBulls}
                       />
                     )}
-                    {animal.reproductiveStatus === 'pev' && (
+                    {animal?.reproductiveStatus === 'pev' && (
                       <FormPevStatus
                         animal={animal}
                         handleInputValues={handleInputValues}
@@ -2091,7 +2093,9 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                                     setCalfLossDraft((prev) => ({
                                       ...prev,
                                       fatherType: e.target.value as
-                                        'internal' | 'external' | '',
+                                        | 'internal'
+                                        | 'external'
+                                        | '',
                                       fatherId: '',
                                     }))
                                   }
@@ -2180,7 +2184,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                 <input
                   type="checkbox"
                   name="isForFattening"
-                  checked={!!animal.isForFattening}
+                  checked={!!animal?.isForFattening}
                   onChange={handleInputValues}
                   className="size-4 rounded border-input accent-primary"
                 />
@@ -2188,7 +2192,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
               </label>
               <p className="mt-1.5 text-xs text-muted-foreground">
                 Quando marcado, o GMD (Ganho de Massa Diária) será exibido na
-                ficha do animal.
+                ficha do animal?.
               </p>
             </div>
           </div>
@@ -2303,7 +2307,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
           <DialogHeader className="shrink-0">
             <DialogTitle>Relatório de filhos — {animalTitle}</DialogTitle>
             <DialogDescription>
-              Estatísticas de todos os filhos registrados para este animal.
+              Estatísticas de todos os filhos registrados para este animal?.
             </DialogDescription>
           </DialogHeader>
 

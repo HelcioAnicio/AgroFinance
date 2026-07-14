@@ -25,7 +25,7 @@ import { Animal } from '@/types/animal';
 import { User } from '@/types/user';
 import { ExternalBull } from '@/types/externalBull';
 import { Button } from '@/components/ui/button';
-import { Loading } from '@/components/ui/loading';
+// import { Loading } from '@/components/ui/loading';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Sheet, SheetTrigger } from '@/components/ui/sheet';
 import {
@@ -102,14 +102,11 @@ const getStatusNode = (status?: string) => {
 
 export function DashboardOverview() {
   const [dataLoading, setDataLoading] = useState(true);
-  // const [animals, setAnimals] = useState<Animal[]>([]);
   const { animals, setAnimals } = useAppGlobal();
-  const { animal, setAnimal } = useAppGlobal();
-  const atoa = animal;
-  // const { animal, setAnimal } = useAppGlobal();
+  const { setAnimal } = useAppGlobal();
   const [users, setUsers] = useState<User[]>([]);
   const [externalBulls, setExternalBulls] = useState<ExternalBull[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  // const [isLoading] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [inputFile, setInputFile] = useState<File | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -217,7 +214,7 @@ export function DashboardOverview() {
 
   const handleNavigation = (id: string | null) => {
     if (!id) return;
-    setIsLoading(true);
+    // setIsLoading(true);
     const selectedAnimal = animals.find((a) => a.id === id);
     if (selectedAnimal) {
       setAnimal(selectedAnimal);
@@ -335,7 +332,7 @@ export function DashboardOverview() {
 
   return (
     <main className="relative mx-auto w-full max-w-[1400px] px-4 py-6 lg:px-6">
-      {isLoading && <Loading />}
+      {/* {isLoading && <Loading />} */}
 
       {/* Header */}
       <header className="mb-6 flex flex-col justify-between gap-4 lg:flex-row lg:items-center">

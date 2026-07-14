@@ -7,9 +7,12 @@ import { LivestockStatsYear } from '@/types/livestockStats';
 import { User } from '@/types/user';
 import { ExternalBull } from '@/types/externalBull';
 
+import { useAppGlobal } from '@/context/appContext';
+
 export function DashboardTableWithData() {
   const [dataLoading, setDataLoading] = useState(true);
-  const [animals, setAnimals] = useState<Animal[]>([]);
+  // const [animals, setAnimals] = useState<Animal[]>([]);
+  const { animals, setAnimals } = useAppGlobal();
   const [users, setUsers] = useState<User[]>([]);
   const [externalBulls, setExternalBulls] = useState<ExternalBull[]>([]);
   const [livestockStats, setLivestockStats] = useState<LivestockStatsYear[]>(

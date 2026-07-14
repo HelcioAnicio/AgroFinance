@@ -48,7 +48,10 @@ const CATEGORIAS: InsumoCategoria[] = [
 
 const UNIDADES = ['kg', 'g', 'L', 'mL', 'dose', 'un', 'saco', 'cx'];
 
-const CURRENCY = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+const CURRENCY = new Intl.NumberFormat('pt-BR', {
+  style: 'currency',
+  currency: 'BRL',
+});
 
 const CATEGORIA_COLORS: Record<InsumoCategoria, string> = {
   RACAO: 'bg-amber-100 text-amber-800',
@@ -93,7 +96,12 @@ interface Props {
 }
 
 export function InsumosPage({ role }: Props) {
-  const canManage = ['OWNER', 'MANAGER', 'EMPLOYEE', 'CAREGIVER_VETERINARIAN'].includes(role);
+  const canManage = [
+    'OWNER',
+    'MANAGER',
+    'EMPLOYEE',
+    'CAREGIVER_VETERINARIAN',
+  ].includes(role);
 
   const [insumos, setInsumos] = useState<Insumo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -119,7 +127,9 @@ export function InsumosPage({ role }: Props) {
   const [historyInsumo, setHistoryInsumo] = useState<Insumo | null>(null);
 
   // Filter
-  const [filterCat, setFilterCat] = useState<InsumoCategoria | 'TODAS'>('TODAS');
+  const [filterCat, setFilterCat] = useState<InsumoCategoria | 'TODAS'>(
+    'TODAS'
+  );
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -133,7 +143,9 @@ export function InsumosPage({ role }: Props) {
     }
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   function openCreate() {
     setEditingInsumo(null);
@@ -155,7 +167,10 @@ export function InsumosPage({ role }: Props) {
   }
 
   async function saveInsumo() {
-    if (!form.nome.trim()) { toast.error('Informe o nome'); return; }
+    if (!form.nome.trim()) {
+      toast.error('Informe o nome');
+      return;
+    }
     setSaving(true);
     try {
       const payload = {
@@ -180,7 +195,8 @@ export function InsumosPage({ role }: Props) {
   }
 
   async function deleteInsumo(ins: Insumo) {
-    if (!confirm(`Excluir "${ins.nome}"? Todos os movimentos serão removidos.`)) return;
+    if (!confirm(`Excluir "${ins.nome}"? Todos os movimentos serão removidos.`))
+      return;
     try {
       await axios.delete(`/api/insumos/${ins.id}`);
       toast.success('Insumo excluído');
@@ -204,7 +220,10 @@ export function InsumosPage({ role }: Props) {
     }
     setMovSaving(true);
     try {
-      const { data } = await axios.post<Insumo>(`/api/insumos/${movInsumo.id}/movimento`, movForm);
+      const { data } = await axios.post<Insumo>(
+        `/api/insumos/${movInsumo.id}/movimento`,
+        movForm
+      );
       setInsumos((prev) => prev.map((i) => (i.id === data.id ? data : i)));
       if (historyInsumo?.id === data.id) setHistoryInsumo(data);
       toast.success('Movimentação registrada');
@@ -216,9 +235,17 @@ export function InsumosPage({ role }: Props) {
     }
   }
 
-  const filtered = filterCat === 'TODAS' ? insumos : insumos.filter((i) => i.categoria === filterCat);
-  const totalCusto = insumos.reduce((s, i) => s + Number(i.quantidade) * Number(i.custoPorUnid), 0);
-  const emEstoqueBaixo = insumos.filter((i) => i.estoqueMin != null && Number(i.quantidade) <= Number(i.estoqueMin));
+  const filtered =
+    filterCat === 'TODAS'
+      ? insumos
+      : insumos.filter((i) => i.categoria === filterCat);
+  const totalCusto = insumos.reduce(
+    (s, i) => s + Number(i.quantidade) * Number(i.custoPorUnid),
+    0
+  );
+  const emEstoqueBaixo = insumos.filter(
+    (i) => i.estoqueMin != null && Number(i.quantidade) <= Number(i.estoqueMin)
+  );
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6">
@@ -240,29 +267,50 @@ export function InsumosPage({ role }: Props) {
       {/* Summary cards */}
       <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
         <div className="rounded-2xl border bg-white p-4 shadow-sm">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Total em estoque</p>
-          <p className="text-xl font-black text-primary">{CURRENCY.format(totalCusto)}</p>
-          <p className="text-xs text-muted-foreground">{insumos.length} tipos cadastrados</p>
+          <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+            Total em estoque
+          </p>
+          <p className="text-xl font-black text-primary">
+            {CURRENCY.format(totalCusto)}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {insumos.length} tipos cadastrados
+          </p>
         </div>
-        <div className={`rounded-2xl border p-4 shadow-sm ${emEstoqueBaixo.length > 0 ? 'border-red-200 bg-red-50' : 'bg-white'}`}>
-          <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Estoque baixo</p>
-          <p className={`text-xl font-black ${emEstoqueBaixo.length > 0 ? 'text-red-600' : 'text-green-600'}`}>
+        <div
+          className={`rounded-2xl border p-4 shadow-sm ${emEstoqueBaixo.length > 0 ? 'border-red-200 bg-red-50' : 'bg-white'}`}
+        >
+          <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+            Estoque baixo
+          </p>
+          <p
+            className={`text-xl font-black ${emEstoqueBaixo.length > 0 ? 'text-red-600' : 'text-green-600'}`}
+          >
             {emEstoqueBaixo.length}
           </p>
           <p className="text-xs text-muted-foreground">
-            {emEstoqueBaixo.length === 0 ? 'Tudo em dia' : 'itens abaixo do mínimo'}
+            {emEstoqueBaixo.length === 0
+              ? 'Tudo em dia'
+              : 'itens abaixo do mínimo'}
           </p>
         </div>
         <div className="col-span-2 rounded-2xl border bg-white p-4 shadow-sm sm:col-span-1">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Filtrar categoria</p>
-          <Select value={filterCat} onValueChange={(v) => setFilterCat(v as InsumoCategoria | 'TODAS')}>
+          <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+            Filtrar categoria
+          </p>
+          <Select
+            value={filterCat}
+            onValueChange={(v) => setFilterCat(v as InsumoCategoria | 'TODAS')}
+          >
             <SelectTrigger className="mt-1 h-8 text-xs">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="TODAS">Todas</SelectItem>
               {CATEGORIAS.map((c) => (
-                <SelectItem key={c} value={c}>{CATEGORIA_LABELS[c]}</SelectItem>
+                <SelectItem key={c} value={c}>
+                  {CATEGORIA_LABELS[c]}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -273,15 +321,21 @@ export function InsumosPage({ role }: Props) {
       {loading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((k) => (
-            <div key={k} className="h-20 animate-pulse rounded-2xl bg-muted/40" />
+            <div
+              key={k}
+              className="h-20 animate-pulse rounded-2xl bg-muted/40"
+            />
           ))}
         </div>
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed bg-white py-16 text-center">
           <Package className="mb-3 size-10 text-muted-foreground/40" />
-          <p className="font-semibold text-muted-foreground">Nenhum insumo cadastrado</p>
+          <p className="font-semibold text-muted-foreground">
+            Nenhum insumo cadastrado
+          </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Cadastre rações, vacinas e outros insumos para controlar seu estoque.
+            Cadastre rações, vacinas e outros insumos para controlar seu
+            estoque.
           </p>
           {canManage && (
             <Button onClick={openCreate} size="sm" className="mt-4 gap-2">
@@ -292,8 +346,11 @@ export function InsumosPage({ role }: Props) {
       ) : (
         <div className="space-y-3">
           {filtered.map((ins) => {
-            const baixo = ins.estoqueMin != null && Number(ins.quantidade) <= Number(ins.estoqueMin);
-            const valorTotal = Number(ins.quantidade) * Number(ins.custoPorUnid);
+            const baixo =
+              ins.estoqueMin != null &&
+              Number(ins.quantidade) <= Number(ins.estoqueMin);
+            const valorTotal =
+              Number(ins.quantidade) * Number(ins.custoPorUnid);
             return (
               <div
                 key={ins.id}
@@ -303,7 +360,9 @@ export function InsumosPage({ role }: Props) {
                   <div className="flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="font-semibold">{ins.nome}</span>
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${CATEGORIA_COLORS[ins.categoria]}`}>
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${CATEGORIA_COLORS[ins.categoria]}`}
+                      >
                         {CATEGORIA_LABELS[ins.categoria]}
                       </span>
                       {baixo && (
@@ -314,24 +373,42 @@ export function InsumosPage({ role }: Props) {
                     </div>
                     <div className="mt-2 flex flex-wrap gap-4 text-sm">
                       <div>
-                        <span className="text-[10px] font-bold uppercase text-muted-foreground">Qtd.</span>
-                        <p className={`font-bold ${baixo ? 'text-red-600' : 'text-foreground'}`}>
-                          {Number(ins.quantidade).toLocaleString('pt-BR')} {ins.unidade}
+                        <span className="text-[10px] font-bold uppercase text-muted-foreground">
+                          Qtd.
+                        </span>
+                        <p
+                          className={`font-bold ${baixo ? 'text-red-600' : 'text-foreground'}`}
+                        >
+                          {Number(ins.quantidade).toLocaleString('pt-BR')}{' '}
+                          {ins.unidade}
                         </p>
                       </div>
                       {ins.estoqueMin != null && (
                         <div>
-                          <span className="text-[10px] font-bold uppercase text-muted-foreground">Mínimo</span>
-                          <p className="font-medium">{Number(ins.estoqueMin).toLocaleString('pt-BR')} {ins.unidade}</p>
+                          <span className="text-[10px] font-bold uppercase text-muted-foreground">
+                            Mínimo
+                          </span>
+                          <p className="font-medium">
+                            {Number(ins.estoqueMin).toLocaleString('pt-BR')}{' '}
+                            {ins.unidade}
+                          </p>
                         </div>
                       )}
                       <div>
-                        <span className="text-[10px] font-bold uppercase text-muted-foreground">Custo/un.</span>
-                        <p className="font-medium">{CURRENCY.format(Number(ins.custoPorUnid))}</p>
+                        <span className="text-[10px] font-bold uppercase text-muted-foreground">
+                          Custo/un.
+                        </span>
+                        <p className="font-medium">
+                          {CURRENCY.format(Number(ins.custoPorUnid))}
+                        </p>
                       </div>
                       <div>
-                        <span className="text-[10px] font-bold uppercase text-muted-foreground">Valor total</span>
-                        <p className="font-semibold text-primary">{CURRENCY.format(valorTotal)}</p>
+                        <span className="text-[10px] font-bold uppercase text-muted-foreground">
+                          Valor total
+                        </span>
+                        <p className="font-semibold text-primary">
+                          {CURRENCY.format(valorTotal)}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -368,13 +445,22 @@ export function InsumosPage({ role }: Props) {
                       size="sm"
                       variant="ghost"
                       className="h-8 text-xs text-muted-foreground"
-                      onClick={() => setHistoryInsumo(historyInsumo?.id === ins.id ? null : ins)}
+                      onClick={() =>
+                        setHistoryInsumo(
+                          historyInsumo?.id === ins.id ? null : ins
+                        )
+                      }
                     >
                       <History className="size-3.5" />
                     </Button>
                     {canManage && (
                       <>
-                        <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => openEdit(ins)}>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-8 text-xs"
+                          onClick={() => openEdit(ins)}
+                        >
                           <Pencil className="size-3.5" />
                         </Button>
                         <Button
@@ -393,21 +479,37 @@ export function InsumosPage({ role }: Props) {
                 {/* Inline history */}
                 {historyInsumo?.id === ins.id && (
                   <div className="mt-3 border-t pt-3">
-                    <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">Últimos movimentos</p>
+                    <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">
+                      Últimos movimentos
+                    </p>
                     {ins.movimentos && ins.movimentos.length > 0 ? (
                       <div className="space-y-1">
                         {ins.movimentos.map((m) => (
-                          <div key={m.id} className="flex items-center justify-between rounded-lg bg-muted/20 px-3 py-1.5 text-xs">
+                          <div
+                            key={m.id}
+                            className="flex items-center justify-between rounded-lg bg-muted/20 px-3 py-1.5 text-xs"
+                          >
                             <div className="flex items-center gap-2">
-                              <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
-                                m.tipo === 'ENTRADA' ? 'bg-green-100 text-green-700'
-                                : m.tipo === 'SAIDA' ? 'bg-orange-100 text-orange-700'
-                                : 'bg-gray-100 text-gray-600'
-                              }`}>
+                              <span
+                                className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+                                  m.tipo === 'ENTRADA'
+                                    ? 'bg-green-100 text-green-700'
+                                    : m.tipo === 'SAIDA'
+                                      ? 'bg-orange-100 text-orange-700'
+                                      : 'bg-gray-100 text-gray-600'
+                                }`}
+                              >
                                 {MOVIMENTO_LABELS[m.tipo]}
                               </span>
-                              <span>{Number(m.quantidade).toLocaleString('pt-BR')} {ins.unidade}</span>
-                              {m.notas && <span className="text-muted-foreground">— {m.notas}</span>}
+                              <span>
+                                {Number(m.quantidade).toLocaleString('pt-BR')}{' '}
+                                {ins.unidade}
+                              </span>
+                              {m.notas && (
+                                <span className="text-muted-foreground">
+                                  — {m.notas}
+                                </span>
+                              )}
                             </div>
                             <span className="text-muted-foreground">
                               {new Date(m.data).toLocaleDateString('pt-BR')}
@@ -416,7 +518,9 @@ export function InsumosPage({ role }: Props) {
                         ))}
                       </div>
                     ) : (
-                      <p className="text-xs text-muted-foreground">Nenhum movimento registrado.</p>
+                      <p className="text-xs text-muted-foreground">
+                        Nenhum movimento registrado.
+                      </p>
                     )}
                   </div>
                 )}
@@ -430,69 +534,113 @@ export function InsumosPage({ role }: Props) {
       <Dialog open={insumoDialog} onOpenChange={setInsumoDialog}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>{editingInsumo ? 'Editar insumo' : 'Novo insumo'}</DialogTitle>
+            <DialogTitle>
+              {editingInsumo ? 'Editar insumo' : 'Novo insumo'}
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <div>
-              <label className="mb-1 block text-xs font-semibold text-muted-foreground">Nome *</label>
+              <label className="mb-1 block text-xs font-semibold text-muted-foreground">
+                Nome *
+              </label>
               <Input
                 placeholder="Ex: Ração engorda 30%"
                 value={form.nome}
-                onChange={(e) => setForm((p) => ({ ...p, nome: e.target.value }))}
+                onChange={(e) =>
+                  setForm((p) => ({ ...p, nome: e.target.value }))
+                }
               />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="mb-1 block text-xs font-semibold text-muted-foreground">Categoria *</label>
-                <Select value={form.categoria} onValueChange={(v) => setForm((p) => ({ ...p, categoria: v as InsumoCategoria }))}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                <label className="mb-1 block text-xs font-semibold text-muted-foreground">
+                  Categoria *
+                </label>
+                <Select
+                  value={form.categoria}
+                  onValueChange={(v) =>
+                    setForm((p) => ({ ...p, categoria: v as InsumoCategoria }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     {CATEGORIAS.map((c) => (
-                      <SelectItem key={c} value={c}>{CATEGORIA_LABELS[c]}</SelectItem>
+                      <SelectItem key={c} value={c}>
+                        {CATEGORIA_LABELS[c]}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <label className="mb-1 block text-xs font-semibold text-muted-foreground">Unidade *</label>
-                <Select value={form.unidade} onValueChange={(v) => setForm((p) => ({ ...p, unidade: v }))}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                <label className="mb-1 block text-xs font-semibold text-muted-foreground">
+                  Unidade *
+                </label>
+                <Select
+                  value={form.unidade}
+                  onValueChange={(v) => setForm((p) => ({ ...p, unidade: v }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
-                    {UNIDADES.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}
+                    {UNIDADES.map((u) => (
+                      <SelectItem key={u} value={u}>
+                        {u}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="mb-1 block text-xs font-semibold text-muted-foreground">Custo por unidade (R$)</label>
+                <label className="mb-1 block text-xs font-semibold text-muted-foreground">
+                  Custo por unidade (R$)
+                </label>
                 <Input
                   type="number"
                   placeholder="0,00"
                   value={form.custoPorUnid}
-                  onChange={(e) => setForm((p) => ({ ...p, custoPorUnid: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((p) => ({ ...p, custoPorUnid: e.target.value }))
+                  }
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-semibold text-muted-foreground">Estoque mínimo</label>
+                <label className="mb-1 block text-xs font-semibold text-muted-foreground">
+                  Estoque mínimo
+                </label>
                 <Input
                   type="number"
                   placeholder="Alerta abaixo de..."
                   value={form.estoqueMin}
-                  onChange={(e) => setForm((p) => ({ ...p, estoqueMin: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((p) => ({ ...p, estoqueMin: e.target.value }))
+                  }
                 />
               </div>
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold text-muted-foreground">Observações</label>
+              <label className="mb-1 block text-xs font-semibold text-muted-foreground">
+                Observações
+              </label>
               <Input
                 placeholder="Opcional"
                 value={form.observacoes}
-                onChange={(e) => setForm((p) => ({ ...p, observacoes: e.target.value }))}
+                onChange={(e) =>
+                  setForm((p) => ({ ...p, observacoes: e.target.value }))
+                }
               />
             </div>
             <Button className="w-full" onClick={saveInsumo} disabled={saving}>
-              {saving ? 'Salvando...' : editingInsumo ? 'Salvar alterações' : 'Cadastrar insumo'}
+              {saving
+                ? 'Salvando...'
+                : editingInsumo
+                  ? 'Salvar alterações'
+                  : 'Cadastrar insumo'}
             </Button>
           </div>
         </DialogContent>
@@ -503,21 +651,40 @@ export function InsumosPage({ role }: Props) {
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>
-              {movForm.tipo === 'ENTRADA' ? 'Registrar entrada'
-                : movForm.tipo === 'SAIDA' ? 'Registrar saída'
-                : 'Ajustar estoque'}
-              {movInsumo && <span className="ml-1 font-normal text-muted-foreground">— {movInsumo.nome}</span>}
+              {movForm.tipo === 'ENTRADA'
+                ? 'Registrar entrada'
+                : movForm.tipo === 'SAIDA'
+                  ? 'Registrar saída'
+                  : 'Ajustar estoque'}
+              {movInsumo && (
+                <span className="ml-1 font-normal text-muted-foreground">
+                  — {movInsumo.nome}
+                </span>
+              )}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <div>
-              <label className="mb-1 block text-xs font-semibold text-muted-foreground">Tipo</label>
-              <Select value={movForm.tipo} onValueChange={(v) => setMovForm((p) => ({ ...p, tipo: v as InsumoMovimentoTipo }))}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <label className="mb-1 block text-xs font-semibold text-muted-foreground">
+                Tipo
+              </label>
+              <Select
+                value={movForm.tipo}
+                onValueChange={(v) =>
+                  setMovForm((p) => ({ ...p, tipo: v as InsumoMovimentoTipo }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ENTRADA">Entrada (compra/recebimento)</SelectItem>
+                  <SelectItem value="ENTRADA">
+                    Entrada (compra/recebimento)
+                  </SelectItem>
                   <SelectItem value="SAIDA">Saída (uso/consumo)</SelectItem>
-                  <SelectItem value="AJUSTE">Ajuste (definir saldo absoluto)</SelectItem>
+                  <SelectItem value="AJUSTE">
+                    Ajuste (definir saldo absoluto)
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -530,32 +697,47 @@ export function InsumosPage({ role }: Props) {
                   type="number"
                   placeholder="0"
                   value={movForm.quantidade}
-                  onChange={(e) => setMovForm((p) => ({ ...p, quantidade: e.target.value }))}
+                  onChange={(e) =>
+                    setMovForm((p) => ({ ...p, quantidade: e.target.value }))
+                  }
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-semibold text-muted-foreground">Data</label>
+                <label className="mb-1 block text-xs font-semibold text-muted-foreground">
+                  Data
+                </label>
                 <Input
                   type="date"
                   value={movForm.data}
-                  onChange={(e) => setMovForm((p) => ({ ...p, data: e.target.value }))}
+                  onChange={(e) =>
+                    setMovForm((p) => ({ ...p, data: e.target.value }))
+                  }
                 />
               </div>
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold text-muted-foreground">Observações</label>
+              <label className="mb-1 block text-xs font-semibold text-muted-foreground">
+                Observações
+              </label>
               <Input
                 placeholder="Opcional"
                 value={movForm.notas}
-                onChange={(e) => setMovForm((p) => ({ ...p, notas: e.target.value }))}
+                onChange={(e) =>
+                  setMovForm((p) => ({ ...p, notas: e.target.value }))
+                }
               />
             </div>
             {movForm.tipo === 'AJUSTE' && (
               <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
-                O ajuste define o saldo absoluto — o estoque será atualizado para o valor informado.
+                O ajuste define o saldo absoluto — o estoque será atualizado
+                para o valor informado.
               </p>
             )}
-            <Button className="w-full" onClick={saveMovimento} disabled={movSaving}>
+            <Button
+              className="w-full"
+              onClick={saveMovimento}
+              disabled={movSaving}
+            >
               {movSaving ? 'Registrando...' : 'Confirmar'}
             </Button>
           </div>

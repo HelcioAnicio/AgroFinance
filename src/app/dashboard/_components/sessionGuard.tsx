@@ -14,7 +14,10 @@ export function SessionGuard() {
   const handled = useRef(false);
 
   useEffect(() => {
-    if ((session as Record<string, unknown> | null)?.evicted && !handled.current) {
+    if (
+      (session as Record<string, unknown> | null)?.evicted &&
+      !handled.current
+    ) {
       handled.current = true;
       toast.error(
         'Você foi desconectado pois outro usuário entrou na fazenda e o limite de sessões simultâneas do plano foi atingido.',

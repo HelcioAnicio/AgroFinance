@@ -132,9 +132,8 @@ export const Table: React.FC<TableProps> = ({
   dataLoading = false,
 }) => {
   const [listAnimals, setListAnimals] = useState<Animal[]>([]);
-  const { animals, setAnimals } = useAppGlobal();
-  const { animal, setAnimal } = useAppGlobal();
-  const atoa = animal;
+  const { animals } = useAppGlobal();
+  const { setAnimal } = useAppGlobal();
   const [originalAnimals, setOriginalAnimals] = useState<Animal[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [inputValue, setInputValue] = useState<string>('');
@@ -318,7 +317,7 @@ export const Table: React.FC<TableProps> = ({
 
   const handleNavigation = (id: string | null) => {
     if (!id) return;
-    setIsLoading(true);
+    // setIsLoading(true);
     const selectedAnimal = animals.find((a) => a.id === id);
     if (selectedAnimal) {
       setAnimal(selectedAnimal);
