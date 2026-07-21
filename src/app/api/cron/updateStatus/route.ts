@@ -122,72 +122,42 @@ export async function GET(request: Request) {
       }
     }
 
-    const animalsWithSanitaryExpiry = await prisma.animal.findMany({
+    const expiringVaccines = await prisma.vaccine.findMany({
       where: {
-        OR: [
-          {
-            vaccineExpiry: {
-              not: null,
-              lte: limite,
-            },
-          },
-          {
-            dewormingExpiry: {
-              not: null,
-              lte: limite,
-            },
-          },
-        ],
+        expiryDate: {
+          lte: limite,
+        },
       },
-      select: {
-        id: true,
-        ownerId: true,
-        manualId: true,
-        vaccineName: true,
-        vaccineExpiry: true,
-        dewormingName: true,
-        dewormingExpiry: true,
+      include: {
+        animal: {
+          select: {
+            id: true,
+            manualId: true,
+            ownerId: true,
+          },
+        },
       },
     });
 
-    for (const animal of animalsWithSanitaryExpiry) {
+    for (const vaccine of expiringVaccines) {
       try {
-        if (animal.vaccineExpiry) {
-          const vaccineName = animal.vaccineName?.trim() || 'vacina';
-          const expiresAt = new Date(animal.vaccineExpiry);
-          const notifyAt = buildSanitaryNotifyAt(expiresAt);
-          const message = `Vacina ${vaccineName} do animal ${animal.manualId} vence em ${dayjs(expiresAt).format('DD/MM/YYYY')}.`;
+        const vaccineName = vaccine.name?.trim() || 'vacina';
+        const expiresAt = new Date(vaccine.expiryDate!);
+        const notifyAt = buildSanitaryNotifyAt(expiresAt);
+        const message = `Vacina ${vaccineName} do animal ${vaccine.animal.manualId} vence em ${dayjs(expiresAt).format('DD/MM/YYYY')}.`;
 
-          const vaccineNotification = await createOrUpdateNotification({
-            animalId: animal.id,
-            ownerId: animal.ownerId,
-            searchText: 'vacina',
-            message,
-            notifyAt,
-          });
-          notifications.push(vaccineNotification);
-          console.log(`Notificação de vacina criada/atualizada para animal ${animal.manualId}`);
-        }
-
-        if (animal.dewormingExpiry) {
-          const dewormingName = animal.dewormingName?.trim() || 'vermifugo';
-          const expiresAt = new Date(animal.dewormingExpiry);
-          const notifyAt = buildSanitaryNotifyAt(expiresAt);
-          const message = `Vermifugo ${dewormingName} do animal ${animal.manualId} vence em ${dayjs(expiresAt).format('DD/MM/YYYY')}.`;
-
-          const dewormingNotification = await createOrUpdateNotification({
-            animalId: animal.id,
-            ownerId: animal.ownerId,
-            searchText: 'vermifugo',
-            message,
-            notifyAt,
-          });
-          notifications.push(dewormingNotification);
-          console.log(`Notificação de vermifugo criada/atualizada para animal ${animal.manualId}`);
-        }
+        const vaccineNotification = await createOrUpdateNotification({
+          animalId: vaccine.animal.id,
+          ownerId: vaccine.animal.ownerId,
+          searchText: 'vacina',
+          message,
+          notifyAt,
+        });
+        notifications.push(vaccineNotification);
+        console.log(`Notificação de vacina criada/atualizada para animal ${vaccine.animal.manualId}`);
       } catch (notifError) {
         console.error(
-          `Erro criando notificação sanitária para animal ${animal.manualId}:`,
+          `Erro criando notificação sanitária para animal ${vaccine.animal.manualId}:`,
           notifError
         );
       }

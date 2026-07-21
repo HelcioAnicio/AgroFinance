@@ -1,16 +1,12 @@
 import React from 'react';
 import EditableAnimalDetails from './(components)/editableAnimalDetails';
 import {
+  fetchAnimalById,
   fetchAnimals,
-  // fetchAnimals,
   fetchExternalBulls,
-  fetchVaccines,
 } from '@/lib/fetchData';
-import { Vaccine } from '@/types/vaccine';
 import { requireFarmContext } from '@/lib/tenant';
 import { redirect } from 'next/navigation';
-
-// import { useAppGlobal } from '@/context/appContext';
 
 const DetailAnimalId = async ({
   params,
@@ -21,25 +17,21 @@ const DetailAnimalId = async ({
   const { context } = await requireFarmContext('view_animals');
   if (!context) redirect('/login');
 
-  const [animals, externalBulls] = await Promise.all([
+  const [animal, animals, externalBulls] = await Promise.all([
+    fetchAnimalById(id, context.farm.id),
     fetchAnimals(undefined, context.farm.id),
     fetchExternalBulls(undefined, context.farm.id),
   ]);
 
-  const animal = animals.find((a) => a.id === id);
   if (!animal) redirect('/dashboard');
 
-  const vaccines = await fetchVaccines(id);
-  const vaccine = vaccines;
-
   return (
-    <>
-      <EditableAnimalDetails
-        externalBulls={externalBulls}
-        vaccines={vaccines}
-        vaccine={vaccine as unknown as Vaccine}
-      />
-    </>
+    <EditableAnimalDetails
+      animal={animal}
+      animals={animals}
+      externalBulls={externalBulls}
+    />
   );
 };
+
 export default DetailAnimalId;

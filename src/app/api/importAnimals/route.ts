@@ -486,32 +486,6 @@ function parseRow(row: ImportRow, rowNumber: number): ParsedRow {
   );
   if (externalBullIatfId) baseData.externalBullIatfId = externalBullIatfId;
 
-  const vaccineName = cleanString(
-    get('vaccineName', 'nomeVacina', 'Nome Vacina')
-  );
-  const vaccineDate = parseImportDate(
-    get('vaccineDate', 'dataVacina', 'Data Vacinação')
-  );
-  const vaccineExpiry = parseImportDate(
-    get('vaccineExpiry', 'vencimentoVacina', 'Vencim. Vacina')
-  );
-  if (vaccineName) baseData.vaccineName = vaccineName;
-  if (vaccineDate) baseData.vaccineDate = vaccineDate;
-  if (vaccineExpiry) baseData.vaccineExpiry = vaccineExpiry;
-
-  const dewormingName = cleanString(
-    get('dewormingName', 'nomeVermifugo', 'Nome Vermífugo')
-  );
-  const dewormingDate = parseImportDate(
-    get('dewormingDate', 'dataVermifugo', 'Data Vermifugação')
-  );
-  const dewormingExpiry = parseImportDate(
-    get('dewormingExpiry', 'vencimentoVermifugo', 'Vencim. Vermífugo')
-  );
-  if (dewormingName) baseData.dewormingName = dewormingName;
-  if (dewormingDate) baseData.dewormingDate = dewormingDate;
-  if (dewormingExpiry) baseData.dewormingExpiry = dewormingExpiry;
-
   const statusChangeDate = parseImportDate(
     get(
       'statusChangeDate',
@@ -594,6 +568,16 @@ function parseRow(row: ImportRow, rowNumber: number): ParsedRow {
   }
 
   const vaccines: VaccineEntry[] = [];
+  const vaccineName = cleanString(
+    get('vaccineName', 'nomeVacina', 'Nome Vacina')
+  );
+  const vaccineDate = parseImportDate(
+    get('vaccineDate', 'dataVacina', 'Data Vacinação')
+  );
+  const vaccineExpiry = parseImportDate(
+    get('vaccineExpiry', 'vencimentoVacina', 'Vencim. Vacina')
+  );
+
   if (vaccineName && vaccineDate && vaccineExpiry) {
     vaccines.push({
       name: vaccineName,
@@ -627,6 +611,13 @@ function parseRow(row: ImportRow, rowNumber: number): ParsedRow {
   }
 
   const dewormings: DewormingEntry[] = [];
+  const dewormingName = cleanString(
+    get('dewormingName', 'nomeVermifugo', 'Nome Vermífugo')
+  );
+  const dewormingDate = parseImportDate(
+    get('dewormingDate', 'dataVermifugo', 'Data Vermifugação')
+  );
+
   if (dewormingName && dewormingDate) {
     dewormings.push({ name: dewormingName, date: dewormingDate });
   }
@@ -1112,12 +1103,6 @@ export async function POST(req: Request) {
                 fetalGender: (dataForMutation.fetalGender as string | null | undefined) ?? null,
                 bodyConditionScore: (dataForMutation.bodyConditionScore as number | null | undefined) ?? null,
                 observations: (dataForMutation.observations as string | null | undefined) ?? null,
-                vaccineName: (dataForMutation.vaccineName as string | null | undefined) ?? null,
-                vaccineDate: (dataForMutation.vaccineDate as Date | null | undefined) ?? null,
-                vaccineExpiry: (dataForMutation.vaccineExpiry as Date | null | undefined) ?? null,
-                dewormingName: (dataForMutation.dewormingName as string | null | undefined) ?? null,
-                dewormingDate: (dataForMutation.dewormingDate as Date | null | undefined) ?? null,
-                dewormingExpiry: (dataForMutation.dewormingExpiry as Date | null | undefined) ?? null,
                 externalBullId: (dataForMutation.externalBullId as string | null | undefined) ?? null,
                 externalBullIatfId: (dataForMutation.externalBullIatfId as string | null | undefined) ?? null,
               };

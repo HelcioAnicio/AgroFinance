@@ -161,15 +161,9 @@ model Animal {
   farmId                  String?
   createdAt               DateTime                 @default(now())
   updatedAt               DateTime                 @updatedAt
-  dewormingDate           DateTime?
-  dewormingExpiry         DateTime?
-  dewormingName           String?
   status                  String                   @default("active")
   isForFattening          Boolean                  @default(false)
   pevExpiresAt            DateTime?
-  vaccineDate             DateTime?
-  vaccineExpiry           DateTime?
-  vaccineName             String?
   bullIatfId              String?
   externalBullId          String?
   externalBullIatfId      String?

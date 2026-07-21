@@ -1,5 +1,6 @@
 import { User } from './user';
 import { ExternalBull } from './externalBull';
+import { Vaccine } from './vaccine';
 import { Deworming, Disease } from './sanitary';
 
 export type WeightRecordType = 'PN' | 'PS' | 'PD' | 'PA' | 'OTHER';
@@ -86,5 +87,5 @@ export interface Animal {
   statusChangeDate?: string | Date | null;
   dewormings?: Deworming[];
   diseases?: Disease[];
-  // vaccines?: Vaccine[];
+  vaccines?: Vaccine[];
 }

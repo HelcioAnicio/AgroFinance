@@ -71,9 +71,9 @@ interface CalfLossDraft {
 }
 
 interface EditableAnimalDetailsProps {
+  animal: Animal;
+  animals: Animal[];
   externalBulls: ExternalBull[];
-  vaccines: Vaccine[];
-  vaccine: Vaccine;
 }
 
 type SanitaryType = 'vaccine' | 'deworming' | 'disease';
@@ -147,12 +147,27 @@ function getStatusNode(status?: string | null) {
 }
 
 const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
+  animal: initialAnimal,
+  animals: initialAnimals,
   externalBulls,
-  vaccines,
 }) => {
   const [arrobaPriceLoaded, setArrobaPriceLoaded] = useState(false);
-  const { animal, setAnimal } = useAppGlobal();
-  const { animals } = useAppGlobal();
+  const {
+    animal,
+    setAnimal,
+    animals,
+    setAnimals,
+    setOriginalAnimal,
+    setOriginalAnimals,
+  } = useAppGlobal();
+
+  useEffect(() => {
+    setAnimal(initialAnimal);
+    setAnimals(initialAnimals);
+    setOriginalAnimal(initialAnimal);
+    setOriginalAnimals(initialAnimals);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialAnimal, initialAnimals]);
 
   const [isEditing, setIsEditing] = useState(false);
   const [openSanitaryModal, setOpenSanitaryModal] = useState(false);
@@ -181,7 +196,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
       ? (localStorage.getItem('agrofinance_arroba_price') ?? '')
       : ''
   );
-  const [carcassPercent, setCarcassPercent] = useState('100');
+  const [carcassPercent, setCarcassPercent] = useState('50');
   const [sanitaryForm, setSanitaryForm] = useState<SanitaryFormState>({
     type: 'vaccine',
     name: '',
@@ -189,13 +204,9 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     date: new Date().toISOString().split('T')[0],
     expiryDate: '',
   });
-  const [listVaccines, setListVaccines] = useState<Vaccine[]>(vaccines);
-  const [listDewormings, setListDewormings] = useState<Deworming[]>(
-    animal?.dewormings ?? []
-  );
-  const [listDiseases, setListDiseases] = useState<Disease[]>(
-    animal?.diseases ?? []
-  );
+  const [listVaccines, setListVaccines] = useState<Vaccine[]>([]);
+  const [listDewormings, setListDewormings] = useState<Deworming[]>([]);
+  const [listDiseases, setListDiseases] = useState<Disease[]>([]);
   const [calfLossDraft, setCalfLossDraft] = useState<CalfLossDraft>({
     confirmed: null,
     lossDate: new Date().toISOString().split('T')[0],
@@ -205,13 +216,22 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   });
   const [calfLossHistories, setCalfLossHistories] = useState<
     AnimalCalfLossHistory[]
-  >(animal?.calfLossHistories ?? []);
+  >([]);
   const [pevDays, setPevDays] = useState(30);
+
+  useEffect(() => {
+    if (animal) {
+      setListVaccines(animal.vaccines ?? []);
+      setListDewormings(animal.dewormings ?? []);
+      setListDiseases(animal.diseases ?? []);
+      setCalfLossHistories(animal.calfLossHistories ?? []);
+    }
+  }, [animal]);
 
   // Restore form from localStorage if a pending save was interrupted by a stale-data reload
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const key = `agrofinance_pending_form_${animal?.id}`;
+    if (typeof window === 'undefined' || !animal?.id) return;
+    const key = `agrofinance_pending_form_${animal.id}`;
     const saved = localStorage.getItem(key);
     if (!saved) return;
     try {
@@ -578,11 +598,13 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     if (!currentAnimal) return;
     const tid = toast.loading('Salvando pesagem...');
     try {
-      const res = await fetch(`/api/weight-history?id=${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editingWeightData),
-      });
+      const res = await fetch(`/api/weight-history?id=${id}`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(editingWeightData),
+        }
+      );
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Erro');
       toast.dismiss(tid);
@@ -614,9 +636,11 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     if (!window.confirm('Excluir esta pesagem?')) return;
     const tid = toast.loading('Excluindo pesagem...');
     try {
-      const res = await fetch(`/api/weight-history?id=${id}`, {
-        method: 'DELETE',
-      });
+      const res = await fetch(`/api/weight-history?id=${id}`,
+        {
+          method: 'DELETE',
+        }
+      );
       if (!res.ok) throw new Error((await res.json()).error ?? 'Erro');
       toast.dismiss(tid);
       toast.success('Pesagem excluída.');
@@ -635,28 +659,42 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   const saveSanitary = async (id: string, type: string) => {
     const tid = toast.loading('Salvando registro sanitário...');
     try {
-      const res = await fetch(`/api/sanitary?id=${id}&type=${type}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editingSanitaryData),
-      });
+      const res = await fetch(`/api/sanitary?id=${id}&type=${type}`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(editingSanitaryData),
+        }
+      );
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Erro');
       toast.dismiss(tid);
       toast.success('Registro atualizado.');
       const updated = data.data;
-      if (type === 'vaccine')
-        setListVaccines((prev) =>
-          prev.map((v) => (v.id === id ? { ...v, ...updated } : v))
-        );
-      if (type === 'deworming')
-        setListDewormings((prev) =>
-          prev.map((d) => (d.id === id ? { ...d, ...updated } : d))
-        );
-      if (type === 'disease')
-        setListDiseases((prev) =>
-          prev.map((d) => (d.id === id ? { ...d, ...updated } : d))
-        );
+      if (animal && updated) {
+        if (type === 'vaccine') {
+          setAnimal({
+            ...animal,
+            vaccines: (animal.vaccines ?? []).map((v) =>
+              v.id === id ? { ...v, ...updated } : v
+            ),
+          });
+        } else if (type === 'deworming') {
+          setAnimal({
+            ...animal,
+            dewormings: (animal.dewormings ?? []).map((d) =>
+              d.id === id ? { ...d, ...updated } : d
+            ),
+          });
+        } else if (type === 'disease') {
+          setAnimal({
+            ...animal,
+            diseases: (animal.diseases ?? []).map((d) =>
+              d.id === id ? { ...d, ...updated } : d
+            ),
+          });
+        }
+      }
       setEditingSanitaryId(null);
     } catch (e) {
       toast.dismiss(tid);
@@ -668,18 +706,32 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     if (!window.confirm('Excluir este registro sanitário?')) return;
     const tid = toast.loading('Excluindo...');
     try {
-      const res = await fetch(`/api/sanitary?id=${id}&type=${type}`, {
-        method: 'DELETE',
-      });
+      const res = await fetch(`/api/sanitary?id=${id}&type=${type}`,
+        {
+          method: 'DELETE',
+        }
+      );
       if (!res.ok) throw new Error((await res.json()).error ?? 'Erro');
       toast.dismiss(tid);
       toast.success('Registro excluído.');
-      if (type === 'vaccine')
-        setListVaccines((prev) => prev.filter((v) => v.id !== id));
-      if (type === 'deworming')
-        setListDewormings((prev) => prev.filter((d) => d.id !== id));
-      if (type === 'disease')
-        setListDiseases((prev) => prev.filter((d) => d.id !== id));
+      if (animal) {
+        if (type === 'vaccine') {
+          setAnimal({
+            ...animal,
+            vaccines: (animal.vaccines ?? []).filter((v) => v.id !== id),
+          });
+        } else if (type === 'deworming') {
+          setAnimal({
+            ...animal,
+            dewormings: (animal.dewormings ?? []).filter((d) => d.id !== id),
+          });
+        } else if (type === 'disease') {
+          setAnimal({
+            ...animal,
+            diseases: (animal.diseases ?? []).filter((d) => d.id !== id),
+          });
+        }
+      }
     } catch (e) {
       toast.dismiss(tid);
       toast.error(e instanceof Error ? e.message : 'Erro ao excluir.');
@@ -961,12 +1013,24 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
       );
       const savedData = response.data?.data;
       toast.dismiss(loadingId);
-      if (sanitaryForm.type === 'vaccine' && savedData)
-        setListVaccines((prev) => [savedData as Vaccine, ...prev]);
-      if (sanitaryForm.type === 'deworming' && savedData)
-        setListDewormings((prev) => [savedData as Deworming, ...prev]);
-      if (sanitaryForm.type === 'disease' && savedData)
-        setListDiseases((prev) => [savedData as Disease, ...prev]);
+      if (animal && savedData) {
+        if (sanitaryForm.type === 'vaccine') {
+          setAnimal({
+            ...animal,
+            vaccines: [savedData, ...(animal.vaccines ?? [])],
+          });
+        } else if (sanitaryForm.type === 'deworming') {
+          setAnimal({
+            ...animal,
+            dewormings: [savedData, ...(animal.dewormings ?? [])],
+          });
+        } else if (sanitaryForm.type === 'disease') {
+          setAnimal({
+            ...animal,
+            diseases: [savedData, ...(animal.diseases ?? [])],
+          });
+        }
+      }
       setOpenSanitaryModal(false);
       setSanitaryForm({
         type: 'vaccine',
