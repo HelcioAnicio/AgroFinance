@@ -28,7 +28,7 @@ export async function POST(request: Request) {
 
   const seatCount = await getBillableSeatCount(context.farm.id);
   const secretKey = process.env.STRIPE_SECRET_KEY;
-  const appUrl = getAppUrl(request);
+  const appUrl = getAppUrl();
 
   if (!secretKey) {
     return NextResponse.json(
