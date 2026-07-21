@@ -37,8 +37,9 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
     animal.externalBullFatherId ? 'externo' : 'interno'
   );
 
-  const handleFatherTypeChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleFatherTypeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setFatherType(event.target.value);
+    // Reset father selection when type changes
     setAnimal({
       ...animal,
       fatherId: null,
@@ -69,6 +70,7 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
         Informações principais
       </p>
       <section className="flex flex-col gap-4">
+        {/* First Row */}
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className={labelClass} htmlFor="manualId">
@@ -98,11 +100,14 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
               <option value="inactive">Inativo</option>
               <option value="dead">Morto</option>
               <option value="sold">Vendido</option>
-              <option value="lost">Perdida</option>
+              <option value="lost">Perdido</option>
               <option value="trash">Descarte</option>
             </select>
           </div>
-          {animal.status && animal.status !== 'active' && (
+        </div>
+        {/* Status Date Row */}
+        {animal.status && animal.status !== 'active' && (
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <label className={labelClass} htmlFor="statusChangeDate">
                 Data alteração status
@@ -122,9 +127,9 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
                 className={inputClass}
               />
             </div>
-          )}
-        </div>
-
+          </div>
+        )}
+        {/* Main Details Grid */}
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className={labelClass} htmlFor="birthDate">
@@ -143,7 +148,6 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
               className={inputClass}
             />
           </div>
-
           <div>
             <label className={labelClass} htmlFor="weight">
               Peso atual (kg)
@@ -157,7 +161,6 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
               className={inputClass}
             />
           </div>
-
           <div>
             <label className={labelClass} htmlFor="bodyConditionScore">
               ECC (Escore de Condição Corporal)
@@ -177,7 +180,6 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
               ))}
             </select>
           </div>
-
           <div>
             <label className={labelClass} htmlFor="weightRecordType">
               Tipo pesagem
@@ -196,7 +198,6 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
               ))}
             </select>
           </div>
-
           <div>
             <label className={labelClass} htmlFor="weightRecordDate">
               Data da pesagem
@@ -216,7 +217,6 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
               className={inputClass}
             />
           </div>
-
           <div>
             <label className={labelClass} htmlFor="breed">
               Raça
@@ -236,7 +236,6 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
               ))}
             </select>
           </div>
-
           <div>
             <label className={labelClass} htmlFor="category">
               Categoria
@@ -268,7 +267,6 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
               )}
             </select>
           </div>
-
           <div>
             <label className={labelClass} htmlFor="motherId">
               Mãe
@@ -284,25 +282,22 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
               <option value="Comercial">Comercial</option>
               {animals
                 .filter(
-                  (animal) =>
-                    animal.gender === 'female' &&
-                    animal.status === 'active' &&
-                    animal.category !== 'calf' &&
-                    animal.category !== 'neonate'
+                  (a) =>
+                    a.gender === 'female' &&
+                    a.status === 'active' &&
+                    a.category !== 'calf' &&
+                    a.category !== 'neonate'
                 )
-                .map((animal) => (
-                  <option key={animal.id} value={animal.id}>
-                    Vaca {animal.manualId}
+                .map((a) => (
+                  <option key={a.id} value={a.id}>
+                    Vaca {a.manualId}
                   </option>
                 ))}
             </select>
           </div>
-
-          <div className="flex flex-col gap-2">
-             <span className="text-[0.7rem] font-semibold uppercase text-muted-foreground">
-              Tipo de Pai:
-            </span>
-            <div className="grid grid-cols-2 gap-2">
+          <div>
+            <label className={labelClass}>Tipo de Pai</label>
+            <div className="flex h-10 items-center gap-4 rounded-lg border border-input bg-white px-3">
               <RadioForm
                 htmlFor="edit-interno"
                 label="Interno"
@@ -325,27 +320,26 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
               />
             </div>
           </div>
-
           {fatherType === 'interno' ? (
             <SelectForm
               htmlFor="fatherId"
-              label="Pai (Interno):"
+              label="Pai (Interno)"
               name="fatherId"
               id="fatherId-edit"
               value={animal.fatherId ?? ''}
               onChange={handleFatherSelection}
-               options={[
+              options={[
                 { label: 'Comercial', value: 'comercial' },
                 ...animals
                   .filter(
-                    (animal) =>
-                      animal.gender === 'male' &&
-                      animal.category.includes('bull') &&
-                      animal.status === 'active'
+                    (a) =>
+                      a.gender === 'male' &&
+                      a.category.includes('bull') &&
+                      a.status === 'active'
                   )
-                  .map((animal) => ({
-                    label: `Touro ${animal.manualId}`,
-                    value: animal.id,
+                  .map((a) => ({
+                    label: `Touro ${a.manualId}`,
+                    value: a.id,
                   })),
               ]}
               defaultOption="Escolha o pai"
@@ -353,18 +347,34 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
           ) : (
             <SelectForm
               htmlFor="externalBullFatherId"
-              label="Pai (Externo):"
+              label="Pai (Externo)"
               name="externalBullFatherId"
               id="externalBullFatherId-edit"
               value={animal.externalBullFatherId ?? ''}
               onChange={handleFatherSelection}
               options={externalBulls.map((bull) => ({
-                  label: bull.name,
-                  value: bull.id,
-                }))}
+                label: bull.name,
+                value: bull.id,
+              }))}
               defaultOption="Escolha o touro externo"
             />
           )}
+        </div>
+        {/* Observations Row */}
+        <div>
+          <label className={labelClass} htmlFor="observations">
+            Observações
+          </label>
+          <textarea
+            name="observations"
+            id="observations"
+            value={animal.observations ?? ''}
+            onChange={(e) =>
+              setAnimal({ ...animal, observations: e.target.value })
+            }
+            className={`${inputClass} h-24`} // Using inputClass for consistency
+            rows={3}
+          />
         </div>
       </section>
     </div>

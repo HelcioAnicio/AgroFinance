@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
-import { Animal } from '@/types/animal';
+import { Animal, IAnimal } from '@/types/animal';
 import { MdHighlightOff } from 'react-icons/md';
 import { FaCheckCircle } from 'react-icons/fa';
 import { IoSkull } from 'react-icons/io5';
@@ -11,7 +11,7 @@ import {
 } from 'react-icons/tb';
 
 interface InformationProps {
-  allDataForm: Animal | null;
+  allDataForm: IAnimal | null;
 }
 
 export const CardInformation: React.FC<InformationProps> = ({
@@ -140,11 +140,9 @@ export const CardInformation: React.FC<InformationProps> = ({
         <Card className="w-max rounded-sm px-3 py-1">
           <strong>Id Pai: </strong>
           <span>
-            {allDataForm?.father?.manualId == null
-              ? 'Comercial'
-              : allDataForm?.father?.manualId == typeof Number
-                ? Number(allDataForm?.father?.manualId)
-                : `${allDataForm?.father?.manualId.charAt(0).toUpperCase()}${allDataForm?.father?.manualId.substring(1)}`}
+            {allDataForm?.externalBullFather
+              ? `Ex. ${allDataForm.externalBullFather.name}`
+              : allDataForm?.father?.manualId ?? 'Comercial'}
           </span>
         </Card>
       </section>
