@@ -1496,7 +1496,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
           {/* Eficiência reprodutiva — full width */}
           <div className="rounded-2xl border bg-white p-5 shadow-sm">
             <h2 className="mb-4 font-bold">Eficiência reprodutiva</h2>
-            {animal?.gender === 'male' ? (
+            {animal.gender === 'male' ? (
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {[
                   {
@@ -1575,13 +1575,13 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
           </div>
 
           {/* Histórico Reprodutivo — full width, females only */}
-          {animal?.gender === 'female' && (
+         {animal.gender === 'female' && (
             <ReproductiveHistorySection
               offspringFromMother={femaleOffspring}
               calfLossHistories={calfLossHistories}
               animals={animals}
               externalBulls={externalBulls}
-              animalId={animal?.id}
+              animalId={animal.id}
               onLossAdded={handleLossAdded}
               onLossDeleted={handleLossDeleted}
               onLossUpdated={handleLossUpdated}
@@ -1592,9 +1592,9 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
           <div className="flex flex-wrap gap-4">
             <div className="min-w-[250px] flex-1 rounded-2xl border bg-white p-5 shadow-sm">
               <h2 className="mb-3 font-bold">Histórico de peso</h2>
-              {animal?.weightHistories?.length ? (
+              {animal.weightHistories?.length ? (
                 <div className="space-y-2">
-                  {animal?.weightHistories.map((h: AnimalWeightHistory) => {
+                  {animal.weightHistories.map((h: AnimalWeightHistory) => {
                     const isEditingThis = editingWeightId === h.id;
                     return (
                       <div
@@ -1726,53 +1726,9 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                   Nenhum histórico de peso registrado.
                 </p>
               )}
-
-              {animal?.isForFattening &&
-                animal?.weightHistories &&
-                animal?.weightHistories.length >= 2 && (
-                  <div className="mt-4">
-                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                      Curva de peso
-                    </p>
-                    <ResponsiveContainer width="100%" height={120}>
-                      <LineChart
-                        data={[...animal.weightHistories]
-                          .sort(
-                            (a, b) =>
-                              new Date(a.measuredAt).getTime() -
-                              new Date(b.measuredAt).getTime()
-                          )
-                          .map((h) => ({
-                            data: new Date(h.measuredAt).toLocaleDateString(
-                              'pt-BR',
-                              { day: '2-digit', month: '2-digit' }
-                            ),
-                            peso: Number(h.weight),
-                          }))}
-                        margin={{ top: 4, right: 8, left: -20, bottom: 0 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                        <XAxis dataKey="data" tick={{ fontSize: 10 }} />
-                        <YAxis tick={{ fontSize: 10 }} />
-                        <Tooltip
-                          formatter={(v) => [`${v} kg`, 'Peso']}
-                          contentStyle={{ fontSize: 12 }}
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="peso"
-                          stroke="hsl(var(--primary))"
-                          strokeWidth={2}
-                          dot={{ r: 3 }}
-                          activeDot={{ r: 5 }}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                )}
             </div>
 
-            {animal?.isForFattening && (
+            {animal.isForFattening && (
               <div className="min-w-[250px] flex-1 rounded-2xl border bg-white p-5 shadow-sm">
                 <h2 className="mb-3 font-bold">GMD — Ganho de massa diária</h2>
                 {formattedAverageGmd !== null ? (
@@ -1995,12 +1951,12 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
           <div className="space-y-4 lg:col-span-2">
             <div>
               <FormBasicInformation
-                animal={animal!}
-                setAnimal={setAnimal}
-                handleInputValues={handleInputValues}
-                externalBulls={externalBulls}
+                animal={animal}
                 animals={animals}
                 breedArray={breedArray}
+                externalBulls={externalBulls}
+                handleInputValues={handleInputValues}
+                setAnimal={setAnimal}
                 scores={scores}
               />
             </div>
@@ -2010,7 +1966,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                 Dados reprodutivos
               </p>
               <section className="flex w-full max-w-sm flex-col gap-4">
-                {animal?.gender === 'male' ? (
+                {animal.gender === 'male' ? (
                   <FormMaleReproductive
                     animal={animal}
                     handleInputValues={handleInputValues}
@@ -2028,7 +1984,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                         name="reproductiveStatus"
                         id="reproductiveStatus"
                         className="w-full rounded-lg border border-input bg-white px-3 py-2 text-sm outline-none transition focus:border-primary"
-                        value={animal?.reproductiveStatus ?? ''}
+                        value={animal.reproductiveStatus ?? ''}
                         onChange={handleInputValues}
                       >
                         <option disabled value=""></option>
@@ -2039,25 +1995,25 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                       </select>
                     </article>
 
-                    {animal?.reproductiveStatus === 'pregnant' && (
+                    {animal.reproductiveStatus === 'pregnant' && (
                       <FormPregnantStatus
-                        animal={animal}
-                        setAnimal={setAnimal}
-                        handleInputValues={handleInputValues}
-                        animals={animals}
-                        externalBulls={externalBulls}
+                      animal={animal}
+                      animals={animals}
+                      externalBulls={externalBulls}
+                      handleInputValues={handleInputValues}
+                      setAnimal={setAnimal}
                       />
                     )}
-                    {animal?.reproductiveStatus === 'waiting' && (
+                    {animal.reproductiveStatus === 'waiting' && (
                       <FormWaitingStatus
-                        setAnimal={setAnimal}
                         animal={animal}
-                        handleInputValues={handleInputValues}
                         animals={animals}
                         externalBulls={externalBulls}
+                        handleInputValues={handleInputValues}
+                        setAnimal={setAnimal}
                       />
                     )}
-                    {animal?.reproductiveStatus === 'pev' && (
+                    {animal.reproductiveStatus === 'pev' && (
                       <FormPevStatus
                         animal={animal}
                         handleInputValues={handleInputValues}
@@ -2240,7 +2196,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                 <input
                   type="checkbox"
                   name="isForFattening"
-                  checked={!!animal?.isForFattening}
+                  checked={!!animal.isForFattening}
                   onChange={handleInputValues}
                   className="size-4 rounded border-input accent-primary"
                 />
@@ -2322,8 +2278,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                   </p>
                   {estimatedValue !== null && (
                     <p className="text-[10px] text-primary-foreground/50">
-                      {carcassArrobas.toFixed(1)}@ × R${' '}
-                      {priceNum.toFixed(2)}/@
+                      {carcassArrobas.toFixed(1)}@ × R$ {priceNum.toFixed(2)}/@
                     </p>
                   )}
                 </div>
@@ -2537,7 +2492,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
               <TabsTrigger value="disease">Doença</TabsTrigger>
             </TabsList>
 
-            {([] as SanitaryType[]).map(
+            {(['vaccine', 'deworming', 'disease'] as SanitaryType[]).map(
               (tab) => (
                 <TabsContent key={tab} value={tab} className="space-y-3">
                   <div>

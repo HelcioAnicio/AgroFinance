@@ -7,13 +7,13 @@ import React, { useState } from 'react';
 
 interface FormBasicInformationProps {
   animal: Animal;
-  setAnimal: (animal: Animal | null) => void;
+  animals: Animal[];
+  breedArray: string[];
   externalBulls: ExternalBull[];
   handleInputValues: (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
-  breedArray: string[];
-  animals: Animal[];
+  setAnimal: (animal: Animal | null) => void;
   scores: number[];
 }
 
@@ -26,11 +26,11 @@ const selectClass =
 
 export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
   animal,
-  setAnimal,
-  handleInputValues,
-  externalBulls,
-  breedArray,
   animals,
+  breedArray,
+  externalBulls,
+  handleInputValues,
+  setAnimal,
   scores,
 }) => {
   const [fatherType, setFatherType] = useState(
