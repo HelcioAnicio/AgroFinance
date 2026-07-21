@@ -188,6 +188,7 @@ export const FormLogin: React.FC<FormLoginProps> = ({ fetchedUsers }) => {
                 </button>
                 <button
                   type="button"
+                  disabled
                   className="flex h-11 items-center justify-center gap-2 rounded-md border bg-[#f5f3ef] text-sm font-semibold"
                 >
                   <IoLogoApple className="text-xl" />
