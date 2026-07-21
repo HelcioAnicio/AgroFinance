@@ -37,7 +37,7 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
     animal.externalBullFatherId ? 'externo' : 'interno'
   );
 
-  const handleFatherTypeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFatherTypeChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFatherType(event.target.value);
     // Reset father selection when type changes
     setAnimal({

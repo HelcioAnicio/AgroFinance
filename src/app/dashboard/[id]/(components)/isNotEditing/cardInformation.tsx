@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
-import { Animal, IAnimal } from '@/types/animal';
+import { Animal } from '@/types/animal';
 import { MdHighlightOff } from 'react-icons/md';
 import { FaCheckCircle } from 'react-icons/fa';
 import { IoSkull } from 'react-icons/io5';
@@ -11,7 +11,7 @@ import {
 } from 'react-icons/tb';
 
 interface InformationProps {
-  allDataForm: IAnimal | null;
+  allDataForm: Animal | null;
 }
 
 export const CardInformation: React.FC<InformationProps> = ({
