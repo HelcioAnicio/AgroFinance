@@ -153,7 +153,9 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
 }) => {
   const [arrobaPriceLoaded, setArrobaPriceLoaded] = useState(false);
   const { animal, setAnimal } = useAppGlobal();
+  console.log('animal: ', animal);
   const { animals } = useAppGlobal();
+  console.log('animals: ', animals);
 
   //   {...animal,
   //   bullId: animal?.externalBullId
@@ -932,6 +934,10 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
         }
       );
       toast.dismiss(loadingId);
+      const savedExternalBullId =
+        formData.externalBullFatherId !== null
+          ? formData.externalBullFatherId
+          : null;
       const savedFatherId =
         formData.fatherId === 'Comercial' ? null : formData.fatherId;
       const savedMotherId =
@@ -1016,7 +1022,23 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   const sanitaryFieldClass =
     'w-full border border-b border-b-primary bg-transparent outline-none';
   const animalTitle =
-    animal!.manualId.charAt(0).toUpperCase() + animal!.manualId.slice(1);
+    animal?.manualId &&
+    animal.manualId.charAt(0).toUpperCase() + animal.manualId.slice(1);
+
+  const handleNavigation = (id: string | null) => {
+    if (!id) return;
+    // setIsLoading(true);
+    const selectedAnimal = animals.find((a) => a.id === id);
+    if (selectedAnimal) {
+      setAnimal(selectedAnimal);
+    }
+    router.push(`/dashboard/${id}`);
+  };
+
+  const mother = animals.find((a) => a.id === animal?.motherId);
+  const motherExternal = externalBulls.find((e) => e.id === animal?.motherId);
+  const father = animals.find((a) => a.id === animal?.fatherId);
+  const fatherExternal = externalBulls.find((e) => e.id === animal?.fatherId);
 
   return (
     <div className="pb-14">
@@ -1145,7 +1167,13 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
 
               {/* ID Mãe + ID Pai */}
               <div className="mt-5 grid grid-cols-2 gap-3">
-                <div className="flex items-center gap-3 rounded-xl border bg-muted/20 p-3">
+                <div
+                  className="flex cursor-pointer items-center gap-3 rounded-xl border bg-muted/20 p-3"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    handleNavigation(mother?.id ?? null);
+                  }}
+                >
                   <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-pink-100 text-base">
                     ♀
                   </span>
@@ -1154,14 +1182,22 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                       ID Mãe
                     </p>
                     <p className="font-bold">
-                      {animal?.mother?.manualId
-                        ? animal?.mother.manualId.charAt(0).toUpperCase() +
-                          animal?.mother.manualId.slice(1)
-                        : 'Comercial'}
+                      {mother
+                        ? mother?.manualId.charAt(0).toUpperCase() +
+                          mother?.manualId.slice(1)
+                        : motherExternal
+                          ? motherExternal?.name
+                          : 'Comercial'}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 rounded-xl border bg-muted/20 p-3">
+                <div
+                  className="flex cursor-pointer items-center gap-3 rounded-xl border bg-muted/20 p-3"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    handleNavigation(father?.id ?? null);
+                  }}
+                >
                   <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-base">
                     ♂
                   </span>
@@ -1170,10 +1206,12 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                       ID Pai
                     </p>
                     <p className="font-bold">
-                      {animal?.father?.manualId
-                        ? animal?.father.manualId.charAt(0).toUpperCase() +
-                          animal?.father.manualId.slice(1)
-                        : 'Comercial'}
+                      {father
+                        ? father?.manualId.charAt(0).toUpperCase() +
+                          father?.manualId.slice(1)
+                        : fatherExternal
+                          ? fatherExternal?.name
+                          : 'Comercial'}
                     </p>
                   </div>
                 </div>
@@ -1219,6 +1257,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                     type="number"
                     min="1"
                     max="100"
+                    defaultValue={50}
                     value={carcassPercent}
                     onChange={(e) => setCarcassPercent(e.target.value)}
                     className="w-14 rounded-lg border px-2 py-1 text-xs outline-none focus:border-primary"
@@ -1284,6 +1323,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                     type="number"
                     min="1"
                     max="100"
+                    defaultValue={50}
                     value={carcassPercent}
                     onChange={(e) => setCarcassPercent(e.target.value)}
                     className="w-16 rounded-lg border px-2 py-1 text-xs outline-none focus:border-primary"
@@ -1944,9 +1984,10 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
             <div>
               <FormBasicInformation
                 animal={animal!}
-                handleInputValues={handleInputValues}
                 animals={animals}
                 breedArray={breedArray}
+                externalBulls={externalBulls}
+                handleInputValues={handleInputValues}
                 scores={scores}
               />
             </div>
@@ -2231,6 +2272,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                       type="number"
                       min="1"
                       max="100"
+                      defaultValue={50}
                       value={carcassPercent}
                       onChange={(e) => setCarcassPercent(e.target.value)}
                       className="w-14 rounded-lg border border-white/20 bg-white/10 px-2 py-1 text-xs text-white outline-none focus:border-white/40"

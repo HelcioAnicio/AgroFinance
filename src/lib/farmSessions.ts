@@ -14,28 +14,11 @@ const EVICTION_PRIORITY: Record<string, number> = {
 
 const SESSION_TTL_MS = 24 * 60 * 60 * 1000; // 24h de inatividade = sessão expirada
 
-type SessionRow = {
-  id: string;
-  jti: string;
-  userId: string;
-  farmId: string;
-  role: string;
-  lastSeenAt: Date;
-};
-
-/**
- * Registra uma nova sessão para o usuário na fazenda ativa.
- * Aplica o limite de sessões simultâneas do plano e evicta a sessão
- * mais antiga de menor hierarquia se necessário.
- * Nunca evicta o OWNER.
- */
 export async function createFarmSession(
   userId: string,
   jti: string
 ): Promise<void> {
-  // Busca fazenda ativa e role do usuário
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const dbUser = await (prisma.user.findUnique as any)({
+  const dbUser = await prisma.user.findUnique({
     where: { id: userId },
     select: {
       activeFarmId: true,
@@ -44,10 +27,7 @@ export async function createFarmSession(
         orderBy: { createdAt: 'asc' },
       },
     },
-  }) as {
-    activeFarmId: string | null;
-    farmMemberships: { farmId: string; role: string }[];
-  } | null;
+  });
 
   if (!dbUser) return;
 
@@ -58,45 +38,36 @@ export async function createFarmSession(
     dbUser.farmMemberships.find((m) => m.role === 'OWNER') ??
     dbUser.farmMemberships[0];
 
-  if (!membership) return; // Usuário sem fazenda ainda
+  if (!membership) return;
 
   const { farmId, role } = membership;
 
-  // Busca tier do plano da fazenda
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const farm = await (prisma.farm.findUnique as any)({
+  const farm = await prisma.farm.findUnique({
     where: { id: farmId },
     select: { stripePlanTier: true, name: true },
-  }) as { stripePlanTier: string | null; name: string } | null;
+  });
 
   const seatLimit = farm?.stripePlanTier
     ? getSeatLimitForTier(farm.stripePlanTier)
     : null;
 
-  // Remove sessões expiradas desta fazenda
+  // Remove apenas sessões expiradas (TTL) — nada de apagar por userId
   const expiredBefore = new Date(Date.now() - SESSION_TTL_MS);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await (prisma.farmSession.deleteMany as any)({
+  await prisma.farmSession.deleteMany({
     where: { farmId, lastSeenAt: { lt: expiredBefore } },
   });
 
-  // Remove sessões anteriores do próprio usuário nesta fazenda (sempre fresh)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await (prisma.farmSession.deleteMany as any)({
-    where: { farmId, userId },
-  });
+  // 🔴 REMOVIDO: deleteMany({ where: { farmId, userId } })
+  // Essa linha restringia a 1 sessão por usuário, o que nunca foi pedido.
+  // O limite deve valer só para o total de sessões da fazenda.
 
   if (seatLimit !== null) {
-    // Conta sessões ativas de outros usuários
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const activeSessions = await (prisma.farmSession.findMany as any)({
+    const activeSessions = await prisma.farmSession.findMany({
       where: { farmId },
-      orderBy: { lastSeenAt: 'asc' }, // mais antigo primeiro
-    }) as SessionRow[];
+      orderBy: { lastSeenAt: 'asc' },
+    });
 
     if (activeSessions.length >= seatLimit) {
-      // Ordena: menor prioridade (mais expendável) primeiro;
-      // empate: mais antigo (lastSeenAt menor) primeiro
       const sorted = [...activeSessions].sort((a, b) => {
         const aPrio = EVICTION_PRIORITY[a.role] ?? 0;
         const bPrio = EVICTION_PRIORITY[b.role] ?? 0;
@@ -106,12 +77,9 @@ export async function createFarmSession(
 
       const toEvict = sorted[0];
 
-      // Nunca evicta OWNER
       if (toEvict && toEvict.role !== 'OWNER') {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await (prisma.farmSession.delete as any)({ where: { id: toEvict.id } });
+        await prisma.farmSession.delete({ where: { id: toEvict.id } });
 
-        // Notifica o usuário evictado via sistema de notificações
         await prisma.notification.create({
           data: {
             userId: toEvict.userId,
@@ -124,9 +92,7 @@ export async function createFarmSession(
     }
   }
 
-  // Cria a nova sessão
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await (prisma.farmSession.create as any)({
+  await prisma.farmSession.create({
     data: { userId, farmId, role, jti, lastSeenAt: new Date() },
   });
 }
@@ -136,17 +102,15 @@ export async function createFarmSession(
  * Retorna false se a sessão foi evictada ou expirou.
  */
 export async function validateFarmSession(jti: string): Promise<boolean> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const session = await (prisma.farmSession.findUnique as any)({
+  const session = await prisma.farmSession.findUnique({
     where: { jti },
     select: { id: true },
-  }) as { id: string } | null;
+  });
 
   if (!session) return false;
 
   // Atualiza lastSeenAt para manter a sessão ativa
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await (prisma.farmSession.update as any)({
+  await prisma.farmSession.update({
     where: { jti },
     data: { lastSeenAt: new Date() },
   });
@@ -159,8 +123,7 @@ export async function validateFarmSession(jti: string): Promise<boolean> {
  */
 export async function deleteFarmSession(jti: string): Promise<void> {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (prisma.farmSession.delete as any)({ where: { jti } });
+    await prisma.farmSession.delete({ where: { jti } });
   } catch {
     // Ignora se a sessão já não existe
   }

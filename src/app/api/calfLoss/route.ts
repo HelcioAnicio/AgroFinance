@@ -21,35 +21,60 @@ export async function POST(req: Request) {
 
     if (!animalId || !lossDateRaw || !reason || !fatherType) {
       return NextResponse.json(
-        { message: 'Campos obrigatorios: animalId, lossDate, reason, fatherType.' },
+        {
+          message:
+            'Campos obrigatorios: animalId, lossDate, reason, fatherType.',
+        },
         { status: 400 }
       );
     }
 
     const lossDate = new Date(lossDateRaw);
     if (Number.isNaN(lossDate.getTime())) {
-      return NextResponse.json({ message: 'Data de perda invalida.' }, { status: 400 });
+      return NextResponse.json(
+        { message: 'Data de perda invalida.' },
+        { status: 400 }
+      );
     }
 
-    const expectedDueDate = expectedDueDateRaw ? new Date(expectedDueDateRaw) : null;
+    const expectedDueDate = expectedDueDateRaw
+      ? new Date(expectedDueDateRaw)
+      : null;
     if (expectedDueDate && Number.isNaN(expectedDueDate.getTime())) {
-      return NextResponse.json({ message: 'Previsao de parto invalida.' }, { status: 400 });
+      return NextResponse.json(
+        { message: 'Previsao de parto invalida.' },
+        { status: 400 }
+      );
     }
 
     if (fatherType === 'internal' && !fatherAnimalId) {
-      return NextResponse.json({ message: 'Pai interno requer fatherAnimalId.' }, { status: 400 });
+      return NextResponse.json(
+        { message: 'Pai interno requer fatherAnimalId.' },
+        { status: 400 }
+      );
     }
     if (fatherType === 'external' && !externalBullId) {
-      return NextResponse.json({ message: 'Pai externo requer externalBullId.' }, { status: 400 });
+      return NextResponse.json(
+        { message: 'Pai externo requer externalBullId.' },
+        { status: 400 }
+      );
     }
 
     const animal = await prisma.animal.findUnique({
       where: { id: animalId },
-      select: { id: true, ownerId: true, farmId: true, reproductiveStatus: true },
+      select: {
+        id: true,
+        ownerId: true,
+        farmId: true,
+        reproductiveStatus: true,
+      },
     });
 
     if (!animal || animal.farmId !== context.farm.id) {
-      return NextResponse.json({ message: 'Animal nao encontrado.' }, { status: 404 });
+      return NextResponse.json(
+        { message: 'Animal nao encontrado.' },
+        { status: 404 }
+      );
     }
 
     const calfLossDelegate = (
@@ -76,14 +101,18 @@ export async function POST(req: Request) {
       lossDate,
       reason: reason ?? null,
       fatherType,
-      fatherAnimalId: fatherType === 'internal' ? (fatherAnimalId ?? null) : null,
-      externalBullId: fatherType === 'external' ? (externalBullId ?? null) : null,
+      fatherAnimalId:
+        fatherType === 'internal' ? (fatherAnimalId ?? null) : null,
+      externalBullId:
+        fatherType === 'external' ? (externalBullId ?? null) : null,
     };
 
     const created = await prisma.$transaction(async (tx) => {
       const record = await (
         tx as unknown as {
-          animalCalfLossHistory: { create: (args: { data: object }) => Promise<{ id: string }> };
+          animalCalfLossHistory: {
+            create: (args: { data: object }) => Promise<{ id: string }>;
+          };
         }
       ).animalCalfLossHistory.create({ data: payload });
 
@@ -141,31 +170,57 @@ export async function PUT(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
-    if (!id) return NextResponse.json({ message: 'ID nao fornecido.' }, { status: 400 });
+    if (!id)
+      return NextResponse.json(
+        { message: 'ID nao fornecido.' },
+        { status: 400 }
+      );
 
     const body = await req.json();
-    const { lossDate: lossDateRaw, reason, expectedDueDate: expectedDueDateRaw, fatherType, fatherAnimalId, externalBullId } = body;
+    const {
+      lossDate: lossDateRaw,
+      reason,
+      expectedDueDate: expectedDueDateRaw,
+      fatherType,
+      fatherAnimalId,
+      externalBullId,
+    } = body;
 
     if (!lossDateRaw || !reason || !fatherType) {
-      return NextResponse.json({ message: 'Campos obrigatorios: lossDate, reason, fatherType.' }, { status: 400 });
+      return NextResponse.json(
+        { message: 'Campos obrigatorios: lossDate, reason, fatherType.' },
+        { status: 400 }
+      );
     }
 
     const lossDate = new Date(lossDateRaw);
-    if (Number.isNaN(lossDate.getTime())) return NextResponse.json({ message: 'Data invalida.' }, { status: 400 });
+    if (Number.isNaN(lossDate.getTime()))
+      return NextResponse.json({ message: 'Data invalida.' }, { status: 400 });
 
-    const expectedDueDate = expectedDueDateRaw ? new Date(expectedDueDateRaw) : null;
+    const expectedDueDate = expectedDueDateRaw
+      ? new Date(expectedDueDateRaw)
+      : null;
 
     const calfLossDelegate = (
       prisma as unknown as {
         animalCalfLossHistory?: {
-          findUnique: (args: object) => Promise<{ id: string; animalId: string; animal: { farmId: string } } | null>;
+          findUnique: (
+            args: object
+          ) => Promise<{
+            id: string;
+            animalId: string;
+            animal: { farmId: string };
+          } | null>;
           update: (args: object) => Promise<unknown>;
         };
       }
     ).animalCalfLossHistory;
 
     if (!calfLossDelegate?.findUnique) {
-      return NextResponse.json({ message: 'Funcionalidade indisponivel.' }, { status: 503 });
+      return NextResponse.json(
+        { message: 'Funcionalidade indisponivel.' },
+        { status: 503 }
+      );
     }
 
     const record = await calfLossDelegate.findUnique({
@@ -174,7 +229,10 @@ export async function PUT(req: Request) {
     } as object);
 
     if (!record || record.animal.farmId !== context.farm.id) {
-      return NextResponse.json({ message: 'Registro nao encontrado.' }, { status: 404 });
+      return NextResponse.json(
+        { message: 'Registro nao encontrado.' },
+        { status: 404 }
+      );
     }
 
     const updated = await calfLossDelegate.update({
@@ -184,8 +242,10 @@ export async function PUT(req: Request) {
         reason: reason ?? null,
         expectedDueDate,
         fatherType,
-        fatherAnimalId: fatherType === 'internal' ? (fatherAnimalId ?? null) : null,
-        externalBullId: fatherType === 'external' ? (externalBullId ?? null) : null,
+        fatherAnimalId:
+          fatherType === 'internal' ? (fatherAnimalId ?? null) : null,
+        externalBullId:
+          fatherType === 'external' ? (externalBullId ?? null) : null,
       },
       include: {
         fatherAnimal: { select: { id: true, manualId: true } },
@@ -210,20 +270,32 @@ export async function DELETE(req: Request) {
     const id = searchParams.get('id');
 
     if (!id) {
-      return NextResponse.json({ message: 'ID nao fornecido.' }, { status: 400 });
+      return NextResponse.json(
+        { message: 'ID nao fornecido.' },
+        { status: 400 }
+      );
     }
 
     const calfLossDelegate = (
       prisma as unknown as {
         animalCalfLossHistory?: {
-          findUnique: (args: object) => Promise<{ id: string; animalId: string; animal: { farmId: string } } | null>;
+          findUnique: (
+            args: object
+          ) => Promise<{
+            id: string;
+            animalId: string;
+            animal: { farmId: string };
+          } | null>;
           delete: (args: object) => Promise<unknown>;
         };
       }
     ).animalCalfLossHistory;
 
     if (!calfLossDelegate?.findUnique) {
-      return NextResponse.json({ message: 'Funcionalidade indisponivel.' }, { status: 503 });
+      return NextResponse.json(
+        { message: 'Funcionalidade indisponivel.' },
+        { status: 503 }
+      );
     }
 
     const record = await calfLossDelegate.findUnique({
@@ -232,7 +304,10 @@ export async function DELETE(req: Request) {
     } as object);
 
     if (!record || record.animal.farmId !== context.farm.id) {
-      return NextResponse.json({ message: 'Registro nao encontrado.' }, { status: 404 });
+      return NextResponse.json(
+        { message: 'Registro nao encontrado.' },
+        { status: 404 }
+      );
     }
 
     await calfLossDelegate.delete({ where: { id } } as object);

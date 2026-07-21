@@ -1,8 +1,11 @@
 import { Animal } from '@/types/animal';
 import { weightRecordOptions } from '@/lib/weightHistory';
+import { ExternalBull } from '@/types/externalBull';
+import { RadioForm } from '@/components/ui/radioForm';
 
 interface FormBasicInformationProps {
   animal: Animal;
+  externalBulls: ExternalBull[];
   handleInputValues: (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
@@ -21,6 +24,7 @@ const selectClass =
 export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
   animal,
   handleInputValues,
+  externalBulls,
   breedArray,
   animals,
   scores,
@@ -259,34 +263,68 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
                 ))}
             </select>
           </div>
-
-          <div>
-            <label className={labelClass} htmlFor="fatherId">
-              Pai
-            </label>
-            <select
-              name="fatherId"
-              id="fatherId"
-              value={animal.fatherId ?? 'Comercial'}
-              onChange={handleInputValues}
-              className={selectClass}
-            >
-              <option value="" disabled></option>
-              <option value="Comercial">Comercial</option>
-              {animals
-                .filter(
-                  (animal) =>
-                    animal.gender === 'male' &&
-                    animal.status === 'active' &&
-                    (animal.category === 'bull' ||
-                      animal.category === 'old bull')
-                )
-                .map((animal) => (
-                  <option key={animal.id} value={animal.id}>
-                    Touro {animal.manualId}
+          {!animal.externalBullFatherId ? (
+            <div>
+              <label className={labelClass} htmlFor="fatherId">
+                Pai
+              </label>
+              <select
+                name="fatherId"
+                id="fatherId"
+                value={animal.fatherId ?? 'Comercial'}
+                onChange={handleInputValues}
+                className={selectClass}
+              >
+                <option value="" disabled></option>
+                <option value="Comercial">Comercial</option>
+                {animals
+                  .filter(
+                    (animal) =>
+                      animal.gender === 'male' &&
+                      animal.status === 'active' &&
+                      (animal.category === 'bull' ||
+                        animal.category === 'old bull')
+                  )
+                  .map((animal) => (
+                    <option key={animal.id} value={animal.id}>
+                      Touro {animal.manualId}
+                    </option>
+                  ))}
+              </select>
+            </div>
+          ) : (
+            <div>
+              <label className={labelClass} htmlFor="externalBullFatherId">
+                Pai Externo
+              </label>
+              <select
+                name="externalBullFatherId"
+                id="externalBullFatherId"
+                value={animal.externalBullFatherId ?? 'Comercial'}
+                onChange={handleInputValues}
+                className={selectClass}
+              >
+                <option value="" disabled></option>
+                <option value="Comercial">Comercial</option>
+                {externalBulls.map((bull) => (
+                  <option key={bull.id} value={bull.id}>
+                    Touro {bull.name} - {bull.dosesAvailable}
                   </option>
                 ))}
-            </select>
+              </select>
+            </div>
+          )}
+          <div className="mb-4 flex items-center gap-2">
+            <input
+              type="checkbox"
+              name="fatherExternal"
+              id="fatherExternal"
+              checked={!!animal.externalBullFatherId} // ou a sua variável de estado (ex: isExternal)
+              onChange={handleInputValues}
+            />
+            <label htmlFor="fatherExternal" className="cursor-pointer">
+              Pai é touro externo (IA / Sêmen)?
+            </label>
           </div>
         </div>
       </section>

@@ -18,7 +18,15 @@ import { format } from 'date-fns';
 import { ReproductionManagement } from '@/types/reproduction';
 import { Animal } from '@/types/animal';
 import { ExternalBull } from '@/types/externalBull';
-import { Pencil, CheckCircle2, Circle, Download, Search, X, BarChart2 } from 'lucide-react';
+import {
+  Pencil,
+  CheckCircle2,
+  Circle,
+  Download,
+  Search,
+  X,
+  BarChart2,
+} from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -58,7 +66,12 @@ const ReproductionManagementPage = () => {
   const [externalBulls, setExternalBulls] = useState<ExternalBull[]>([]);
   const [animalSearch, setAnimalSearch] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [stageDates, setStageDates] = useState<Record<string, string>>({ D0: '', Manejo: '', Insemination: '', DG: '' });
+  const [stageDates, setStageDates] = useState<Record<string, string>>({
+    D0: '',
+    Manejo: '',
+    Insemination: '',
+    DG: '',
+  });
   const [formData, setFormData] = useState(emptyForm);
   const [reportOpen, setReportOpen] = useState(false);
 
@@ -68,7 +81,12 @@ const ReproductionManagementPage = () => {
   };
 
   const computeStageDates = useCallback((data: ReproductionManagement[]) => {
-    const dates: Record<string, string> = { D0: '', Manejo: '', Insemination: '', DG: '' };
+    const dates: Record<string, string> = {
+      D0: '',
+      Manejo: '',
+      Insemination: '',
+      DG: '',
+    };
     data.forEach((m) => {
       const ds = toLocalDateString(m.date);
       if (!dates[m.stage] || ds > dates[m.stage]) dates[m.stage] = ds;
@@ -79,47 +97,62 @@ const ReproductionManagementPage = () => {
   const ANIMALS_CACHE_KEY = 'agrofinance_animals_cache';
   const ANIMALS_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-  const fetchData = useCallback(async (forceFresh = false) => {
-    try {
-      // Use cached animals if fresh enough
-      let animalsData: Animal[] = [];
-      let usedCache = false;
-      if (!forceFresh && typeof window !== 'undefined') {
-        const cached = localStorage.getItem(ANIMALS_CACHE_KEY);
-        if (cached) {
-          const { data, timestamp } = JSON.parse(cached) as { data: Animal[]; timestamp: number };
-          if (Date.now() - timestamp < ANIMALS_CACHE_TTL) {
-            animalsData = data;
-            usedCache = true;
+  const fetchData = useCallback(
+    async (forceFresh = false) => {
+      try {
+        // Use cached animals if fresh enough
+        let animalsData: Animal[] = [];
+        let usedCache = false;
+        if (!forceFresh && typeof window !== 'undefined') {
+          const cached = localStorage.getItem(ANIMALS_CACHE_KEY);
+          if (cached) {
+            const { data, timestamp } = JSON.parse(cached) as {
+              data: Animal[];
+              timestamp: number;
+            };
+            if (Date.now() - timestamp < ANIMALS_CACHE_TTL) {
+              animalsData = data;
+              usedCache = true;
+            }
           }
         }
-      }
 
-      const fetches: Promise<Response>[] = [
-        fetch('/api/reproduction-management'),
-        ...(usedCache ? [] : [fetch('/api/dashboard-table-data')]),
-        fetch('/api/external-bulls'),
-      ];
-      const results = await Promise.all(fetches);
-      const mData = await results[0].json();
-      const bData = await results[usedCache ? 1 : 2].json();
+        const fetches: Promise<Response>[] = [
+          fetch('/api/reproduction-management'),
+          ...(usedCache ? [] : [fetch('/api/dashboard-table-data')]),
+          fetch('/api/external-bulls'),
+        ];
+        const results = await Promise.all(fetches);
+        const mData = await results[0].json();
+        const bData = await results[usedCache ? 1 : 2].json();
 
-      if (!usedCache) {
-        const aData = await results[1].json();
-        animalsData = aData.animals || [];
-        if (typeof window !== 'undefined') {
-          localStorage.setItem(ANIMALS_CACHE_KEY, JSON.stringify({ data: animalsData, timestamp: Date.now() }));
+        if (!usedCache) {
+          const aData = await results[1].json();
+          animalsData = aData.animals || [];
+          if (typeof window !== 'undefined') {
+            localStorage.setItem(
+              ANIMALS_CACHE_KEY,
+              JSON.stringify({ data: animalsData, timestamp: Date.now() })
+            );
+          }
         }
+
+        setManagements(mData);
+        setStageDates(computeStageDates(mData));
+        setAnimals(animalsData);
+        setExternalBulls(
+          Array.isArray(bData) ? bData : bData?.externalBulls || []
+        );
+      } catch (e) {
+        console.error(e);
       }
+    },
+    [computeStageDates]
+  );
 
-      setManagements(mData);
-      setStageDates(computeStageDates(mData));
-      setAnimals(animalsData);
-      setExternalBulls(Array.isArray(bData) ? bData : bData?.externalBulls || []);
-    } catch (e) { console.error(e); }
-  }, [computeStageDates]);
-
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   useEffect(() => {
     if (editingId) return;
@@ -143,12 +176,16 @@ const ReproductionManagementPage = () => {
 
   const isCow = (a: Animal) => {
     const c = a.category?.toLowerCase();
-    return a.status?.toLowerCase() === 'active' && (c === 'cow' || c === 'old cow');
+    return (
+      a.status?.toLowerCase() === 'active' && (c === 'cow' || c === 'old cow')
+    );
   };
 
   const isBull = (a: Animal) => {
     const c = a.category?.toLowerCase();
-    return a.status?.toLowerCase() === 'active' && (c === 'bull' || c === 'old bull');
+    return (
+      a.status?.toLowerCase() === 'active' && (c === 'bull' || c === 'old bull')
+    );
   };
 
   const getFilteredAnimals = () => {
@@ -158,41 +195,86 @@ const ReproductionManagementPage = () => {
     let base: Animal[] = [];
     switch (currentStage) {
       case 'D0': {
-        const empty = animals.filter((a) => isCow(a) && (!a.reproductiveStatus || a.reproductiveStatus.toLowerCase() === 'empty'));
-        const ressinc = animals.filter((a) => isCow(a) && managements.some((m) => m.animalId === a.id && m.stage === 'DG' && m.ressinc));
-        base = [...empty, ...ressinc.filter((r) => !empty.some((e) => e.id === r.id))];
+        const empty = animals.filter(
+          (a) =>
+            isCow(a) &&
+            (!a.reproductiveStatus ||
+              a.reproductiveStatus.toLowerCase() === 'empty')
+        );
+        const ressinc = animals.filter(
+          (a) =>
+            isCow(a) &&
+            managements.some(
+              (m) => m.animalId === a.id && m.stage === 'DG' && m.ressinc
+            )
+        );
+        base = [
+          ...empty,
+          ...ressinc.filter((r) => !empty.some((e) => e.id === r.id)),
+        ];
         break;
       }
       case 'Manejo':
-        base = animals.filter((a) => isCow(a) && managements.some((m) => m.animalId === a.id && m.stage === 'D0' && m.protocolo));
+        base = animals.filter(
+          (a) =>
+            isCow(a) &&
+            managements.some(
+              (m) => m.animalId === a.id && m.stage === 'D0' && m.protocolo
+            )
+        );
         break;
       case 'Insemination': {
-        const proto = animals.filter((a) => isCow(a) && managements.some((m) => m.animalId === a.id && m.stage === 'Manejo'));
-        const notPart = animals.filter((a) =>
-          isCow(a) &&
-          managements.some((m) => m.animalId === a.id && m.stage === 'D0' && m.protocolo) &&
-          !managements.some((m) => m.animalId === a.id && m.stage === 'Manejo')
+        const proto = animals.filter(
+          (a) =>
+            isCow(a) &&
+            managements.some((m) => m.animalId === a.id && m.stage === 'Manejo')
+        );
+        const notPart = animals.filter(
+          (a) =>
+            isCow(a) &&
+            managements.some(
+              (m) => m.animalId === a.id && m.stage === 'D0' && m.protocolo
+            ) &&
+            !managements.some(
+              (m) => m.animalId === a.id && m.stage === 'Manejo'
+            )
         );
         base = [...proto, ...notPart];
         break;
       }
       case 'DG': {
-        const insem = animals.filter((a) => isCow(a) && managements.some((m) => m.animalId === a.id && m.stage === 'Insemination'));
-        const preg = animals.filter((a) => isCow(a) && a.reproductiveStatus?.toLowerCase() === 'pregnant');
-        base = [...insem, ...preg.filter((p) => !insem.some((i) => i.id === p.id))];
+        const insem = animals.filter(
+          (a) =>
+            isCow(a) &&
+            managements.some(
+              (m) => m.animalId === a.id && m.stage === 'Insemination'
+            )
+        );
+        const preg = animals.filter(
+          (a) => isCow(a) && a.reproductiveStatus?.toLowerCase() === 'pregnant'
+        );
+        base = [
+          ...insem,
+          ...preg.filter((p) => !insem.some((i) => i.id === p.id)),
+        ];
         break;
       }
     }
     if (!search) return base;
     return base.filter((a) => {
       const mid = a.manualId?.toLowerCase() ?? '';
-      return mid.includes(search) || (numSearch && mid.replace(/\D/g, '').includes(numSearch));
+      return (
+        mid.includes(search) ||
+        (numSearch && mid.replace(/\D/g, '').includes(numSearch))
+      );
     });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const loadingId = toast.loading(editingId ? 'Atualizando registro...' : 'Salvando registro...');
+    const loadingId = toast.loading(
+      editingId ? 'Atualizando registro...' : 'Salvando registro...'
+    );
     try {
       const payload = {
         ...formData,
@@ -208,7 +290,11 @@ const ReproductionManagementPage = () => {
       });
       toast.dismiss(loadingId);
       if (res.ok) {
-        toast.success(editingId ? 'Registro atualizado com sucesso!' : 'Registro salvo com sucesso!');
+        toast.success(
+          editingId
+            ? 'Registro atualizado com sucesso!'
+            : 'Registro salvo com sucesso!'
+        );
         await fetchData();
         setEditingId(null);
         setFormData(emptyForm);
@@ -245,48 +331,70 @@ const ReproductionManagementPage = () => {
   // Protocol report: group animals by D0 date, most recent first
   const protocolGroups = useMemo(() => {
     const d0Records = managements.filter((m) => m.stage === 'D0');
-    const dateMap = new Map<string, {
-      date: string;
-      entries: Array<{
-        animalId: string;
-        manualId: string;
-        d0: ReproductionManagement;
-        manejo?: ReproductionManagement;
-        insemination?: ReproductionManagement;
-        dg?: ReproductionManagement;
-      }>;
-    }>();
+    const dateMap = new Map<
+      string,
+      {
+        date: string;
+        entries: Array<{
+          animalId: string;
+          manualId: string;
+          d0: ReproductionManagement;
+          manejo?: ReproductionManagement;
+          insemination?: ReproductionManagement;
+          dg?: ReproductionManagement;
+        }>;
+      }
+    >();
 
     d0Records.forEach((m) => {
       const dateStr = toLocalDateString(m.date);
-      if (!dateMap.has(dateStr)) dateMap.set(dateStr, { date: dateStr, entries: [] });
+      if (!dateMap.has(dateStr))
+        dateMap.set(dateStr, { date: dateStr, entries: [] });
       const group = dateMap.get(dateStr)!;
       const animal = animals.find((a) => a.id === m.animalId);
       group.entries.push({
         animalId: m.animalId,
         manualId: animal?.manualId ?? m.animalId,
         d0: m,
-        manejo: managements.find((x) => x.animalId === m.animalId && x.stage === 'Manejo'),
-        insemination: managements.find((x) => x.animalId === m.animalId && x.stage === 'Insemination'),
-        dg: managements.find((x) => x.animalId === m.animalId && x.stage === 'DG'),
+        manejo: managements.find(
+          (x) => x.animalId === m.animalId && x.stage === 'Manejo'
+        ),
+        insemination: managements.find(
+          (x) => x.animalId === m.animalId && x.stage === 'Insemination'
+        ),
+        dg: managements.find(
+          (x) => x.animalId === m.animalId && x.stage === 'DG'
+        ),
       });
     });
 
-    return Array.from(dateMap.values()).sort((a, b) => b.date.localeCompare(a.date));
+    return Array.from(dateMap.values()).sort((a, b) =>
+      b.date.localeCompare(a.date)
+    );
   }, [managements, animals]);
 
   const stageManagements = managements.filter((m) => m.stage === currentStage);
   const baseFiltered = getFilteredAnimals();
   const filteredAnimals =
-    editingId && formData.animalId && !baseFiltered.some((a) => a.id === formData.animalId)
-      ? [animals.find((a) => a.id === formData.animalId)!, ...baseFiltered].filter(Boolean)
+    editingId &&
+    formData.animalId &&
+    !baseFiltered.some((a) => a.id === formData.animalId)
+      ? [
+          animals.find((a) => a.id === formData.animalId)!,
+          ...baseFiltered,
+        ].filter(Boolean)
       : baseFiltered;
   const selectedAnimal = animals.find((a) => a.id === formData.animalId);
   const internalSire = animals.find(
-    (a) => a.id === selectedAnimal?.bullId || a.id === selectedAnimal?.bullIatfId || a.id === selectedAnimal?.fatherId
+    (a) =>
+      a.id === selectedAnimal?.bullId ||
+      a.id === selectedAnimal?.bullIatfId ||
+      a.id === selectedAnimal?.fatherId
   );
   const externalSire = externalBulls.find(
-    (b) => b.id === selectedAnimal?.externalBullId || b.id === selectedAnimal?.externalBullIatfId
+    (b) =>
+      b.id === selectedAnimal?.externalBullId ||
+      b.id === selectedAnimal?.externalBullIatfId
   );
   const sireLabel = internalSire?.manualId ?? externalSire?.name ?? 'N/A';
 
@@ -314,10 +422,16 @@ const ReproductionManagementPage = () => {
                   : 'border-border bg-white text-muted-foreground hover:border-primary/40 hover:text-foreground'
               }`}
             >
-              {active ? <CheckCircle2 className="size-4" /> : <Circle className="size-4" />}
+              {active ? (
+                <CheckCircle2 className="size-4" />
+              ) : (
+                <Circle className="size-4" />
+              )}
               {stageLabels[stage]}
               {count > 0 && (
-                <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${active ? 'bg-white/20' : 'bg-muted'}`}>
+                <span
+                  className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${active ? 'bg-white/20' : 'bg-muted'}`}
+                >
                   {count}
                 </span>
               )}
@@ -331,9 +445,13 @@ const ReproductionManagementPage = () => {
         <div className="rounded-2xl border bg-white shadow-sm">
           <div className="border-b px-5 py-4">
             <h2 className="font-bold">
-              {currentStage === 'DG' ? 'DG — Atualizar status' : `Gerenciamento — ${stageLabels[currentStage]}`}
+              {currentStage === 'DG'
+                ? 'DG — Atualizar status'
+                : `Gerenciamento — ${stageLabels[currentStage]}`}
             </h2>
-            <p className="text-xs text-muted-foreground">Registre o manejo do protocolo</p>
+            <p className="text-xs text-muted-foreground">
+              Registre o manejo do protocolo
+            </p>
           </div>
           <form onSubmit={handleSubmit} className="space-y-4 p-5">
             {/* Date */}
@@ -346,7 +464,10 @@ const ReproductionManagementPage = () => {
                 className={fieldClass}
                 value={stageDates[currentStage] || formData.date}
                 onChange={(e) => {
-                  setStageDates((prev) => ({ ...prev, [currentStage]: e.target.value }));
+                  setStageDates((prev) => ({
+                    ...prev,
+                    [currentStage]: e.target.value,
+                  }));
                   setFormData((prev) => ({ ...prev, date: e.target.value }));
                 }}
                 required
@@ -368,7 +489,8 @@ const ReproductionManagementPage = () => {
                     onChange={(e) => {
                       setAnimalSearch(e.target.value);
                       // Clear selection when user starts typing
-                      if (formData.animalId) setFormData((prev) => ({ ...prev, animalId: '' }));
+                      if (formData.animalId)
+                        setFormData((prev) => ({ ...prev, animalId: '' }));
                     }}
                     onFocus={() => {
                       // Show dropdown on focus if no animal selected yet
@@ -390,53 +512,67 @@ const ReproductionManagementPage = () => {
                 </div>
 
                 {/* Dropdown list — shown when typing and no animal selected */}
-                {animalSearch && !formData.animalId && filteredAnimals.length > 0 && (
-                  <div className="absolute left-0 top-full z-50 mt-1 max-h-48 w-full overflow-y-auto rounded-lg border bg-white shadow-lg">
-                    {filteredAnimals.map((animal) => {
-                      const isPregnant = animal.reproductiveStatus === 'pregnant';
-                      return (
-                        <button
-                          key={animal.id}
-                          type="button"
-                          disabled={isPregnant}
-                          onClick={() => {
-                            const sel = animal;
-                            setFormData((prev) => ({
-                              ...prev,
-                              animalId: sel.id,
-                              ecc: sel.bodyConditionScore ? String(sel.bodyConditionScore) : '',
-                              obs: sel.observations ?? '',
-                              newReproductiveStatus:
-                                sel.reproductiveStatus && ['pregnant', 'empty', 'open'].includes(sel.reproductiveStatus)
-                                  ? sel.reproductiveStatus
+                {animalSearch &&
+                  !formData.animalId &&
+                  filteredAnimals.length > 0 && (
+                    <div className="absolute left-0 top-full z-50 mt-1 max-h-48 w-full overflow-y-auto rounded-lg border bg-white shadow-lg">
+                      {filteredAnimals.map((animal) => {
+                        const isPregnant =
+                          animal.reproductiveStatus === 'pregnant';
+                        return (
+                          <button
+                            key={animal.id}
+                            type="button"
+                            disabled={isPregnant}
+                            onClick={() => {
+                              const sel = animal;
+                              setFormData((prev) => ({
+                                ...prev,
+                                animalId: sel.id,
+                                ecc: sel.bodyConditionScore
+                                  ? String(sel.bodyConditionScore)
                                   : '',
-                            }));
-                            setAnimalSearch(sel.manualId);
-                          }}
-                          className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-muted/60 disabled:cursor-not-allowed disabled:opacity-50`}
-                        >
-                          <span className="font-semibold text-primary">{animal.manualId}</span>
-                          <span className="text-muted-foreground">
-                            — {translateCategory(animal.category)}
-                            {isPregnant ? ' (prenha)' : ''}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
+                                obs: sel.observations ?? '',
+                                newReproductiveStatus:
+                                  sel.reproductiveStatus &&
+                                  ['pregnant', 'empty', 'open'].includes(
+                                    sel.reproductiveStatus
+                                  )
+                                    ? sel.reproductiveStatus
+                                    : '',
+                              }));
+                              setAnimalSearch(sel.manualId);
+                            }}
+                            className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-muted/60 disabled:cursor-not-allowed disabled:opacity-50`}
+                          >
+                            <span className="font-semibold text-primary">
+                              {animal.manualId}
+                            </span>
+                            <span className="text-muted-foreground">
+                              — {translateCategory(animal.category)}
+                              {isPregnant ? ' (prenha)' : ''}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
 
                 {/* No results */}
-                {animalSearch && !formData.animalId && filteredAnimals.length === 0 && (
-                  <div className="absolute left-0 top-full z-50 mt-1 w-full rounded-lg border bg-white p-3 text-center text-xs text-muted-foreground shadow-lg">
-                    Nenhum animal encontrado para este estágio.
-                  </div>
-                )}
+                {animalSearch &&
+                  !formData.animalId &&
+                  filteredAnimals.length === 0 && (
+                    <div className="absolute left-0 top-full z-50 mt-1 w-full rounded-lg border bg-white p-3 text-center text-xs text-muted-foreground shadow-lg">
+                      Nenhum animal encontrado para este estágio.
+                    </div>
+                  )}
 
                 {/* Selected animal badge */}
                 {formData.animalId && (
-                  <p className="mt-1 text-xs text-primary font-semibold">
-                    ✓ {animals.find((a) => a.id === formData.animalId)?.manualId} selecionado
+                  <p className="mt-1 text-xs font-semibold text-primary">
+                    ✓{' '}
+                    {animals.find((a) => a.id === formData.animalId)?.manualId}{' '}
+                    selecionado
                   </p>
                 )}
               </div>
@@ -444,27 +580,47 @@ const ReproductionManagementPage = () => {
 
             {/* Selected animal info */}
             {formData.animalId && (
-              <div className="rounded-xl bg-muted/40 px-4 py-3 text-xs space-y-1">
-                <p className="font-semibold text-muted-foreground uppercase tracking-widest text-[10px]">Informações atuais</p>
-                <div className="flex gap-4 flex-wrap">
-                  <span>Status: <strong>{selectedAnimal?.reproductiveStatus || 'N/A'}</strong></span>
-                  <span>ECC: <strong>{selectedAnimal?.bodyConditionScore ?? 'N/A'}</strong></span>
+              <div className="space-y-1 rounded-xl bg-muted/40 px-4 py-3 text-xs">
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                  Informações atuais
+                </p>
+                <div className="flex flex-wrap gap-4">
+                  <span>
+                    Status:{' '}
+                    <strong>
+                      {selectedAnimal?.reproductiveStatus || 'N/A'}
+                    </strong>
+                  </span>
+                  <span>
+                    ECC:{' '}
+                    <strong>
+                      {selectedAnimal?.bodyConditionScore ?? 'N/A'}
+                    </strong>
+                  </span>
                 </div>
                 {selectedAnimal?.reproductiveStatus === 'pregnant' && (
                   <p>
                     Tipo:{' '}
                     <strong>
-                      {selectedAnimal?.handlingType === 'naturalMating' ? 'Monta' : selectedAnimal?.handlingType === 'artificialInsemination' ? 'Inseminação' : 'N/A'}
+                      {selectedAnimal?.handlingType === 'naturalMating'
+                        ? 'Monta'
+                        : selectedAnimal?.handlingType ===
+                            'artificialInsemination'
+                          ? 'Inseminação'
+                          : 'N/A'}
                     </strong>{' '}
                     · Pai: <strong>{sireLabel}</strong>
                   </p>
                 )}
-                {managements.filter((m) => m.animalId === formData.animalId).map((m) => (
-                  <p key={m.id} className="text-muted-foreground">
-                    {stageLabels[m.stage as Stage]}: ECC {m.ecc} · Protocolo {m.protocolo ? 'Sim' : 'Não'}
-                    {m.obs ? ` · ${m.obs}` : ''}
-                  </p>
-                ))}
+                {managements
+                  .filter((m) => m.animalId === formData.animalId)
+                  .map((m) => (
+                    <p key={m.id} className="text-muted-foreground">
+                      {stageLabels[m.stage as Stage]}: ECC {m.ecc} · Protocolo{' '}
+                      {m.protocolo ? 'Sim' : 'Não'}
+                      {m.obs ? ` · ${m.obs}` : ''}
+                    </p>
+                  ))}
               </div>
             )}
 
@@ -474,7 +630,12 @@ const ReproductionManagementPage = () => {
                 <input
                   type="checkbox"
                   checked={formData.protocolo}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, protocolo: e.target.checked }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      protocolo: e.target.checked,
+                    }))
+                  }
                   className="size-4 accent-primary"
                 />
                 Protocolo ativo
@@ -484,25 +645,57 @@ const ReproductionManagementPage = () => {
             {/* Implant (D0 only) */}
             {currentStage === 'D0' && (
               <div>
-                <Label className="mb-1 block text-xs font-bold uppercase tracking-widest text-muted-foreground">Implante</Label>
-                <Input className={fieldClass} value={formData.implant} placeholder="Marca do implante"
-                  onChange={(e) => setFormData((prev) => ({ ...prev, implant: e.target.value }))} />
+                <Label className="mb-1 block text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                  Implante
+                </Label>
+                <Input
+                  className={fieldClass}
+                  value={formData.implant}
+                  placeholder="Marca do implante"
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      implant: e.target.value,
+                    }))
+                  }
+                />
               </div>
             )}
 
             {/* ECC */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="mb-1 block text-xs font-bold uppercase tracking-widest text-muted-foreground">ECC</Label>
-                <Input type="number" step="0.1" className={fieldClass} value={formData.ecc} placeholder="Condição corporal"
-                  onChange={(e) => setFormData((prev) => ({ ...prev, ecc: e.target.value }))} />
+                <Label className="mb-1 block text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                  ECC
+                </Label>
+                <Input
+                  type="number"
+                  step="0.1"
+                  className={fieldClass}
+                  value={formData.ecc}
+                  placeholder="Condição corporal"
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, ecc: e.target.value }))
+                  }
+                />
               </div>
               {currentStage === 'DG' && (
                 <div>
-                  <Label className="mb-1 block text-xs font-bold uppercase tracking-widest text-muted-foreground">Novo status</Label>
-                  <Select value={formData.newReproductiveStatus}
-                    onValueChange={(v) => setFormData((prev) => ({ ...prev, newReproductiveStatus: v }))}>
-                    <SelectTrigger className={fieldClass}><SelectValue placeholder="Status" /></SelectTrigger>
+                  <Label className="mb-1 block text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                    Novo status
+                  </Label>
+                  <Select
+                    value={formData.newReproductiveStatus}
+                    onValueChange={(v) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        newReproductiveStatus: v,
+                      }))
+                    }
+                  >
+                    <SelectTrigger className={fieldClass}>
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="pregnant">Prenha</SelectItem>
                       <SelectItem value="empty">Vazia</SelectItem>
@@ -518,10 +711,22 @@ const ReproductionManagementPage = () => {
               <>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <Label className="mb-1 block text-xs font-bold uppercase tracking-widest text-muted-foreground">Tipo de touro</Label>
-                    <Select value={formData.touroType}
-                      onValueChange={(v: 'internal' | 'external') => setFormData((prev) => ({ ...prev, touroType: v, touroId: '' }))}>
-                      <SelectTrigger className={fieldClass}><SelectValue /></SelectTrigger>
+                    <Label className="mb-1 block text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                      Tipo de touro
+                    </Label>
+                    <Select
+                      value={formData.touroType}
+                      onValueChange={(v: 'internal' | 'external') =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          touroType: v,
+                          touroId: '',
+                        }))
+                      }
+                    >
+                      <SelectTrigger className={fieldClass}>
+                        <SelectValue />
+                      </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="internal">Interno</SelectItem>
                         <SelectItem value="external">Externo</SelectItem>
@@ -529,30 +734,67 @@ const ReproductionManagementPage = () => {
                     </Select>
                   </div>
                   <div>
-                    <Label className="mb-1 block text-xs font-bold uppercase tracking-widest text-muted-foreground">Touro</Label>
-                    <Select value={formData.touroId} onValueChange={(v) => setFormData((prev) => ({ ...prev, touroId: v }))}>
-                      <SelectTrigger className={fieldClass}><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <Label className="mb-1 block text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                      Touro
+                    </Label>
+                    <Select
+                      value={formData.touroId}
+                      onValueChange={(v) =>
+                        setFormData((prev) => ({ ...prev, touroId: v }))
+                      }
+                    >
+                      <SelectTrigger className={fieldClass}>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
                       <SelectContent>
-                        {formData.touroType === 'internal' && animals.filter(isBull).map((a) => (
-                          <SelectItem key={a.id} value={a.id}>{a.manualId} — {translateCategory(a.category)}</SelectItem>
-                        ))}
-                        {formData.touroType === 'external' && externalBulls.map((b) => (
-                          <SelectItem key={b.id} value={b.id}>{b.name} — {b.breed}</SelectItem>
-                        ))}
+                        {formData.touroType === 'internal' &&
+                          animals.filter(isBull).map((a) => (
+                            <SelectItem key={a.id} value={a.id}>
+                              {a.manualId} — {translateCategory(a.category)}
+                            </SelectItem>
+                          ))}
+                        {formData.touroType === 'external' &&
+                          externalBulls.map((b) => (
+                            <SelectItem key={b.id} value={b.id}>
+                              {b.name} — {b.breed}
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <Label className="mb-1 block text-xs font-bold uppercase tracking-widest text-muted-foreground">Partida</Label>
-                    <Input className={fieldClass} value={formData.partida} placeholder="Código da partida"
-                      onChange={(e) => setFormData((prev) => ({ ...prev, partida: e.target.value }))} />
+                    <Label className="mb-1 block text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                      Partida
+                    </Label>
+                    <Input
+                      className={fieldClass}
+                      value={formData.partida}
+                      placeholder="Código da partida"
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          partida: e.target.value,
+                        }))
+                      }
+                    />
                   </div>
                   <div>
-                    <Label className="mb-1 block text-xs font-bold uppercase tracking-widest text-muted-foreground">CIO</Label>
-                    <Input className={fieldClass} value={formData.cio} placeholder="Informações do CIO"
-                      onChange={(e) => setFormData((prev) => ({ ...prev, cio: e.target.value }))} />
+                    <Label className="mb-1 block text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                      CIO
+                    </Label>
+                    <Input
+                      className={fieldClass}
+                      value={formData.cio}
+                      placeholder="Informações do CIO"
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          cio: e.target.value,
+                        }))
+                      }
+                    />
                   </div>
                 </div>
               </>
@@ -561,18 +803,34 @@ const ReproductionManagementPage = () => {
             {/* Ressinc (DG only) */}
             {currentStage === 'DG' && (
               <label className="flex cursor-pointer items-center gap-2 text-sm">
-                <input type="checkbox" checked={formData.ressinc}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, ressinc: e.target.checked }))}
-                  className="size-4 accent-primary" />
+                <input
+                  type="checkbox"
+                  checked={formData.ressinc}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      ressinc: e.target.checked,
+                    }))
+                  }
+                  className="size-4 accent-primary"
+                />
                 Ressinc
               </label>
             )}
 
             {/* Observations */}
             <div>
-              <Label className="mb-1 block text-xs font-bold uppercase tracking-widest text-muted-foreground">Observações</Label>
-              <Textarea className={fieldClass} value={formData.obs} placeholder="Observações..."
-                onChange={(e) => setFormData((prev) => ({ ...prev, obs: e.target.value }))} />
+              <Label className="mb-1 block text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                Observações
+              </Label>
+              <Textarea
+                className={fieldClass}
+                value={formData.obs}
+                placeholder="Observações..."
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, obs: e.target.value }))
+                }
+              />
             </div>
 
             <div className="flex gap-2 pt-1">
@@ -580,7 +838,14 @@ const ReproductionManagementPage = () => {
                 {editingId ? 'Atualizar Registro' : 'Confirmar Registro'}
               </Button>
               {editingId && (
-                <Button type="button" variant="outline" onClick={() => { setEditingId(null); setFormData(emptyForm); }}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setEditingId(null);
+                    setFormData(emptyForm);
+                  }}
+                >
                   Cancelar
                 </Button>
               )}
@@ -592,8 +857,12 @@ const ReproductionManagementPage = () => {
         <div className="rounded-2xl border bg-white shadow-sm">
           <div className="flex items-center justify-between border-b px-5 py-4">
             <div>
-              <h2 className="font-bold">Registros — {stageLabels[currentStage]}</h2>
-              <p className="text-xs text-muted-foreground">{stageManagements.length} registros</p>
+              <h2 className="font-bold">
+                Registros — {stageLabels[currentStage]}
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                {stageManagements.length} registros
+              </p>
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -603,7 +872,10 @@ const ReproductionManagementPage = () => {
               >
                 <BarChart2 className="size-3.5" /> Relatório
               </button>
-              <button type="button" className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:border-primary/40 hover:text-foreground">
+              <button
+                type="button"
+                className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:border-primary/40 hover:text-foreground"
+              >
                 <Download className="size-3.5" /> Exportar
               </button>
             </div>
@@ -611,30 +883,50 @@ const ReproductionManagementPage = () => {
 
           {stageManagements.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
-              <p className="text-sm font-medium text-muted-foreground">Nenhum registro nesta etapa</p>
-              <p className="text-xs text-muted-foreground">Adicione registros pelo formulário ao lado</p>
+              <p className="text-sm font-medium text-muted-foreground">
+                Nenhum registro nesta etapa
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Adicione registros pelo formulário ao lado
+              </p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[480px] text-sm">
                 <thead>
                   <tr className="border-b bg-muted/50">
-                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Animal</th>
-                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Data</th>
-                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">ECC</th>
-                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Protocolo</th>
-                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Observações</th>
+                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                      Animal
+                    </th>
+                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                      Data
+                    </th>
+                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                      ECC
+                    </th>
+                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                      Protocolo
+                    </th>
+                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                      Observações
+                    </th>
                     {currentStage === 'DG' && (
-                      <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Ressinc</th>
+                      <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                        Ressinc
+                      </th>
                     )}
                     <th className="px-4 py-3"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
                   {stageManagements.map((m) => {
-                    const isPregnant = m.animal?.reproductiveStatus === 'pregnant';
+                    const isPregnant =
+                      m.animal?.reproductiveStatus === 'pregnant';
                     return (
-                      <tr key={m.id} className={`hover:bg-muted/30 transition-colors ${isPregnant ? 'opacity-60' : ''}`}>
+                      <tr
+                        key={m.id}
+                        className={`transition-colors hover:bg-muted/30 ${isPregnant ? 'opacity-60' : ''}`}
+                      >
                         <td className="px-4 py-3">
                           <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-0.5 font-mono text-xs font-bold text-primary">
                             {m.animal?.manualId ?? '—'}
@@ -648,10 +940,15 @@ const ReproductionManagementPage = () => {
                             <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700">
                               {m.ecc}
                             </span>
-                          ) : '—'}
+                          ) : (
+                            '—'
+                          )}
                         </td>
                         <td className="px-4 py-3">
-                          <Badge variant={m.protocolo ? 'default' : 'secondary'} className="text-xs">
+                          <Badge
+                            variant={m.protocolo ? 'default' : 'secondary'}
+                            className="text-xs"
+                          >
                             {m.protocolo ? 'Sim' : 'Não'}
                           </Badge>
                         </td>
@@ -660,7 +957,13 @@ const ReproductionManagementPage = () => {
                         </td>
                         {currentStage === 'DG' && (
                           <td className="px-4 py-3 text-xs">
-                            {m.ressinc ? <Badge variant="outline" className="text-xs">Sim</Badge> : '—'}
+                            {m.ressinc ? (
+                              <Badge variant="outline" className="text-xs">
+                                Sim
+                              </Badge>
+                            ) : (
+                              '—'
+                            )}
                           </td>
                         )}
                         <td className="px-4 py-3">
@@ -707,19 +1010,25 @@ const ReproductionManagementPage = () => {
                   .at(-1);
 
                 return (
-                  <div key={group.date} className="rounded-2xl border bg-white shadow-sm overflow-hidden">
+                  <div
+                    key={group.date}
+                    className="overflow-hidden rounded-2xl border bg-white shadow-sm"
+                  >
                     <div className="flex items-center justify-between border-b bg-muted/30 px-5 py-3">
                       <div>
                         <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
                           Protocolo iniciado em
                         </p>
                         <p className="text-base font-bold">
-                          {new Date(`${group.date}T12:00:00`).toLocaleDateString('pt-BR')}
+                          {new Date(
+                            `${group.date}T12:00:00`
+                          ).toLocaleDateString('pt-BR')}
                         </p>
                       </div>
                       <div className="flex items-center gap-3 text-xs">
                         <span className="text-muted-foreground">
-                          {group.entries.length} animais · {finishedCount} finalizados
+                          {group.entries.length} animais · {finishedCount}{' '}
+                          finalizados
                         </span>
                         <span
                           className={`rounded-full px-2.5 py-1 font-semibold ${
@@ -728,7 +1037,9 @@ const ReproductionManagementPage = () => {
                               : 'bg-green-100 text-green-700'
                           }`}
                         >
-                          {inProgress ? 'Em andamento' : `Concluído em ${new Date(`${lastDate}T12:00:00`).toLocaleDateString('pt-BR')}`}
+                          {inProgress
+                            ? 'Em andamento'
+                            : `Concluído em ${new Date(`${lastDate}T12:00:00`).toLocaleDateString('pt-BR')}`}
                         </span>
                       </div>
                     </div>
@@ -737,17 +1048,32 @@ const ReproductionManagementPage = () => {
                       <table className="w-full min-w-[560px] text-sm">
                         <thead>
                           <tr className="border-b bg-muted/20">
-                            <th className="px-4 py-2 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Animal</th>
-                            <th className="px-4 py-2 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">D0</th>
-                            <th className="px-4 py-2 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Manejo</th>
-                            <th className="px-4 py-2 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Inseminação</th>
-                            <th className="px-4 py-2 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">DG</th>
-                            <th className="px-4 py-2 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Resultado</th>
+                            <th className="px-4 py-2 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                              Animal
+                            </th>
+                            <th className="px-4 py-2 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                              D0
+                            </th>
+                            <th className="px-4 py-2 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                              Manejo
+                            </th>
+                            <th className="px-4 py-2 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                              Inseminação
+                            </th>
+                            <th className="px-4 py-2 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                              DG
+                            </th>
+                            <th className="px-4 py-2 text-left text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                              Resultado
+                            </th>
                           </tr>
                         </thead>
                         <tbody className="divide-y">
                           {group.entries.map((entry) => (
-                            <tr key={entry.animalId} className="hover:bg-muted/20 transition-colors">
+                            <tr
+                              key={entry.animalId}
+                              className="transition-colors hover:bg-muted/20"
+                            >
                               <td className="px-4 py-2">
                                 <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 font-mono text-xs font-bold text-primary">
                                   {entry.manualId}
@@ -755,39 +1081,60 @@ const ReproductionManagementPage = () => {
                               </td>
                               <td className="px-4 py-2 text-xs text-muted-foreground">
                                 {format(new Date(entry.d0.date), 'dd/MM/yy')}
-                                {entry.d0.implant && <span className="ml-1 text-[10px] text-blue-600">({entry.d0.implant})</span>}
+                                {entry.d0.implant && (
+                                  <span className="ml-1 text-[10px] text-blue-600">
+                                    ({entry.d0.implant})
+                                  </span>
+                                )}
                               </td>
                               <td className="px-4 py-2 text-xs text-muted-foreground">
-                                {entry.manejo
-                                  ? format(new Date(entry.manejo.date), 'dd/MM/yy')
-                                  : <span className="text-slate-300">—</span>}
+                                {entry.manejo ? (
+                                  format(
+                                    new Date(entry.manejo.date),
+                                    'dd/MM/yy'
+                                  )
+                                ) : (
+                                  <span className="text-slate-300">—</span>
+                                )}
                               </td>
                               <td className="px-4 py-2 text-xs text-muted-foreground">
-                                {entry.insemination
-                                  ? format(new Date(entry.insemination.date), 'dd/MM/yy')
-                                  : <span className="text-slate-300">—</span>}
+                                {entry.insemination ? (
+                                  format(
+                                    new Date(entry.insemination.date),
+                                    'dd/MM/yy'
+                                  )
+                                ) : (
+                                  <span className="text-slate-300">—</span>
+                                )}
                               </td>
                               <td className="px-4 py-2 text-xs text-muted-foreground">
-                                {entry.dg
-                                  ? format(new Date(entry.dg.date), 'dd/MM/yy')
-                                  : <span className="text-slate-300">—</span>}
+                                {entry.dg ? (
+                                  format(new Date(entry.dg.date), 'dd/MM/yy')
+                                ) : (
+                                  <span className="text-slate-300">—</span>
+                                )}
                               </td>
                               <td className="px-4 py-2">
                                 {entry.dg ? (
                                   <span
                                     className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                                      entry.dg.newReproductiveStatus === 'pregnant'
+                                      entry.dg.newReproductiveStatus ===
+                                      'pregnant'
                                         ? 'bg-green-100 text-green-700'
-                                        : entry.dg.newReproductiveStatus === 'empty'
+                                        : entry.dg.newReproductiveStatus ===
+                                            'empty'
                                           ? 'bg-rose-100 text-rose-700'
                                           : 'bg-slate-100 text-slate-600'
                                     }`}
                                   >
-                                    {entry.dg.newReproductiveStatus === 'pregnant'
+                                    {entry.dg.newReproductiveStatus ===
+                                    'pregnant'
                                       ? 'Prenha'
-                                      : entry.dg.newReproductiveStatus === 'empty'
+                                      : entry.dg.newReproductiveStatus ===
+                                          'empty'
                                         ? 'Vazia'
-                                        : entry.dg.newReproductiveStatus || 'Concluído'}
+                                        : entry.dg.newReproductiveStatus ||
+                                          'Concluído'}
                                   </span>
                                 ) : (
                                   <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-600">

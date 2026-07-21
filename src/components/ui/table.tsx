@@ -115,7 +115,7 @@ const getCategoryLabel = (animal: Animal) => {
   if (animal.category === 'calf') return 'Bezerro';
   if (animal.category === 'steer' && animal.gender === 'male') return 'Garrote';
   if (animal.category === 'steer' && animal.gender === 'female')
-    return 'Novilho';
+    return 'Novilha';
   if (animal.category === 'cow') return 'Vaca';
   if (animal.category === 'old cow') return 'Vaca velha';
   if (animal.category === 'ox') return 'Boi';
@@ -1142,6 +1142,7 @@ export const Table: React.FC<TableProps> = ({
                           min={1}
                           max={100}
                           step={1}
+                          defaultValue={50}
                           value={carcassPercent}
                           onChange={(e) => setCarcassPercent(e.target.value)}
                           className="w-14 rounded border px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-primary"
@@ -1267,6 +1268,7 @@ export const Table: React.FC<TableProps> = ({
                       min={1}
                       max={100}
                       step={1}
+                      defaultValue={50}
                       value={carcassPercent}
                       onChange={(e) => setCarcassPercent(e.target.value)}
                       className="w-14 rounded border px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-primary"

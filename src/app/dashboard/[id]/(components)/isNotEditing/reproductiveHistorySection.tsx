@@ -115,16 +115,21 @@ export function ReproductiveHistorySection({
         reason: form.reason,
         expectedDueDate: form.expectedDueDate || undefined,
         fatherType: form.fatherType,
-        fatherAnimalId: form.fatherType === 'internal' ? form.fatherAnimalId : undefined,
-        externalBullId: form.fatherType === 'external' ? form.externalBullId : undefined,
+        fatherAnimalId:
+          form.fatherType === 'internal' ? form.fatherAnimalId : undefined,
+        externalBullId:
+          form.fatherType === 'external' ? form.externalBullId : undefined,
       };
 
       const isEdit = !!editingId;
-      const res = await fetch(isEdit ? `/api/calfLoss?id=${editingId}` : '/api/calfLoss', {
-        method: isEdit ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+      const res = await fetch(
+        isEdit ? `/api/calfLoss?id=${editingId}` : '/api/calfLoss',
+        {
+          method: isEdit ? 'PUT' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }
+      );
       const data = await res.json();
       if (!res.ok) {
         toast.error(data.message ?? 'Erro ao salvar.');
@@ -186,13 +191,21 @@ export function ReproductiveHistorySection({
           </p>
         ) : (
           <div className="overflow-x-auto pb-2">
-            <div className="grid grid-flow-col grid-rows-2 gap-2" style={{ width: 'max-content' }}>
+            <div
+              className="grid grid-flow-col grid-rows-2 gap-2"
+              style={{ width: 'max-content' }}
+            >
               {events.map((ev, i) => {
                 if (ev.kind === 'birth') {
-                  const pdRecord = ev.animal.weightHistories?.find((w) => w.recordType === 'PD');
-                  const isSold = ev.animal.status === 'sold' || ev.animal.status === 'vendido';
+                  const pdRecord = ev.animal.weightHistories?.find(
+                    (w) => w.recordType === 'PD'
+                  );
+                  const isSold =
+                    ev.animal.status === 'sold' ||
+                    ev.animal.status === 'vendido';
                   const displayId =
-                    ev.animal.manualId.charAt(0).toUpperCase() + ev.animal.manualId.slice(1);
+                    ev.animal.manualId.charAt(0).toUpperCase() +
+                    ev.animal.manualId.slice(1);
                   return (
                     <div
                       key={`birth-${ev.animal.id}`}
@@ -242,7 +255,9 @@ export function ReproductiveHistorySection({
                           Perda
                         </span>
                         {h.reason && (
-                          <p className="mt-1 truncate font-medium">{h.reason}</p>
+                          <p className="mt-1 truncate font-medium">
+                            {h.reason}
+                          </p>
                         )}
                       </div>
                       <div className="flex shrink-0 gap-0.5">
@@ -291,7 +306,9 @@ export function ReproductiveHistorySection({
                 <input
                   type="date"
                   value={form.lossDate}
-                  onChange={(e) => setForm((f) => ({ ...f, lossDate: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, lossDate: e.target.value }))
+                  }
                   className="rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
@@ -300,7 +317,9 @@ export function ReproductiveHistorySection({
                 <input
                   type="date"
                   value={form.expectedDueDate}
-                  onChange={(e) => setForm((f) => ({ ...f, expectedDueDate: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, expectedDueDate: e.target.value }))
+                  }
                   className="rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
@@ -310,7 +329,9 @@ export function ReproductiveHistorySection({
               <label className="font-medium">Motivo *</label>
               <select
                 value={form.reason}
-                onChange={(e) => setForm((f) => ({ ...f, reason: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, reason: e.target.value }))
+                }
                 className="rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="">Selecione...</option>
@@ -326,17 +347,29 @@ export function ReproductiveHistorySection({
               <label className="font-medium">Pai da cria</label>
               <div className="flex gap-4">
                 {(['none', 'internal', 'external'] as const).map((t) => (
-                  <label key={t} className="flex cursor-pointer items-center gap-1.5">
+                  <label
+                    key={t}
+                    className="flex cursor-pointer items-center gap-1.5"
+                  >
                     <input
                       type="radio"
                       name="fatherType"
                       value={t}
                       checked={form.fatherType === t}
                       onChange={() =>
-                        setForm((f) => ({ ...f, fatherType: t, fatherAnimalId: '', externalBullId: '' }))
+                        setForm((f) => ({
+                          ...f,
+                          fatherType: t,
+                          fatherAnimalId: '',
+                          externalBullId: '',
+                        }))
                       }
                     />
-                    {t === 'none' ? 'Não informado' : t === 'internal' ? 'Interno' : 'Externo'}
+                    {t === 'none'
+                      ? 'Não informado'
+                      : t === 'internal'
+                        ? 'Interno'
+                        : 'Externo'}
                   </label>
                 ))}
               </div>
@@ -344,7 +377,9 @@ export function ReproductiveHistorySection({
               {form.fatherType === 'internal' && (
                 <select
                   value={form.fatherAnimalId}
-                  onChange={(e) => setForm((f) => ({ ...f, fatherAnimalId: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, fatherAnimalId: e.target.value }))
+                  }
                   className="rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                   <option value="">Selecione o touro...</option>
@@ -359,7 +394,9 @@ export function ReproductiveHistorySection({
               {form.fatherType === 'external' && (
                 <select
                   value={form.externalBullId}
-                  onChange={(e) => setForm((f) => ({ ...f, externalBullId: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, externalBullId: e.target.value }))
+                  }
                   className="rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                   <option value="">Selecione o touro externo...</option>
@@ -374,7 +411,11 @@ export function ReproductiveHistorySection({
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>
+            <Button
+              variant="outline"
+              onClick={() => setOpen(false)}
+              disabled={saving}
+            >
               Cancelar
             </Button>
             <Button onClick={handleSave} disabled={saving}>

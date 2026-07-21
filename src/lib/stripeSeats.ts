@@ -11,10 +11,10 @@ type FarmSeatRow = {
 /** Contagem de membros cobráveis — exclui VIEWER */
 export async function getBillableSeatCount(farmId: string): Promise<number> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const rows = await (prisma.farmMembership.findMany as any)({
+  const rows = (await (prisma.farmMembership.findMany as any)({
     where: { farmId },
     select: { role: true },
-  }) as { role: string }[];
+  })) as { role: string }[];
 
   const billable = rows.filter((m) => m.role !== 'VIEWER').length;
   return Math.max(1, billable);
@@ -33,14 +33,14 @@ export async function updateStripeSeats(
   if (!secretKey) return;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const farm = await (prisma.farm.findUnique as any)({
+  const farm = (await (prisma.farm.findUnique as any)({
     where: { id: farmId },
     select: {
       stripeSubscriptionId: true,
       stripeSubscriptionItemId: true,
       subscriptionStatus: true,
     },
-  }) as FarmSeatRow | null;
+  })) as FarmSeatRow | null;
 
   if (!farm?.stripeSubscriptionId || !farm?.stripeSubscriptionItemId) return;
   if (!['ACTIVE', 'TRIALING'].includes(farm.subscriptionStatus)) return;
@@ -52,7 +52,10 @@ export async function updateStripeSeats(
   });
 
   if (!itemRes.ok) {
-    console.error('[SEATS] Falha ao buscar subscription item', await itemRes.text());
+    console.error(
+      '[SEATS] Falha ao buscar subscription item',
+      await itemRes.text()
+    );
     return;
   }
 
@@ -76,7 +79,10 @@ export async function updateStripeSeats(
   });
 
   if (!updateRes.ok) {
-    console.error('[SEATS] Falha ao atualizar quantidade de assentos', await updateRes.text());
+    console.error(
+      '[SEATS] Falha ao atualizar quantidade de assentos',
+      await updateRes.text()
+    );
   } else {
     console.log(`[SEATS] farm=${farmId} qty ${currentQty} → ${newQty}`);
   }
