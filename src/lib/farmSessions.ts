@@ -18,6 +18,8 @@ export async function createFarmSession(
   userId: string,
   jti: string
 ): Promise<void> {
+  console.log(`[farmSessions] Iniciando criação de sessão para userId: ${userId}`);
+
   const dbUser = await prisma.user.findUnique({
     where: { id: userId },
     select: {
@@ -29,7 +31,10 @@ export async function createFarmSession(
     },
   });
 
-  if (!dbUser) return;
+  if (!dbUser) {
+    console.error(`[farmSessions] Usuário não encontrado com id: ${userId}`);
+    return;
+  }
 
   const membership =
     (dbUser.activeFarmId
@@ -38,17 +43,30 @@ export async function createFarmSession(
     dbUser.farmMemberships.find((m) => m.role === 'OWNER') ??
     dbUser.farmMemberships[0];
 
-  if (!membership) return;
+  if (!membership) {
+     console.error(`[farmSessions] Nenhuma assinatura de fazenda encontrada para o usuário: ${userId}`);
+    return;
+  }
 
   const { farmId, role } = membership;
+  console.log(`[farmSessions] ID da fazenda selecionada: ${farmId}`);
 
   const farm = await prisma.farm.findUnique({
     where: { id: farmId },
-    select: { stripePlanTier: true, name: true },
+    select: { subscriptionStatus: true, name: true },
   });
 
-  const seatLimit = farm?.stripePlanTier
-    ? getSeatLimitForTier(farm.stripePlanTier)
+  if (!farm) {
+    console.error(`[farmSessions] Fazenda não encontrada com o ID: ${farmId}`);
+    // Mesmo que a fazenda não seja encontrada, a sessão não deve ser criada.
+    // Considere lançar um erro aqui se este for um estado inesperado.
+    return; 
+  }
+
+  console.log(`[farmSessions] Fazenda encontrada: ${farm.name}`);
+
+  const seatLimit = farm?.subscriptionStatus
+    ? getSeatLimitForTier(farm.subscriptionStatus)
     : null;
 
   // Remove apenas sessões expiradas (TTL) — nada de apagar por userId
@@ -78,6 +96,7 @@ export async function createFarmSession(
       const toEvict = sorted[0];
 
       if (toEvict && toEvict.role !== 'OWNER') {
+         console.log(`[farmSessions] Limite de assentos atingido. Expulsando sessão para o usuário: ${toEvict.userId}`);
         await prisma.farmSession.delete({ where: { id: toEvict.id } });
 
         await prisma.notification.create({
@@ -95,6 +114,8 @@ export async function createFarmSession(
   await prisma.farmSession.create({
     data: { userId, farmId, role, jti, lastSeenAt: new Date() },
   });
+
+  console.log(`[farmSessions] Sessão criada com sucesso para o usuário: ${userId} na fazenda: ${farmId}`);
 }
 
 /**

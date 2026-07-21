@@ -1,13 +1,13 @@
 import { Animal } from '@/types/animal';
 import { weightRecordOptions } from '@/lib/weightHistory';
-import { ExternalBull } from '@/types/external-bull';
+import { ExternalBull } from '@/types/externalBull';
 import { RadioForm } from '@/components/ui/radioForm';
 import { SelectForm } from '@/components/ui/selectForm';
 import React, { useState } from 'react';
 
 interface FormBasicInformationProps {
   animal: Animal;
-  setAnimal: React.Dispatch<React.SetStateAction<Animal>>;
+  setAnimal: (animal: Animal | null) => void;
   externalBulls: ExternalBull[];
   handleInputValues: (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -37,29 +37,29 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
     animal.externalBullFatherId ? 'externo' : 'interno'
   );
 
-  const handleFatherTypeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFatherTypeChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFatherType(event.target.value);
-    setAnimal((prev) => ({
-      ...prev,
+    setAnimal({
+      ...animal,
       fatherId: null,
       externalBullFatherId: null,
-    }));
+    });
   };
 
   const handleFatherSelection = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const { value } = event.target;
     if (fatherType === 'interno') {
-      setAnimal((prev) => ({
-        ...prev,
+      setAnimal({
+        ...animal,
         fatherId: value,
         externalBullFatherId: null,
-      }));
+      });
     } else {
-      setAnimal((prev) => ({
-        ...prev,
+      setAnimal({
+        ...animal,
         fatherId: null,
         externalBullFatherId: value,
-      }));
+      });
     }
   };
 

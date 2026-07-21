@@ -39,7 +39,7 @@ export const FormLogin: React.FC<FormLoginProps> = ({ fetchedUsers }) => {
     [fetchedUsers, dataLoginUser.email]
   );
 
-  const handleInputValues = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputValues = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = event.target;
     setDataLoginUser((prevData) => ({ ...prevData, [name]: value }));
   };

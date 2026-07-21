@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Animal } from '@/types/animal';
-import { ExternalBull } from '@/types/external-bull';
+import { ExternalBull } from '@/types/externalBull';
 import { SelectForm } from '@/components/ui/selectForm';
 import { FormMaleReproductive } from './components/formMaleReproductive';
 import { FormPregnantStatus } from './components/formPregnantStatus';

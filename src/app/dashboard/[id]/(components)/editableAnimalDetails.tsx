@@ -3,7 +3,7 @@
 import { Animal, AnimalCalfLossHistory, AnimalWeightHistory, } from '@/types/animal';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, } from 'recharts';
 import { Vaccine } from '@/types/vaccine';
-import { ExternalBull } from '@/types/external-bull';
+import { ExternalBull } from '@/types/externalBull';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import axios from 'axios';
@@ -447,33 +447,6 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
       localStorage.setItem('agrofinance_arroba_price', pricePerArroba);
     }
   }, [pricePerArroba]);
-
-  useEffect(() => {
-    if (!animal?.birthDate) return;
-    const birth = new Date(animal.birthDate);
-    const today = new Date();
-    const ageInMonths = (today.getFullYear() - birth.getFullYear()) * 12 + (today.getMonth() - birth.getMonth()) + (today.getDate() < birth.getDate() ? -1 : 0);
-    const gender = animal.gender;
-    const currentCategory = animal.category;
-    const isCurrentlyReproductive = currentCategory === 'bull' || currentCategory === 'old bull';
-
-    let newCategory: string;
-    if (ageInMonths <= 3) newCategory = 'neonate';
-    else if (ageInMonths <= 12) newCategory = 'calf';
-    else if (ageInMonths <= 24) newCategory = 'steer';
-    else if (ageInMonths <= 36) newCategory = gender === 'male' ? 'steer' : 'cow';
-    else if (ageInMonths <= 120) {
-      if (gender === 'male') newCategory = isCurrentlyReproductive ? 'bull' : 'ox';
-      else newCategory = 'cow';
-    } else {
-      if (gender === 'male') newCategory = isCurrentlyReproductive ? 'old bull' : 'old ox';
-      else newCategory = 'old cow';
-    }
-
-    if (currentCategory !== newCategory) {
-      setAnimal({ ...animal, category: newCategory });
-    }
-  }, [animal, setAnimal]);
 
   useEffect(() => {
     if (!arrobaPriceLoaded) {

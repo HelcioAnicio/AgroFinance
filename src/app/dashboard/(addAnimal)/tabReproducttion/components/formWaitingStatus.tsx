@@ -1,6 +1,6 @@
 import { SelectForm } from '@/components/ui/selectForm';
 import { Animal } from '@/types/animal';
-import { ExternalBull } from '@/types/external-bull';
+import { ExternalBull } from '@/types/externalBull';
 import { RadioForm } from '@/components/ui/radioForm';
 import React, { useState } from 'react';
 
@@ -24,7 +24,7 @@ export const FormWaitingStatus: React.FC<FormWaitingStatusProps> = ({
   const [bullType, setBullType] = useState('interno');
   const [bullIatfType, setBullIatfType] = useState('interno');
 
-  const handleBullTypeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleBullTypeChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setBullType(event.target.value);
     setAllDataForm((prev) => ({
       ...prev,
@@ -33,7 +33,7 @@ export const FormWaitingStatus: React.FC<FormWaitingStatusProps> = ({
     }));
   };
 
-  const handleBullIatfTypeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleBullIatfTypeChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setBullIatfType(event.target.value);
     setAllDataForm((prev) => ({
       ...prev,

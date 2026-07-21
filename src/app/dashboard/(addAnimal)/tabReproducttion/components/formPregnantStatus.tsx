@@ -2,7 +2,7 @@ import { SelectForm } from '@/components/ui/selectForm';
 import { RadioForm } from '@/components/ui/radioForm';
 import { InputForm } from '@/components/ui/inputForm';
 import { Animal } from '@/types/animal';
-import { ExternalBull } from '@/types/external-bull';
+import { ExternalBull } from '@/types/externalBull';
 import React, { useState } from 'react';
 
 interface FormPregnantStatusProps {
@@ -25,7 +25,7 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
   const [bullType, setBullType] = useState('interno');
   const [bullIatfType, setBullIatfType] = useState('interno');
 
-  const handleBullTypeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleBullTypeChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setBullType(event.target.value);
     setAllDataForm((prev) => ({
       ...prev,
@@ -34,7 +34,7 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
     }));
   };
 
-  const handleBullIatfTypeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleBullIatfTypeChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setBullIatfType(event.target.value);
     setAllDataForm((prev) => ({
       ...prev,

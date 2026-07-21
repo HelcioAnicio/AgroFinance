@@ -1,5 +1,5 @@
 import NextAuth, { NextAuthOptions } from 'next-auth';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import { randomUUID } from 'crypto';
 import prisma from '@/lib/prisma';

@@ -10,7 +10,7 @@ import { RadioForm } from '@/components/ui/radioForm';
 import { SelectForm } from '@/components/ui/selectForm';
 import { toast } from 'sonner';
 import { weightRecordOptions } from '@/lib/weightHistory';
-import { ExternalBull } from '@/types/external-bull';
+import { ExternalBull } from '@/types/externalBull';
 
 interface CardFormMainProps {
   allDataForm: Animal;
@@ -34,7 +34,7 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
 }) => {
   const [fatherType, setFatherType] = useState('interno');
 
-  const handleFatherTypeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFatherTypeChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFatherType(event.target.value);
     setAllDataForm((prev) => ({
       ...prev,

@@ -1,12 +1,12 @@
 import { Animal } from '@/types/animal';
-import { ExternalBull } from '@/types/external-bull';
+import { ExternalBull } from '@/types/externalBull';
 import { RadioForm } from '@/components/ui/radioForm';
 import { SelectForm } from '@/components/ui/selectForm';
 import React, { useState } from 'react';
 
 interface FormPregnantStatusProps {
   animal: Animal;
-  setAnimal: React.Dispatch<React.SetStateAction<Animal>>;
+  setAnimal: (animal: Animal | null) => void;
   handleInputValues: (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
@@ -28,55 +28,39 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
     animal.externalBullIatfId ? 'externo' : 'interno'
   );
 
-  const handleBullTypeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleBullTypeChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setBullType(event.target.value);
-    setAnimal((prev) => ({
-      ...prev,
+    setAnimal({
+      ...animal,
       bullId: null,
       externalBullId: null,
-    }));
+    });
   };
 
-  const handleBullIatfTypeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleBullIatfTypeChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setBullIatfType(event.target.value);
-    setAnimal((prev) => ({
-      ...prev,
+    setAnimal({
+      ...animal,
       bullIatfId: null,
       externalBullIatfId: null,
-    }));
+    });
   };
 
   const handleBullSelection = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const { value } = event.target;
     if (bullType === 'interno') {
-      setAnimal((prev) => ({
-        ...prev,
-        bullId: value,
-        externalBullId: null,
-      }));
+      setAnimal({ ...animal, bullId: value, externalBullId: null });
     } else {
-      setAnimal((prev) => ({
-        ...prev,
-        bullId: null,
-        externalBullId: value,
-      }));
+      setAnimal({ ...animal, bullId: null, externalBullId: value });
     }
   };
 
   const handleBullIatfSelection = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const { value } = event.target;
     if (bullIatfType === 'interno') {
-      setAnimal((prev) => ({
-        ...prev,
-        bullIatfId: value,
-        externalBullIatfId: null,
-      }));
+      setAnimal({ ...animal, bullIatfId: value, externalBullIatfId: null });
     } else {
-      setAnimal((prev) => ({
-        ...prev,
-        bullIatfId: null,
-        externalBullIatfId: value,
-      }));
+      setAnimal({ ...animal, bullIatfId: null, externalBullIatfId: value });
     }
   };
 
