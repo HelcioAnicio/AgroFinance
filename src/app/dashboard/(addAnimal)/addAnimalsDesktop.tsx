@@ -5,7 +5,7 @@ import { CardFormMain } from './tabMain/cardFormMain';
 import { CardFormReproduction } from './tabReproducttion/cardFormReproduction';
 import { useSession } from 'next-auth/react';
 import { Animal } from '@/types/animal';
-import { ExternalBull } from '@/types/external-bull';
+import { ExternalBull } from '@/types/externalBull';
 import { User } from '@/types/user';
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'sonner';
