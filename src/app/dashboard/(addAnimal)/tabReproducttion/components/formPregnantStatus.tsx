@@ -2,14 +2,15 @@ import { SelectForm } from '@/components/ui/selectForm';
 import { RadioForm } from '@/components/ui/radioForm';
 import { InputForm } from '@/components/ui/inputForm';
 import { Animal } from '@/types/animal';
-import { ExternalBull } from '@/types/externalBull';
-import { buildExternalBullValue } from '@/lib/externalBull';
+import { ExternalBull } from '@/types/external-bull';
+import React, { useState } from 'react';
 
 interface FormPregnantStatusProps {
   allDataForm: Animal;
   handleInputValues: (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
+  setAllDataForm: React.Dispatch<React.SetStateAction<Animal>>;
   animals: Animal[];
   externalBulls: ExternalBull[];
 }
@@ -17,9 +18,65 @@ interface FormPregnantStatusProps {
 export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
   allDataForm,
   handleInputValues,
+  setAllDataForm,
   animals,
   externalBulls,
 }) => {
+  const [bullType, setBullType] = useState('interno');
+  const [bullIatfType, setBullIatfType] = useState('interno');
+
+  const handleBullTypeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setBullType(event.target.value);
+    setAllDataForm((prev) => ({
+      ...prev,
+      bullId: null,
+      externalBullId: null,
+    }));
+  };
+
+  const handleBullIatfTypeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setBullIatfType(event.target.value);
+    setAllDataForm((prev) => ({
+      ...prev,
+      bullIatfId: null,
+      externalBullIatfId: null,
+    }));
+  };
+
+  const handleBullSelection = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const { value } = event.target;
+    if (bullType === 'interno') {
+      setAllDataForm((prev) => ({
+        ...prev,
+        bullId: value,
+        externalBullId: null,
+      }));
+    } else {
+      setAllDataForm((prev) => ({
+        ...prev,
+        bullId: null,
+        externalBullId: value,
+      }));
+    }
+  };
+
+  const handleBullIatfSelection = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const { value } = event.target;
+    if (bullIatfType === 'interno') {
+      setAllDataForm((prev) => ({
+        ...prev,
+        bullIatfId: value,
+        externalBullIatfId: null,
+      }));
+    } else {
+      setAllDataForm((prev) => ({
+        ...prev,
+        bullIatfId: null,
+        externalBullIatfId: value,
+      }));
+    }
+  };
+
   const internalBullOptions = animals
     .filter(
       (animal) =>
@@ -32,8 +89,8 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
     }));
 
   const externalBullOptions = externalBulls.map((externalBull) => ({
-    label: `Externo - ${externalBull.name} (${externalBull.dosesAvailable} doses)`,
-    value: buildExternalBullValue(externalBull.id),
+    label: `${externalBull.name} (${externalBull.dosesAvailable} doses)`,
+    value: externalBull.id,
   }));
 
   return (
@@ -58,23 +115,115 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
         />
       </article>
 
-      <article className="mt-4 grid gap-4 sm:grid-cols-2">
-        <SelectForm
-          htmlFor="bullId"
-          label="Touro utilizado:"
-          name="bullId"
-          id="bullId"
-          value={allDataForm.bullId || ''}
-          defaultOption="Escolha o touro"
-          options={[
-            { label: 'Comercial', value: 'comercial' },
-            ...internalBullOptions,
-            ...externalBullOptions,
-          ]}
-          onChange={handleInputValues}
-          disabled={allDataForm.handlingType === 'artificialInsemination'}
-        />
+      {allDataForm.handlingType === 'naturalMating' && (
+        <>
+          <div className="flex flex-col gap-2 mt-4">
+            <span className="text-[0.7rem] font-semibold uppercase text-muted-foreground">
+              Tipo de Touro (Monta Natural):
+            </span>
+            <div className="grid grid-cols-2 gap-2">
+              <RadioForm
+                htmlFor="bull-interno"
+                label="Interno"
+                type="radio"
+                name="bullType"
+                id="bull-interno"
+                value="interno"
+                checked={bullType === 'interno'}
+                onChange={handleBullTypeChange}
+              />
+              <RadioForm
+                htmlFor="bull-externo"
+                label="Externo"
+                type="radio"
+                name="bullType"
+                id="bull-externo"
+                value="externo"
+                checked={bullType === 'externo'}
+                onChange={handleBullTypeChange}
+              />
+            </div>
+          </div>
+          {bullType === 'interno' ? (
+            <SelectForm
+              htmlFor="bullId"
+              label="Touro utilizado:"
+              name="bullId"
+              id="bullId"
+              value={allDataForm.bullId || ''}
+              defaultOption="Escolha o touro"
+              options={[{ label: 'Comercial', value: 'comercial' }, ...internalBullOptions]}
+              onChange={handleBullSelection}
+            />
+          ) : (
+            <SelectForm
+              htmlFor="externalBullId"
+              label="Touro utilizado (Externo):"
+              name="externalBullId"
+              id="externalBullId"
+              value={allDataForm.externalBullId || ''}
+              defaultOption="Escolha o touro externo"
+              options={externalBullOptions}
+              onChange={handleBullSelection}
+            />
+          )}
+        </>
+      )}
 
+      {allDataForm.handlingType === 'artificialInsemination' && (
+         <>
+          <div className="flex flex-col gap-2 mt-4">
+            <span className="text-[0.7rem] font-semibold uppercase text-muted-foreground">
+              Tipo de Touro (IATF):
+            </span>
+            <div className="grid grid-cols-2 gap-2">
+              <RadioForm
+                htmlFor="bull-iatf-interno"
+                label="Interno"
+                type="radio"
+                name="bullIatfType"
+                id="bull-iatf-interno"
+                value="interno"
+                checked={bullIatfType === 'interno'}
+                onChange={handleBullIatfTypeChange}
+              />
+              <RadioForm
+                htmlFor="bull-iatf-externo"
+                label="Externo"
+                type="radio"
+                name="bullIatfType"
+                id="bull-iatf-externo"
+                value="externo"
+                checked={bullIatfType === 'externo'}
+                onChange={handleBullIatfTypeChange}
+              />
+            </div>
+          </div>
+          {bullIatfType === 'interno' ? (
+            <SelectForm
+              htmlFor="bullIatfId"
+              label="Touro utilizado na IATF:"
+              name="bullIatfId"
+              id="bullIatfId"
+              value={allDataForm.bullIatfId || ''}
+              options={[{ label: 'Comercial', value: 'comercial' }, ...internalBullOptions]}
+              onChange={handleBullIatfSelection}
+            />
+          ) : (
+            <SelectForm
+              htmlFor="externalBullIatfId"
+              label="Touro utilizado na IATF (Externo):"
+              name="externalBullIatfId"
+              id="externalBullIatfId"
+              value={allDataForm.externalBullIatfId || ''}
+              options={externalBullOptions}
+              onChange={handleBullIatfSelection}
+            />
+          )}
+        </>
+      )}
+
+      <article className="mt-4 grid gap-4 sm:grid-cols-2">
         <SelectForm
           htmlFor="protocol"
           label="Protocolo usado:"
@@ -137,21 +286,6 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
               : ''
           }
           onChange={handleInputValues}
-        />
-
-        <SelectForm
-          htmlFor="bullIatfId"
-          label="Touro utilizado na IATF:"
-          name="bullIatfId"
-          id="bullIatfId"
-          value={allDataForm.bullIatfId || ''}
-          options={[
-            { label: 'Comercial', value: 'comercial' },
-            ...internalBullOptions,
-            ...externalBullOptions,
-          ]}
-          onChange={handleInputValues}
-          disabled={allDataForm.handlingType === 'naturalMating'}
         />
       </article>
     </>

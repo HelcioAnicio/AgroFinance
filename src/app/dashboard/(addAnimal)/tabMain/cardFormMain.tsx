@@ -10,7 +10,7 @@ import { RadioForm } from '@/components/ui/radioForm';
 import { SelectForm } from '@/components/ui/selectForm';
 import { toast } from 'sonner';
 import { weightRecordOptions } from '@/lib/weightHistory';
-import { ExternalBull } from '@/types/externalBull';
+import { ExternalBull } from '@/types/external-bull';
 
 interface CardFormMainProps {
   allDataForm: Animal;
@@ -32,11 +32,38 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
   setAllDataForm,
   setTabValue,
 }) => {
+  const [fatherType, setFatherType] = useState('interno');
+
+  const handleFatherTypeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setFatherType(event.target.value);
+    setAllDataForm((prev) => ({
+      ...prev,
+      fatherId: null,
+      externalBullFatherId: null,
+    }));
+  };
+
+  const handleFatherSelection = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const { value } = event.target;
+    if (fatherType === 'interno') {
+      setAllDataForm((prev) => ({
+        ...prev,
+        fatherId: value,
+        externalBullFatherId: null,
+      }));
+    } else {
+      setAllDataForm((prev) => ({
+        ...prev,
+        fatherId: null,
+        externalBullFatherId: value,
+      }));
+    }
+  };
+
   const checked = animals.find(
     (animal) =>
       animal?.manualId?.toLowerCase() === allDataForm?.manualId?.toLowerCase()
   );
-  console.log('allDataForm: ', allDataForm);
 
   useEffect(() => {
     if (checked !== undefined) {
@@ -88,7 +115,6 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
   ];
 
   const [isReproductive, setIsReproductive] = useState<boolean>(false);
-  console.log('ExternalBull:', externalBulls);
   const statusLabels = {
     active: 'Ativado',
     inactive: 'Inativado',
@@ -412,33 +438,73 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                 defaultOption="Escolha a mãe"
               />
 
-              <SelectForm
-                htmlFor="fatherId"
-                label="Pai:"
-                name="fatherId"
-                id="fatherId"
-                value={allDataForm.fatherId ?? ''}
-                onChange={handleInputValues}
-                options={[
-                  { label: 'Comercial', value: 'comercial' },
-                  ...animals
-                    .filter(
-                      (animal) =>
-                        animal.gender === 'male' &&
-                        animal.category.includes('bull') &&
-                        animal.status === 'active'
-                    )
-                    .map((animal) => ({
-                      label: `Touro ${animal.manualId}`,
-                      value: animal.id,
-                    })),
-                  ...externalBulls.map((bull) => ({
-                    label: `Touro Externo ${bull.name}`,
-                    value: bull.id,
-                  })),
-                ]}
-                defaultOption="Escolha o pai"
-              />
+              <div className="flex flex-col gap-2">
+                 <span className="text-[0.7rem] font-semibold uppercase text-muted-foreground">
+                  Tipo de Pai:
+                </span>
+                <div className="grid grid-cols-2 gap-2">
+                  <RadioForm
+                    htmlFor="interno"
+                    label="Interno"
+                    type="radio"
+                    name="fatherType"
+                    id="interno"
+                    value="interno"
+                    checked={fatherType === 'interno'}
+                    onChange={handleFatherTypeChange}
+                  />
+                  <RadioForm
+                    htmlFor="externo"
+                    label="Externo"
+                    type="radio"
+                    name="fatherType"
+                    id="externo"
+                    value="externo"
+                    checked={fatherType === 'externo'}
+                    onChange={handleFatherTypeChange}
+                  />
+                </div>
+              </div>
+
+              {fatherType === 'interno' ? (
+                <SelectForm
+                  htmlFor="fatherId"
+                  label="Pai (Interno):"
+                  name="fatherId"
+                  id="fatherId"
+                  value={allDataForm.fatherId ?? ''}
+                  onChange={handleFatherSelection}
+                   options={[
+                    { label: 'Comercial', value: 'comercial' },
+                    ...animals
+                      .filter(
+                        (animal) =>
+                          animal.gender === 'male' &&
+                          animal.category.includes('bull') &&
+                          animal.status === 'active'
+                      )
+                      .map((animal) => ({
+                        label: `Touro ${animal.manualId}`,
+                        value: animal.id,
+                      })),
+                  ]}
+                  defaultOption="Escolha o pai"
+                />
+              ) : (
+                <SelectForm
+                  htmlFor="externalBullFatherId"
+                  label="Pai (Externo):"
+                  name="externalBullFatherId"
+                  id="externalBullFatherId"
+                  value={allDataForm.externalBullFatherId ?? ''}
+                  onChange={handleFatherSelection}
+                  options={externalBulls.map((bull) => ({
+                      label: bull.name,
+                      value: bull.id,
+                    }))}
+                  defaultOption="Escolha o touro externo"
+                />
+              )}
             </div>
             <div className="flex w-full flex-col-reverse gap-3 border-t border-border/70 pt-5 sm:flex-row sm:justify-end">
               <Button

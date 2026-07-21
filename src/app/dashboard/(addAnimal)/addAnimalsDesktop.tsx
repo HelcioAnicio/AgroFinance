@@ -5,7 +5,7 @@ import { CardFormMain } from './tabMain/cardFormMain';
 import { CardFormReproduction } from './tabReproducttion/cardFormReproduction';
 import { useSession } from 'next-auth/react';
 import { Animal } from '@/types/animal';
-import { ExternalBull } from '@/types/externalBull';
+import { ExternalBull } from '@/types/external-bull';
 import { User } from '@/types/user';
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'sonner';
@@ -17,7 +17,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import axios from 'axios';
-import { extractExternalBullId, isExternalBullValue } from '@/lib/externalBull';
 
 interface AddAnimalProps {
   animals: Animal[];
@@ -105,41 +104,12 @@ export const AddAnimalDesktop: React.FC<AddAnimalProps> = ({
           : new Date(allDataForm.expectedDueDate),
       motherId:
         allDataForm.motherId === 'comercial' ? null : allDataForm.motherId,
-      fatherId:
-        allDataForm.fatherId === 'comercial' ||
-        isExternalBullValue(allDataForm.fatherId)
-          ? null
-          : allDataForm.fatherId,
-
-      // Novo campo mapeado no frontend para enviar à API se o pai for externo
-      externalBullFatherId:
-        allDataForm.fatherId === 'comercial'
-          ? null
-          : isExternalBullValue(allDataForm.fatherId)
-            ? extractExternalBullId(allDataForm.fatherId)
-            : null,
-      bullId:
-        allDataForm.bullId === 'comercial' ||
-        isExternalBullValue(allDataForm.bullId) ||
-        null ||
-        undefined
-          ? null
-          : allDataForm.bullId,
-      bullIatfId:
-        allDataForm.bullIatfId === 'comercial' ||
-        isExternalBullValue(allDataForm.bullIatfId) ||
-        null ||
-        undefined
-          ? null
-          : allDataForm.bullIatfId,
-      externalBullId:
-        allDataForm.bullId === 'comercial'
-          ? null
-          : extractExternalBullId(allDataForm.bullId),
-      externalBullIatfId:
-        allDataForm.bullIatfId === 'comercial'
-          ? null
-          : extractExternalBullId(allDataForm.bullIatfId),
+      fatherId: allDataForm.fatherId || null,
+      externalBullFatherId: allDataForm.externalBullFatherId || null,
+      bullId: allDataForm.bullId || null,
+      externalBullId: allDataForm.externalBullId || null,
+      bullIatfId: allDataForm.bullIatfId || null,
+      externalBullIatfId: allDataForm.externalBullIatfId || null,
       updatedAt: new Date(),
       statusChangeDate:
         allDataForm.status === 'active'

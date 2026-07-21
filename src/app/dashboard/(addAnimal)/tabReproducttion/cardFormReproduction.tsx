@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Animal } from '@/types/animal';
-import { ExternalBull } from '@/types/externalBull';
+import { ExternalBull } from '@/types/external-bull';
 import { SelectForm } from '@/components/ui/selectForm';
 import { FormMaleReproductive } from './components/formMaleReproductive';
 import { FormPregnantStatus } from './components/formPregnantStatus';
@@ -200,6 +200,7 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
                         animals={animals}
                         externalBulls={externalBulls}
                         allDataForm={allDataForm}
+                        setAllDataForm={setAllDataForm}
                         handleInputValues={handleInputValues}
                       />
                     )}
@@ -210,6 +211,7 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
                         handleInputValues={handleInputValues}
                         animals={animals}
                         externalBulls={externalBulls}
+                        setAllDataForm={setAllDataForm}
                       />
                     )}
 

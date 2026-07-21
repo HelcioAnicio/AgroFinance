@@ -1,10 +1,13 @@
 import { Animal } from '@/types/animal';
 import { weightRecordOptions } from '@/lib/weightHistory';
-import { ExternalBull } from '@/types/externalBull';
+import { ExternalBull } from '@/types/external-bull';
 import { RadioForm } from '@/components/ui/radioForm';
+import { SelectForm } from '@/components/ui/selectForm';
+import React, { useState } from 'react';
 
 interface FormBasicInformationProps {
   animal: Animal;
+  setAnimal: React.Dispatch<React.SetStateAction<Animal>>;
   externalBulls: ExternalBull[];
   handleInputValues: (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -23,12 +26,43 @@ const selectClass =
 
 export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
   animal,
+  setAnimal,
   handleInputValues,
   externalBulls,
   breedArray,
   animals,
   scores,
 }) => {
+  const [fatherType, setFatherType] = useState(
+    animal.externalBullFatherId ? 'externo' : 'interno'
+  );
+
+  const handleFatherTypeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setFatherType(event.target.value);
+    setAnimal((prev) => ({
+      ...prev,
+      fatherId: null,
+      externalBullFatherId: null,
+    }));
+  };
+
+  const handleFatherSelection = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const { value } = event.target;
+    if (fatherType === 'interno') {
+      setAnimal((prev) => ({
+        ...prev,
+        fatherId: value,
+        externalBullFatherId: null,
+      }));
+    } else {
+      setAnimal((prev) => ({
+        ...prev,
+        fatherId: null,
+        externalBullFatherId: value,
+      }));
+    }
+  };
+
   return (
     <div className="w-full rounded-2xl border bg-white p-5 shadow-sm">
       <p className="mb-5 text-sm font-bold text-foreground">
@@ -263,69 +297,74 @@ export const FormBasicInformation: React.FC<FormBasicInformationProps> = ({
                 ))}
             </select>
           </div>
-          {!animal.externalBullFatherId ? (
-            <div>
-              <label className={labelClass} htmlFor="fatherId">
-                Pai
-              </label>
-              <select
-                name="fatherId"
-                id="fatherId"
-                value={animal.fatherId ?? 'Comercial'}
-                onChange={handleInputValues}
-                className={selectClass}
-              >
-                <option value="" disabled></option>
-                <option value="Comercial">Comercial</option>
-                {animals
+
+          <div className="flex flex-col gap-2">
+             <span className="text-[0.7rem] font-semibold uppercase text-muted-foreground">
+              Tipo de Pai:
+            </span>
+            <div className="grid grid-cols-2 gap-2">
+              <RadioForm
+                htmlFor="edit-interno"
+                label="Interno"
+                type="radio"
+                name="fatherType-edit"
+                id="edit-interno"
+                value="interno"
+                checked={fatherType === 'interno'}
+                onChange={handleFatherTypeChange}
+              />
+              <RadioForm
+                htmlFor="edit-externo"
+                label="Externo"
+                type="radio"
+                name="fatherType-edit"
+                id="edit-externo"
+                value="externo"
+                checked={fatherType === 'externo'}
+                onChange={handleFatherTypeChange}
+              />
+            </div>
+          </div>
+
+          {fatherType === 'interno' ? (
+            <SelectForm
+              htmlFor="fatherId"
+              label="Pai (Interno):"
+              name="fatherId"
+              id="fatherId-edit"
+              value={animal.fatherId ?? ''}
+              onChange={handleFatherSelection}
+               options={[
+                { label: 'Comercial', value: 'comercial' },
+                ...animals
                   .filter(
                     (animal) =>
                       animal.gender === 'male' &&
-                      animal.status === 'active' &&
-                      (animal.category === 'bull' ||
-                        animal.category === 'old bull')
+                      animal.category.includes('bull') &&
+                      animal.status === 'active'
                   )
-                  .map((animal) => (
-                    <option key={animal.id} value={animal.id}>
-                      Touro {animal.manualId}
-                    </option>
-                  ))}
-              </select>
-            </div>
-          ) : (
-            <div>
-              <label className={labelClass} htmlFor="externalBullFatherId">
-                Pai Externo
-              </label>
-              <select
-                name="externalBullFatherId"
-                id="externalBullFatherId"
-                value={animal.externalBullFatherId ?? 'Comercial'}
-                onChange={handleInputValues}
-                className={selectClass}
-              >
-                <option value="" disabled></option>
-                <option value="Comercial">Comercial</option>
-                {externalBulls.map((bull) => (
-                  <option key={bull.id} value={bull.id}>
-                    Touro {bull.name} - {bull.dosesAvailable}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-          <div className="mb-4 flex items-center gap-2">
-            <input
-              type="checkbox"
-              name="fatherExternal"
-              id="fatherExternal"
-              checked={!!animal.externalBullFatherId} // ou a sua variável de estado (ex: isExternal)
-              onChange={handleInputValues}
+                  .map((animal) => ({
+                    label: `Touro ${animal.manualId}`,
+                    value: animal.id,
+                  })),
+              ]}
+              defaultOption="Escolha o pai"
             />
-            <label htmlFor="fatherExternal" className="cursor-pointer">
-              Pai é touro externo (IA / Sêmen)?
-            </label>
-          </div>
+          ) : (
+            <SelectForm
+              htmlFor="externalBullFatherId"
+              label="Pai (Externo):"
+              name="externalBullFatherId"
+              id="externalBullFatherId-edit"
+              value={animal.externalBullFatherId ?? ''}
+              onChange={handleFatherSelection}
+              options={externalBulls.map((bull) => ({
+                  label: bull.name,
+                  value: bull.id,
+                }))}
+              defaultOption="Escolha o touro externo"
+            />
+          )}
         </div>
       </section>
     </div>
