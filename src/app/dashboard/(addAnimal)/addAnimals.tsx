@@ -201,24 +201,25 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
         <div className="px-5 py-5">
           <TabsContent value="principais" className="mt-0">
             <CardFormMain
-              animals={animals}
-              handleInputValues={handleInputValues}
               allDataForm={allDataForm}
-              setTabValue={setTabValue}
+              animals={animals}
               breedArray={breedArray}
+              externalBulls={externalBulls}
+              handleInputValues={handleInputValues}
               setAllDataForm={setAllDataForm}
+              setTabValue={setTabValue}
             />
           </TabsContent>
 
           <TabsContent value="reproducao" className="mt-0">
             <CardFormReproduction
               animals={animals}
+              allDataForm={allDataForm}
               externalBulls={externalBulls}
               handleInputValues={handleInputValues}
-              allDataForm={allDataForm}
               submitForm={submitForm}
-              setTabValue={setTabValue}
               setAllDataForm={setAllDataForm}
+              setTabValue={setTabValue}
             />
           </TabsContent>
         </div>

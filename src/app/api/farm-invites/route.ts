@@ -23,7 +23,7 @@ export async function GET(request: Request) {
   const { context, error, status } = await requireFarmContext('manage_team');
   if (!context) return NextResponse.json({ error }, { status });
 
-  const appUrl = getAppUrl(request);
+  const appUrl = getAppUrl();
   const [members, invites, auditLogs, farmData] = await Promise.all([
     prisma.farmMembership.findMany({
       where: { farmId: context.farm.id },
@@ -188,7 +188,7 @@ export async function POST(request: Request) {
     },
   });
 
-  const appUrl = getAppUrl(request);
+  const appUrl = getAppUrl();
 
   return NextResponse.json({
     invite: {

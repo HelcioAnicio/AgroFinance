@@ -39,6 +39,7 @@ import { Filters } from '@/components/ui/modalFilters';
 import { Loading } from '@/components/ui/loading';
 import { Sheet, SheetTrigger } from '@/components/ui/sheet';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAppGlobal } from '@/context/appContext';
 
 interface TableProps {
   animals: Animal[];
@@ -124,14 +125,29 @@ const getCategoryLabel = (animal: Animal) => {
   return '-';
 };
 
+const getReproductiveStatusLabel = (status?: string | null) => {
+  if (status === 'empty') return 'Vazia';
+  if (status === 'pregnant') return 'Prenha';
+  if (status === 'waiting') return 'Em espera';
+  if (status === 'pev') return 'PEV';
+  return 'N/A';
+};
+
+const getAndrologicalLabel = (andrological?: string | null) => {
+  if (andrological === 'positive') return 'Positivo';
+  if (andrological === 'negative') return 'Negativo';
+  return 'Não realizado';
+};
+
 export const Table: React.FC<TableProps> = ({
-  animals,
   users,
   externalBulls,
   livestockStats = [],
   dataLoading = false,
 }) => {
   const [listAnimals, setListAnimals] = useState<Animal[]>([]);
+  const { animals } = useAppGlobal();
+  const { setAnimal } = useAppGlobal();
   const [originalAnimals, setOriginalAnimals] = useState<Animal[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [inputValue, setInputValue] = useState<string>('');
@@ -314,7 +330,12 @@ export const Table: React.FC<TableProps> = ({
   }
 
   const handleNavigation = (id: string | null) => {
-    setIsLoading(true);
+    if (!id) return;
+    // setIsLoading(true);
+    const selectedAnimal = animals.find((a) => a.id === id);
+    if (selectedAnimal) {
+      setAnimal(selectedAnimal);
+    }
     router.push(`/dashboard/${id}`);
   };
 
@@ -434,7 +455,9 @@ export const Table: React.FC<TableProps> = ({
       return;
     }
     setBulkSanitaryLoading(true);
-    const loadingId = toast.loading(`Aplicando ${bulkSanitaryType === 'vaccine' ? 'vacina' : bulkSanitaryType === 'deworming' ? 'vermífugo' : 'doença'} em ${selectedIds.size} animais...`);
+    const loadingId = toast.loading(
+      `Aplicando ${bulkSanitaryType === 'vaccine' ? 'vacina' : bulkSanitaryType === 'deworming' ? 'vermífugo' : 'doença'} em ${selectedIds.size} animais...`
+    );
     try {
       const res = await fetch('/api/bulkSanitary', {
         method: 'POST',
@@ -453,7 +476,12 @@ export const Table: React.FC<TableProps> = ({
       if (res.ok) {
         toast.success(data.message);
         setBulkSanitaryOpen(false);
-        setBulkSanitaryForm({ name: '', date: '', expiryDate: '', description: '' });
+        setBulkSanitaryForm({
+          name: '',
+          date: '',
+          expiryDate: '',
+          description: '',
+        });
       } else {
         toast.error(data.error ?? 'Erro ao aplicar registro sanitário.');
       }
@@ -528,20 +556,20 @@ export const Table: React.FC<TableProps> = ({
                     <Skeleton className="h-4 w-14 rounded-full" />
                     {/* ID */}
                     <Skeleton className="h-4 w-10 rounded" />
-                    {/* Raça */}
+                    {/* Categoria */}
                     <Skeleton className="h-4 w-16 rounded" />
-                    {/* Sexo */}
-                    <Skeleton className="h-4 w-12 rounded" />
-                    {/* Mãe */}
+                    {/* Reprodutivo / Andrológico */}
                     <Skeleton className="h-4 w-16 rounded" />
                     {/* Pai */}
                     <Skeleton className="h-4 w-16 rounded" />
-                    {/* Nascimento */}
-                    <Skeleton className="h-4 w-20 rounded" />
-                    {/* Categoria */}
+                    {/* Mãe */}
                     <Skeleton className="h-4 w-16 rounded" />
                     {/* Peso */}
                     <Skeleton className="h-4 w-14 rounded" />
+                    {/* Nascimento */}
+                    <Skeleton className="h-4 w-20 rounded" />
+                    {/* Raça */}
+                    <Skeleton className="h-4 w-16 rounded" />
                     {/* Ação */}
                     <Skeleton className="ml-auto h-4 w-4 rounded" />
                   </div>
@@ -852,17 +880,38 @@ export const Table: React.FC<TableProps> = ({
                         {isSaleMode && <th className="w-8 px-3 py-3"></th>}
                         <th className="px-4 py-3">Status</th>
                         <th className="px-4 py-3">ID</th>
-                        <th className="px-4 py-3">Raça</th>
-                        <th className="px-4 py-3">Sexo</th>
-                        <th className="px-4 py-3">Mãe</th>
-                        <th className="px-4 py-3">Pai</th>
-                        <th className="px-4 py-3">Nascimento</th>
                         <th className="px-4 py-3">Categoria</th>
+                        <th className="px-4 py-3">Reprodutivo / Andrológico</th>
+                        <th className="px-4 py-3">Pai</th>
+                        <th className="px-4 py-3">Mãe</th>
                         <th className="px-4 py-3">Peso atual</th>
+                        <th className="px-4 py-3">Nascimento</th>
+                        <th className="px-4 py-3">Raça</th>
                         <th className="sticky right-0 bg-muted px-4 py-3"></th>
                       </tr>
                     </thead>
                     <tbody className="divide-y overflow-y-auto scroll-smooth">
+                      {!dataLoading && listAnimals.length === 0 && (
+                        <tr>
+                          <td colSpan={10} className="py-16 text-center">
+                            <div className="flex flex-col items-center gap-2">
+                              <span className="text-4xl">🐄</span>
+                              <p className="font-semibold text-muted-foreground">
+                                {inputValue
+                                  ? 'Nenhum animal encontrado com esse filtro'
+                                  : 'Nenhum animal cadastrado ainda'}
+                              </p>
+                              {!inputValue && (
+                                <p className="text-sm text-muted-foreground">
+                                  Clique em{' '}
+                                  <strong>&quot;Adicionar animal&quot;</strong>{' '}
+                                  para começar o controle do seu rebanho.
+                                </p>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
                       {listAnimals.map((animal: Animal) => {
                         const mother = animals.find(
                           (a) => a.id === animal.motherId
@@ -870,6 +919,11 @@ export const Table: React.FC<TableProps> = ({
                         const father = animals.find(
                           (a) => a.id === animal.fatherId
                         );
+                        const externalFather = animal.externalBullFatherId
+                          ? externalBulls.find(
+                              (b) => b.id === animal.externalBullFatherId
+                            )
+                          : undefined;
 
                         const fatherLabel =
                           father?.category === 'bull' ||
@@ -921,15 +975,38 @@ export const Table: React.FC<TableProps> = ({
                                 animal.manualId.slice(1)}
                             </td>
                             <td className="px-4 py-3 text-sm">
-                              {animal.breed.charAt(0).toUpperCase() +
-                                animal.breed.slice(1)}
+                              {getCategoryLabel(animal)}
                             </td>
                             <td className="px-4 py-3 text-sm">
-                              {animal.gender === 'male' ||
-                              animal.gender === 'macho'
-                                ? 'Macho'
-                                : 'Fêmea'}
+                              {isFemale(animal.gender)
+                                ? getReproductiveStatusLabel(
+                                    animal.reproductiveStatus
+                                  )
+                                : getAndrologicalLabel(animal.andrological)}
                             </td>
+
+                            {animal.externalBullFatherId ? (
+                              <td className="px-4 py-3 text-sm text-muted-foreground">
+                                {`Ex. ${externalFather?.name ?? 'Externo'}`}
+                              </td>
+                            ) : animal.fatherId === null ? (
+                              <td className="px-4 py-3 text-sm text-muted-foreground">
+                                Comercial
+                              </td>
+                            ) : (
+                              <td
+                                className="px-4 py-3 text-sm transition hover:opacity-60"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  handleNavigation(animal.fatherId);
+                                }}
+                              >
+                                <span className="flex w-max items-center gap-1 border-b border-foreground/40">
+                                  {`${fatherLabel} ${father?.manualId}`}
+                                  <LiaExternalLinkAltSolid className="inline-block size-3.5" />
+                                </span>
+                              </td>
+                            )}
 
                             {animal.motherId === null ? (
                               <td className="px-4 py-3 text-sm text-muted-foreground">
@@ -950,25 +1027,9 @@ export const Table: React.FC<TableProps> = ({
                               </td>
                             )}
 
-                            {animal.fatherId === null ? (
-                              <td className="px-4 py-3 text-sm text-muted-foreground">
-                                Comercial
-                              </td>
-                            ) : (
-                              <td
-                                className="px-4 py-3 text-sm transition hover:opacity-60"
-                                onClick={(event) => {
-                                  event.stopPropagation();
-                                  handleNavigation(animal.fatherId);
-                                }}
-                              >
-                                <span className="flex w-max items-center gap-1 border-b border-foreground/40">
-                                  {`${fatherLabel} ${father?.manualId}`}
-                                  <LiaExternalLinkAltSolid className="inline-block size-3.5" />
-                                </span>
-                              </td>
-                            )}
-
+                            <td className="px-4 py-3 text-sm font-medium">
+                              {animal.weight} kg
+                            </td>
                             <td className="px-4 py-3 text-sm text-muted-foreground">
                               {animal.birthDate
                                 ? new Date(animal.birthDate).toLocaleDateString(
@@ -977,10 +1038,8 @@ export const Table: React.FC<TableProps> = ({
                                 : 'N/A'}
                             </td>
                             <td className="px-4 py-3 text-sm">
-                              {getCategoryLabel(animal)}
-                            </td>
-                            <td className="px-4 py-3 text-sm font-medium">
-                              {animal.weight} kg
+                              {animal.breed.charAt(0).toUpperCase() +
+                                animal.breed.slice(1)}
                             </td>
                             <td className="sticky right-0 bg-white px-4 py-3">
                               <SquareArrowOutUpLeft
@@ -1310,7 +1369,9 @@ export const Table: React.FC<TableProps> = ({
           {bulkSanitaryOpen && (
             <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4">
               <div className="w-full max-w-md rounded-2xl border bg-white p-6 shadow-2xl">
-                <h3 className="mb-1 text-base font-bold">Aplicar registro sanitário</h3>
+                <h3 className="mb-1 text-base font-bold">
+                  Aplicar registro sanitário
+                </h3>
                 <p className="mb-4 text-sm text-muted-foreground">
                   Será aplicado em {selectedIds.size} animal(is) selecionado(s).
                 </p>
@@ -1327,7 +1388,11 @@ export const Table: React.FC<TableProps> = ({
                           : 'text-muted-foreground hover:bg-muted'
                       }`}
                     >
-                      {t === 'vaccine' ? 'Vacina' : t === 'deworming' ? 'Vermífugo' : 'Doença'}
+                      {t === 'vaccine'
+                        ? 'Vacina'
+                        : t === 'deworming'
+                          ? 'Vermífugo'
+                          : 'Doença'}
                     </button>
                   ))}
                 </div>
@@ -1345,7 +1410,12 @@ export const Table: React.FC<TableProps> = ({
                     <input
                       type="text"
                       value={bulkSanitaryForm.name}
-                      onChange={(e) => setBulkSanitaryForm((f) => ({ ...f, name: e.target.value }))}
+                      onChange={(e) =>
+                        setBulkSanitaryForm((f) => ({
+                          ...f,
+                          name: e.target.value,
+                        }))
+                      }
                       placeholder="Ex: Febre Aftosa"
                       className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary"
                     />
@@ -1353,21 +1423,35 @@ export const Table: React.FC<TableProps> = ({
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="mb-1 block text-xs font-medium">Data *</label>
+                      <label className="mb-1 block text-xs font-medium">
+                        Data *
+                      </label>
                       <input
                         type="date"
                         value={bulkSanitaryForm.date}
-                        onChange={(e) => setBulkSanitaryForm((f) => ({ ...f, date: e.target.value }))}
+                        onChange={(e) =>
+                          setBulkSanitaryForm((f) => ({
+                            ...f,
+                            date: e.target.value,
+                          }))
+                        }
                         className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary"
                       />
                     </div>
                     {bulkSanitaryType !== 'disease' && (
                       <div>
-                        <label className="mb-1 block text-xs font-medium">Vencimento</label>
+                        <label className="mb-1 block text-xs font-medium">
+                          Vencimento
+                        </label>
                         <input
                           type="date"
                           value={bulkSanitaryForm.expiryDate}
-                          onChange={(e) => setBulkSanitaryForm((f) => ({ ...f, expiryDate: e.target.value }))}
+                          onChange={(e) =>
+                            setBulkSanitaryForm((f) => ({
+                              ...f,
+                              expiryDate: e.target.value,
+                            }))
+                          }
                           className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary"
                         />
                       </div>
@@ -1375,11 +1459,18 @@ export const Table: React.FC<TableProps> = ({
                   </div>
 
                   <div>
-                    <label className="mb-1 block text-xs font-medium">Observação</label>
+                    <label className="mb-1 block text-xs font-medium">
+                      Observação
+                    </label>
                     <input
                       type="text"
                       value={bulkSanitaryForm.description}
-                      onChange={(e) => setBulkSanitaryForm((f) => ({ ...f, description: e.target.value }))}
+                      onChange={(e) =>
+                        setBulkSanitaryForm((f) => ({
+                          ...f,
+                          description: e.target.value,
+                        }))
+                      }
                       placeholder="Opcional"
                       className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary"
                     />
@@ -1390,7 +1481,12 @@ export const Table: React.FC<TableProps> = ({
                   <button
                     onClick={() => {
                       setBulkSanitaryOpen(false);
-                      setBulkSanitaryForm({ name: '', date: '', expiryDate: '', description: '' });
+                      setBulkSanitaryForm({
+                        name: '',
+                        date: '',
+                        expiryDate: '',
+                        description: '',
+                      });
                     }}
                     disabled={bulkSanitaryLoading}
                     className="flex-1 rounded-lg border px-4 py-2 text-sm font-medium transition hover:bg-muted disabled:opacity-50"

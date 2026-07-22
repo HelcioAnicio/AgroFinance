@@ -37,7 +37,7 @@ const _fetchAnimalsRaw = async (
       }
     });
 
-    return sortedAnimals;
+    return sortedAnimals as unknown as Animal[];
   } catch (error) {
     console.error('Error fetching animals:', error);
     throw new Error('Could not fetch animals.');
@@ -55,6 +55,66 @@ export const fetchAnimals = (
     ['animals', cacheKey],
     { revalidate: 30 }
   )();
+};
+
+export const fetchAnimalById = async (
+  animalId: string,
+  farmId: string
+): Promise<Animal | null> => {
+  if (!animalId || !farmId) {
+    return null;
+  }
+
+  const animal = await prisma.animal.findUnique({
+    where: {
+      id: animalId,
+      farmId: farmId,
+    },
+    include: {
+      weightHistories: {
+        orderBy: {
+          measuredAt: 'desc',
+        },
+      },
+      calfLossHistories: {
+        include: {
+          fatherAnimal: true,
+          externalBull: true,
+        },
+        orderBy: {
+          lossDate: 'desc',
+        },
+      },
+      dewormings: {
+        orderBy: {
+          date: 'desc',
+        },
+      },
+      diseases: {
+        orderBy: {
+          date: 'desc',
+        },
+      },
+      vaccines: {
+        orderBy: {
+          date: 'desc',
+        },
+      },
+      offspringFromMother: { include: { weightHistories: true } },
+      offspringFromFather: { include: { weightHistories: true } },
+      offspringFromBull: { include: { weightHistories: true } },
+      offspringFromBullIatf: { include: { weightHistories: true } },
+      mother: true,
+      father: true,
+      bull: true,
+      bullIatfRel: true,
+      externalBullFather: true,
+      externalBull: true,
+      externalBullIatfRel: true,
+    },
+  });
+
+  return animal as unknown as Animal | null;
 };
 
 export const fetchUsers = async (): Promise<User[]> => {
@@ -90,7 +150,7 @@ export const fetchNotifications = async (
   return notifications as Notification[];
 };
 
-export const fetchVaccines = async (animalId: string): Promise<Vaccine[]> => {
+export const fetchVaccines = async (animalId: string, id: string): Promise<Vaccine[]> => {
   if (!animalId) {
     throw new Error('animalId is required');
   }

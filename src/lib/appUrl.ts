@@ -1,35 +1,17 @@
-const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '0.0.0.0']);
-
-const normalizeUrl = (url: string) => {
-  const trimmed = url.trim();
-  if (!trimmed) return null;
-
-  return trimmed.startsWith('http://') || trimmed.startsWith('https://')
-    ? trimmed.replace(/\/$/, '')
-    : `https://${trimmed.replace(/\/$/, '')}`;
-};
-
-const isLocalUrl = (url: string) => {
-  try {
-    return LOCAL_HOSTS.has(new URL(url).hostname);
-  } catch {
-    return false;
-  }
-};
-
-export const getAppUrl = (request: Request) => {
-  const requestOrigin = new URL(request.url).origin;
-
-  if (!isLocalUrl(requestOrigin)) {
-    return requestOrigin;
+/**
+ * Returns the full URL for the application, handling Vercel and local environments.
+ * This function can be called on both server and client.
+ * @returns {string} The full base URL of the app.
+ */
+export const getAppUrl = (): string => {
+  // For production and preview deployments on Vercel, VERCEL_URL is the canonical URL.
+  // It's provided by the system. We just need to add the protocol.
+  // Example for main: "agro-finance-real.vercel.app"
+  // Example for developer: "agro-finance-real-git-developer-....vercel.app"
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
   }
 
-  const configuredAppUrl =
-    normalizeUrl(process.env.NEXT_PUBLIC_APP_URL ?? '') ??
-    normalizeUrl(process.env.APP_URL ?? '') ??
-    normalizeUrl(process.env.VERCEL_PROJECT_PRODUCTION_URL ?? '') ??
-    normalizeUrl(process.env.VERCEL_URL ?? '') ??
-    normalizeUrl(process.env.NEXTAUTH_URL ?? '');
-
-  return configuredAppUrl ?? requestOrigin;
+  // For local development, we fall back to localhost.
+  return 'http://localhost:3000';
 };

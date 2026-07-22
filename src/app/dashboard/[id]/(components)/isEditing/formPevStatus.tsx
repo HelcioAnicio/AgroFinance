@@ -2,7 +2,7 @@ import { Animal } from '@/types/animal';
 import { GoAlertFill } from 'react-icons/go';
 
 interface FormPevStatusProps {
-  allDataForm: Animal;
+  animal: Animal;
   handleInputValues: (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
@@ -11,7 +11,10 @@ interface FormPevStatusProps {
   onPevDaysChange: (days: number) => void;
 }
 
-export const FormPevStatus: React.FC<FormPevStatusProps> = ({ pevDays, onPevDaysChange }) => {
+export const FormPevStatus: React.FC<FormPevStatusProps> = ({
+  pevDays,
+  onPevDaysChange,
+}) => {
   const returnDate = new Date();
   returnDate.setDate(returnDate.getDate() + pevDays);
   const formattedDate = returnDate.toLocaleDateString('pt-BR');
@@ -35,7 +38,9 @@ export const FormPevStatus: React.FC<FormPevStatusProps> = ({ pevDays, onPevDays
             min={1}
             max={365}
             value={pevDays}
-            onChange={(e) => onPevDaysChange(Math.max(1, Number(e.target.value)))}
+            onChange={(e) =>
+              onPevDaysChange(Math.max(1, Number(e.target.value)))
+            }
             className="w-24 rounded-md border px-2 py-1 text-sm"
           />
         </div>

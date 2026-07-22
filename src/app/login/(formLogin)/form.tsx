@@ -39,7 +39,7 @@ export const FormLogin: React.FC<FormLoginProps> = ({ fetchedUsers }) => {
     [fetchedUsers, dataLoginUser.email]
   );
 
-  const handleInputValues = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputValues = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = event.target;
     setDataLoginUser((prevData) => ({ ...prevData, [name]: value }));
   };
@@ -188,6 +188,7 @@ export const FormLogin: React.FC<FormLoginProps> = ({ fetchedUsers }) => {
                 </button>
                 <button
                   type="button"
+                  disabled
                   className="flex h-11 items-center justify-center gap-2 rounded-md border bg-[#f5f3ef] text-sm font-semibold"
                 >
                   <IoLogoApple className="text-xl" />

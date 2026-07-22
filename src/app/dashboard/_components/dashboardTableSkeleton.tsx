@@ -2,7 +2,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export function DashboardTableSkeleton() {
   return (
-    <main className="relative w-full overflow-hidden px-4 pb-5" style={{ height: 'calc(100vh - 56px)' }}>
+    <main
+      className="relative w-full overflow-hidden px-4 pb-5"
+      style={{ height: 'calc(100vh - 56px)' }}
+    >
       <div className="sticky top-0 z-50 w-full bg-background py-2">
         <div className="flex w-full items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -23,10 +26,7 @@ export function DashboardTableSkeleton() {
         <div className="min-w-[640px] border-collapse rounded-sm border border-border">
           <div className="flex border-b border-border bg-primary/20">
             {Array.from({ length: 8 }).map((_, i) => (
-              <Skeleton
-                key={i}
-                className="h-10 w-24 flex-1 rounded-none"
-              />
+              <Skeleton key={i} className="h-10 w-24 flex-1 rounded-none" />
             ))}
           </div>
           {Array.from({ length: 10 }).map((_, rowIndex) => (

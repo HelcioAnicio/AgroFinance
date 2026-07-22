@@ -200,6 +200,7 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
                         animals={animals}
                         externalBulls={externalBulls}
                         allDataForm={allDataForm}
+                        setAllDataForm={setAllDataForm}
                         handleInputValues={handleInputValues}
                       />
                     )}
@@ -210,6 +211,7 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
                         handleInputValues={handleInputValues}
                         animals={animals}
                         externalBulls={externalBulls}
+                        setAllDataForm={setAllDataForm}
                       />
                     )}
 

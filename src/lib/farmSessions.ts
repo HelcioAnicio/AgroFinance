@@ -63,7 +63,7 @@ export async function createFarmSession(
 
   const { farmId, role } = membership;
 
-  // Busca tier do plano da fazenda
+  // Busca tier do plano da fazenda, tolerando colunas de billing ausentes
   const farm = await getFarmBillingFieldsSafe(farmId);
 
   const seatLimit = farm?.stripePlanTier
