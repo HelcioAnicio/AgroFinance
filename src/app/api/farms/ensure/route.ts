@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { SAFE_FARM_SELECT } from '@/lib/tenant';
 
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
@@ -30,7 +31,7 @@ export async function POST(request: Request) {
       name: true,
       cnpj: true,
       farmMemberships: {
-        select: { id: true, farm: true, role: true },
+        select: { id: true, farm: { select: SAFE_FARM_SELECT }, role: true },
         orderBy: { createdAt: 'asc' },
       },
     },

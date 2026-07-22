@@ -1,7 +1,32 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
-import type { FarmRole, Prisma } from '@prisma/client';
+import type { Farm, FarmRole, Prisma } from '@prisma/client';
+
+// O banco de produção ainda não tem as colunas `stripeSubscriptionItemId` e
+// `stripePlanTier` (adicionadas depois no schema.prisma para o billing por
+// assento), então qualquer `include: { farm: true }`/select geral quebra com
+// P2022 ("column does not exist"). Selecionamos explicitamente só as colunas
+// que existem hoje no banco — isso é usado em toda resolução de contexto de
+// fazenda (praticamente todas as rotas do dashboard), então é o ponto central
+// para essa proteção.
+export const SAFE_FARM_SELECT = {
+  id: true,
+  name: true,
+  ownerUserId: true,
+  trialStartedAt: true,
+  trialEndsAt: true,
+  stripeCustomerId: true,
+  stripeSubscriptionId: true,
+  subscriptionStatus: true,
+  createdAt: true,
+  updatedAt: true,
+} as const;
+
+export type SafeFarm = Omit<
+  Farm,
+  'stripeSubscriptionItemId' | 'stripePlanTier'
+>;
 
 export type FarmPermission =
   | 'manage_farm'
@@ -52,7 +77,7 @@ export async function getCurrentUserWithFarmContext() {
   if (!email) return null;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const user = await (prisma.user.findUnique as any)({
+  const user = (await (prisma.user.findUnique as any)({
     where: { email },
     select: {
       id: true,
@@ -62,10 +87,10 @@ export async function getCurrentUserWithFarmContext() {
       activeFarmId: true, // added in schema — run `prisma generate` to refresh types
       farmMemberships: {
         orderBy: { createdAt: 'asc' },
-        include: { farm: true },
+        include: { farm: { select: SAFE_FARM_SELECT } },
       },
     },
-  }) as {
+  })) as {
     id: string;
     email: string;
     name: string;
@@ -78,7 +103,7 @@ export async function getCurrentUserWithFarmContext() {
       role: import('@prisma/client').FarmRole;
       createdAt: Date;
       updatedAt: Date;
-      farm: import('@prisma/client').Farm;
+      farm: SafeFarm;
     }>;
   } | null;
 

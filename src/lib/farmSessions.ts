@@ -1,5 +1,6 @@
 import prisma from '@/lib/prisma';
 import { getSeatLimitForTier } from '@/lib/billing';
+import { getFarmBillingFieldsSafe } from '@/lib/stripeSeats';
 
 // Prioridade de evicção — menor número = evictar primeiro
 // OWNER nunca é evicatado (valor alto o suficiente para nunca ser escolhido)
@@ -18,6 +19,9 @@ export async function createFarmSession(
   userId: string,
   jti: string
 ): Promise<void> {
+  // Busca fazenda ativa e role do usuário
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const dbUser = (await (prisma.user.findUnique as any)({
   console.log(`[farmSessions] Iniciando criação de sessão para userId: ${userId}`);
 
   const dbUser = await prisma.user.findUnique({
@@ -29,6 +33,10 @@ export async function createFarmSession(
         orderBy: { createdAt: 'asc' },
       },
     },
+  })) as {
+    activeFarmId: string | null;
+    farmMemberships: { farmId: string; role: string }[];
+  } | null;
   });
 
   if (!dbUser) {
@@ -51,6 +59,8 @@ export async function createFarmSession(
   const { farmId, role } = membership;
   console.log(`[farmSessions] ID da fazenda selecionada: ${farmId}`);
 
+  // Busca tier do plano da fazenda
+  const farm = await getFarmBillingFieldsSafe(farmId);
   const farm = await prisma.farm.findUnique({
     where: { id: farmId },
     select: { subscriptionStatus: true, name: true },
@@ -80,6 +90,12 @@ export async function createFarmSession(
   // O limite deve valer só para o total de sessões da fazenda.
 
   if (seatLimit !== null) {
+    // Conta sessões ativas de outros usuários
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const activeSessions = (await (prisma.farmSession.findMany as any)({
+      where: { farmId },
+      orderBy: { lastSeenAt: 'asc' }, // mais antigo primeiro
+    })) as SessionRow[];
     const activeSessions = await prisma.farmSession.findMany({
       where: { farmId },
       orderBy: { lastSeenAt: 'asc' },
@@ -123,6 +139,11 @@ export async function createFarmSession(
  * Retorna false se a sessão foi evictada ou expirou.
  */
 export async function validateFarmSession(jti: string): Promise<boolean> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const session = (await (prisma.farmSession.findUnique as any)({
+    where: { jti },
+    select: { id: true },
+  })) as { id: string } | null;
   const session = await prisma.farmSession.findUnique({
     where: { jti },
     select: { id: true },

@@ -2,6 +2,7 @@ import { User } from './user';
 import { ExternalBull } from './externalBull';
 import { Vaccine } from './vaccine';
 import { Deworming, Disease } from './sanitary';
+import { Vaccine } from './vaccine';
 
 export type WeightRecordType = 'PN' | 'PS' | 'PD' | 'PA' | 'OTHER';
 

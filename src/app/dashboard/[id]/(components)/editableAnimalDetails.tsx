@@ -710,8 +710,10 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     const newValue =
       type === 'checkbox'
         ? (event.target as HTMLInputElement).checked
-        : value;
-    setAnimal({ ...animal, [name]: newValue });
+        : type === 'number' || type === 'range'
+          ? parseFloat(value)
+          : value;
+    setAllDataForm((prev) => ({ ...prev, [name]: newValue }));
   };
 
   useEffect(() => {
