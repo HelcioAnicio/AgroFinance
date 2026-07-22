@@ -438,33 +438,19 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                 defaultOption="Escolha a mãe"
               />
 
-              <div className="flex flex-col gap-2">
-                 <span className="text-[0.7rem] font-semibold uppercase text-muted-foreground">
-                  Tipo de Pai:
-                </span>
-                <div className="grid grid-cols-2 gap-2">
-                  <RadioForm
-                    htmlFor="interno"
-                    label="Interno"
-                    type="radio"
-                    name="fatherType"
-                    id="interno"
-                    value="interno"
-                    checked={fatherType === 'interno'}
-                    onChange={handleFatherTypeChange}
-                  />
-                  <RadioForm
-                    htmlFor="externo"
-                    label="Externo"
-                    type="radio"
-                    name="fatherType"
-                    id="externo"
-                    value="externo"
-                    checked={fatherType === 'externo'}
-                    onChange={handleFatherTypeChange}
-                  />
-                </div>
-              </div>
+              <SelectForm
+                htmlFor="fatherType"
+                label="Tipo de Pai:"
+                name="fatherType"
+                id="fatherType"
+                value={fatherType}
+                onChange={handleFatherTypeChange}
+                options={[
+                  { label: 'Interno', value: 'interno' },
+                  { label: 'Externo', value: 'externo' },
+                ]}
+                defaultOption="Escolha o tipo de pai"
+              />
 
               {fatherType === 'interno' ? (
                 <SelectForm

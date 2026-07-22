@@ -1,5 +1,6 @@
 import { Animal } from '@/types/animal';
 import { ExternalBull } from '@/types/externalBull';
+import { InputForm } from '@/components/ui/inputForm';
 import { RadioForm } from '@/components/ui/radioForm';
 import { SelectForm } from '@/components/ui/selectForm';
 import React, { useState } from 'react';
@@ -83,25 +84,20 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
   return (
     <>
       <article className="flex flex-wrap gap-5">
-        <div className="flex flex-col gap-1">
-          <label className="text-secondary" htmlFor="handlingType">
-            Manejo utilizado:
-          </label>
-          <select
-            name="handlingType"
-            id="handlingType"
-            className="w-44 border border-b border-b-primary bg-transparent outline-none"
-            value={animal.handlingType ?? ''}
-            onChange={handleInputValues}
-          >
-            <option value=""></option>
-            <option value="naturalMating">Monta natural</option>
-            <option value="artificialInsemination">
-              Inseminação Artifical
-            </option>
-            <option value="allMethods">Todos os metodos</option>
-          </select>
-        </div>
+        <SelectForm
+          htmlFor="handlingType"
+          label="Manejo utilizado:"
+          name="handlingType"
+          id="handlingType"
+          value={animal.handlingType ?? ''}
+          onChange={handleInputValues}
+          options={[
+            { label: 'Monta natural', value: 'naturalMating' },
+            { label: 'Inseminação Artificial', value: 'artificialInsemination' },
+            { label: 'Todos os métodos', value: 'allMethods' },
+          ]}
+          defaultOption="Escolha o manejo"
+        />
       </article>
 
       {animal.handlingType === 'naturalMating' && (
@@ -213,54 +209,49 @@ export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({
       )}
 
       <article className="flex flex-wrap gap-5">
-        <div className="flex flex-col gap-1">
-          <p className="text-secondary">Sexo Fetal:</p>
-          <div className="flex items-center gap-1">
-            <input
+        <div className="flex flex-col gap-2">
+          <span className="text-[0.7rem] font-semibold uppercase text-muted-foreground">
+            Sexo Fetal:
+          </span>
+          <div className="grid grid-cols-2 gap-2">
+            <RadioForm
+              htmlFor="female-edit"
+              label="Fêmea"
               type="radio"
               name="fetalGender"
               id="female-edit"
               value="female"
               checked={animal.fetalGender === 'female'}
               onChange={handleInputValues}
-              className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
             />
-            <label htmlFor="female-edit">Fêmea</label>
-          </div>
-
-          <div className="flex items-center gap-1">
-            <input
+            <RadioForm
+              htmlFor="male-edit"
+              label="Macho"
               type="radio"
               name="fetalGender"
               id="male-edit"
               value="male"
               checked={animal.fetalGender === 'male'}
               onChange={handleInputValues}
-              className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
             />
-            <label htmlFor="male-edit">Macho</label>
           </div>
         </div>
       </article>
 
       <article className="flex flex-wrap gap-5">
-        <div className="flex flex-col gap-1">
-          <label className="text-secondary" htmlFor="expectedDueDate">
-            Data prevista para o parto:
-          </label>
-          <input
-            type="date"
-            name="expectedDueDate"
-            id="expectedDueDate-edit"
-            value={
-              animal.expectedDueDate
-                ? new Date(animal.expectedDueDate).toISOString().split('T')[0]
-                : ''
-            }
-            onChange={handleInputValues}
-            className="w-full max-w-40 border border-b border-b-primary bg-transparent outline-none"
-          />
-        </div>
+        <InputForm
+          htmlFor="expectedDueDate"
+          label="Data prevista para o parto:"
+          type="date"
+          name="expectedDueDate"
+          id="expectedDueDate-edit"
+          value={
+            animal.expectedDueDate
+              ? new Date(animal.expectedDueDate).toISOString().split('T')[0]
+              : ''
+          }
+          onChange={handleInputValues}
+        />
       </article>
     </>
   );

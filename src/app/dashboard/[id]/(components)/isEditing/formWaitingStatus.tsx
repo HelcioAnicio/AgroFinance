@@ -83,25 +83,20 @@ export const FormWaitingStatus: React.FC<FormWaitingStatusProps> = ({
   return (
     <>
       <article className="flex flex-wrap gap-5">
-        <div className="flex flex-col gap-1">
-          <label className="text-secondary" htmlFor="handlingType">
-            Manejo utilizado:
-          </label>
-          <select
-            name="handlingType"
-            id="handlingType-wait"
-            className="w-44 border border-b border-b-primary bg-transparent outline-none"
-            value={animal.handlingType ?? ''}
-            onChange={handleInputValues}
-          >
-            <option disabled value=""></option>
-            <option value="naturalMating">Monta natural</option>
-            <option value="artificialInsemination">
-              Inseminação Artifical
-            </option>
-            <option value="allMethods">Todos os metodos</option>
-          </select>
-        </div>
+        <SelectForm
+          htmlFor="handlingType"
+          label="Manejo utilizado:"
+          name="handlingType"
+          id="handlingType-wait"
+          value={animal.handlingType ?? ''}
+          onChange={handleInputValues}
+          options={[
+            { label: 'Monta natural', value: 'naturalMating' },
+            { label: 'Inseminação Artificial', value: 'artificialInsemination' },
+            { label: 'Todos os métodos', value: 'allMethods' },
+          ]}
+          defaultOption="Escolha o manejo"
+        />
       </article>
 
       {animal.handlingType === 'naturalMating' && (
