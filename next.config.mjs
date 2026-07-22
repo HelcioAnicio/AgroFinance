@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    after: true,
     serverActions: {
       allowedOrigins: [
         'cautious-space-goldfish-j6jrrqg9gjr3ppxg-3000.app.github.dev/',

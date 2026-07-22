@@ -2,7 +2,6 @@ import NextAuth, { NextAuthOptions } from 'next-auth';
 import bcrypt from 'bcryptjs';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import { randomUUID } from 'crypto';
-import { unstable_after as after } from 'next/server';
 import prisma from '@/lib/prisma';
 import { updateStripeSeats } from '@/lib/stripeSeats';
 import {
@@ -59,13 +58,13 @@ export const authOptions: NextAuthOptions = {
         token.jti = jti;
         token.userId = user.id;
         token.lastSessionCheck = Date.now();
-        // Registra sessão na fazenda após a resposta ser enviada (não bloqueia o
-        // login), mas usando after() em vez de fire-and-forget: em serverless a
-        // function pode ser congelada assim que a resposta sai, matando a promise
-        // solta antes do INSERT terminar — daí a sessão "sumir" e o usuário ser
-        // deslogado ~5min depois na primeira checagem (CHECK_INTERVAL abaixo).
-        const userId = user.id;
-        after(() => createFarmSession(userId, jti));
+        // Precisa ser esperado de verdade: unstable_after() não se mostrou
+        // confiável aqui (logs de produção mostram sessões que nunca chegavam
+        // a ser gravadas). Await garante que a sessão já existe no banco antes
+        // do cookie ser devolvido ao navegador — sem isso a checagem seguinte
+        // não encontra a sessão e desloga o usuário mesmo tendo acabado de
+        // logar.
+        await createFarmSession(user.id, jti);
       } else if (token.jti) {
         // Valida a sessão a cada 5 minutos para detectar evicção
         const CHECK_INTERVAL = 5 * 60 * 1000;
