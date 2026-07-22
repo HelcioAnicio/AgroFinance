@@ -71,6 +71,7 @@ interface CalfLossDraft {
 }
 
 interface EditableAnimalDetailsProps {
+  initialAnimal: Animal;
   externalBulls: ExternalBull[];
   vaccines: Vaccine[];
 }
@@ -146,6 +147,7 @@ function getStatusNode(status?: string | null) {
 }
 
 const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
+  initialAnimal,
   externalBulls,
   vaccines,
 }) => {
@@ -206,6 +208,21 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     AnimalCalfLossHistory[]
   >(animal?.calfLossHistories ?? []);
   const [pevDays, setPevDays] = useState(30);
+
+  // O servidor já busca o animal completo (mãe, pai, touro externo, histórico
+  // de peso, filhos...) em page.tsx — hidrata o contexto com esses dados assim
+  // que a página carrega. Sem isso a tela dependia só do objeto "leve" (sem
+  // relações) que fica no contexto ao vir da listagem, e ficava em branco ao
+  // recarregar a página direto (contexto vazio) ou sem exibir os dados
+  // reprodutivos/histórico/filhos.
+  useEffect(() => {
+    setAnimal(initialAnimal);
+    setListDewormings(initialAnimal.dewormings ?? []);
+    setListDiseases(initialAnimal.diseases ?? []);
+    setCalfLossHistories(initialAnimal.calfLossHistories ?? []);
+    setListVaccines(vaccines);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialAnimal.id]);
 
   // Restore form from localStorage if a pending save was interrupted by a stale-data reload
   useEffect(() => {

@@ -25,7 +25,13 @@ const DetailAnimalId = async ({
 
   if (!animal) redirect('/dashboard');
 
-  return <EditableAnimalDetails vaccines={vaccines} externalBulls={externalBulls} />;
+  return (
+    <EditableAnimalDetails
+      initialAnimal={animal}
+      vaccines={vaccines}
+      externalBulls={externalBulls}
+    />
+  );
 };
 
 export default DetailAnimalId;
