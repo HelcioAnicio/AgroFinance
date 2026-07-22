@@ -53,7 +53,7 @@ const emptyForm = {
   obs: '',
   ecc: '',
   touroId: '',
-  touroType: 'internal' as 'internal' | 'external',
+  touroType: 'external' as 'internal' | 'external',
   partida: '',
   cio: '',
   ressinc: false,
@@ -181,13 +181,6 @@ const ReproductionManagementPage = () => {
     const c = a.category?.toLowerCase();
     return (
       a.status?.toLowerCase() === 'active' && (c === 'cow' || c === 'old cow')
-    );
-  };
-
-  const isBull = (a: Animal) => {
-    const c = a.category?.toLowerCase();
-    return (
-      a.status?.toLowerCase() === 'active' && (c === 'bull' || c === 'old bull')
     );
   };
 
@@ -323,7 +316,7 @@ const ReproductionManagementPage = () => {
       obs: m.obs ?? '',
       ecc: m.ecc?.toString() ?? '',
       touroId: m.touroId ?? '',
-      touroType: m.touroType ?? 'internal',
+      touroType: m.touroType ?? 'external',
       partida: m.partida ?? '',
       cio: m.cio ?? '',
       ressinc: m.ressinc ?? false,
@@ -749,55 +742,32 @@ const ReproductionManagementPage = () => {
             {currentStage === 'Insemination' && (
               <>
                 <div className="grid grid-cols-2 gap-3">
-                  <div>
+                  <div className="col-span-2">
+                    {/* IATF é sempre feito com sêmen de touro externo — se
+                        fosse touro do próprio rebanho, seria monta natural,
+                        registrada no estágio de Manejo/D0, não aqui. */}
                     <Label className="mb-1 block text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                      Tipo de touro
-                    </Label>
-                    <Select
-                      value={formData.touroType}
-                      onValueChange={(v: 'internal' | 'external') =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          touroType: v,
-                          touroId: '',
-                        }))
-                      }
-                    >
-                      <SelectTrigger className={fieldClass}>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="internal">Interno</SelectItem>
-                        <SelectItem value="external">Externo</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label className="mb-1 block text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                      Touro
+                      Touro (Externo)
                     </Label>
                     <Select
                       value={formData.touroId}
                       onValueChange={(v) =>
-                        setFormData((prev) => ({ ...prev, touroId: v }))
+                        setFormData((prev) => ({
+                          ...prev,
+                          touroId: v,
+                          touroType: 'external',
+                        }))
                       }
                     >
                       <SelectTrigger className={fieldClass}>
-                        <SelectValue placeholder="Selecione" />
+                        <SelectValue placeholder="Selecione o touro externo" />
                       </SelectTrigger>
                       <SelectContent>
-                        {formData.touroType === 'internal' &&
-                          animals.filter(isBull).map((a) => (
-                            <SelectItem key={a.id} value={a.id}>
-                              {a.manualId} — {translateCategory(a.category)}
-                            </SelectItem>
-                          ))}
-                        {formData.touroType === 'external' &&
-                          externalBulls.map((b) => (
-                            <SelectItem key={b.id} value={b.id}>
-                              {b.name} — {b.breed}
-                            </SelectItem>
-                          ))}
+                        {externalBulls.map((b) => (
+                          <SelectItem key={b.id} value={b.id}>
+                            {b.name} — {b.breed}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
