@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { revalidateTag } from 'next/cache';
-import prisma from '@/lib/prisma';
+import {prisma} from '@/lib/prisma';
 import { createAuditLog, requireFarmContext } from '@/lib/tenant';
 
 export async function POST(req: Request) {
@@ -107,7 +107,7 @@ export async function POST(req: Request) {
         fatherType === 'external' ? (externalBullId ?? null) : null,
     };
 
-    const created = await prisma.$transaction(async (tx) => {
+    const created = await prisma.$transaction(async (tx: unknown) => {
       const record = await (
         tx as unknown as {
           animalCalfLossHistory: {

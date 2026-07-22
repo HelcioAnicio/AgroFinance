@@ -168,7 +168,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     setOriginalAnimals(initialAnimals);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialAnimal, initialAnimals]);
-
+  
   const [isEditing, setIsEditing] = useState(false);
   const [openSanitaryModal, setOpenSanitaryModal] = useState(false);
   const [openGenealogyModal, setOpenGenealogyModal] = useState(false);
@@ -316,6 +316,11 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
       new Date(b.birthDate as unknown as string).getTime() -
       new Date(a.birthDate as unknown as string).getTime()
   );
+  useEffect(() => {
+    console.log('offspring: ', offspring);
+
+  }),[offspring]
+
 
   const totalBirths = offspring.length;
   const totalLosses = animal?.calfLossHistories?.length ?? 0;
