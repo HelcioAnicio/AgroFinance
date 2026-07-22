@@ -125,6 +125,20 @@ const getCategoryLabel = (animal: Animal) => {
   return '-';
 };
 
+const getReproductiveStatusLabel = (status?: string | null) => {
+  if (status === 'empty') return 'Vazia';
+  if (status === 'pregnant') return 'Prenha';
+  if (status === 'waiting') return 'Em espera';
+  if (status === 'pev') return 'PEV';
+  return 'N/A';
+};
+
+const getAndrologicalLabel = (andrological?: string | null) => {
+  if (andrological === 'positive') return 'Positivo';
+  if (andrological === 'negative') return 'Negativo';
+  return 'Não realizado';
+};
+
 export const Table: React.FC<TableProps> = ({
   users,
   externalBulls,
@@ -542,20 +556,20 @@ export const Table: React.FC<TableProps> = ({
                     <Skeleton className="h-4 w-14 rounded-full" />
                     {/* ID */}
                     <Skeleton className="h-4 w-10 rounded" />
-                    {/* Raça */}
+                    {/* Categoria */}
                     <Skeleton className="h-4 w-16 rounded" />
-                    {/* Sexo */}
-                    <Skeleton className="h-4 w-12 rounded" />
-                    {/* Mãe */}
+                    {/* Reprodutivo / Andrológico */}
                     <Skeleton className="h-4 w-16 rounded" />
                     {/* Pai */}
                     <Skeleton className="h-4 w-16 rounded" />
-                    {/* Nascimento */}
-                    <Skeleton className="h-4 w-20 rounded" />
-                    {/* Categoria */}
+                    {/* Mãe */}
                     <Skeleton className="h-4 w-16 rounded" />
                     {/* Peso */}
                     <Skeleton className="h-4 w-14 rounded" />
+                    {/* Nascimento */}
+                    <Skeleton className="h-4 w-20 rounded" />
+                    {/* Raça */}
+                    <Skeleton className="h-4 w-16 rounded" />
                     {/* Ação */}
                     <Skeleton className="ml-auto h-4 w-4 rounded" />
                   </div>
@@ -866,13 +880,13 @@ export const Table: React.FC<TableProps> = ({
                         {isSaleMode && <th className="w-8 px-3 py-3"></th>}
                         <th className="px-4 py-3">Status</th>
                         <th className="px-4 py-3">ID</th>
-                        <th className="px-4 py-3">Raça</th>
-                        <th className="px-4 py-3">Sexo</th>
-                        <th className="px-4 py-3">Mãe</th>
-                        <th className="px-4 py-3">Pai</th>
-                        <th className="px-4 py-3">Nascimento</th>
                         <th className="px-4 py-3">Categoria</th>
+                        <th className="px-4 py-3">Reprodutivo / Andrológico</th>
+                        <th className="px-4 py-3">Pai</th>
+                        <th className="px-4 py-3">Mãe</th>
                         <th className="px-4 py-3">Peso atual</th>
+                        <th className="px-4 py-3">Nascimento</th>
+                        <th className="px-4 py-3">Raça</th>
                         <th className="sticky right-0 bg-muted px-4 py-3"></th>
                       </tr>
                     </thead>
@@ -905,6 +919,11 @@ export const Table: React.FC<TableProps> = ({
                         const father = animals.find(
                           (a) => a.id === animal.fatherId
                         );
+                        const externalFather = animal.externalBullFatherId
+                          ? externalBulls.find(
+                              (b) => b.id === animal.externalBullFatherId
+                            )
+                          : undefined;
 
                         const fatherLabel =
                           father?.category === 'bull' ||
@@ -956,15 +975,38 @@ export const Table: React.FC<TableProps> = ({
                                 animal.manualId.slice(1)}
                             </td>
                             <td className="px-4 py-3 text-sm">
-                              {animal.breed.charAt(0).toUpperCase() +
-                                animal.breed.slice(1)}
+                              {getCategoryLabel(animal)}
                             </td>
                             <td className="px-4 py-3 text-sm">
-                              {animal.gender === 'male' ||
-                              animal.gender === 'macho'
-                                ? 'Macho'
-                                : 'Fêmea'}
+                              {isFemale(animal.gender)
+                                ? getReproductiveStatusLabel(
+                                    animal.reproductiveStatus
+                                  )
+                                : getAndrologicalLabel(animal.andrological)}
                             </td>
+
+                            {animal.externalBullFatherId ? (
+                              <td className="px-4 py-3 text-sm text-muted-foreground">
+                                {`Ex. ${externalFather?.name ?? 'Externo'}`}
+                              </td>
+                            ) : animal.fatherId === null ? (
+                              <td className="px-4 py-3 text-sm text-muted-foreground">
+                                Comercial
+                              </td>
+                            ) : (
+                              <td
+                                className="px-4 py-3 text-sm transition hover:opacity-60"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  handleNavigation(animal.fatherId);
+                                }}
+                              >
+                                <span className="flex w-max items-center gap-1 border-b border-foreground/40">
+                                  {`${fatherLabel} ${father?.manualId}`}
+                                  <LiaExternalLinkAltSolid className="inline-block size-3.5" />
+                                </span>
+                              </td>
+                            )}
 
                             {animal.motherId === null ? (
                               <td className="px-4 py-3 text-sm text-muted-foreground">
@@ -985,25 +1027,9 @@ export const Table: React.FC<TableProps> = ({
                               </td>
                             )}
 
-                            {animal.fatherId === null ? (
-                              <td className="px-4 py-3 text-sm text-muted-foreground">
-                                Comercial
-                              </td>
-                            ) : (
-                              <td
-                                className="px-4 py-3 text-sm transition hover:opacity-60"
-                                onClick={(event) => {
-                                  event.stopPropagation();
-                                  handleNavigation(animal.fatherId);
-                                }}
-                              >
-                                <span className="flex w-max items-center gap-1 border-b border-foreground/40">
-                                  {`${fatherLabel} ${father?.manualId}`}
-                                  <LiaExternalLinkAltSolid className="inline-block size-3.5" />
-                                </span>
-                              </td>
-                            )}
-
+                            <td className="px-4 py-3 text-sm font-medium">
+                              {animal.weight} kg
+                            </td>
                             <td className="px-4 py-3 text-sm text-muted-foreground">
                               {animal.birthDate
                                 ? new Date(animal.birthDate).toLocaleDateString(
@@ -1012,10 +1038,8 @@ export const Table: React.FC<TableProps> = ({
                                 : 'N/A'}
                             </td>
                             <td className="px-4 py-3 text-sm">
-                              {getCategoryLabel(animal)}
-                            </td>
-                            <td className="px-4 py-3 text-sm font-medium">
-                              {animal.weight} kg
+                              {animal.breed.charAt(0).toUpperCase() +
+                                animal.breed.slice(1)}
                             </td>
                             <td className="sticky right-0 bg-white px-4 py-3">
                               <SquareArrowOutUpLeft
