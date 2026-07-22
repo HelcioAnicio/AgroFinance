@@ -211,38 +211,49 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
 
   // O servidor já busca o animal completo (mãe, pai, touro externo, histórico
   // de peso, filhos...) em page.tsx — hidrata o contexto com esses dados assim
-  // que a página carrega. Sem isso a tela dependia só do objeto "leve" (sem
-  // relações) que fica no contexto ao vir da listagem, e ficava em branco ao
-  // recarregar a página direto (contexto vazio) ou sem exibir os dados
-  // reprodutivos/histórico/filhos.
+  // que a página carrega ou é atualizada via router.refresh(). Depende do
+  // objeto initialAnimal inteiro (não só do id): router.refresh() busca de
+  // novo o MESMO animal, então o id não muda, mas o objeto é uma instância
+  // nova vinda do servidor — é isso que precisa disparar o efeito, senão a
+  // tela fica presa nos dados antigos até um reload completo da página.
+  //
+  // Também restaura, se existir, um rascunho salvo no localStorage por causa
+  // de um conflito de "outro usuário editou" detectado no momento do save
+  // (ver submitForm) — isso só é encontrado aqui porque agora o efeito roda
+  // de novo após o router.refresh() que dispara esse fluxo.
   useEffect(() => {
+    const key = `agrofinance_pending_form_${initialAnimal.id}`;
+    const saved =
+      typeof window !== 'undefined' ? localStorage.getItem(key) : null;
+
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved) as Animal;
+        setAnimal(parsed);
+        setListDewormings(parsed.dewormings ?? initialAnimal.dewormings ?? []);
+        setListDiseases(parsed.diseases ?? initialAnimal.diseases ?? []);
+        setCalfLossHistories(
+          parsed.calfLossHistories ?? initialAnimal.calfLossHistories ?? []
+        );
+        setListVaccines(vaccines);
+        setIsEditing(true);
+        localStorage.removeItem(key);
+        toast.info(
+          'Suas alterações foram restauradas. Os dados do animal foram atualizados — revise e salve novamente.'
+        );
+        return;
+      } catch {
+        localStorage.removeItem(key);
+      }
+    }
+
     setAnimal(initialAnimal);
     setListDewormings(initialAnimal.dewormings ?? []);
     setListDiseases(initialAnimal.diseases ?? []);
     setCalfLossHistories(initialAnimal.calfLossHistories ?? []);
     setListVaccines(vaccines);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialAnimal.id]);
-
-  // Restore form from localStorage if a pending save was interrupted by a stale-data reload
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const key = `agrofinance_pending_form_${animal?.id}`;
-    const saved = localStorage.getItem(key);
-    if (!saved) return;
-    try {
-      const parsed = JSON.parse(saved) as Animal;
-      setAnimal(parsed);
-      setIsEditing(true);
-      localStorage.removeItem(key);
-      toast.info(
-        'Suas alterações foram restauradas. Os dados do animal foram atualizados por outro usuário — revise e salve novamente.'
-      );
-    } catch {
-      localStorage.removeItem(key);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [animal?.id]);
+  }, [initialAnimal]);
 
   const handleLossAdded = (loss: AnimalCalfLossHistory) =>
     setCalfLossHistories((prev) =>
@@ -865,11 +876,13 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     dataToSubmit.bullIatfId = null;
     dataToSubmit.externalBullIatfId = null;
 
-    // Aplica a lógica correta baseada no tipo de manejo
+    // Monta natural exige touro físico na fazenda (sempre interno); IATF usa
+    // sêmen catalogado como touro externo (sempre externo) — não existe mais
+    // a opção de escolher o tipo, então persiste sempre o campo certo.
     if (formData.handlingType === 'naturalMating') {
       dataToSubmit.bullId = formData.bullId;
     } else if (formData.handlingType === 'artificialInsemination') {
-      dataToSubmit.bullIatfId = formData.bullIatfId;
+      dataToSubmit.externalBullIatfId = formData.externalBullIatfId;
     }
 
     // FIX: Remove weight history fields to prevent accidental creation on edit
@@ -922,7 +935,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
         // non-critical, proceed with submit
       }
 
-      await axios.put(
+      const putRes = await axios.put(
         `/api/updateAnimals?id=${dataToSubmit.id}`,
         dataToSubmit,
         { headers: { 'Content-Type': 'application/json' } }
@@ -932,9 +945,15 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
         formData.fatherId === 'Comercial' ? null : formData.fatherId;
       const savedMotherId =
         formData.motherId === 'Comercial' ? null : formData.motherId;
+      // updatedAt vem da resposta do PUT (valor real gravado no banco) — usar
+      // o formData aqui deixaria o updatedAt local desatualizado, e a PRÓXIMA
+      // gravação sempre acusaria "outro usuário alterou", mesmo sendo o mesmo
+      // usuário, porque o servidor sempre estaria "à frente" do valor salvo.
+      const serverUpdatedAt = putRes?.data?.data?.updatedAt;
       setAnimal({
         ...animal,
         ...formData,
+        updatedAt: serverUpdatedAt ?? animal?.updatedAt,
         father: savedFatherId
           ? animals.find((a) => a.id === savedFatherId) ?? animal?.father
           : undefined,
