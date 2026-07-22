@@ -17,7 +17,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import axios from 'axios';
-import { extractExternalBullId, isExternalBullValue } from '@/lib/externalBull';
 
 interface AddAnimalProps {
   animals: Animal[];
@@ -105,30 +104,12 @@ export const AddAnimalDesktop: React.FC<AddAnimalProps> = ({
           : new Date(allDataForm.expectedDueDate),
       motherId:
         allDataForm.motherId === 'comercial' ? null : allDataForm.motherId,
-      fatherId:
-        allDataForm.fatherId === 'comercial' ? null : allDataForm.fatherId,
-      bullId:
-        allDataForm.bullId === 'comercial' ||
-        isExternalBullValue(allDataForm.bullId) ||
-        null ||
-        undefined
-          ? null
-          : allDataForm.bullId,
-      bullIatfId:
-        allDataForm.bullIatfId === 'comercial' ||
-        isExternalBullValue(allDataForm.bullIatfId) ||
-        null ||
-        undefined
-          ? null
-          : allDataForm.bullIatfId,
-      externalBullId:
-        allDataForm.bullId === 'comercial'
-          ? null
-          : extractExternalBullId(allDataForm.bullId),
-      externalBullIatfId:
-        allDataForm.bullIatfId === 'comercial'
-          ? null
-          : extractExternalBullId(allDataForm.bullIatfId),
+      fatherId: allDataForm.fatherId || null,
+      externalBullFatherId: allDataForm.externalBullFatherId || null,
+      bullId: allDataForm.bullId || null,
+      externalBullId: allDataForm.externalBullId || null,
+      bullIatfId: allDataForm.bullIatfId || null,
+      externalBullIatfId: allDataForm.externalBullIatfId || null,
       updatedAt: new Date(),
       statusChangeDate:
         allDataForm.status === 'active'
@@ -200,23 +181,24 @@ export const AddAnimalDesktop: React.FC<AddAnimalProps> = ({
           <TabsContent value="principais" className="mt-0">
             <CardFormMain
               animals={animals}
-              handleInputValues={handleInputValues}
               allDataForm={allDataForm}
-              setTabValue={setTabValue}
               breedArray={breedArray}
+              externalBulls={externalBulls}
+              handleInputValues={handleInputValues}
               setAllDataForm={setAllDataForm}
+              setTabValue={setTabValue}
             />
           </TabsContent>
 
           <TabsContent value="reproducao" className="mt-0">
             <CardFormReproduction
               animals={animals}
+              allDataForm={allDataForm}
               externalBulls={externalBulls}
               handleInputValues={handleInputValues}
-              allDataForm={allDataForm}
               submitForm={submitForm}
-              setTabValue={setTabValue}
               setAllDataForm={setAllDataForm}
+              setTabValue={setTabValue}
             />
           </TabsContent>
         </div>

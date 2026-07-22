@@ -91,7 +91,7 @@ const EditableUserProfile: React.FC<EditableUserProfileProps> = ({ user }) => {
     });
   };
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = event.target;
     setForm((prev) => ({
       ...prev,
@@ -99,7 +99,7 @@ const EditableUserProfile: React.FC<EditableUserProfileProps> = ({ user }) => {
     }));
   };
 
-  const handleFarmNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFarmNameChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm((prev) => {
       const currentMembership = prev.farmMemberships?.[0];
 
@@ -438,7 +438,7 @@ function ProfileField({
   name?: string;
   value: string;
   disabled?: boolean;
-  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange?: (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
 }) {
   return (
     <label className="flex flex-col gap-1">

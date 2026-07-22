@@ -73,15 +73,6 @@ export async function POST(req: NextRequest) {
             date: parsedDate,
           })),
         });
-
-        await tx.animal.updateMany({
-          where: { id: { in: validIds } },
-          data: {
-            dewormingName: name,
-            dewormingDate: parsedDate,
-            dewormingExpiry: parsedExpiry,
-          },
-        });
       }
 
       if (type === 'disease') {

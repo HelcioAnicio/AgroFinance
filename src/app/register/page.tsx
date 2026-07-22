@@ -42,7 +42,7 @@ const Register = () => {
     setInviteToken(params.get('invite') ?? '');
   }, []);
 
-  const handleInputValues = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputValues = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = event.target;
     setUserRegister((prevData) => ({ ...prevData, [name]: value }));
   };

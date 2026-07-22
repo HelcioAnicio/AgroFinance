@@ -39,6 +39,7 @@ import { Filters } from '@/components/ui/modalFilters';
 import { Loading } from '@/components/ui/loading';
 import { Sheet, SheetTrigger } from '@/components/ui/sheet';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAppGlobal } from '@/context/appContext';
 
 interface TableProps {
   animals: Animal[];
@@ -125,13 +126,14 @@ const getCategoryLabel = (animal: Animal) => {
 };
 
 export const Table: React.FC<TableProps> = ({
-  animals,
   users,
   externalBulls,
   livestockStats = [],
   dataLoading = false,
 }) => {
   const [listAnimals, setListAnimals] = useState<Animal[]>([]);
+  const { animals } = useAppGlobal();
+  const { setAnimal } = useAppGlobal();
   const [originalAnimals, setOriginalAnimals] = useState<Animal[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [inputValue, setInputValue] = useState<string>('');
@@ -314,7 +316,12 @@ export const Table: React.FC<TableProps> = ({
   }
 
   const handleNavigation = (id: string | null) => {
-    setIsLoading(true);
+    if (!id) return;
+    // setIsLoading(true);
+    const selectedAnimal = animals.find((a) => a.id === id);
+    if (selectedAnimal) {
+      setAnimal(selectedAnimal);
+    }
     router.push(`/dashboard/${id}`);
   };
 
@@ -434,7 +441,9 @@ export const Table: React.FC<TableProps> = ({
       return;
     }
     setBulkSanitaryLoading(true);
-    const loadingId = toast.loading(`Aplicando ${bulkSanitaryType === 'vaccine' ? 'vacina' : bulkSanitaryType === 'deworming' ? 'vermífugo' : 'doença'} em ${selectedIds.size} animais...`);
+    const loadingId = toast.loading(
+      `Aplicando ${bulkSanitaryType === 'vaccine' ? 'vacina' : bulkSanitaryType === 'deworming' ? 'vermífugo' : 'doença'} em ${selectedIds.size} animais...`
+    );
     try {
       const res = await fetch('/api/bulkSanitary', {
         method: 'POST',
@@ -453,7 +462,12 @@ export const Table: React.FC<TableProps> = ({
       if (res.ok) {
         toast.success(data.message);
         setBulkSanitaryOpen(false);
-        setBulkSanitaryForm({ name: '', date: '', expiryDate: '', description: '' });
+        setBulkSanitaryForm({
+          name: '',
+          date: '',
+          expiryDate: '',
+          description: '',
+        });
       } else {
         toast.error(data.error ?? 'Erro ao aplicar registro sanitário.');
       }
@@ -863,6 +877,27 @@ export const Table: React.FC<TableProps> = ({
                       </tr>
                     </thead>
                     <tbody className="divide-y overflow-y-auto scroll-smooth">
+                      {!dataLoading && listAnimals.length === 0 && (
+                        <tr>
+                          <td colSpan={10} className="py-16 text-center">
+                            <div className="flex flex-col items-center gap-2">
+                              <span className="text-4xl">🐄</span>
+                              <p className="font-semibold text-muted-foreground">
+                                {inputValue
+                                  ? 'Nenhum animal encontrado com esse filtro'
+                                  : 'Nenhum animal cadastrado ainda'}
+                              </p>
+                              {!inputValue && (
+                                <p className="text-sm text-muted-foreground">
+                                  Clique em{' '}
+                                  <strong>&quot;Adicionar animal&quot;</strong>{' '}
+                                  para começar o controle do seu rebanho.
+                                </p>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
                       {listAnimals.map((animal: Animal) => {
                         const mother = animals.find(
                           (a) => a.id === animal.motherId
@@ -1310,7 +1345,9 @@ export const Table: React.FC<TableProps> = ({
           {bulkSanitaryOpen && (
             <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4">
               <div className="w-full max-w-md rounded-2xl border bg-white p-6 shadow-2xl">
-                <h3 className="mb-1 text-base font-bold">Aplicar registro sanitário</h3>
+                <h3 className="mb-1 text-base font-bold">
+                  Aplicar registro sanitário
+                </h3>
                 <p className="mb-4 text-sm text-muted-foreground">
                   Será aplicado em {selectedIds.size} animal(is) selecionado(s).
                 </p>
@@ -1327,7 +1364,11 @@ export const Table: React.FC<TableProps> = ({
                           : 'text-muted-foreground hover:bg-muted'
                       }`}
                     >
-                      {t === 'vaccine' ? 'Vacina' : t === 'deworming' ? 'Vermífugo' : 'Doença'}
+                      {t === 'vaccine'
+                        ? 'Vacina'
+                        : t === 'deworming'
+                          ? 'Vermífugo'
+                          : 'Doença'}
                     </button>
                   ))}
                 </div>
@@ -1345,7 +1386,12 @@ export const Table: React.FC<TableProps> = ({
                     <input
                       type="text"
                       value={bulkSanitaryForm.name}
-                      onChange={(e) => setBulkSanitaryForm((f) => ({ ...f, name: e.target.value }))}
+                      onChange={(e) =>
+                        setBulkSanitaryForm((f) => ({
+                          ...f,
+                          name: e.target.value,
+                        }))
+                      }
                       placeholder="Ex: Febre Aftosa"
                       className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary"
                     />
@@ -1353,21 +1399,35 @@ export const Table: React.FC<TableProps> = ({
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="mb-1 block text-xs font-medium">Data *</label>
+                      <label className="mb-1 block text-xs font-medium">
+                        Data *
+                      </label>
                       <input
                         type="date"
                         value={bulkSanitaryForm.date}
-                        onChange={(e) => setBulkSanitaryForm((f) => ({ ...f, date: e.target.value }))}
+                        onChange={(e) =>
+                          setBulkSanitaryForm((f) => ({
+                            ...f,
+                            date: e.target.value,
+                          }))
+                        }
                         className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary"
                       />
                     </div>
                     {bulkSanitaryType !== 'disease' && (
                       <div>
-                        <label className="mb-1 block text-xs font-medium">Vencimento</label>
+                        <label className="mb-1 block text-xs font-medium">
+                          Vencimento
+                        </label>
                         <input
                           type="date"
                           value={bulkSanitaryForm.expiryDate}
-                          onChange={(e) => setBulkSanitaryForm((f) => ({ ...f, expiryDate: e.target.value }))}
+                          onChange={(e) =>
+                            setBulkSanitaryForm((f) => ({
+                              ...f,
+                              expiryDate: e.target.value,
+                            }))
+                          }
                           className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary"
                         />
                       </div>
@@ -1375,11 +1435,18 @@ export const Table: React.FC<TableProps> = ({
                   </div>
 
                   <div>
-                    <label className="mb-1 block text-xs font-medium">Observação</label>
+                    <label className="mb-1 block text-xs font-medium">
+                      Observação
+                    </label>
                     <input
                       type="text"
                       value={bulkSanitaryForm.description}
-                      onChange={(e) => setBulkSanitaryForm((f) => ({ ...f, description: e.target.value }))}
+                      onChange={(e) =>
+                        setBulkSanitaryForm((f) => ({
+                          ...f,
+                          description: e.target.value,
+                        }))
+                      }
                       placeholder="Opcional"
                       className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary"
                     />
@@ -1390,7 +1457,12 @@ export const Table: React.FC<TableProps> = ({
                   <button
                     onClick={() => {
                       setBulkSanitaryOpen(false);
-                      setBulkSanitaryForm({ name: '', date: '', expiryDate: '', description: '' });
+                      setBulkSanitaryForm({
+                        name: '',
+                        date: '',
+                        expiryDate: '',
+                        description: '',
+                      });
                     }}
                     disabled={bulkSanitaryLoading}
                     className="flex-1 rounded-lg border px-4 py-2 text-sm font-medium transition hover:bg-muted disabled:opacity-50"

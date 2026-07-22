@@ -98,6 +98,15 @@ export async function updateStripeSeats(
   if (!secretKey) return;
 
   const farm = (await getFarmBillingFieldsSafe(farmId)) as FarmSeatRow | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const farm = (await (prisma.farm.findUnique as any)({
+    where: { id: farmId },
+    select: {
+      stripeSubscriptionId: true,
+      stripeSubscriptionItemId: true,
+      subscriptionStatus: true,
+    },
+  })) as FarmSeatRow | null;
 
   if (!farm?.stripeSubscriptionId || !farm?.stripeSubscriptionItemId) return;
   if (!['ACTIVE', 'TRIALING'].includes(farm.subscriptionStatus)) return;

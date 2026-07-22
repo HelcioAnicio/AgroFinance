@@ -73,25 +73,12 @@ export async function POST(req: NextRequest) {
     }
 
     if (type === 'deworming') {
-      data = await prisma.$transaction(async (tx) => {
-        const created = await tx.deworming.create({
-          data: {
-            animalId,
-            name,
-            date: parsedDate,
-          },
-        });
-
-        await tx.animal.update({
-          where: { id: animalId },
-          data: {
-            dewormingName: name,
-            dewormingDate: parsedDate,
-            dewormingExpiry: parsedExpiry,
-          },
-        });
-
-        return created;
+      data = await prisma.deworming.create({
+        data: {
+          animalId,
+          name,
+          date: parsedDate,
+        },
       });
     }
 

@@ -1,15 +1,15 @@
 import { Animal } from '@/types/animal';
 
 interface FormMaleReproductiveProps {
-  allDataForm: Animal;
+  animal: Animal;
   handleInputValues: (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
-  animal: Animal | null;
+  // animal: Animal | null;
 }
 
 export const FormMaleReproductive: React.FC<FormMaleReproductiveProps> = ({
-  allDataForm,
+  animal,
   handleInputValues,
 }) => {
   return (
@@ -24,7 +24,7 @@ export const FormMaleReproductive: React.FC<FormMaleReproductiveProps> = ({
               id="positive"
               className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
               value="positive"
-              checked={allDataForm.andrological === 'positive'}
+              checked={animal.andrological === 'positive'}
               onChange={handleInputValues}
             />
             <label htmlFor="positive">Positivo</label>
@@ -35,7 +35,7 @@ export const FormMaleReproductive: React.FC<FormMaleReproductiveProps> = ({
               name="andrological"
               id="negative"
               value="negative"
-              checked={allDataForm.andrological === 'negative'}
+              checked={animal.andrological === 'negative'}
               onChange={handleInputValues}
               className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
             />
@@ -48,7 +48,7 @@ export const FormMaleReproductive: React.FC<FormMaleReproductiveProps> = ({
               name="andrological"
               id="notDone"
               value="notDone"
-              checked={allDataForm.andrological === 'notDone'}
+              checked={animal.andrological === 'notDone'}
               onChange={handleInputValues}
               className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
             />

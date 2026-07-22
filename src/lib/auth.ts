@@ -1,12 +1,17 @@
 import NextAuth, { NextAuthOptions } from 'next-auth';
+import bcrypt from 'bcryptjs';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import { randomUUID } from 'crypto';
 import prisma from '@/lib/prisma';
 import { updateStripeSeats } from '@/lib/stripeSeats';
-import { createFarmSession, validateFarmSession, deleteFarmSession } from '@/lib/farmSessions';
+import {
+  createFarmSession,
+  validateFarmSession,
+  deleteFarmSession,
+} from '@/lib/farmSessions';
 import GoogleProvider from 'next-auth/providers/google';
-// import EmailProvider from 'next-auth/providers/email';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import { AdapterUser } from 'next-auth/adapters';
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -16,11 +21,6 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.GOOGLE_CLIENT_ID || '',
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
     }),
-    // EmailProvider({
-    //   server: process.env.EMAIL_SERVER,
-    //   from: process.env.EMAIL_FROM,
-    //   // maxAge: 24 * 60 * 60, // How long email links are valid for (default 24h)
-    // }),
     CredentialsProvider({
       name: 'credentials',
       credentials: {
@@ -28,21 +28,21 @@ export const authOptions: NextAuthOptions = {
         password: { type: 'password' },
       },
       async authorize(credentials) {
+        if (!credentials?.email || !credentials.password) return null;
+
         const user = await prisma.user.findUnique({
-          where: { email: credentials?.email },
+          where: { email: credentials.email },
         });
 
-        if (user && credentials?.password === user.password) {
+        const passwordMatch = user?.password
+          ? await bcrypt.compare(credentials?.password ?? '', user.password)
+          : false;
+        if (user && passwordMatch) {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { password, ...userWithoutPass } = user;
-          return userWithoutPass as {
-            id: string;
-            name?: string | null;
-            email?: string | null;
-            emailVerified?: Date | null;
-            image?: string | null;
-          };
+          return userWithoutPass as AdapterUser;
         }
+
         return null;
       },
     }),
@@ -115,11 +115,19 @@ export const authOptions: NextAuthOptions = {
       if (pendingInvite) {
         await prisma.$transaction(async (tx) => {
           await tx.farmMembership.create({
-            data: { farmId: pendingInvite.farmId, userId: user.id!, role: pendingInvite.role },
+            data: {
+              farmId: pendingInvite.farmId,
+              userId: user.id!,
+              role: pendingInvite.role,
+            },
           });
           await tx.farmInvite.update({
             where: { id: pendingInvite.id },
-            data: { status: 'ACCEPTED', acceptedById: user.id, acceptedAt: new Date() },
+            data: {
+              status: 'ACCEPTED',
+              acceptedById: user.id,
+              acceptedAt: new Date(),
+            },
           });
           await tx.user.update({
             where: { id: user.id! },
