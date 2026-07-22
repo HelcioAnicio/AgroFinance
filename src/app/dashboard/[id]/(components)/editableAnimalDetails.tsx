@@ -713,7 +713,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
         : type === 'number' || type === 'range'
           ? parseFloat(value)
           : value;
-    setAllDataForm((prev) => ({ ...prev, [name]: newValue }));
+    setAnimal({ ...animal, [name]: newValue });
   };
 
   useEffect(() => {
