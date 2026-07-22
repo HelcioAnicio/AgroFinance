@@ -3,11 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { unstable_cache } from 'next/cache';
 import { Animal } from '@/types/animal';
 import EditableAnimalDetails from './(components)/editableAnimalDetails';
-import {
-  fetchAnimals,
-  fetchExternalBulls,
-  fetchVaccines,
-} from '@/lib/fetchData';
+import { fetchAnimals, fetchExternalBulls } from '@/lib/fetchData';
 import { Vaccine } from '@/types/vaccine';
 import { requireFarmContext } from '@/lib/tenant';
 import { redirect } from 'next/navigation';
@@ -60,6 +56,8 @@ const DetailAnimalId = async ({
     { revalidate: 60, tags: [`animal-${id}`] }
   );
 
+  // Os três já vêm em paralelo numa única viagem ao banco cada um — as vacinas
+  // já estão inclusas no fetchAnimalDetail acima, então não repetimos a busca.
   const [animals, externalBulls, animal] = await Promise.all([
     fetchAnimals(undefined, context.farm.id),
     fetchExternalBulls(undefined, context.farm.id),
@@ -67,8 +65,7 @@ const DetailAnimalId = async ({
   ]);
   if (!animal) redirect('/dashboard');
 
-  const vaccines = await fetchVaccines(animal.id);
-  const vaccine = vaccines;
+  const vaccines = (animal.vaccines ?? []) as Vaccine[];
 
   return (
     <>
@@ -77,7 +74,7 @@ const DetailAnimalId = async ({
         animals={animals}
         externalBulls={externalBulls}
         vaccines={vaccines}
-        vaccine={vaccine as unknown as Vaccine}
+        vaccine={vaccines as unknown as Vaccine}
       />
     </>
   );

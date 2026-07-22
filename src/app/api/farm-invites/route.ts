@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
 import { randomBytes } from 'crypto';
 import { requireFarmContext } from '@/lib/tenant';
-import { updateStripeSeats, getBillableSeatCount } from '@/lib/stripeSeats';
+import {
+  updateStripeSeats,
+  getBillableSeatCount,
+  getFarmBillingFieldsSafe,
+} from '@/lib/stripeSeats';
 import { getSeatLimitForTier } from '@/lib/billing';
 import prisma from '@/lib/prisma';
 import { getAppUrl } from '@/lib/appUrl';
@@ -37,11 +41,7 @@ export async function GET(request: Request) {
       orderBy: { createdAt: 'desc' },
       take: 100,
     }),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (prisma.farm.findUnique as any)({
-      where: { id: context.farm.id },
-      select: { stripePlanTier: true },
-    }) as Promise<{ stripePlanTier: string | null } | null>,
+    getFarmBillingFieldsSafe(context.farm.id),
   ]);
 
   const { getSeatLimitForTier: getLimit } = await import('@/lib/billing');
@@ -156,11 +156,7 @@ export async function POST(request: Request) {
 
   // Verifica limite de assentos do plano — VIEWER não conta
   if (role !== 'VIEWER') {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const farm = await (prisma.farm.findUnique as any)({
-      where: { id: context.farm.id },
-      select: { stripePlanTier: true },
-    }) as { stripePlanTier: string | null } | null;
+    const farm = await getFarmBillingFieldsSafe(context.farm.id);
 
     const tier = farm?.stripePlanTier ?? null;
     const seatLimit = tier ? getSeatLimitForTier(tier) : null;

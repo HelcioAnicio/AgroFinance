@@ -1,5 +1,6 @@
 import prisma from '@/lib/prisma';
 import { getSeatLimitForTier } from '@/lib/billing';
+import { getFarmBillingFieldsSafe } from '@/lib/stripeSeats';
 
 // Prioridade de evicção — menor número = evictar primeiro
 // OWNER nunca é evicatado (valor alto o suficiente para nunca ser escolhido)
@@ -35,7 +36,7 @@ export async function createFarmSession(
 ): Promise<void> {
   // Busca fazenda ativa e role do usuário
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const dbUser = await (prisma.user.findUnique as any)({
+  const dbUser = (await (prisma.user.findUnique as any)({
     where: { id: userId },
     select: {
       activeFarmId: true,
@@ -44,7 +45,7 @@ export async function createFarmSession(
         orderBy: { createdAt: 'asc' },
       },
     },
-  }) as {
+  })) as {
     activeFarmId: string | null;
     farmMemberships: { farmId: string; role: string }[];
   } | null;
@@ -63,11 +64,7 @@ export async function createFarmSession(
   const { farmId, role } = membership;
 
   // Busca tier do plano da fazenda
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const farm = await (prisma.farm.findUnique as any)({
-    where: { id: farmId },
-    select: { stripePlanTier: true, name: true },
-  }) as { stripePlanTier: string | null; name: string } | null;
+  const farm = await getFarmBillingFieldsSafe(farmId);
 
   const seatLimit = farm?.stripePlanTier
     ? getSeatLimitForTier(farm.stripePlanTier)
@@ -89,10 +86,10 @@ export async function createFarmSession(
   if (seatLimit !== null) {
     // Conta sessões ativas de outros usuários
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const activeSessions = await (prisma.farmSession.findMany as any)({
+    const activeSessions = (await (prisma.farmSession.findMany as any)({
       where: { farmId },
       orderBy: { lastSeenAt: 'asc' }, // mais antigo primeiro
-    }) as SessionRow[];
+    })) as SessionRow[];
 
     if (activeSessions.length >= seatLimit) {
       // Ordena: menor prioridade (mais expendável) primeiro;
@@ -137,10 +134,10 @@ export async function createFarmSession(
  */
 export async function validateFarmSession(jti: string): Promise<boolean> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const session = await (prisma.farmSession.findUnique as any)({
+  const session = (await (prisma.farmSession.findUnique as any)({
     where: { jti },
     select: { id: true },
-  }) as { id: string } | null;
+  })) as { id: string } | null;
 
   if (!session) return false;
 
