@@ -2,7 +2,7 @@ import crypto from 'crypto';
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { scheduleSubscriptionNotifications } from '@/lib/notifications';
-import { fetchSubscriptionItemId } from '@/lib/stripeSeats';
+import { fetchSubscriptionItemId, updateFarmSafe } from '@/lib/stripeSeats';
 
 export const runtime = 'nodejs';
 
@@ -175,11 +175,7 @@ export async function POST(request: Request) {
         }
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const updatedFarm = await (prisma.farm.update as any)({
-        where: { id: farmId },
-        data: updateData,
-      });
+      const updatedFarm = await updateFarmSafe(farmId, updateData);
 
       if (!isAnnualPayment) {
         await scheduleSubscriptionNotifications(

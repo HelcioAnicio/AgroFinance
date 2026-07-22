@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
 import { getBillingPlan } from '@/lib/billing';
 import { requireFarmContext } from '@/lib/tenant';
-import { getBillableSeatCount, fetchSubscriptionItemId } from '@/lib/stripeSeats';
-import prisma from '@/lib/prisma';
+import {
+  getBillableSeatCount,
+  fetchSubscriptionItemId,
+  updateFarmSafe,
+} from '@/lib/stripeSeats';
 import { getAppUrl } from '@/lib/appUrl';
 
 export async function POST(request: Request) {
@@ -167,11 +170,7 @@ export async function POST(request: Request) {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await (prisma.farm.update as any)({
-    where: { id: context.farm.id },
-    data: updateData,
-  });
+  await updateFarmSafe(context.farm.id, updateData);
 
   return NextResponse.json({ url: checkout.url });
 }
