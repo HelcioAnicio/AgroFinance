@@ -77,11 +77,12 @@ export async function createFarmSession(
     where: { farmId, lastSeenAt: { lt: expiredBefore } },
   });
 
-  // Remove sessões anteriores do próprio usuário nesta fazenda (sempre fresh)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await (prisma.farmSession.deleteMany as any)({
-    where: { farmId, userId },
-  });
+  // NÃO removemos aqui as sessões anteriores do próprio usuário: com múltiplas
+  // abas/dispositivos logados na mesma conta, um novo login (ex: reautenticação
+  // silenciosa do Google) apagaria a sessão da outra aba/dispositivo e a
+  // deslogaria — indistinguível de uma eviction real por limite de plano.
+  // O limite de assentos (seatLimit abaixo) é o único motivo legítimo para
+  // remover a sessão de alguém.
 
   if (seatLimit !== null) {
     // Conta sessões ativas de outros usuários
@@ -139,7 +140,10 @@ export async function validateFarmSession(jti: string): Promise<boolean> {
     select: { id: true },
   })) as { id: string } | null;
 
-  if (!session) return false;
+  if (!session) {
+    console.warn(`[farmSessions] Sessão não encontrada para jti=${jti} — usuário será deslogado.`);
+    return false;
+  }
 
   // Atualiza lastSeenAt para manter a sessão ativa
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

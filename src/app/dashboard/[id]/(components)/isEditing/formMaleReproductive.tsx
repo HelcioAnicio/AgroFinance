@@ -1,11 +1,11 @@
 import { Animal } from '@/types/animal';
+import { RadioForm } from '@/components/ui/radioForm';
 
 interface FormMaleReproductiveProps {
   animal: Animal;
   handleInputValues: (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
-  // animal: Animal | null;
 }
 
 export const FormMaleReproductive: React.FC<FormMaleReproductiveProps> = ({
@@ -13,49 +13,42 @@ export const FormMaleReproductive: React.FC<FormMaleReproductiveProps> = ({
   handleInputValues,
 }) => {
   return (
-    <>
-      <article className="flex flex-col gap-1">
-        <div className="flex flex-col gap-1">
-          <p className="text-secondary">Andrológico:</p>
-          <div className="flex items-center gap-1">
-            <input
-              type="radio"
-              name="andrological"
-              id="positive"
-              className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
-              value="positive"
-              checked={animal.andrological === 'positive'}
-              onChange={handleInputValues}
-            />
-            <label htmlFor="positive">Positivo</label>
-          </div>
-          <div className="flex items-center gap-1">
-            <input
-              type="radio"
-              name="andrological"
-              id="negative"
-              value="negative"
-              checked={animal.andrological === 'negative'}
-              onChange={handleInputValues}
-              className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
-            />
-            <label htmlFor="negative">Negativo</label>
-          </div>
-
-          <div className="flex items-center gap-1">
-            <input
-              type="radio"
-              name="andrological"
-              id="notDone"
-              value="notDone"
-              checked={animal.andrological === 'notDone'}
-              onChange={handleInputValues}
-              className="h-3 w-3 appearance-none rounded-full border border-primary transition duration-200 checked:border-transparent checked:bg-primary focus:outline-none"
-            />
-            <label htmlFor="notDone">Não realizado</label>
-          </div>
-        </div>
-      </article>
-    </>
+    <article className="flex flex-col gap-2">
+      <span className="text-[0.7rem] font-semibold uppercase text-muted-foreground">
+        Andrológico:
+      </span>
+      <div className="grid grid-cols-3 gap-2">
+        <RadioForm
+          htmlFor="positive"
+          label="Positivo"
+          type="radio"
+          name="andrological"
+          id="positive"
+          value="positive"
+          checked={animal.andrological === 'positive'}
+          onChange={handleInputValues}
+        />
+        <RadioForm
+          htmlFor="negative"
+          label="Negativo"
+          type="radio"
+          name="andrological"
+          id="negative"
+          value="negative"
+          checked={animal.andrological === 'negative'}
+          onChange={handleInputValues}
+        />
+        <RadioForm
+          htmlFor="notDone"
+          label="Não realizado"
+          type="radio"
+          name="andrological"
+          id="notDone"
+          value="notDone"
+          checked={animal.andrological === 'notDone'}
+          onChange={handleInputValues}
+        />
+      </div>
+    </article>
   );
 };

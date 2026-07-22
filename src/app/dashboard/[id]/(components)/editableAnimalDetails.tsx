@@ -16,11 +16,12 @@ import {
 } from 'recharts';
 import { Vaccine } from '@/types/vaccine';
 import { ExternalBull } from '@/types/externalBull';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { Loading } from '@/components/ui/loading';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardTitle } from '@/components/ui/card';
 import { CardReproduction } from './isNotEditing/cardReproduction';
@@ -71,6 +72,7 @@ interface CalfLossDraft {
 }
 
 interface EditableAnimalDetailsProps {
+  animalId: string;
   externalBulls: ExternalBull[];
   vaccines: Vaccine[];
 }
@@ -146,6 +148,7 @@ function getStatusNode(status?: string | null) {
 }
 
 const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
+  animalId,
   externalBulls,
   vaccines,
 }) => {
@@ -180,7 +183,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
       ? (localStorage.getItem('agrofinance_arroba_price') ?? '')
       : ''
   );
-  const [carcassPercent, setCarcassPercent] = useState('100');
+  const [carcassPercent, setCarcassPercent] = useState('50');
   const [sanitaryForm, setSanitaryForm] = useState<SanitaryFormState>({
     type: 'vaccine',
     name: '',
@@ -207,25 +210,59 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   >(animal?.calfLossHistories ?? []);
   const [pevDays, setPevDays] = useState(30);
 
-  // Restore form from localStorage if a pending save was interrupted by a stale-data reload
+  // Não bloqueia a navegação esperando os dados completos: se o usuário veio
+  // da listagem, o contexto já tem uma versão "leve" do animal (sem mãe/pai/
+  // histórico/filhos) que a tabela seta antes do router.push — isso já
+  // aparece na tela instantaneamente. Em paralelo, busca a versão completa
+  // (com todas as relações) e substitui assim que chegar, silenciosamente.
+  // Isso também cobre o caso de entrar direto pela URL/recarregar a página:
+  // aí o contexto começa vazio e essa busca é a única fonte de dados.
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const key = `agrofinance_pending_form_${animal?.id}`;
-    const saved = localStorage.getItem(key);
-    if (!saved) return;
-    try {
-      const parsed = JSON.parse(saved) as Animal;
-      setAnimal(parsed);
-      setIsEditing(true);
-      localStorage.removeItem(key);
-      toast.info(
-        'Suas alterações foram restauradas. Os dados do animal foram atualizados por outro usuário — revise e salve novamente.'
-      );
-    } catch {
-      localStorage.removeItem(key);
+    let cancelled = false;
+
+    const key = `agrofinance_pending_form_${animalId}`;
+    const saved =
+      typeof window !== 'undefined' ? localStorage.getItem(key) : null;
+
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved) as Animal;
+        setAnimal(parsed);
+        setListDewormings(parsed.dewormings ?? []);
+        setListDiseases(parsed.diseases ?? []);
+        setCalfLossHistories(parsed.calfLossHistories ?? []);
+        setListVaccines(vaccines);
+        setIsEditing(true);
+        localStorage.removeItem(key);
+        toast.info(
+          'Suas alterações foram restauradas. Os dados do animal foram atualizados — revise e salve novamente.'
+        );
+        return;
+      } catch {
+        localStorage.removeItem(key);
+      }
     }
+
+    axios
+      .get(`/api/animals/${animalId}`)
+      .then((res) => {
+        if (cancelled) return;
+        const fetched = res.data.animal as Animal;
+        setAnimal(fetched);
+        setListDewormings(fetched.dewormings ?? []);
+        setListDiseases(fetched.diseases ?? []);
+        setCalfLossHistories(fetched.calfLossHistories ?? []);
+        setListVaccines(vaccines);
+      })
+      .catch(() => {
+        if (!cancelled) toast.error('Erro ao carregar os dados do animal.');
+      });
+
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [animal?.id]);
+  }, [animalId]);
 
   const handleLossAdded = (loss: AnimalCalfLossHistory) =>
     setCalfLossHistories((prev) =>
@@ -361,7 +398,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   const weightKg = Number(animal?.weight) || 0;
   const arrobas = weightKg / 15;
   const carcassFactor =
-    Math.min(Math.max(Number(carcassPercent) || 100, 1), 100) / 100;
+    Math.min(Math.max(Number(carcassPercent) || 50, 1), 100) / 100;
   const carcassArrobas = arrobas * carcassFactor;
   const priceNum = parseFloat(pricePerArroba.replace(',', '.'));
   const estimatedValue =
@@ -716,8 +753,19 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     setAnimal({ ...animal, [name]: newValue });
   };
 
+  // Estas duas limpezas de campo "agora irrelevante" só devem rodar quando o
+  // usuário TROCA o status/manejo enquanto edita — não na primeira carga do
+  // animal. Sem essa guarda, elas disparam também no primeiro render (usando
+  // ainda o objeto "leve" vindo da listagem, antes da hidratação com os dados
+  // completos do servidor terminar) e sobrescrevem mãe/pai/histórico/filhos
+  // com uma versão sem essas relações — só "consertava" com F5.
+  const reproStatusResetTrackedIdRef = useRef<string | null>(null);
   useEffect(() => {
     if (!animal) return;
+    if (reproStatusResetTrackedIdRef.current !== animal.id) {
+      reproStatusResetTrackedIdRef.current = animal.id;
+      return;
+    }
     if (animal.gender === 'female') {
       let newAnimal = { ...animal, andrological: null };
       if (animal.reproductiveStatus === 'empty') {
@@ -767,8 +815,13 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [animal?.gender, animal?.reproductiveStatus]);
 
+  const handlingTypeResetTrackedIdRef = useRef<string | null>(null);
   useEffect(() => {
     if (!animal) return;
+    if (handlingTypeResetTrackedIdRef.current !== animal.id) {
+      handlingTypeResetTrackedIdRef.current = animal.id;
+      return;
+    }
     if (animal.handlingType === 'naturalMating') {
       setAnimal({
         ...animal,
@@ -848,11 +901,13 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     dataToSubmit.bullIatfId = null;
     dataToSubmit.externalBullIatfId = null;
 
-    // Aplica a lógica correta baseada no tipo de manejo
+    // Monta natural exige touro físico na fazenda (sempre interno); IATF usa
+    // sêmen catalogado como touro externo (sempre externo) — não existe mais
+    // a opção de escolher o tipo, então persiste sempre o campo certo.
     if (formData.handlingType === 'naturalMating') {
       dataToSubmit.bullId = formData.bullId;
     } else if (formData.handlingType === 'artificialInsemination') {
-      dataToSubmit.bullIatfId = formData.bullIatfId;
+      dataToSubmit.externalBullIatfId = formData.externalBullIatfId;
     }
 
     // FIX: Remove weight history fields to prevent accidental creation on edit
@@ -905,7 +960,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
         // non-critical, proceed with submit
       }
 
-      await axios.put(
+      const putRes = await axios.put(
         `/api/updateAnimals?id=${dataToSubmit.id}`,
         dataToSubmit,
         { headers: { 'Content-Type': 'application/json' } }
@@ -915,9 +970,15 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
         formData.fatherId === 'Comercial' ? null : formData.fatherId;
       const savedMotherId =
         formData.motherId === 'Comercial' ? null : formData.motherId;
+      // updatedAt vem da resposta do PUT (valor real gravado no banco) — usar
+      // o formData aqui deixaria o updatedAt local desatualizado, e a PRÓXIMA
+      // gravação sempre acusaria "outro usuário alterou", mesmo sendo o mesmo
+      // usuário, porque o servidor sempre estaria "à frente" do valor salvo.
+      const serverUpdatedAt = putRes?.data?.data?.updatedAt;
       setAnimal({
         ...animal,
         ...formData,
+        updatedAt: serverUpdatedAt ?? animal?.updatedAt,
         father: savedFatherId
           ? animals.find((a) => a.id === savedFatherId) ?? animal?.father
           : undefined,
@@ -994,7 +1055,10 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
 
   const sanitaryFieldClass =
     'w-full border-b border-b-primary bg-transparent outline-none';
-  if (!animal) return null; // Or a loading/error state
+  // Sem dado nenhum ainda pra este animal (entrada direta pela URL, refresh,
+  // ou troca de animal sem passar pela listagem) — mostra o loading em vez de
+  // branco enquanto a busca completa (disparada no efeito acima) termina.
+  if (!animal || animal.id !== animalId) return <Loading />;
   const animalTitle =
     animal.manualId.charAt(0).toUpperCase() + animal.manualId.slice(1);
 

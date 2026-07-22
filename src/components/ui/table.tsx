@@ -809,10 +809,10 @@ export const Table: React.FC<TableProps> = ({
                   Total
                 </p>
                 <p className="text-base font-black leading-tight text-primary">
-                  {listAnimals.length}
+                  {originalAnimals.length}
                 </p>
                 <p className="hidden text-[9px] text-muted-foreground xs:block">
-                  Com filtros aplicados
+                  Cadastrados na fazenda
                 </p>
               </div>
             </div>

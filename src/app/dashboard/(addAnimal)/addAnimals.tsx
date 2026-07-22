@@ -17,7 +17,6 @@ import { User } from '@/types/user';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
 import axios from 'axios';
-import { extractExternalBullId, isExternalBullValue } from '@/lib/externalBull';
 
 interface AddAnimalProps {
   animals: Animal[];
@@ -107,28 +106,15 @@ export const AddAnimal: React.FC<AddAnimalProps> = ({
         allDataForm.motherId === 'comercial' ? null : allDataForm.motherId,
       fatherId:
         allDataForm.fatherId === 'comercial' ? null : allDataForm.fatherId,
-      bullId:
-        allDataForm.bullId === 'comercial' ||
-        isExternalBullValue(allDataForm.bullId) ||
-        null ||
-        undefined
-          ? null
-          : allDataForm.bullId,
+      externalBullFatherId: allDataForm.externalBullFatherId || null,
+      // bullId/externalBullId e bullIatfId/externalBullIatfId já vêm certos
+      // de CardFormReproduction (monta natural sempre interno, IATF sempre
+      // externo) — só normaliza o placeholder "comercial".
+      bullId: allDataForm.bullId === 'comercial' ? null : allDataForm.bullId,
+      externalBullId: allDataForm.externalBullId || null,
       bullIatfId:
-        allDataForm.bullIatfId === 'comercial' ||
-        isExternalBullValue(allDataForm.bullIatfId) ||
-        null ||
-        undefined
-          ? null
-          : allDataForm.bullIatfId,
-      externalBullId:
-        allDataForm.bullId === 'comercial'
-          ? null
-          : extractExternalBullId(allDataForm.bullId),
-      externalBullIatfId:
-        allDataForm.bullIatfId === 'comercial'
-          ? null
-          : extractExternalBullId(allDataForm.bullIatfId),
+        allDataForm.bullIatfId === 'comercial' ? null : allDataForm.bullIatfId,
+      externalBullIatfId: allDataForm.externalBullIatfId || null,
       updatedAt: new Date(),
       statusChangeDate:
         allDataForm.status === 'active'

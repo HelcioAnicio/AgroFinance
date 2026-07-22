@@ -1,4 +1,5 @@
 import { Animal } from '@/types/animal';
+import { InputForm } from '@/components/ui/inputForm';
 import { GoAlertFill } from 'react-icons/go';
 
 interface FormPevStatusProps {
@@ -28,22 +29,16 @@ export const FormPevStatus: React.FC<FormPevStatusProps> = ({
           {formattedDate}), a vaca retornará ao status de Vazia automaticamente,
           e será notificada.
         </p>
-        <div className="flex w-full items-center gap-3">
-          <label htmlFor="pevDays" className="text-sm font-medium">
-            Dias até retornar para Vazia:
-          </label>
-          <input
-            id="pevDays"
-            type="number"
-            min={1}
-            max={365}
-            value={pevDays}
-            onChange={(e) =>
-              onPevDaysChange(Math.max(1, Number(e.target.value)))
-            }
-            className="w-24 rounded-md border px-2 py-1 text-sm"
-          />
-        </div>
+        <InputForm
+          classNameDiv="w-40"
+          htmlFor="pevDays"
+          label="Dias até retornar para Vazia:"
+          type="number"
+          name="pevDays"
+          id="pevDays"
+          value={pevDays}
+          onChange={(e) => onPevDaysChange(Math.max(1, Number(e.target.value)))}
+        />
       </article>
     </>
   );
