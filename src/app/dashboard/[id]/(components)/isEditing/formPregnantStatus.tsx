@@ -6,12 +6,12 @@ import React, { useState } from 'react';
 
 interface FormPregnantStatusProps {
   animal: Animal;
-  setAnimal: (animal: Animal | null) => void;
+  animals: Animal[];
+  externalBulls: ExternalBull[];
   handleInputValues: (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
-  animals: Animal[];
-  externalBulls: ExternalBull[];
+  setAnimal: (animal: Animal | null) => void;
 }
 
 export const FormPregnantStatus: React.FC<FormPregnantStatusProps> = ({

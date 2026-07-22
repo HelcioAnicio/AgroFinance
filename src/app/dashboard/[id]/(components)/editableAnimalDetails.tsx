@@ -71,9 +71,8 @@ interface CalfLossDraft {
 }
 
 interface EditableAnimalDetailsProps {
-  animal: Animal;
-  animals: Animal[];
   externalBulls: ExternalBull[];
+  vaccines: Vaccine[];
 }
 
 type SanitaryType = 'vaccine' | 'deworming' | 'disease';
@@ -147,28 +146,13 @@ function getStatusNode(status?: string | null) {
 }
 
 const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
-  animal: initialAnimal,
-  animals: initialAnimals,
   externalBulls,
+  vaccines,
 }) => {
   const [arrobaPriceLoaded, setArrobaPriceLoaded] = useState(false);
-  const {
-    animal,
-    setAnimal,
-    animals,
-    setAnimals,
-    setOriginalAnimal,
-    setOriginalAnimals,
-  } = useAppGlobal();
+  const { animal, setAnimal } = useAppGlobal();
+  const { animals } = useAppGlobal();
 
-  useEffect(() => {
-    setAnimal(initialAnimal);
-    setAnimals(initialAnimals);
-    setOriginalAnimal(initialAnimal);
-    setOriginalAnimals(initialAnimals);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialAnimal, initialAnimals]);
-  
   const [isEditing, setIsEditing] = useState(false);
   const [openSanitaryModal, setOpenSanitaryModal] = useState(false);
   const [openGenealogyModal, setOpenGenealogyModal] = useState(false);
@@ -196,7 +180,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
       ? (localStorage.getItem('agrofinance_arroba_price') ?? '')
       : ''
   );
-  const [carcassPercent, setCarcassPercent] = useState('50');
+  const [carcassPercent, setCarcassPercent] = useState('100');
   const [sanitaryForm, setSanitaryForm] = useState<SanitaryFormState>({
     type: 'vaccine',
     name: '',
@@ -204,9 +188,13 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     date: new Date().toISOString().split('T')[0],
     expiryDate: '',
   });
-  const [listVaccines, setListVaccines] = useState<Vaccine[]>([]);
-  const [listDewormings, setListDewormings] = useState<Deworming[]>([]);
-  const [listDiseases, setListDiseases] = useState<Disease[]>([]);
+  const [listVaccines, setListVaccines] = useState<Vaccine[]>(vaccines);
+  const [listDewormings, setListDewormings] = useState<Deworming[]>(
+    animal?.dewormings ?? []
+  );
+  const [listDiseases, setListDiseases] = useState<Disease[]>(
+    animal?.diseases ?? []
+  );
   const [calfLossDraft, setCalfLossDraft] = useState<CalfLossDraft>({
     confirmed: null,
     lossDate: new Date().toISOString().split('T')[0],
@@ -216,22 +204,13 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   });
   const [calfLossHistories, setCalfLossHistories] = useState<
     AnimalCalfLossHistory[]
-  >([]);
+  >(animal?.calfLossHistories ?? []);
   const [pevDays, setPevDays] = useState(30);
-
-  useEffect(() => {
-    if (animal) {
-      setListVaccines(animal.vaccines ?? []);
-      setListDewormings(animal.dewormings ?? []);
-      setListDiseases(animal.diseases ?? []);
-      setCalfLossHistories(animal.calfLossHistories ?? []);
-    }
-  }, [animal]);
 
   // Restore form from localStorage if a pending save was interrupted by a stale-data reload
   useEffect(() => {
-    if (typeof window === 'undefined' || !animal?.id) return;
-    const key = `agrofinance_pending_form_${animal.id}`;
+    if (typeof window === 'undefined') return;
+    const key = `agrofinance_pending_form_${animal?.id}`;
     const saved = localStorage.getItem(key);
     if (!saved) return;
     try {
@@ -316,11 +295,6 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
       new Date(b.birthDate as unknown as string).getTime() -
       new Date(a.birthDate as unknown as string).getTime()
   );
-  useEffect(() => {
-    console.log('offspring: ', offspring);
-
-  }),[offspring]
-
 
   const totalBirths = offspring.length;
   const totalLosses = animal?.calfLossHistories?.length ?? 0;
@@ -603,13 +577,11 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     if (!currentAnimal) return;
     const tid = toast.loading('Salvando pesagem...');
     try {
-      const res = await fetch(`/api/weight-history?id=${id}`,
-        {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(editingWeightData),
-        }
-      );
+      const res = await fetch(`/api/weight-history?id=${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editingWeightData),
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Erro');
       toast.dismiss(tid);
@@ -641,11 +613,9 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     if (!window.confirm('Excluir esta pesagem?')) return;
     const tid = toast.loading('Excluindo pesagem...');
     try {
-      const res = await fetch(`/api/weight-history?id=${id}`,
-        {
-          method: 'DELETE',
-        }
-      );
+      const res = await fetch(`/api/weight-history?id=${id}`, {
+        method: 'DELETE',
+      });
       if (!res.ok) throw new Error((await res.json()).error ?? 'Erro');
       toast.dismiss(tid);
       toast.success('Pesagem excluída.');
@@ -664,42 +634,28 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   const saveSanitary = async (id: string, type: string) => {
     const tid = toast.loading('Salvando registro sanitário...');
     try {
-      const res = await fetch(`/api/sanitary?id=${id}&type=${type}`,
-        {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(editingSanitaryData),
-        }
-      );
+      const res = await fetch(`/api/sanitary?id=${id}&type=${type}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editingSanitaryData),
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Erro');
       toast.dismiss(tid);
       toast.success('Registro atualizado.');
       const updated = data.data;
-      if (animal && updated) {
-        if (type === 'vaccine') {
-          setAnimal({
-            ...animal,
-            vaccines: (animal.vaccines ?? []).map((v) =>
-              v.id === id ? { ...v, ...updated } : v
-            ),
-          });
-        } else if (type === 'deworming') {
-          setAnimal({
-            ...animal,
-            dewormings: (animal.dewormings ?? []).map((d) =>
-              d.id === id ? { ...d, ...updated } : d
-            ),
-          });
-        } else if (type === 'disease') {
-          setAnimal({
-            ...animal,
-            diseases: (animal.diseases ?? []).map((d) =>
-              d.id === id ? { ...d, ...updated } : d
-            ),
-          });
-        }
-      }
+      if (type === 'vaccine')
+        setListVaccines((prev) =>
+          prev.map((v) => (v.id === id ? { ...v, ...updated } : v))
+        );
+      if (type === 'deworming')
+        setListDewormings((prev) =>
+          prev.map((d) => (d.id === id ? { ...d, ...updated } : d))
+        );
+      if (type === 'disease')
+        setListDiseases((prev) =>
+          prev.map((d) => (d.id === id ? { ...d, ...updated } : d))
+        );
       setEditingSanitaryId(null);
     } catch (e) {
       toast.dismiss(tid);
@@ -711,32 +667,18 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     if (!window.confirm('Excluir este registro sanitário?')) return;
     const tid = toast.loading('Excluindo...');
     try {
-      const res = await fetch(`/api/sanitary?id=${id}&type=${type}`,
-        {
-          method: 'DELETE',
-        }
-      );
+      const res = await fetch(`/api/sanitary?id=${id}&type=${type}`, {
+        method: 'DELETE',
+      });
       if (!res.ok) throw new Error((await res.json()).error ?? 'Erro');
       toast.dismiss(tid);
       toast.success('Registro excluído.');
-      if (animal) {
-        if (type === 'vaccine') {
-          setAnimal({
-            ...animal,
-            vaccines: (animal.vaccines ?? []).filter((v) => v.id !== id),
-          });
-        } else if (type === 'deworming') {
-          setAnimal({
-            ...animal,
-            dewormings: (animal.dewormings ?? []).filter((d) => d.id !== id),
-          });
-        } else if (type === 'disease') {
-          setAnimal({
-            ...animal,
-            diseases: (animal.diseases ?? []).filter((d) => d.id !== id),
-          });
-        }
-      }
+      if (type === 'vaccine')
+        setListVaccines((prev) => prev.filter((v) => v.id !== id));
+      if (type === 'deworming')
+        setListDewormings((prev) => prev.filter((d) => d.id !== id));
+      if (type === 'disease')
+        setListDiseases((prev) => prev.filter((d) => d.id !== id));
     } catch (e) {
       toast.dismiss(tid);
       toast.error(e instanceof Error ? e.message : 'Erro ao excluir.');
@@ -877,32 +819,8 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     const dataToSubmit: any = {
       ...formData,
       updatedAt: new Date(),
-      weightRecordType: formData.weightRecordType ?? 'OTHER',
-      weightRecordDate:
-        formData.weightRecordDate ?? new Date().toISOString().split('T')[0],
       motherId: formData.motherId === 'Comercial' ? null : formData.motherId,
       fatherId: formData.fatherId === 'Comercial' ? null : formData.fatherId,
-      bullId:
-        formData.bullId === 'comercial' ||
-        formData.bullId === 'Comercial' ||
-        isExternalBullValue(formData.bullId)
-          ? null
-          : formData.bullId,
-      bullIatfId:
-        formData.bullIatfId === 'comercial' ||
-        formData.bullIatfId === 'Comercial' ||
-        isExternalBullValue(formData.bullIatfId)
-          ? null
-          : formData.bullIatfId,
-      externalBullId:
-        formData.bullId === 'comercial' || formData.bullId === 'Comercial'
-          ? null
-          : extractExternalBullId(formData.bullId),
-      externalBullIatfId:
-        formData.bullIatfId === 'comercial' ||
-        formData.bullIatfId === 'Comercial'
-          ? null
-          : extractExternalBullId(formData.bullIatfId),
       calfLossEvent:
         shouldAskCalfLoss && calfLossDraft.confirmed
           ? {
@@ -921,6 +839,23 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
             }
           : { confirmed: false },
     };
+
+    // Zera todos os campos de touro de manejo para garantir a lógica correta
+    dataToSubmit.bullId = null;
+    dataToSubmit.externalBullId = null;
+    dataToSubmit.bullIatfId = null;
+    dataToSubmit.externalBullIatfId = null;
+
+    // Aplica a lógica correta baseada no tipo de manejo
+    if (formData.handlingType === 'naturalMating') {
+      dataToSubmit.bullId = formData.bullId;
+    } else if (formData.handlingType === 'artificialInsemination') {
+      dataToSubmit.bullIatfId = formData.bullIatfId;
+    }
+
+    // FIX: Remove weight history fields to prevent accidental creation on edit
+    delete dataToSubmit.weightRecordDate;
+    delete dataToSubmit.weightRecordType;
 
     if (formData.reproductiveStatus === 'pev') {
       const expiresAt = new Date();
@@ -1018,24 +953,12 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
       );
       const savedData = response.data?.data;
       toast.dismiss(loadingId);
-      if (animal && savedData) {
-        if (sanitaryForm.type === 'vaccine') {
-          setAnimal({
-            ...animal,
-            vaccines: [savedData, ...(animal.vaccines ?? [])],
-          });
-        } else if (sanitaryForm.type === 'deworming') {
-          setAnimal({
-            ...animal,
-            dewormings: [savedData, ...(animal.dewormings ?? [])],
-          });
-        } else if (sanitaryForm.type === 'disease') {
-          setAnimal({
-            ...animal,
-            diseases: [savedData, ...(animal.diseases ?? [])],
-          });
-        }
-      }
+      if (sanitaryForm.type === 'vaccine' && savedData)
+        setListVaccines((prev) => [savedData as Vaccine, ...prev]);
+      if (sanitaryForm.type === 'deworming' && savedData)
+        setListDewormings((prev) => [savedData as Deworming, ...prev]);
+      if (sanitaryForm.type === 'disease' && savedData)
+        setListDiseases((prev) => [savedData as Disease, ...prev]);
       setOpenSanitaryModal(false);
       setSanitaryForm({
         type: 'vaccine',
@@ -1501,7 +1424,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
           {/* Eficiência reprodutiva — full width */}
           <div className="rounded-2xl border bg-white p-5 shadow-sm">
             <h2 className="mb-4 font-bold">Eficiência reprodutiva</h2>
-            {animal.gender === 'male' ? (
+            {animal?.gender === 'male' ? (
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {[
                   {
@@ -1580,13 +1503,13 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
           </div>
 
           {/* Histórico Reprodutivo — full width, females only */}
-         {animal.gender === 'female' && (
+          {animal?.gender === 'female' && (
             <ReproductiveHistorySection
               offspringFromMother={femaleOffspring}
               calfLossHistories={calfLossHistories}
               animals={animals}
               externalBulls={externalBulls}
-              animalId={animal.id}
+              animalId={animal?.id}
               onLossAdded={handleLossAdded}
               onLossDeleted={handleLossDeleted}
               onLossUpdated={handleLossUpdated}
@@ -1597,9 +1520,9 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
           <div className="flex flex-wrap gap-4">
             <div className="min-w-[250px] flex-1 rounded-2xl border bg-white p-5 shadow-sm">
               <h2 className="mb-3 font-bold">Histórico de peso</h2>
-              {animal.weightHistories?.length ? (
+              {animal?.weightHistories?.length ? (
                 <div className="space-y-2">
-                  {animal.weightHistories.map((h: AnimalWeightHistory) => {
+                  {animal?.weightHistories.map((h: AnimalWeightHistory) => {
                     const isEditingThis = editingWeightId === h.id;
                     return (
                       <div
@@ -1731,9 +1654,53 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                   Nenhum histórico de peso registrado.
                 </p>
               )}
+
+              {animal?.isForFattening &&
+                animal?.weightHistories &&
+                animal?.weightHistories.length >= 2 && (
+                  <div className="mt-4">
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      Curva de peso
+                    </p>
+                    <ResponsiveContainer width="100%" height={120}>
+                      <LineChart
+                        data={[...animal.weightHistories]
+                          .sort(
+                            (a, b) =>
+                              new Date(a.measuredAt).getTime() -
+                              new Date(b.measuredAt).getTime()
+                          )
+                          .map((h) => ({
+                            data: new Date(h.measuredAt).toLocaleDateString(
+                              'pt-BR',
+                              { day: '2-digit', month: '2-digit' }
+                            ),
+                            peso: Number(h.weight),
+                          }))}
+                        margin={{ top: 4, right: 8, left: -20, bottom: 0 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                        <XAxis dataKey="data" tick={{ fontSize: 10 }} />
+                        <YAxis tick={{ fontSize: 10 }} />
+                        <Tooltip
+                          formatter={(v) => [`${v} kg`, 'Peso']}
+                          contentStyle={{ fontSize: 12 }}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="peso"
+                          stroke="hsl(var(--primary))"
+                          strokeWidth={2}
+                          dot={{ r: 3 }}
+                          activeDot={{ r: 5 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
             </div>
 
-            {animal.isForFattening && (
+            {animal?.isForFattening && (
               <div className="min-w-[250px] flex-1 rounded-2xl border bg-white p-5 shadow-sm">
                 <h2 className="mb-3 font-bold">GMD — Ganho de massa diária</h2>
                 {formattedAverageGmd !== null ? (
@@ -1956,12 +1923,12 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
           <div className="space-y-4 lg:col-span-2">
             <div>
               <FormBasicInformation
-                animal={animal}
+                animal={animal!}
+                setAnimal={setAnimal}
+                handleInputValues={handleInputValues}
+                externalBulls={externalBulls}
                 animals={animals}
                 breedArray={breedArray}
-                externalBulls={externalBulls}
-                handleInputValues={handleInputValues}
-                setAnimal={setAnimal}
                 scores={scores}
               />
             </div>
@@ -1971,7 +1938,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                 Dados reprodutivos
               </p>
               <section className="flex w-full max-w-sm flex-col gap-4">
-                {animal.gender === 'male' ? (
+                {animal?.gender === 'male' ? (
                   <FormMaleReproductive
                     animal={animal}
                     handleInputValues={handleInputValues}
@@ -1989,7 +1956,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                         name="reproductiveStatus"
                         id="reproductiveStatus"
                         className="w-full rounded-lg border border-input bg-white px-3 py-2 text-sm outline-none transition focus:border-primary"
-                        value={animal.reproductiveStatus ?? ''}
+                        value={animal?.reproductiveStatus ?? ''}
                         onChange={handleInputValues}
                       >
                         <option disabled value=""></option>
@@ -2000,25 +1967,26 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                       </select>
                     </article>
 
-                    {animal.reproductiveStatus === 'pregnant' && (
+                    {animal?.reproductiveStatus === 'pregnant' && (
                       <FormPregnantStatus
-                      animal={animal}
-                      animals={animals}
-                      externalBulls={externalBulls}
-                      handleInputValues={handleInputValues}
-                      setAnimal={setAnimal}
+                        animal={animal}
+                        handleInputValues={handleInputValues}
+                        animals={animals}
+                        externalBulls={externalBulls}
+                        setAnimal={setAnimal}
                       />
                     )}
-                    {animal.reproductiveStatus === 'waiting' && (
+                    {animal?.reproductiveStatus === 'waiting' && (
                       <FormWaitingStatus
                         animal={animal}
                         animals={animals}
                         externalBulls={externalBulls}
                         handleInputValues={handleInputValues}
                         setAnimal={setAnimal}
+
                       />
                     )}
-                    {animal.reproductiveStatus === 'pev' && (
+                    {animal?.reproductiveStatus === 'pev' && (
                       <FormPevStatus
                         animal={animal}
                         handleInputValues={handleInputValues}
@@ -2201,7 +2169,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                 <input
                   type="checkbox"
                   name="isForFattening"
-                  checked={!!animal.isForFattening}
+                  checked={!!animal?.isForFattening}
                   onChange={handleInputValues}
                   className="size-4 rounded border-input accent-primary"
                 />
@@ -2283,7 +2251,8 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                   </p>
                   {estimatedValue !== null && (
                     <p className="text-[10px] text-primary-foreground/50">
-                      {carcassArrobas.toFixed(1)}@ × R$ {priceNum.toFixed(2)}/@
+                      {carcassArrobas.toFixed(1)}@ × R${' '}
+                      {priceNum.toFixed(2)}/@
                     </p>
                   )}
                 </div>
@@ -2496,81 +2465,137 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
               <TabsTrigger value="deworming">Vermífugo</TabsTrigger>
               <TabsTrigger value="disease">Doença</TabsTrigger>
             </TabsList>
-
-            {(['vaccine', 'deworming', 'disease'] as SanitaryType[]).map(
-              (tab) => (
-                <TabsContent key={tab} value={tab} className="space-y-3">
-                  <div>
-                    <label className="text-secondary" htmlFor={`${tab}-name`}>
-                      {tab === 'vaccine'
-                        ? 'Nome da vacina'
-                        : tab === 'deworming'
-                          ? 'Nome do vermífugo'
-                          : 'Nome da doença'}
-                      :
-                    </label>
-                    <input
-                      className={sanitaryFieldClass}
-                      id={`${tab}-name`}
-                      name="name"
-                      value={sanitaryForm.name}
-                      onChange={handleSanitaryInput}
-                    />
-                  </div>
-                  {(tab === 'vaccine' || tab === 'disease') && (
-                    <div>
-                      <label
-                        className="text-secondary"
-                        htmlFor={`${tab}-description`}
-                      >
-                        Descrição:
-                      </label>
-                      <input
-                        className={sanitaryFieldClass}
-                        id={`${tab}-description`}
-                        name="description"
-                        value={sanitaryForm.description}
-                        onChange={handleSanitaryInput}
-                      />
-                    </div>
-                  )}
-                  <div>
-                    <label className="text-secondary" htmlFor={`${tab}-date`}>
-                      {tab === 'disease'
-                        ? 'Data do registro'
-                        : 'Data da aplicação'}
-                      :
-                    </label>
-                    <input
-                      className={sanitaryFieldClass}
-                      id={`${tab}-date`}
-                      type="date"
-                      name="date"
-                      value={sanitaryForm.date}
-                      onChange={handleSanitaryInput}
-                    />
-                  </div>
-                  {(tab === 'vaccine' || tab === 'deworming') && (
-                    <div>
-                      <label
-                        className="text-secondary"
-                        htmlFor={`${tab}-expiryDate`}
-                      >
-                        Data de vencimento:
-                      </label>
-                      <input
-                        className={sanitaryFieldClass}
-                        id={`${tab}-expiryDate`}
-                        type="date"
-                        name="expiryDate"
-                        value={sanitaryForm.expiryDate}
-                        onChange={handleSanitaryInput}
-                      />
-                    </div>
-                  )}
-                </TabsContent>
-              )
-            )}
+            <TabsContent value="vaccine" className="space-y-3">
+              <div>
+                <label className="text-secondary" htmlFor="vaccine-name">
+                  Nome da vacina:
+                </label>
+                <input
+                  className={sanitaryFieldClass}
+                  id="vaccine-name"
+                  name="name"
+                  value={sanitaryForm.name}
+                  onChange={handleSanitaryInput}
+                />
+              </div>
+              <div>
+                <label className="text-secondary" htmlFor="vaccine-description">
+                  Descrição:
+                </label>
+                <input
+                  className={sanitaryFieldClass}
+                  id="vaccine-description"
+                  name="description"
+                  value={sanitaryForm.description}
+                  onChange={handleSanitaryInput}
+                />
+              </div>
+              <div>
+                <label className="text-secondary" htmlFor="vaccine-date">
+                  Data da aplicação:
+                </label>
+                <input
+                  className={sanitaryFieldClass}
+                  id="vaccine-date"
+                  type="date"
+                  name="date"
+                  value={sanitaryForm.date}
+                  onChange={handleSanitaryInput}
+                />
+              </div>
+              <div>
+                <label className="text-secondary" htmlFor="vaccine-expiryDate">
+                  Data de vencimento:
+                </label>
+                <input
+                  className={sanitaryFieldClass}
+                  id="vaccine-expiryDate"
+                  type="date"
+                  name="expiryDate"
+                  value={sanitaryForm.expiryDate}
+                  onChange={handleSanitaryInput}
+                />
+              </div>
+            </TabsContent>
+            <TabsContent value="deworming" className="space-y-3">
+              <div>
+                <label className="text-secondary" htmlFor="deworming-name">
+                  Nome do vermífugo:
+                </label>
+                <input
+                  className={sanitaryFieldClass}
+                  id="deworming-name"
+                  name="name"
+                  value={sanitaryForm.name}
+                  onChange={handleSanitaryInput}
+                />
+              </div>
+              <div>
+                <label className="text-secondary" htmlFor="deworming-date">
+                  Data da aplicação:
+                </label>
+                <input
+                  className={sanitaryFieldClass}
+                  id="deworming-date"
+                  type="date"
+                  name="date"
+                  value={sanitaryForm.date}
+                  onChange={handleSanitaryInput}
+                />
+              </div>
+              <div>
+                <label className="text-secondary" htmlFor="deworming-expiryDate">
+                  Data de vencimento:
+                </label>
+                <input
+                  className={sanitaryFieldClass}
+                  id="deworming-expiryDate"
+                  type="date"
+                  name="expiryDate"
+                  value={sanitaryForm.expiryDate}
+                  onChange={handleSanitaryInput}
+                />
+              </div>
+            </TabsContent>
+            <TabsContent value="disease" className="space-y-3">
+              <div>
+                <label className="text-secondary" htmlFor="disease-name">
+                  Nome da doença:
+                </label>
+                <input
+                  className={sanitaryFieldClass}
+                  id="disease-name"
+                  name="name"
+                  value={sanitaryForm.name}
+                  onChange={handleSanitaryInput}
+                />
+              </div>
+              <div>
+                <label className="text-secondary" htmlFor="disease-description">
+                  Descrição:
+                </label>
+                <input
+                  className={sanitaryFieldClass}
+                  id="disease-description"
+                  name="description"
+                  value={sanitaryForm.description}
+                  onChange={handleSanitaryInput}
+                />
+              </div>
+              <div>
+                <label className="text-secondary" htmlFor="disease-date">
+                  Data do registro:
+                </label>
+                <input
+                  className={sanitaryFieldClass}
+                  id="disease-date"
+                  type="date"
+                  name="date"
+                  value={sanitaryForm.date}
+                  onChange={handleSanitaryInput}
+                />
+              </div>
+            </TabsContent>
           </Tabs>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setOpenSanitaryModal(false)}>

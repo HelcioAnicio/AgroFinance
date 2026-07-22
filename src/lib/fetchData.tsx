@@ -150,7 +150,7 @@ export const fetchNotifications = async (
   return notifications as Notification[];
 };
 
-export const fetchVaccines = async (animalId: string): Promise<Vaccine[]> => {
+export const fetchVaccines = async (animalId: string, id: string): Promise<Vaccine[]> => {
   if (!animalId) {
     throw new Error('animalId is required');
   }
