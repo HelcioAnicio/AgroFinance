@@ -30,29 +30,24 @@ export async function POST(req: NextRequest) {
       weightRecordType,
       statusChangeDate,
       fatherId,
+      externalBullFatherId,
       ...animalData
     } = allDataForm;
     animalData.ownerId = ownerId;
     animalData.farmId = context.farm.id;
 
-    let finalFatherId = null;
-    let finalExternalBullFatherId = null;
-
-    if (fatherId && fatherId !== 'comercial') {
-      const isExternalBull = await prisma.externalBull.findUnique({
-        where: { id: fatherId },
-        select: { id: true },
-      });
-
-      if (isExternalBull) {
-        finalExternalBullFatherId = fatherId;
-      } else {
-        finalFatherId = fatherId;
-      }
-    }
-
-    animalData.fatherId = finalFatherId;
-    animalData.externalBullFatherId = finalExternalBullFatherId;
+    // O cliente já manda os dois campos separados (fatherId para touro
+    // interno, externalBullFatherId para touro externo) — só normaliza o
+    // placeholder "comercial" pra null. Antes esse endpoint tentava
+    // redescobrir sozinho se fatherId era um touro externo, mas como o
+    // cliente nunca manda um id de ExternalBull em fatherId, isso sempre
+    // dava null e descartava a seleção de pai externo silenciosamente.
+    animalData.fatherId =
+      fatherId && fatherId !== 'comercial' ? fatherId : null;
+    animalData.externalBullFatherId =
+      externalBullFatherId && externalBullFatherId !== 'comercial'
+        ? externalBullFatherId
+        : null;
 
     const createAnimal = await prisma.$transaction(async (tx) => {
       const animal = await tx.animal.create({ data: animalData });
@@ -64,7 +59,7 @@ export async function POST(req: NextRequest) {
         [
           animalData.externalBullId,
           animalData.externalBullIatfId,
-          finalExternalBullFatherId,
+          animalData.externalBullFatherId,
         ].filter(Boolean)
       );
 
