@@ -20,6 +20,7 @@ import { Animal } from '@/types/animal';
 import { ExternalBull } from '@/types/externalBull';
 import {
   Pencil,
+  Trash2,
   CheckCircle2,
   Circle,
   Download,
@@ -65,6 +66,7 @@ const ReproductionManagementPage = () => {
   const [animals, setAnimals] = useState<Animal[]>([]);
   const [externalBulls, setExternalBulls] = useState<ExternalBull[]>([]);
   const [animalSearch, setAnimalSearch] = useState('');
+  const [showAnimalDropdown, setShowAnimalDropdown] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [stageDates, setStageDates] = useState<Record<string, string>>({
     D0: '',
@@ -158,6 +160,7 @@ const ReproductionManagementPage = () => {
     if (editingId) return;
     setFormData((prev) => ({ ...prev, date: stageDates[currentStage] || '' }));
     setAnimalSearch('');
+    setShowAnimalDropdown(false);
   }, [currentStage, stageDates, editingId]);
 
   const translateCategory = (cat = '') => {
@@ -328,6 +331,38 @@ const ReproductionManagementPage = () => {
     });
   };
 
+  const handleDeleteManagement = async (m: ReproductionManagement) => {
+    if (
+      !window.confirm(
+        `Excluir o registro de ${stageLabels[m.stage as Stage]} de ${m.animal?.manualId ?? 'animal'}?`
+      )
+    )
+      return;
+
+    const loadingId = toast.loading('Excluindo registro...');
+    try {
+      const res = await fetch(`/api/reproduction-management?id=${m.id}`, {
+        method: 'DELETE',
+      });
+      toast.dismiss(loadingId);
+      if (res.ok) {
+        toast.success('Registro excluído.');
+        if (editingId === m.id) {
+          setEditingId(null);
+          setFormData(emptyForm);
+        }
+        await fetchData();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data.error ?? 'Erro ao excluir registro.');
+      }
+    } catch (err) {
+      toast.dismiss(loadingId);
+      toast.error('Erro ao excluir registro.');
+      console.error(err);
+    }
+  };
+
   // Protocol report: group animals by D0 date, most recent first
   const protocolGroups = useMemo(() => {
     const d0Records = managements.filter((m) => m.stage === 'D0');
@@ -485,17 +520,20 @@ const ReproductionManagementPage = () => {
                   <Input
                     className={`${fieldClass} pl-8 pr-8`}
                     value={animalSearch}
-                    placeholder="Digite o número do animal (ex: A001)"
+                    placeholder="Clique para ver a lista ou digite pra buscar"
                     onChange={(e) => {
                       setAnimalSearch(e.target.value);
+                      setShowAnimalDropdown(true);
                       // Clear selection when user starts typing
                       if (formData.animalId)
                         setFormData((prev) => ({ ...prev, animalId: '' }));
                     }}
-                    onFocus={() => {
-                      // Show dropdown on focus if no animal selected yet
-                      if (!formData.animalId) setAnimalSearch(animalSearch);
-                    }}
+                    onFocus={() => setShowAnimalDropdown(true)}
+                    onBlur={() =>
+                      // Delay pra dar tempo do onClick do item da lista disparar
+                      // antes do dropdown fechar por causa do blur.
+                      setTimeout(() => setShowAnimalDropdown(false), 150)
+                    }
                   />
                   {formData.animalId && (
                     <button
@@ -511,8 +549,8 @@ const ReproductionManagementPage = () => {
                   )}
                 </div>
 
-                {/* Dropdown list — shown when typing and no animal selected */}
-                {animalSearch &&
+                {/* Dropdown list — aberta ao clicar/focar, filtra ao digitar */}
+                {showAnimalDropdown &&
                   !formData.animalId &&
                   filteredAnimals.length > 0 && (
                     <div className="absolute left-0 top-full z-50 mt-1 max-h-48 w-full overflow-y-auto rounded-lg border bg-white shadow-lg">
@@ -542,6 +580,7 @@ const ReproductionManagementPage = () => {
                                     : '',
                               }));
                               setAnimalSearch(sel.manualId);
+                              setShowAnimalDropdown(false);
                             }}
                             className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-muted/60 disabled:cursor-not-allowed disabled:opacity-50`}
                           >
@@ -559,7 +598,7 @@ const ReproductionManagementPage = () => {
                   )}
 
                 {/* No results */}
-                {animalSearch &&
+                {showAnimalDropdown &&
                   !formData.animalId &&
                   filteredAnimals.length === 0 && (
                     <div className="absolute left-0 top-full z-50 mt-1 w-full rounded-lg border bg-white p-3 text-center text-xs text-muted-foreground shadow-lg">
@@ -967,13 +1006,23 @@ const ReproductionManagementPage = () => {
                           </td>
                         )}
                         <td className="px-4 py-3">
-                          <button
-                            type="button"
-                            onClick={() => handleEdit(m)}
-                            className="flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-medium text-muted-foreground transition hover:border-primary/50 hover:text-primary"
-                          >
-                            <Pencil className="size-3" /> Editar
-                          </button>
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => handleEdit(m)}
+                              className="flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-medium text-muted-foreground transition hover:border-primary/50 hover:text-primary"
+                            >
+                              <Pencil className="size-3" /> Editar
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteManagement(m)}
+                              title="Excluir registro"
+                              className="flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-medium text-muted-foreground transition hover:border-red-400 hover:text-red-600"
+                            >
+                              <Trash2 className="size-3" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );

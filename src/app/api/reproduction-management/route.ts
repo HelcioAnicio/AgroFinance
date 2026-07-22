@@ -225,6 +225,39 @@ export async function POST(request: NextRequest) {
   }
 }
 
+export async function DELETE(request: NextRequest) {
+  try {
+    const { context, error, status } = await requireFarmContext('manage_animals');
+    if (!context) return NextResponse.json({ error }, { status });
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+    if (!id) {
+      return NextResponse.json({ error: 'ID não fornecido' }, { status: 400 });
+    }
+
+    const management = await prisma.reproductionManagement.findFirst({
+      where: { id, animal: { farmId: context.farm.id } },
+    });
+    if (!management) {
+      return NextResponse.json(
+        { error: 'Registro não encontrado' },
+        { status: 404 }
+      );
+    }
+
+    await prisma.reproductionManagement.delete({ where: { id } });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting reproduction management:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function PUT(request: NextRequest) {
   try {
     const { context, error, status } = await requireFarmContext('manage_animals');
