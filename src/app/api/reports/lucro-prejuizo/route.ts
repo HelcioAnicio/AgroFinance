@@ -18,6 +18,9 @@ export async function GET(req: NextRequest) {
     where: {
       farmId,
       date: { gte: startDate, lte: endDate },
+      // Só lançamentos pagos entram no resultado — pendente pode não se
+      // confirmar (calote, atraso), então não é lucro/prejuízo realizado.
+      status: true,
     },
     orderBy: { date: 'asc' },
   });

@@ -64,3 +64,36 @@ export async function scheduleSubscriptionNotifications(
     console.error('[NOTIFICATIONS] Error scheduling notifications:', error);
   }
 }
+
+/**
+ * Notifica donos/gerentes da fazenda que um insumo cruzou o limiar de
+ * estoque mínimo. Disparado no momento da movimentação — sem cron, sem
+ * atraso — porque o alerta só é útil se chegar antes do insumo acabar.
+ */
+export async function notifyLowStock(
+  farmId: string,
+  insumoNome: string,
+  quantidade: number,
+  unidade: string,
+  estoqueMin: number
+) {
+  try {
+    const managers = await prisma.farmMembership.findMany({
+      where: { farmId, role: { in: ['OWNER', 'MANAGER'] } },
+      select: { userId: true },
+    });
+
+    if (managers.length === 0) return;
+
+    await prisma.notification.createMany({
+      data: managers.map((m) => ({
+        userId: m.userId,
+        message: `Estoque baixo: ${insumoNome} está com ${quantidade} ${unidade} (mínimo: ${estoqueMin} ${unidade}).`,
+        notifyAt: new Date(),
+        read: false,
+      })),
+    });
+  } catch (error) {
+    console.error('[NOTIFICATIONS] Error notifying low stock:', error);
+  }
+}
