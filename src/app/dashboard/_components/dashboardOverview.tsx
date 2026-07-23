@@ -148,6 +148,8 @@ export function DashboardOverview() {
     (a) => a.status === 'active' && a.category !== 'neonate'
   );
 
+  const nonNeonateAnimals = animals.filter((a) => a.category !== 'neonate');
+
   const pregnantCows = animals.filter(
     (a) =>
       (a.category === 'cow' || a.category === 'old cow') &&
@@ -467,6 +469,12 @@ export function DashboardOverview() {
           <p className="text-2xl font-black text-primary">{animals.length}</p>
           <p className="mt-2 text-[11px] text-muted-foreground">
             Cadastrados na fazenda
+          </p>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">
+            <span className="font-semibold text-foreground">
+              {nonNeonateAnimals.length}
+            </span>{' '}
+            sem neonatos (exclui recém-nascidos)
           </p>
         </div>
 

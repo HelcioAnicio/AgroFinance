@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, FormEvent } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,12 +20,14 @@ import { Animal } from '@/types/animal';
 import { ExternalBull } from '@/types/externalBull';
 import {
   Pencil,
+  Trash2,
   CheckCircle2,
   Circle,
   Download,
   Search,
   X,
   BarChart2,
+  CalendarPlus,
 } from 'lucide-react';
 import {
   Dialog,
@@ -52,7 +54,7 @@ const emptyForm = {
   obs: '',
   ecc: '',
   touroId: '',
-  touroType: 'internal' as 'internal' | 'external',
+  touroType: 'external' as 'internal' | 'external',
   partida: '',
   cio: '',
   ressinc: false,
@@ -65,6 +67,7 @@ const ReproductionManagementPage = () => {
   const [animals, setAnimals] = useState<Animal[]>([]);
   const [externalBulls, setExternalBulls] = useState<ExternalBull[]>([]);
   const [animalSearch, setAnimalSearch] = useState('');
+  const [showAnimalDropdown, setShowAnimalDropdown] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [stageDates, setStageDates] = useState<Record<string, string>>({
     D0: '',
@@ -74,6 +77,10 @@ const ReproductionManagementPage = () => {
   });
   const [formData, setFormData] = useState(emptyForm);
   const [reportOpen, setReportOpen] = useState(false);
+  const [reminderOpen, setReminderOpen] = useState(false);
+  const [reminderMessage, setReminderMessage] = useState('');
+  const [reminderDate, setReminderDate] = useState('');
+  const [creatingReminder, setCreatingReminder] = useState(false);
 
   const toLocalDateString = (date: string | Date) => {
     const d = new Date(date);
@@ -158,6 +165,7 @@ const ReproductionManagementPage = () => {
     if (editingId) return;
     setFormData((prev) => ({ ...prev, date: stageDates[currentStage] || '' }));
     setAnimalSearch('');
+    setShowAnimalDropdown(false);
   }, [currentStage, stageDates, editingId]);
 
   const translateCategory = (cat = '') => {
@@ -178,13 +186,6 @@ const ReproductionManagementPage = () => {
     const c = a.category?.toLowerCase();
     return (
       a.status?.toLowerCase() === 'active' && (c === 'cow' || c === 'old cow')
-    );
-  };
-
-  const isBull = (a: Animal) => {
-    const c = a.category?.toLowerCase();
-    return (
-      a.status?.toLowerCase() === 'active' && (c === 'bull' || c === 'old bull')
     );
   };
 
@@ -295,7 +296,10 @@ const ReproductionManagementPage = () => {
             ? 'Registro atualizado com sucesso!'
             : 'Registro salvo com sucesso!'
         );
-        await fetchData();
+        // forceFresh: um registro de manejo pode mudar o reproductiveStatus
+        // do animal (ex: DG confirmando prenhez) — servir do cache de 5min
+        // aqui mostraria o status antigo na própria tela logo após salvar.
+        await fetchData(true);
         setEditingId(null);
         setFormData(emptyForm);
       } else {
@@ -320,12 +324,79 @@ const ReproductionManagementPage = () => {
       obs: m.obs ?? '',
       ecc: m.ecc?.toString() ?? '',
       touroId: m.touroId ?? '',
-      touroType: m.touroType ?? 'internal',
+      touroType: m.touroType ?? 'external',
       partida: m.partida ?? '',
       cio: m.cio ?? '',
       ressinc: m.ressinc ?? false,
       newReproductiveStatus: m.newReproductiveStatus ?? '',
     });
+  };
+
+  const handleDeleteManagement = async (m: ReproductionManagement) => {
+    if (
+      !window.confirm(
+        `Excluir o registro de ${stageLabels[m.stage as Stage]} de ${m.animal?.manualId ?? 'animal'}?`
+      )
+    )
+      return;
+
+    const loadingId = toast.loading('Excluindo registro...');
+    try {
+      const res = await fetch(`/api/reproduction-management?id=${m.id}`, {
+        method: 'DELETE',
+      });
+      toast.dismiss(loadingId);
+      if (res.ok) {
+        toast.success('Registro excluído.');
+        if (editingId === m.id) {
+          setEditingId(null);
+          setFormData(emptyForm);
+        }
+        await fetchData(true);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data.error ?? 'Erro ao excluir registro.');
+      }
+    } catch (err) {
+      toast.dismiss(loadingId);
+      toast.error('Erro ao excluir registro.');
+      console.error(err);
+    }
+  };
+
+  const createReminder = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!reminderMessage.trim() || !reminderDate) {
+      toast.error('Preencha a mensagem e a data do lembrete.');
+      return;
+    }
+    setCreatingReminder(true);
+    try {
+      const res = await fetch('/api/reminders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: reminderMessage.trim(),
+          notifyAt: reminderDate,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        toast.success(
+          `Lembrete agendado para ${new Date(`${reminderDate}T12:00:00`).toLocaleDateString('pt-BR')}.`
+        );
+        setReminderMessage('');
+        setReminderDate('');
+        setReminderOpen(false);
+      } else {
+        toast.error(data.error ?? 'Erro ao criar lembrete.');
+      }
+    } catch (err) {
+      toast.error('Erro ao criar lembrete.');
+      console.error(err);
+    } finally {
+      setCreatingReminder(false);
+    }
   };
 
   // Protocol report: group animals by D0 date, most recent first
@@ -485,17 +556,20 @@ const ReproductionManagementPage = () => {
                   <Input
                     className={`${fieldClass} pl-8 pr-8`}
                     value={animalSearch}
-                    placeholder="Digite o número do animal (ex: A001)"
+                    placeholder="Clique para ver a lista ou digite pra buscar"
                     onChange={(e) => {
                       setAnimalSearch(e.target.value);
+                      setShowAnimalDropdown(true);
                       // Clear selection when user starts typing
                       if (formData.animalId)
                         setFormData((prev) => ({ ...prev, animalId: '' }));
                     }}
-                    onFocus={() => {
-                      // Show dropdown on focus if no animal selected yet
-                      if (!formData.animalId) setAnimalSearch(animalSearch);
-                    }}
+                    onFocus={() => setShowAnimalDropdown(true)}
+                    onBlur={() =>
+                      // Delay pra dar tempo do onClick do item da lista disparar
+                      // antes do dropdown fechar por causa do blur.
+                      setTimeout(() => setShowAnimalDropdown(false), 150)
+                    }
                   />
                   {formData.animalId && (
                     <button
@@ -511,8 +585,8 @@ const ReproductionManagementPage = () => {
                   )}
                 </div>
 
-                {/* Dropdown list — shown when typing and no animal selected */}
-                {animalSearch &&
+                {/* Dropdown list — aberta ao clicar/focar, filtra ao digitar */}
+                {showAnimalDropdown &&
                   !formData.animalId &&
                   filteredAnimals.length > 0 && (
                     <div className="absolute left-0 top-full z-50 mt-1 max-h-48 w-full overflow-y-auto rounded-lg border bg-white shadow-lg">
@@ -542,6 +616,7 @@ const ReproductionManagementPage = () => {
                                     : '',
                               }));
                               setAnimalSearch(sel.manualId);
+                              setShowAnimalDropdown(false);
                             }}
                             className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-muted/60 disabled:cursor-not-allowed disabled:opacity-50`}
                           >
@@ -559,7 +634,7 @@ const ReproductionManagementPage = () => {
                   )}
 
                 {/* No results */}
-                {animalSearch &&
+                {showAnimalDropdown &&
                   !formData.animalId &&
                   filteredAnimals.length === 0 && (
                     <div className="absolute left-0 top-full z-50 mt-1 w-full rounded-lg border bg-white p-3 text-center text-xs text-muted-foreground shadow-lg">
@@ -710,55 +785,32 @@ const ReproductionManagementPage = () => {
             {currentStage === 'Insemination' && (
               <>
                 <div className="grid grid-cols-2 gap-3">
-                  <div>
+                  <div className="col-span-2">
+                    {/* IATF é sempre feito com sêmen de touro externo — se
+                        fosse touro do próprio rebanho, seria monta natural,
+                        registrada no estágio de Manejo/D0, não aqui. */}
                     <Label className="mb-1 block text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                      Tipo de touro
-                    </Label>
-                    <Select
-                      value={formData.touroType}
-                      onValueChange={(v: 'internal' | 'external') =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          touroType: v,
-                          touroId: '',
-                        }))
-                      }
-                    >
-                      <SelectTrigger className={fieldClass}>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="internal">Interno</SelectItem>
-                        <SelectItem value="external">Externo</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label className="mb-1 block text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                      Touro
+                      Touro (Externo)
                     </Label>
                     <Select
                       value={formData.touroId}
                       onValueChange={(v) =>
-                        setFormData((prev) => ({ ...prev, touroId: v }))
+                        setFormData((prev) => ({
+                          ...prev,
+                          touroId: v,
+                          touroType: 'external',
+                        }))
                       }
                     >
                       <SelectTrigger className={fieldClass}>
-                        <SelectValue placeholder="Selecione" />
+                        <SelectValue placeholder="Selecione o touro externo" />
                       </SelectTrigger>
                       <SelectContent>
-                        {formData.touroType === 'internal' &&
-                          animals.filter(isBull).map((a) => (
-                            <SelectItem key={a.id} value={a.id}>
-                              {a.manualId} — {translateCategory(a.category)}
-                            </SelectItem>
-                          ))}
-                        {formData.touroType === 'external' &&
-                          externalBulls.map((b) => (
-                            <SelectItem key={b.id} value={b.id}>
-                              {b.name} — {b.breed}
-                            </SelectItem>
-                          ))}
+                        {externalBulls.map((b) => (
+                          <SelectItem key={b.id} value={b.id}>
+                            {b.name} — {b.breed}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -867,6 +919,13 @@ const ReproductionManagementPage = () => {
             <div className="flex items-center gap-2">
               <button
                 type="button"
+                onClick={() => setReminderOpen(true)}
+                className="flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/10"
+              >
+                <CalendarPlus className="size-3.5" /> Lembrete
+              </button>
+              <button
+                type="button"
                 onClick={() => setReportOpen(true)}
                 className="flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/10"
               >
@@ -967,13 +1026,23 @@ const ReproductionManagementPage = () => {
                           </td>
                         )}
                         <td className="px-4 py-3">
-                          <button
-                            type="button"
-                            onClick={() => handleEdit(m)}
-                            className="flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-medium text-muted-foreground transition hover:border-primary/50 hover:text-primary"
-                          >
-                            <Pencil className="size-3" /> Editar
-                          </button>
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => handleEdit(m)}
+                              className="flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-medium text-muted-foreground transition hover:border-primary/50 hover:text-primary"
+                            >
+                              <Pencil className="size-3" /> Editar
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteManagement(m)}
+                              title="Excluir registro"
+                              className="flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-medium text-muted-foreground transition hover:border-red-400 hover:text-red-600"
+                            >
+                              <Trash2 className="size-3" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -1152,6 +1221,46 @@ const ReproductionManagementPage = () => {
               })}
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Reminder Modal */}
+      <Dialog open={reminderOpen} onOpenChange={setReminderOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Criar lembrete de manejo</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={createReminder} className="space-y-4">
+            <p className="text-xs text-muted-foreground">
+              Avisa toda a equipe da fazenda na data escolhida.
+            </p>
+            <div>
+              <Label htmlFor="reminder-message">Lembrete</Label>
+              <Textarea
+                id="reminder-message"
+                value={reminderMessage}
+                onChange={(e) => setReminderMessage(e.target.value)}
+                placeholder="Ex: Iniciar protocolo de IATF do lote 2"
+                rows={2}
+              />
+            </div>
+            <div>
+              <Label htmlFor="reminder-date">Data</Label>
+              <Input
+                id="reminder-date"
+                type="date"
+                value={reminderDate}
+                onChange={(e) => setReminderDate(e.target.value)}
+              />
+            </div>
+            <Button
+              type="submit"
+              disabled={creatingReminder}
+              className="w-full"
+            >
+              {creatingReminder ? 'Agendando...' : 'Agendar lembrete'}
+            </Button>
+          </form>
         </DialogContent>
       </Dialog>
     </div>

@@ -147,7 +147,7 @@ export const Table: React.FC<TableProps> = ({
 }) => {
   const [listAnimals, setListAnimals] = useState<Animal[]>([]);
   const { animals } = useAppGlobal();
-  const { setAnimal } = useAppGlobal();
+  const { setAnimal, setExternalBulls } = useAppGlobal();
   const [originalAnimals, setOriginalAnimals] = useState<Animal[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [inputValue, setInputValue] = useState<string>('');
@@ -210,6 +210,12 @@ export const Table: React.FC<TableProps> = ({
     setOriginalAnimals(sortedAnimals);
     setListAnimals(sortedAnimals);
   }, [animals, dataLoading]);
+
+  // Deixa os touros externos já disponíveis no contexto global — ao clicar
+  // num animal, a tela de detalhes não precisa buscá-los de novo.
+  useEffect(() => {
+    setExternalBulls(externalBulls);
+  }, [externalBulls, setExternalBulls]);
 
   useEffect(() => {
     if (!inputValue) {
@@ -881,10 +887,17 @@ export const Table: React.FC<TableProps> = ({
                         <th className="px-4 py-3">Status</th>
                         <th className="px-4 py-3">ID</th>
                         <th className="px-4 py-3">Categoria</th>
-                        <th className="px-4 py-3">Reprodutivo / Andrológico</th>
+                        <th className="whitespace-nowrap px-4 py-3">
+                          <p className="flex flex-col">
+                            <span>Reprodutivo /</span>
+                            <span>Andrológico</span>
+                          </p>
+                        </th>
                         <th className="px-4 py-3">Pai</th>
                         <th className="px-4 py-3">Mãe</th>
-                        <th className="px-4 py-3">Peso atual</th>
+                        <th className="whitespace-nowrap px-4 py-3">
+                          Peso atual
+                        </th>
                         <th className="px-4 py-3">Nascimento</th>
                         <th className="px-4 py-3">Raça</th>
                         <th className="sticky right-0 bg-muted px-4 py-3"></th>

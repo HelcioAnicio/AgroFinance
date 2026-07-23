@@ -49,6 +49,10 @@ export const authOptions: NextAuthOptions = {
   ],
   session: {
     strategy: 'jwt',
+    // Precisa bater com SESSION_TTL_MS em farmSessions.ts: se a linha de
+    // FarmSession expirar antes do cookie, o cookie continua válido depois
+    // dela já ter sido limpa e o dono é deslogado à força sem motivo.
+    maxAge: 30 * 24 * 60 * 60, // 30 dias
   },
   callbacks: {
     async jwt({ token, trigger, user }) {

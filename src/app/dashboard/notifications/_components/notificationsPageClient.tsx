@@ -19,16 +19,27 @@ export function NotificationsPageClient({ notifications: initial }: Props) {
     const now = new Date();
     return [...initial]
       .filter((n) => !n.notifyAt || new Date(n.notifyAt) <= now)
-      .sort((a, b) => new Date(b.notifyAt).getTime() - new Date(a.notifyAt).getTime());
+      .sort(
+        (a, b) =>
+          new Date(b.notifyAt).getTime() - new Date(a.notifyAt).getTime()
+      );
   });
 
-  const { permission, isSubscribed, isSupported, loading, subscribe, unsubscribe } =
-    usePushNotifications();
+  const {
+    permission,
+    isSubscribed,
+    isSupported,
+    loading,
+    subscribe,
+    unsubscribe,
+  } = usePushNotifications();
 
   async function markRead(id: string) {
     try {
       await axios.put(`/api/updateNotificationRead?id=${id}`);
-      setList((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+      setList((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+      );
     } catch {
       toast.error('Erro ao marcar como lida');
     }
@@ -38,7 +49,9 @@ export function NotificationsPageClient({ notifications: initial }: Props) {
     const unread = list.filter((n) => !n.read);
     if (unread.length === 0) return;
     try {
-      await Promise.all(unread.map((n) => axios.put(`/api/updateNotificationRead?id=${n.id}`)));
+      await Promise.all(
+        unread.map((n) => axios.put(`/api/updateNotificationRead?id=${n.id}`))
+      );
       setList((prev) => prev.map((n) => ({ ...n, read: true })));
       toast.success('Todas marcadas como lidas');
     } catch {
@@ -57,7 +70,9 @@ export function NotificationsPageClient({ notifications: initial }: Props) {
 
   async function removeAll() {
     try {
-      await Promise.all(list.map((n) => axios.delete(`/api/updateNotificationRead?id=${n.id}`)));
+      await Promise.all(
+        list.map((n) => axios.delete(`/api/updateNotificationRead?id=${n.id}`))
+      );
       setList([]);
       toast.success('Notificações removidas');
     } catch {
@@ -71,8 +86,12 @@ export function NotificationsPageClient({ notifications: initial }: Props) {
     <main className="mx-auto w-full max-w-2xl px-4 py-6">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-black tracking-tight text-foreground">Notificações</h1>
-        <p className="text-sm text-muted-foreground">Gerencie seus alertas e avisos</p>
+        <h1 className="text-2xl font-black tracking-tight text-foreground">
+          Notificações
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Gerencie seus alertas e avisos
+        </p>
       </div>
 
       {/* Push toggle card */}
@@ -87,7 +106,9 @@ export function NotificationsPageClient({ notifications: initial }: Props) {
               )}
             </div>
             <div>
-              <p className="font-semibold text-foreground">Notificações no celular</p>
+              <p className="font-semibold text-foreground">
+                Notificações no celular
+              </p>
               <p className="mt-0.5 text-xs text-muted-foreground">
                 {!isSupported
                   ? 'Seu navegador não suporta notificações push.'
@@ -97,7 +118,8 @@ export function NotificationsPageClient({ notifications: initial }: Props) {
               </p>
               {permission === 'denied' && (
                 <p className="mt-1 text-xs text-red-500">
-                  Permissão bloqueada. Acesse as configurações do navegador para liberar.
+                  Permissão bloqueada. Acesse as configurações do navegador para
+                  liberar.
                 </p>
               )}
             </div>
@@ -123,7 +145,9 @@ export function NotificationsPageClient({ notifications: initial }: Props) {
       <div className="rounded-xl border bg-white shadow-sm">
         <div className="flex items-center justify-between border-b px-5 py-3">
           <div className="flex items-center gap-2">
-            <span className="font-semibold text-foreground">Avisos recentes</span>
+            <span className="font-semibold text-foreground">
+              Avisos recentes
+            </span>
             {unreadCount > 0 && (
               <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-bold text-primary-foreground">
                 {unreadCount}
@@ -153,7 +177,9 @@ export function NotificationsPageClient({ notifications: initial }: Props) {
         {list.length === 0 ? (
           <div className="flex flex-col items-center gap-2 px-5 py-12 text-center">
             <Bell className="size-8 text-muted-foreground/40" />
-            <p className="text-sm text-muted-foreground">Nenhuma notificação por enquanto.</p>
+            <p className="text-sm text-muted-foreground">
+              Nenhuma notificação por enquanto.
+            </p>
           </div>
         ) : (
           <ul className="divide-y">
@@ -186,7 +212,10 @@ export function NotificationsPageClient({ notifications: initial }: Props) {
                   <div className="flex shrink-0 items-center gap-1">
                     <Link
                       href={href}
-                      onClick={() => { if (!n.read) void router.refresh(); markRead(n.id); }}
+                      onClick={() => {
+                        if (!n.read) void router.refresh();
+                        markRead(n.id);
+                      }}
                       className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                       title="Ver animal"
                     >

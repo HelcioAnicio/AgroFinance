@@ -942,6 +942,18 @@ export async function POST(req: Request) {
       animalsByManual.set(animal.manualId.toLowerCase(), animal);
     }
 
+    // IATF é sempre feito com sêmen de touro externo (nunca um touro do
+    // próprio rebanho) — a coluna "ID Touro IATF" da planilha precisa
+    // resolver contra ExternalBull, não Animal.
+    const existingExternalBulls = await prisma.externalBull.findMany({
+      where: { farmId: context.farm.id },
+      select: { id: true, name: true },
+    });
+    const externalBullsByName = new Map<string, { id: string }>();
+    for (const bull of existingExternalBulls) {
+      externalBullsByName.set(bull.name.toLowerCase(), bull);
+    }
+
     const processedRows: ProcessedRow[] = [];
     let created = 0;
     let updated = 0;
@@ -1193,7 +1205,9 @@ export async function POST(req: Request) {
             const father = pickLookupByManual(animalsByManual, parsed.references.fatherManualId);
             const mother = pickLookupByManual(animalsByManual, parsed.references.motherManualId);
             const bull = pickLookupByManual(animalsByManual, parsed.references.bullManualId);
-            const bullIatf = pickLookupByManual(animalsByManual, parsed.references.bullIatfManualId);
+            const bullIatfExternal = parsed.references.bullIatfManualId
+              ? externalBullsByName.get(parsed.references.bullIatfManualId.toLowerCase())
+              : null;
 
             const relationData: Prisma.AnimalUncheckedUpdateInput = {};
 
@@ -1210,8 +1224,10 @@ export async function POST(req: Request) {
               else batchIssues2.push({ row: parsed.rowNumber, message: `touro nao encontrado: ${parsed.references.bullManualId}.` });
             }
             if (parsed.references.bullIatfManualId) {
-              if (bullIatf) relationData.bullIatfId = bullIatf.id;
-              else batchIssues2.push({ row: parsed.rowNumber, message: `touro IATF nao encontrado: ${parsed.references.bullIatfManualId}.` });
+              // IATF é sempre externo (sêmen catalogado) — resolve contra
+              // ExternalBull pelo nome, nunca contra Animal.
+              if (bullIatfExternal) relationData.externalBullIatfId = bullIatfExternal.id;
+              else batchIssues2.push({ row: parsed.rowNumber, message: `touro externo (IATF) nao encontrado: ${parsed.references.bullIatfManualId}.` });
             }
 
             if (Object.keys(relationData).length > 0) {

@@ -4,7 +4,6 @@ import prisma from '@/lib/prisma';
 import { Animal } from '@/types/animal';
 import { LivestockStatsYear } from '@/types/livestockStats';
 import { User } from '@/types/user';
-import { Vaccine } from '@/types/vaccine';
 import { Notification } from '@/types/notification';
 import { ExternalBull } from '@/types/externalBull';
 
@@ -148,23 +147,6 @@ export const fetchNotifications = async (
   });
 
   return notifications as Notification[];
-};
-
-export const fetchVaccines = async (animalId: string, id: string): Promise<Vaccine[]> => {
-  if (!animalId) {
-    throw new Error('animalId is required');
-  }
-
-  const vaccines = await prisma.vaccine.findMany({
-    where: {
-      animalId,
-    },
-    orderBy: {
-      date: 'desc',
-    },
-  });
-
-  return vaccines as Vaccine[];
 };
 
 export const fetchExternalBulls = async (
