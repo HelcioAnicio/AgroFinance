@@ -69,6 +69,10 @@ interface InsumoFormState {
   estoqueMin: string;
   custoPorUnid: string;
   observacoes: string;
+  quantidadeInicial: string;
+  dataEntrada: string;
+  lancarFinanceiro: boolean;
+  statusFinanceiro: boolean;
 }
 
 const EMPTY_FORM: InsumoFormState = {
@@ -78,6 +82,10 @@ const EMPTY_FORM: InsumoFormState = {
   estoqueMin: '',
   custoPorUnid: '',
   observacoes: '',
+  quantidadeInicial: '',
+  dataEntrada: todayISO(),
+  lancarFinanceiro: true,
+  statusFinanceiro: true,
 };
 
 interface MovimentoFormState {
@@ -85,6 +93,9 @@ interface MovimentoFormState {
   quantidade: string;
   notas: string;
   data: string;
+  lancarFinanceiro: boolean;
+  valorFinanceiro: string;
+  statusFinanceiro: boolean;
 }
 
 function todayISO() {
@@ -120,6 +131,9 @@ export function InsumosPage({ role }: Props) {
     quantidade: '',
     notas: '',
     data: todayISO(),
+    lancarFinanceiro: false,
+    valorFinanceiro: '',
+    statusFinanceiro: true,
   });
   const [movSaving, setMovSaving] = useState(false);
 
@@ -162,6 +176,10 @@ export function InsumosPage({ role }: Props) {
       estoqueMin: ins.estoqueMin != null ? String(ins.estoqueMin) : '',
       custoPorUnid: String(ins.custoPorUnid),
       observacoes: ins.observacoes ?? '',
+      quantidadeInicial: '',
+      dataEntrada: todayISO(),
+      lancarFinanceiro: true,
+      statusFinanceiro: true,
     });
     setInsumoDialog(true);
   }
@@ -177,6 +195,8 @@ export function InsumosPage({ role }: Props) {
         ...form,
         estoqueMin: form.estoqueMin !== '' ? Number(form.estoqueMin) : null,
         custoPorUnid: Number(form.custoPorUnid || 0),
+        quantidadeInicial:
+          form.quantidadeInicial !== '' ? Number(form.quantidadeInicial) : 0,
       };
       if (editingInsumo) {
         await axios.put(`/api/insumos/${editingInsumo.id}`, payload);
@@ -208,8 +228,26 @@ export function InsumosPage({ role }: Props) {
 
   function openMovimento(ins: Insumo, tipo: InsumoMovimentoTipo = 'ENTRADA') {
     setMovInsumo(ins);
-    setMovForm({ tipo, quantidade: '', notas: '', data: todayISO() });
+    setMovForm({
+      tipo,
+      quantidade: '',
+      notas: '',
+      data: todayISO(),
+      lancarFinanceiro: tipo === 'ENTRADA' && Number(ins.custoPorUnid) > 0,
+      valorFinanceiro: '',
+      statusFinanceiro: true,
+    });
     setMovDialog(true);
+  }
+
+  function updateMovQuantidade(value: string) {
+    setMovForm((p) => {
+      const suggested =
+        movInsumo && p.tipo === 'ENTRADA' && Number(movInsumo.custoPorUnid) > 0
+          ? (Number(value) * Number(movInsumo.custoPorUnid)).toFixed(2)
+          : p.valorFinanceiro;
+      return { ...p, quantidade: value, valorFinanceiro: suggested };
+    });
   }
 
   async function saveMovimento() {
@@ -635,6 +673,84 @@ export function InsumosPage({ role }: Props) {
                 }
               />
             </div>
+
+            {!editingInsumo && (
+              <div className="space-y-3 rounded-xl border border-dashed p-3">
+                <p className="text-xs font-semibold text-muted-foreground">
+                  Estoque inicial (opcional) — lança a entrada já no cadastro
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="mb-1 block text-xs font-semibold text-muted-foreground">
+                      Quantidade ({form.unidade})
+                    </label>
+                    <Input
+                      type="number"
+                      placeholder="0"
+                      value={form.quantidadeInicial}
+                      onChange={(e) =>
+                        setForm((p) => ({
+                          ...p,
+                          quantidadeInicial: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-semibold text-muted-foreground">
+                      Data
+                    </label>
+                    <Input
+                      type="date"
+                      value={form.dataEntrada}
+                      onChange={(e) =>
+                        setForm((p) => ({ ...p, dataEntrada: e.target.value }))
+                      }
+                    />
+                  </div>
+                </div>
+                {Number(form.quantidadeInicial) > 0 &&
+                  Number(form.custoPorUnid) > 0 && (
+                    <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <input
+                        type="checkbox"
+                        checked={form.lancarFinanceiro}
+                        onChange={(e) =>
+                          setForm((p) => ({
+                            ...p,
+                            lancarFinanceiro: e.target.checked,
+                          }))
+                        }
+                      />
+                      Lançar essa compra no Financeiro (
+                      {CURRENCY.format(
+                        Number(form.quantidadeInicial) *
+                          Number(form.custoPorUnid)
+                      )}
+                      )
+                      {form.lancarFinanceiro && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setForm((p) => ({
+                              ...p,
+                              statusFinanceiro: !p.statusFinanceiro,
+                            }))
+                          }
+                          className={`ml-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                            form.statusFinanceiro
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : 'bg-amber-100 text-amber-800'
+                          }`}
+                        >
+                          {form.statusFinanceiro ? 'Pago' : 'Pendente'}
+                        </button>
+                      )}
+                    </label>
+                  )}
+              </div>
+            )}
+
             <Button className="w-full" onClick={saveInsumo} disabled={saving}>
               {saving
                 ? 'Salvando...'
@@ -697,9 +813,7 @@ export function InsumosPage({ role }: Props) {
                   type="number"
                   placeholder="0"
                   value={movForm.quantidade}
-                  onChange={(e) =>
-                    setMovForm((p) => ({ ...p, quantidade: e.target.value }))
-                  }
+                  onChange={(e) => updateMovQuantidade(e.target.value)}
                 />
               </div>
               <div>
@@ -732,6 +846,64 @@ export function InsumosPage({ role }: Props) {
                 O ajuste define o saldo absoluto — o estoque será atualizado
                 para o valor informado.
               </p>
+            )}
+            {movForm.tipo === 'ENTRADA' && (
+              <div className="space-y-2 rounded-xl border border-dashed p-3">
+                <label className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+                  <input
+                    type="checkbox"
+                    checked={movForm.lancarFinanceiro}
+                    onChange={(e) =>
+                      setMovForm((p) => ({
+                        ...p,
+                        lancarFinanceiro: e.target.checked,
+                      }))
+                    }
+                  />
+                  Lançar essa compra no Financeiro
+                </label>
+                {movForm.lancarFinanceiro && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="mb-1 block text-xs font-semibold text-muted-foreground">
+                        Valor (R$)
+                      </label>
+                      <Input
+                        type="number"
+                        placeholder="0,00"
+                        value={movForm.valorFinanceiro}
+                        onChange={(e) =>
+                          setMovForm((p) => ({
+                            ...p,
+                            valorFinanceiro: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-semibold text-muted-foreground">
+                        Status
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setMovForm((p) => ({
+                            ...p,
+                            statusFinanceiro: !p.statusFinanceiro,
+                          }))
+                        }
+                        className={`flex h-9 w-full items-center justify-center rounded-lg text-xs font-bold ${
+                          movForm.statusFinanceiro
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : 'bg-amber-100 text-amber-800'
+                        }`}
+                      >
+                        {movForm.statusFinanceiro ? 'Pago' : 'Pendente'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
             <Button
               className="w-full"

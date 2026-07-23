@@ -56,7 +56,7 @@ export async function POST(request: Request) {
               userId: context.user.id,
               farmId: context.farm.id,
               type: 'income',
-              category: 'Venda de animal',
+              category: 'Venda de Animal',
               amount: saleData.pricePerHead,
               date: new Date(saleData.date),
               description: `Venda do animal ${animal.manualId} — ${animal.weight ?? 0} kg`,

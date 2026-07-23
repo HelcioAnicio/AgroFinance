@@ -135,27 +135,43 @@ export async function createFarmSession(
 
 /**
  * Verifica se a sessão ainda é válida e atualiza lastSeenAt.
- * Retorna false se a sessão foi evictada ou expirou.
+ * Retorna false se a sessão foi evictada/expirou E não foi possível curar.
+ *
+ * Autocura: hoje a evicção por limite de assentos é código morto (Farm não
+ * tem as colunas de billing em produção — ver getFarmBillingFieldsSafe) e o
+ * TTL é de 30 dias, então uma linha sumindo minutos depois de criada nunca é
+ * uma evicção legítima — é uma lacuna não identificada nessa tabela. Como
+ * não há hoje nenhum motivo real para derrubar o usuário, recriamos a linha
+ * em vez de forçar logout (que era o sintoma reportado: deslogamentos
+ * repetidos sem ninguém mais tendo entrado na fazenda).
+ * Quando o limite de assentos for de fato ativado (colunas de billing
+ * existirem), isso precisa ser revisitado para não recriar sessões
+ * genuinamente evictadas.
  */
-export async function validateFarmSession(jti: string): Promise<boolean> {
+export async function validateFarmSession(
+  jti: string,
+  userId?: string
+): Promise<boolean> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const session = (await (prisma.farmSession.findUnique as any)({
     where: { jti },
     select: { id: true },
   })) as { id: string } | null;
 
-  if (!session) {
-    console.warn(`[farmSessions] Sessão não encontrada para jti=${jti} — usuário será deslogado.`);
-    return false;
+  if (session) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (prisma.farmSession.update as any)({
+      where: { jti },
+      data: { lastSeenAt: new Date() },
+    });
+    return true;
   }
 
-  // Atualiza lastSeenAt para manter a sessão ativa
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await (prisma.farmSession.update as any)({
-    where: { jti },
-    data: { lastSeenAt: new Date() },
-  });
+  console.warn(`[farmSessions] Sessão não encontrada para jti=${jti} — tentando autocura.`);
 
+  if (!userId) return false;
+
+  await createFarmSession(userId, jti);
   return true;
 }
 

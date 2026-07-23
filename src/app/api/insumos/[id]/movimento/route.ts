@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { requireFarmContext } from '@/lib/tenant';
+import { notifyLowStock } from '@/lib/notifications';
 
 export async function POST(
   req: NextRequest,
@@ -24,7 +25,8 @@ export async function POST(
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   const body = await req.json();
-  const { tipo, quantidade, notas, data } = body;
+  const { tipo, quantidade, notas, data, lancarFinanceiro, valorFinanceiro, statusFinanceiro } =
+    body;
 
   if (!tipo || !quantidade || !data) {
     return NextResponse.json(
@@ -43,6 +45,8 @@ export async function POST(
   if (tipo === 'SAIDA') delta = -qty;
   // AJUSTE: set absolute — handled differently
   const isAjuste = tipo === 'AJUSTE';
+  const oldQty = Number(insumo.quantidade);
+  const movData = new Date(data);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const resultado = await (prisma as any).$transaction(async (tx: any) => {
@@ -52,11 +56,26 @@ export async function POST(
         tipo,
         quantidade: qty,
         notas: notas || null,
-        data: new Date(data),
+        data: movData,
       },
     });
 
-    const newQty = isAjuste ? qty : Number(insumo.quantidade) + delta;
+    const newQty = isAjuste ? qty : oldQty + delta;
+
+    if (tipo === 'ENTRADA' && lancarFinanceiro && Number(valorFinanceiro) > 0) {
+      await tx.transaction.create({
+        data: {
+          userId: context.user.id,
+          farmId: context.farm.id,
+          type: 'expense',
+          category: 'Insumos',
+          amount: Number(valorFinanceiro),
+          date: movData,
+          description: `Compra de ${insumo.nome} (${qty} ${insumo.unidade})${notas ? ` — ${notas}` : ''}`,
+          status: Boolean(statusFinanceiro),
+        },
+      });
+    }
 
     return tx.insumo.update({
       where: { id: id },
@@ -66,6 +85,22 @@ export async function POST(
       },
     });
   });
+
+  const estoqueMinNum =
+    resultado.estoqueMin != null ? Number(resultado.estoqueMin) : null;
+  const newQty = Number(resultado.quantidade);
+  const wasLow = estoqueMinNum != null && oldQty <= estoqueMinNum;
+  const isLow = estoqueMinNum != null && newQty <= estoqueMinNum;
+
+  if (!wasLow && isLow && estoqueMinNum != null) {
+    await notifyLowStock(
+      context.farm.id,
+      insumo.nome,
+      newQty,
+      insumo.unidade,
+      estoqueMinNum
+    );
+  }
 
   return NextResponse.json(resultado, { status: 201 });
 }

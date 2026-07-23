@@ -75,12 +75,20 @@ export const authOptions: NextAuthOptions = {
         const now = Date.now();
         const lastCheck = (token.lastSessionCheck as number) ?? 0;
         if (now - lastCheck > CHECK_INTERVAL) {
-          const valid = await validateFarmSession(token.jti as string);
+          const valid = await validateFarmSession(
+            token.jti as string,
+            token.userId as string | undefined
+          );
+          // Sempre avança o relógio do throttle, mesmo em caso de falha: boa
+          // parte das chamadas que chegam aqui vêm de getServerSession() em
+          // rotas de API comuns, que não conseguem persistir essa mutação de
+          // volta no cookie (só os endpoints do próprio NextAuth reemitem
+          // Set-Cookie) — sem isso, uma vez que a checagem falhasse uma vez,
+          // ela rodava de novo em toda requisição seguinte, martelando o banco.
+          token.lastSessionCheck = now;
           if (!valid) {
-            // Sessão foi evictada — marca para sign-out no cliente
+            // Não foi possível validar nem autocurar — marca para sign-out
             token.evicted = true;
-          } else {
-            token.lastSessionCheck = now;
           }
         }
       }
