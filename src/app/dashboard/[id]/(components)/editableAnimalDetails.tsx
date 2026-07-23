@@ -15,13 +15,13 @@ import {
   CartesianGrid,
 } from 'recharts';
 import { Vaccine } from '@/types/vaccine';
-import { ExternalBull } from '@/types/externalBull';
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Loading } from '@/components/ui/loading';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardTitle } from '@/components/ui/card';
 import { CardReproduction } from './isNotEditing/cardReproduction';
@@ -72,8 +72,6 @@ interface CalfLossDraft {
 
 interface EditableAnimalDetailsProps {
   animalId: string;
-  externalBulls: ExternalBull[];
-  vaccines: Vaccine[];
 }
 
 type SanitaryType = 'vaccine' | 'deworming' | 'disease';
@@ -148,12 +146,30 @@ function getStatusNode(status?: string | null) {
 
 const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   animalId,
-  externalBulls,
-  vaccines,
 }) => {
   const [arrobaPriceLoaded, setArrobaPriceLoaded] = useState(false);
   const { animal, setAnimal } = useAppGlobal();
-  const { animals } = useAppGlobal();
+  const { animals, setAnimals } = useAppGlobal();
+  const { originalAnimals, setOriginalAnimals } = useAppGlobal();
+  const { externalBulls, setExternalBulls } = useAppGlobal();
+  const router = useRouter();
+
+  // Se o usuário entrou direto pela URL/F5 (sem passar pela listagem), o
+  // contexto ainda não tem os touros externos — busca só nesse caso.
+  useEffect(() => {
+    if (externalBulls.length > 0) return;
+    let cancelled = false;
+    axios
+      .get('/api/external-bulls')
+      .then((res) => {
+        if (!cancelled) setExternalBulls(res.data.externalBulls ?? []);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [isEditing, setIsEditing] = useState(false);
   const [openSanitaryModal, setOpenSanitaryModal] = useState(false);
@@ -190,7 +206,9 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     date: new Date().toISOString().split('T')[0],
     expiryDate: '',
   });
-  const [listVaccines, setListVaccines] = useState<Vaccine[]>(vaccines);
+  const [listVaccines, setListVaccines] = useState<Vaccine[]>(
+    animal?.vaccines ?? []
+  );
   const [listDewormings, setListDewormings] = useState<Deworming[]>(
     animal?.dewormings ?? []
   );
@@ -208,6 +226,11 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
     AnimalCalfLossHistory[]
   >(animal?.calfLossHistories ?? []);
   const [pevDays, setPevDays] = useState(30);
+  // A versão "leve" do animal (vinda da listagem) não tem mãe/pai/histórico/
+  // filhos/vacinas — só a busca completa (/api/animals/[id]) traz isso. Esse
+  // flag diferencia "ainda não chegou" de "chegou e realmente está vazio",
+  // pra mostrar skeleton em vez de campos com aparência de vazio/errado.
+  const [isFullDataLoaded, setIsFullDataLoaded] = useState(false);
 
   // Não bloqueia a navegação esperando os dados completos: se o usuário veio
   // da listagem, o contexto já tem uma versão "leve" do animal (sem mãe/pai/
@@ -218,6 +241,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   // aí o contexto começa vazio e essa busca é a única fonte de dados.
   useEffect(() => {
     let cancelled = false;
+    setIsFullDataLoaded(false);
 
     const key = `agrofinance_pending_form_${animalId}`;
     const saved =
@@ -230,8 +254,9 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
         setListDewormings(parsed.dewormings ?? []);
         setListDiseases(parsed.diseases ?? []);
         setCalfLossHistories(parsed.calfLossHistories ?? []);
-        setListVaccines(vaccines);
+        setListVaccines(parsed.vaccines ?? []);
         setIsEditing(true);
+        setIsFullDataLoaded(true);
         localStorage.removeItem(key);
         toast.info(
           'Suas alterações foram restauradas. Os dados do animal foram atualizados — revise e salve novamente.'
@@ -251,10 +276,17 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
         setListDewormings(fetched.dewormings ?? []);
         setListDiseases(fetched.diseases ?? []);
         setCalfLossHistories(fetched.calfLossHistories ?? []);
-        setListVaccines(vaccines);
+        setListVaccines(fetched.vaccines ?? []);
+        setIsFullDataLoaded(true);
       })
-      .catch(() => {
-        if (!cancelled) toast.error('Erro ao carregar os dados do animal.');
+      .catch((err) => {
+        if (cancelled) return;
+        if (err?.response?.status === 404) {
+          toast.error('Animal não encontrado.');
+          router.replace('/dashboard');
+          return;
+        }
+        toast.error('Erro ao carregar os dados do animal.');
       });
 
     return () => {
@@ -281,7 +313,6 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
             new Date(b.lossDate).getTime() - new Date(a.lossDate).getTime()
         )
     );
-  const router = useRouter();
 
   const previousReproductiveStatus = String(
     animal?.reproductiveStatus ?? ''
@@ -975,7 +1006,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
       // gravação sempre acusaria "outro usuário alterou", mesmo sendo o mesmo
       // usuário, porque o servidor sempre estaria "à frente" do valor salvo.
       const serverUpdatedAt = putRes?.data?.data?.updatedAt;
-      setAnimal({
+      const updatedAnimal: Animal = {
         ...animal,
         ...formData,
         updatedAt: serverUpdatedAt ?? animal?.updatedAt,
@@ -985,7 +1016,18 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
         mother: savedMotherId
           ? (animals.find((a) => a.id === savedMotherId) ?? animal?.mother)
           : undefined,
-      });
+      };
+      setAnimal(updatedAnimal);
+      // Reflete a mudança também nas listas globais (dashboard e listagem),
+      // pra não precisar sair e voltar pra ver o card/linha atualizados.
+      setAnimals(
+        animals.map((a) => (a.id === updatedAnimal.id ? updatedAnimal : a))
+      );
+      setOriginalAnimals(
+        originalAnimals.map((a) =>
+          a.id === updatedAnimal.id ? updatedAnimal : a
+        )
+      );
       toast.success('Animal atualizado com sucesso!');
       router.refresh();
       setIsEditing(false);
@@ -1045,6 +1087,8 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
         headers: { 'Content-Type': 'application/json' },
       });
       toast.dismiss(loadingId);
+      setAnimals(animals.filter((a) => a.id !== animal?.id));
+      setOriginalAnimals(originalAnimals.filter((a) => a.id !== animal?.id));
       toast.success('Animal excluído com sucesso!');
       router.push('/dashboard');
     } catch {
@@ -1188,42 +1232,49 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
               </div>
 
               {/* ID Mãe + ID Pai */}
-              <div className="mt-5 grid grid-cols-2 gap-3">
-                <div className="flex items-center gap-3 rounded-xl border bg-muted/20 p-3">
-                  <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-pink-100 text-base">
-                    ♀
-                  </span>
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                      ID Mãe
-                    </p>
-                    <p className="font-bold">
-                      {animal?.mother?.manualId
-                        ? animal?.mother.manualId.charAt(0).toUpperCase() +
-                          animal?.mother.manualId.slice(1)
-                        : 'Comercial'}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 rounded-xl border bg-muted/20 p-3">
-                  <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-base">
-                    ♂
-                  </span>
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                      ID Pai
-                    </p>
-                    <p className="font-bold">
-                      {animal?.externalBullFather
-                        ? `Ex. ${animal.externalBullFather.name}`
-                        : animal?.father?.manualId
-                          ? animal.father.manualId.charAt(0).toUpperCase() +
-                            animal.father.manualId.slice(1)
+              {isFullDataLoaded ? (
+                <div className="mt-5 grid grid-cols-2 gap-3">
+                  <div className="flex items-center gap-3 rounded-xl border bg-muted/20 p-3">
+                    <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-pink-100 text-base">
+                      ♀
+                    </span>
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                        ID Mãe
+                      </p>
+                      <p className="font-bold">
+                        {animal?.mother?.manualId
+                          ? animal?.mother.manualId.charAt(0).toUpperCase() +
+                            animal?.mother.manualId.slice(1)
                           : 'Comercial'}
-                    </p>
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 rounded-xl border bg-muted/20 p-3">
+                    <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-base">
+                      ♂
+                    </span>
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                        ID Pai
+                      </p>
+                      <p className="font-bold">
+                        {animal?.externalBullFather
+                          ? `Ex. ${animal.externalBullFather.name}`
+                          : animal?.father?.manualId
+                            ? animal.father.manualId.charAt(0).toUpperCase() +
+                              animal.father.manualId.slice(1)
+                            : 'Comercial'}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <div className="mt-5 grid grid-cols-2 gap-3">
+                  <Skeleton className="h-14 rounded-xl" />
+                  <Skeleton className="h-14 rounded-xl" />
+                </div>
+              )}
 
               {/* Observations */}
               {animal?.observations && (
@@ -1569,24 +1620,38 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
           </div>
 
           {/* Histórico Reprodutivo — full width, females only */}
-          {animal?.gender === 'female' && (
-            <ReproductiveHistorySection
-              offspringFromMother={femaleOffspring}
-              calfLossHistories={calfLossHistories}
-              animals={animals}
-              externalBulls={externalBulls}
-              animalId={animal?.id}
-              onLossAdded={handleLossAdded}
-              onLossDeleted={handleLossDeleted}
-              onLossUpdated={handleLossUpdated}
-            />
-          )}
+          {animal?.gender === 'female' &&
+            (!isFullDataLoaded ? (
+              <div className="rounded-2xl border bg-white p-5 shadow-sm">
+                <Skeleton className="mb-3 h-5 w-40" />
+                <div className="flex gap-3">
+                  <Skeleton className="h-32 min-w-[150px] flex-1 rounded-xl" />
+                  <Skeleton className="h-32 min-w-[150px] flex-1 rounded-xl" />
+                </div>
+              </div>
+            ) : (
+              <ReproductiveHistorySection
+                offspringFromMother={femaleOffspring}
+                calfLossHistories={calfLossHistories}
+                animals={animals}
+                externalBulls={externalBulls}
+                animalId={animal?.id}
+                onLossAdded={handleLossAdded}
+                onLossDeleted={handleLossDeleted}
+                onLossUpdated={handleLossUpdated}
+              />
+            ))}
 
           {/* Histórico de Peso + Registros Sanitários */}
           <div className="flex flex-wrap gap-4">
             <div className="min-w-[250px] flex-1 rounded-2xl border bg-white p-5 shadow-sm">
               <h2 className="mb-3 font-bold">Histórico de peso</h2>
-              {animal?.weightHistories?.length ? (
+              {!isFullDataLoaded ? (
+                <div className="space-y-2">
+                  <Skeleton className="h-12 rounded-lg" />
+                  <Skeleton className="h-12 rounded-lg" />
+                </div>
+              ) : animal?.weightHistories?.length ? (
                 <div className="space-y-2">
                   {animal?.weightHistories.map((h: AnimalWeightHistory) => {
                     const isEditingThis = editingWeightId === h.id;
@@ -1807,7 +1872,12 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
             {/* Sanitary records */}
             <div className="min-w-[250px] flex-1 rounded-2xl border bg-white p-5 shadow-sm">
               <h2 className="mb-3 font-bold">Registros sanitários</h2>
-              {sanitaryRecords.length > 0 ? (
+              {!isFullDataLoaded ? (
+                <div className="space-y-2">
+                  <Skeleton className="h-14 rounded-xl" />
+                  <Skeleton className="h-14 rounded-xl" />
+                </div>
+              ) : sanitaryRecords.length > 0 ? (
                 <div className="space-y-2">
                   {sanitaryRecords.map((r) => {
                     const rawType =

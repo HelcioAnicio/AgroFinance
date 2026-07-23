@@ -13,7 +13,11 @@ const EVICTION_PRIORITY: Record<string, number> = {
   OWNER: 9999,
 };
 
-const SESSION_TTL_MS = 24 * 60 * 60 * 1000; // 24h de inatividade = sessão expirada
+// Precisa ser >= session.maxAge (src/lib/auth.ts): se for menor, uma linha
+// pode ser limpa enquanto o cookie da sessão correspondente ainda é válido,
+// e o dono dela é deslogado à força sem ter feito nada de errado — foi
+// exatamente isso que causava os deslogamentos aleatórios reportados.
+const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 dias de inatividade = sessão expirada
 
 type SessionRow = {
   id: string;

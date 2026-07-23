@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, FormEvent } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,6 +27,7 @@ import {
   Search,
   X,
   BarChart2,
+  CalendarPlus,
 } from 'lucide-react';
 import {
   Dialog,
@@ -76,6 +77,10 @@ const ReproductionManagementPage = () => {
   });
   const [formData, setFormData] = useState(emptyForm);
   const [reportOpen, setReportOpen] = useState(false);
+  const [reminderOpen, setReminderOpen] = useState(false);
+  const [reminderMessage, setReminderMessage] = useState('');
+  const [reminderDate, setReminderDate] = useState('');
+  const [creatingReminder, setCreatingReminder] = useState(false);
 
   const toLocalDateString = (date: string | Date) => {
     const d = new Date(date);
@@ -291,7 +296,10 @@ const ReproductionManagementPage = () => {
             ? 'Registro atualizado com sucesso!'
             : 'Registro salvo com sucesso!'
         );
-        await fetchData();
+        // forceFresh: um registro de manejo pode mudar o reproductiveStatus
+        // do animal (ex: DG confirmando prenhez) — servir do cache de 5min
+        // aqui mostraria o status antigo na própria tela logo após salvar.
+        await fetchData(true);
         setEditingId(null);
         setFormData(emptyForm);
       } else {
@@ -344,7 +352,7 @@ const ReproductionManagementPage = () => {
           setEditingId(null);
           setFormData(emptyForm);
         }
-        await fetchData();
+        await fetchData(true);
       } else {
         const data = await res.json().catch(() => ({}));
         toast.error(data.error ?? 'Erro ao excluir registro.');
@@ -353,6 +361,41 @@ const ReproductionManagementPage = () => {
       toast.dismiss(loadingId);
       toast.error('Erro ao excluir registro.');
       console.error(err);
+    }
+  };
+
+  const createReminder = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!reminderMessage.trim() || !reminderDate) {
+      toast.error('Preencha a mensagem e a data do lembrete.');
+      return;
+    }
+    setCreatingReminder(true);
+    try {
+      const res = await fetch('/api/reminders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: reminderMessage.trim(),
+          notifyAt: reminderDate,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        toast.success(
+          `Lembrete agendado para ${new Date(`${reminderDate}T12:00:00`).toLocaleDateString('pt-BR')}.`
+        );
+        setReminderMessage('');
+        setReminderDate('');
+        setReminderOpen(false);
+      } else {
+        toast.error(data.error ?? 'Erro ao criar lembrete.');
+      }
+    } catch (err) {
+      toast.error('Erro ao criar lembrete.');
+      console.error(err);
+    } finally {
+      setCreatingReminder(false);
     }
   };
 
@@ -876,6 +919,13 @@ const ReproductionManagementPage = () => {
             <div className="flex items-center gap-2">
               <button
                 type="button"
+                onClick={() => setReminderOpen(true)}
+                className="flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/10"
+              >
+                <CalendarPlus className="size-3.5" /> Lembrete
+              </button>
+              <button
+                type="button"
                 onClick={() => setReportOpen(true)}
                 className="flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/10"
               >
@@ -1171,6 +1221,46 @@ const ReproductionManagementPage = () => {
               })}
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Reminder Modal */}
+      <Dialog open={reminderOpen} onOpenChange={setReminderOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Criar lembrete de manejo</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={createReminder} className="space-y-4">
+            <p className="text-xs text-muted-foreground">
+              Avisa toda a equipe da fazenda na data escolhida.
+            </p>
+            <div>
+              <Label htmlFor="reminder-message">Lembrete</Label>
+              <Textarea
+                id="reminder-message"
+                value={reminderMessage}
+                onChange={(e) => setReminderMessage(e.target.value)}
+                placeholder="Ex: Iniciar protocolo de IATF do lote 2"
+                rows={2}
+              />
+            </div>
+            <div>
+              <Label htmlFor="reminder-date">Data</Label>
+              <Input
+                id="reminder-date"
+                type="date"
+                value={reminderDate}
+                onChange={(e) => setReminderDate(e.target.value)}
+              />
+            </div>
+            <Button
+              type="submit"
+              disabled={creatingReminder}
+              className="w-full"
+            >
+              {creatingReminder ? 'Agendando...' : 'Agendar lembrete'}
+            </Button>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
