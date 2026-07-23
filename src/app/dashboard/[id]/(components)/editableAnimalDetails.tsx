@@ -46,10 +46,9 @@ import {
   weightRecordOptions,
   weightRecordTypeLabel,
 } from '@/lib/weightHistory';
-import {
-  extractExternalBullId,
-  isExternalBullValue,
-} from '@/lib/externalBull';
+import {} from // extractExternalBullId,
+// isExternalBullValue,
+'@/lib/externalBull';
 import {
   Dialog,
   DialogContent,
@@ -871,6 +870,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
       }
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const dataToSubmit: any = {
       ...formData,
       updatedAt: new Date(),
@@ -980,10 +980,10 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
         ...formData,
         updatedAt: serverUpdatedAt ?? animal?.updatedAt,
         father: savedFatherId
-          ? animals.find((a) => a.id === savedFatherId) ?? animal?.father
+          ? (animals.find((a) => a.id === savedFatherId) ?? animal?.father)
           : undefined,
         mother: savedMotherId
-          ? animals.find((a) => a.id === savedMotherId) ?? animal?.mother
+          ? (animals.find((a) => a.id === savedMotherId) ?? animal?.mother)
           : undefined,
       });
       toast.success('Animal atualizado com sucesso!');
@@ -2049,7 +2049,6 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                         externalBulls={externalBulls}
                         handleInputValues={handleInputValues}
                         setAnimal={setAnimal}
-
                       />
                     )}
                     {animal?.reproductiveStatus === 'pev' && (
@@ -2144,9 +2143,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                                     setCalfLossDraft((prev) => ({
                                       ...prev,
                                       fatherType: e.target.value as
-                                        | 'internal'
-                                        | 'external'
-                                        | '',
+                                        'internal' | 'external' | '',
                                       fatherId: '',
                                     }))
                                   }
@@ -2317,8 +2314,7 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                   </p>
                   {estimatedValue !== null && (
                     <p className="text-[10px] text-primary-foreground/50">
-                      {carcassArrobas.toFixed(1)}@ × R${' '}
-                      {priceNum.toFixed(2)}/@
+                      {carcassArrobas.toFixed(1)}@ × R$ {priceNum.toFixed(2)}/@
                     </p>
                   )}
                 </div>
@@ -2610,7 +2606,10 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
                 />
               </div>
               <div>
-                <label className="text-secondary" htmlFor="deworming-expiryDate">
+                <label
+                  className="text-secondary"
+                  htmlFor="deworming-expiryDate"
+                >
                   Data de vencimento:
                 </label>
                 <input
