@@ -63,9 +63,11 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
 
         return;
       } else if (allDataForm.reproductiveStatus === 'waiting') {
+        // Mantém expectedDueDate: é a expectativa de parto usada para criar
+        // o lembrete — só o sexo fetal (que só se sabe com a gestação
+        // confirmada) é limpo aqui.
         setAllDataForm((prevData) => ({
           ...prevData,
-          expectedDueDate: null,
           fetalGender: null,
         }));
         return;
@@ -120,11 +122,11 @@ export const CardFormReproduction: React.FC<CardFormReproductionProps> = ({
 
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
+    const requiresExpectedDueDate =
+      allDataForm.reproductiveStatus === 'pregnant' ||
+      allDataForm.reproductiveStatus === 'waiting';
 
-    if (
-      allDataForm.gender === 'male' ||
-      allDataForm.reproductiveStatus !== 'pregnant'
-    ) {
+    if (allDataForm.gender === 'male' || !requiresExpectedDueDate) {
       setValidDate(true);
       return;
     } else {

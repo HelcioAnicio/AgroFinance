@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array<ArrayBuffer> {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
@@ -13,11 +14,24 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array<ArrayBuffer> {
   return output;
 }
 
+function isIosNonStandalone() {
+  if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
+  const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  // iOS só entrega Web Push quando o site foi adicionado à Tela de Início
+  // (modo standalone) — numa aba comum do Safari, o subscribe falha ou a
+  // permissão concedida não gera push nenhum.
+  const isStandalone =
+    window.matchMedia?.('(display-mode: standalone)').matches ||
+    (window.navigator as { standalone?: boolean }).standalone === true;
+  return isIos && !isStandalone;
+}
+
 export function usePushNotifications() {
   const [permission, setPermission] = useState<NotificationPermission>('default');
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [needsHomeScreenInstall, setNeedsHomeScreenInstall] = useState(false);
 
   const checkSubscription = useCallback(async () => {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
@@ -36,6 +50,7 @@ export function usePushNotifications() {
       'serviceWorker' in navigator &&
       'PushManager' in window;
     setIsSupported(supported);
+    setNeedsHomeScreenInstall(isIosNonStandalone());
     if (supported) {
       setPermission(Notification.permission);
       checkSubscription();
@@ -44,6 +59,12 @@ export function usePushNotifications() {
 
   async function subscribe() {
     if (!isSupported) return;
+    if (needsHomeScreenInstall) {
+      toast.error(
+        'No iPhone, adicione o AgroFinance à Tela de Início antes de ativar (Compartilhar → Adicionar à Tela de Início). Fora disso, o iOS não entrega notificações.'
+      );
+      return;
+    }
     setLoading(true);
     try {
       const reg = await navigator.serviceWorker.register('/sw.js');
@@ -51,11 +72,17 @@ export function usePushNotifications() {
 
       const perm = await Notification.requestPermission();
       setPermission(perm);
-      if (perm !== 'granted') return;
+      if (perm !== 'granted') {
+        toast.error('Permissão de notificação não foi concedida.');
+        return;
+      }
 
       const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
       if (!vapidKey) {
         console.error('NEXT_PUBLIC_VAPID_PUBLIC_KEY não configurada.');
+        toast.error(
+          'Notificações push não estão configuradas neste ambiente.'
+        );
         return;
       }
 
@@ -64,14 +91,20 @@ export function usePushNotifications() {
         applicationServerKey: urlBase64ToUint8Array(vapidKey),
       });
 
-      await fetch('/api/push/subscribe', {
+      const response = await fetch('/api/push/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(sub.toJSON()),
       });
+      if (!response.ok) {
+        throw new Error(`Falha ao salvar inscrição (${response.status})`);
+      }
       setIsSubscribed(true);
     } catch (err) {
       console.error('Erro ao ativar notificações:', err);
+      toast.error(
+        'Não foi possível ativar as notificações neste dispositivo.'
+      );
     } finally {
       setLoading(false);
     }
@@ -96,5 +129,13 @@ export function usePushNotifications() {
     }
   }
 
-  return { permission, isSubscribed, isSupported, loading, subscribe, unsubscribe };
+  return {
+    permission,
+    isSubscribed,
+    isSupported,
+    loading,
+    needsHomeScreenInstall,
+    subscribe,
+    unsubscribe,
+  };
 }

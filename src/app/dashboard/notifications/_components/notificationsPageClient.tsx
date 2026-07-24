@@ -1,35 +1,60 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState, FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Bell, BellOff, Check, Trash2, ExternalLink } from 'lucide-react';
+import { Bell, BellOff, Check, Trash2, ExternalLink, CalendarPlus } from 'lucide-react';
 import { toast } from 'sonner';
 import axios from 'axios';
 import { Notification } from '@/types/notification';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 interface Props {
   notifications: Notification[];
 }
 
+function sortForDisplay(notifications: Notification[]) {
+  const now = new Date();
+  return [...notifications]
+    .filter((n) => !n.notifyAt || new Date(n.notifyAt) <= now)
+    .sort(
+      (a, b) =>
+        new Date(b.notifyAt).getTime() - new Date(a.notifyAt).getTime()
+    );
+}
+
 export function NotificationsPageClient({ notifications: initial }: Props) {
   const router = useRouter();
-  const [list, setList] = useState<Notification[]>(() => {
-    const now = new Date();
-    return [...initial]
-      .filter((n) => !n.notifyAt || new Date(n.notifyAt) <= now)
-      .sort(
-        (a, b) =>
-          new Date(b.notifyAt).getTime() - new Date(a.notifyAt).getTime()
-      );
-  });
+  const [list, setList] = useState<Notification[]>(() =>
+    sortForDisplay(initial)
+  );
+
+  useEffect(() => {
+    setList(sortForDisplay(initial));
+  }, [initial]);
+
+  const [reminderOpen, setReminderOpen] = useState(false);
+  const [reminderMessage, setReminderMessage] = useState('');
+  const [reminderDate, setReminderDate] = useState('');
+  const [reminderScope, setReminderScope] = useState<'me' | 'farm'>('me');
+  const [creatingReminder, setCreatingReminder] = useState(false);
 
   const {
     permission,
     isSubscribed,
     isSupported,
     loading,
+    needsHomeScreenInstall,
     subscribe,
     unsubscribe,
   } = usePushNotifications();
@@ -68,6 +93,44 @@ export function NotificationsPageClient({ notifications: initial }: Props) {
     }
   }
 
+  async function createReminder(event: FormEvent) {
+    event.preventDefault();
+    if (!reminderMessage.trim() || !reminderDate) {
+      toast.error('Preencha a mensagem e a data do lembrete.');
+      return;
+    }
+    setCreatingReminder(true);
+    try {
+      const response = await fetch('/api/reminders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: reminderMessage.trim(),
+          notifyAt: reminderDate,
+          scope: reminderScope,
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data?.error ?? 'Erro ao criar lembrete.');
+      }
+      toast.success(
+        `Lembrete agendado para ${new Date(`${reminderDate}T12:00:00`).toLocaleDateString('pt-BR')}.`
+      );
+      setReminderMessage('');
+      setReminderDate('');
+      setReminderScope('me');
+      setReminderOpen(false);
+      router.refresh();
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : 'Erro ao criar lembrete.'
+      );
+    } finally {
+      setCreatingReminder(false);
+    }
+  }
+
   async function removeAll() {
     try {
       await Promise.all(
@@ -85,13 +148,22 @@ export function NotificationsPageClient({ notifications: initial }: Props) {
   return (
     <main className="mx-auto w-full max-w-2xl px-4 py-6">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-black tracking-tight text-foreground">
-          Notificações
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Gerencie seus alertas e avisos
-        </p>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-black tracking-tight text-foreground">
+            Notificações
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Gerencie seus alertas e avisos
+          </p>
+        </div>
+        <Button
+          size="sm"
+          className="gap-2"
+          onClick={() => setReminderOpen(true)}
+        >
+          <CalendarPlus className="size-4" /> Criar lembrete
+        </Button>
       </div>
 
       {/* Push toggle card */}
@@ -120,6 +192,13 @@ export function NotificationsPageClient({ notifications: initial }: Props) {
                 <p className="mt-1 text-xs text-red-500">
                   Permissão bloqueada. Acesse as configurações do navegador para
                   liberar.
+                </p>
+              )}
+              {needsHomeScreenInstall && (
+                <p className="mt-1 text-xs text-amber-600">
+                  No iPhone: toque em Compartilhar e depois em &quot;Adicionar
+                  à Tela de Início&quot; antes de ativar — o iOS só entrega
+                  notificações para o app instalado.
                 </p>
               )}
             </div>
@@ -244,6 +323,70 @@ export function NotificationsPageClient({ notifications: initial }: Props) {
           </ul>
         )}
       </div>
+
+      {/* Reminder dialog */}
+      <Dialog open={reminderOpen} onOpenChange={setReminderOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Criar lembrete</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={createReminder} className="space-y-4">
+            <div>
+              <Label htmlFor="reminder-message">Lembrete</Label>
+              <Textarea
+                id="reminder-message"
+                value={reminderMessage}
+                onChange={(e) => setReminderMessage(e.target.value)}
+                placeholder="Ex: Levar a vaca 12 para exame de prenhez"
+                rows={2}
+              />
+            </div>
+            <div>
+              <Label htmlFor="reminder-date">Data</Label>
+              <Input
+                id="reminder-date"
+                type="date"
+                value={reminderDate}
+                onChange={(e) => setReminderDate(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Quem recebe</Label>
+              <div className="mt-1.5 grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setReminderScope('me')}
+                  className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                    reminderScope === 'me'
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-input text-muted-foreground'
+                  }`}
+                >
+                  Só eu
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setReminderScope('farm')}
+                  className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                    reminderScope === 'farm'
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-input text-muted-foreground'
+                  }`}
+                >
+                  Toda a equipe
+                </button>
+              </div>
+            </div>
+            <Button
+              type="submit"
+              disabled={creatingReminder}
+              className="w-full"
+            >
+              {creatingReminder ? 'Agendando...' : 'Agendar lembrete'}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }
