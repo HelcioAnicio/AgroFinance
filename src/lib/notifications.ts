@@ -1,4 +1,42 @@
 import prisma from './prisma';
+import { sendPushToUser } from './webPush';
+
+type PushableNotification = {
+  id: string;
+  userId: string;
+  message: string;
+  animalId?: string | null;
+  notifyAt: Date | string;
+};
+
+/**
+ * Envia push imediatamente para notificações cujo notifyAt já chegou. Sem
+ * isso, o push só saía no lote diário do cron (as vezes só no dia
+ * seguinte), mesmo com a notificação já criada e a permissão concedida no
+ * celular — a notificação "não funcionava" por atraso, não por estar
+ * quebrada.
+ */
+export async function pushNotificationsNow(
+  notifications: PushableNotification[]
+) {
+  const now = Date.now();
+  const due = notifications.filter(
+    (n) => new Date(n.notifyAt).getTime() <= now
+  );
+
+  await Promise.allSettled(
+    due.map((n) =>
+      sendPushToUser(n.userId, {
+        title: 'AgroFinance',
+        body: n.message,
+        url: n.animalId
+          ? `/dashboard/${n.animalId}`
+          : '/dashboard/notifications',
+        tag: `notification-${n.id}`,
+      })
+    )
+  );
+}
 
 /**
  * Schedules two delayed notifications in the database for the farm owner:
@@ -85,7 +123,7 @@ export async function notifyLowStock(
 
     if (managers.length === 0) return;
 
-    await prisma.notification.createMany({
+    const created = await prisma.notification.createManyAndReturn({
       data: managers.map((m) => ({
         userId: m.userId,
         message: `Estoque baixo: ${insumoNome} está com ${quantidade} ${unidade} (mínimo: ${estoqueMin} ${unidade}).`,
@@ -93,6 +131,8 @@ export async function notifyLowStock(
         read: false,
       })),
     });
+
+    await pushNotificationsNow(created);
   } catch (error) {
     console.error('[NOTIFICATIONS] Error notifying low stock:', error);
   }

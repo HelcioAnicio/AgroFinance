@@ -812,7 +812,10 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
         };
       }
       if (animal.reproductiveStatus === 'waiting') {
-        newAnimal = { ...newAnimal, expectedDueDate: null, fetalGender: null };
+        // Mantém expectedDueDate: é a expectativa de parto usada para criar
+        // o lembrete — só o sexo fetal (que só se sabe com a gestação
+        // confirmada) é limpo aqui.
+        newAnimal = { ...newAnimal, fetalGender: null };
       }
       if (animal.reproductiveStatus === 'pev') {
         newAnimal = {
@@ -880,6 +883,15 @@ const EditableAnimalDetails: React.FC<EditableAnimalDetailsProps> = ({
   const submitForm = async (formData: Animal) => {
     if (formData.status !== 'active' && !formData.statusChangeDate) {
       toast.error('Informe a data da alteração de status.');
+      return;
+    }
+    if (
+      formData.gender === 'female' &&
+      (formData.reproductiveStatus === 'pregnant' ||
+        formData.reproductiveStatus === 'waiting') &&
+      !formData.expectedDueDate
+    ) {
+      toast.error('Informe a expectativa de parto antes de salvar.');
       return;
     }
     if (shouldAskCalfLoss && calfLossDraft.confirmed === null) {

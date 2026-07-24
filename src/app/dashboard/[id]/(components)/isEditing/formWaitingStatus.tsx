@@ -1,6 +1,7 @@
 import { Animal } from '@/types/animal';
 import { ExternalBull } from '@/types/externalBull';
 import { SelectForm } from '@/components/ui/selectForm';
+import { InputForm } from '@/components/ui/inputForm';
 import React from 'react';
 
 interface FormWaitingStatusProps {
@@ -97,6 +98,22 @@ export const FormWaitingStatus: React.FC<FormWaitingStatusProps> = ({
           }
         />
       )}
+
+      <article className="mt-4 flex flex-wrap gap-5">
+        <InputForm
+          htmlFor="expectedDueDate"
+          label="Expectativa de parto (estimativa):"
+          type="date"
+          name="expectedDueDate"
+          id="expectedDueDate-wait"
+          value={
+            animal.expectedDueDate
+              ? new Date(animal.expectedDueDate).toISOString().split('T')[0]
+              : ''
+          }
+          onChange={handleInputValues}
+        />
+      </article>
     </>
   );
 };

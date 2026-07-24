@@ -27,11 +27,20 @@ export async function sendPushToUser(
           JSON.stringify(payload)
         );
       } catch (err: unknown) {
-        const e = err as { statusCode?: number };
+        const e = err as { statusCode?: number; body?: string };
         if (e.statusCode === 410 || e.statusCode === 404) {
           await (prisma as unknown as {
             pushSubscription: { delete: (args: object) => Promise<unknown> };
           }).pushSubscription.delete({ where: { id: sub.id } });
+        } else {
+          // Sem isso, qualquer outra falha (VAPID errado, payload grande
+          // demais, endpoint bloqueado) era engolida em silêncio e o push
+          // "não funcionava" sem nenhuma pista no log.
+          console.error(
+            `[webPush] Falha ao enviar push para userId=${userId} endpoint=${sub.endpoint.slice(0, 60)}...`,
+            e.statusCode,
+            e.body ?? err
+          );
         }
       }
     })
