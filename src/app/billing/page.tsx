@@ -1,12 +1,10 @@
 import { redirect } from 'next/navigation';
-import { BILLING_PLANS } from '@/lib/billing';
 import {
   canFarmAccessDashboard,
   getCurrentUserWithFarmContext,
 } from '@/lib/tenant';
-import BillingPlans from './plans';
+import CouponRedeemForm from './coupon-redeem-form';
 import BillingStatus from './billing-status';
-import CompleteBillingProfile from './complete-profile';
 import { Suspense } from 'react';
 import { DashboardHeaderSection } from '../dashboard/_components/dashboardHeaderSection';
 import { DashboardHeaderSkeleton } from '../dashboard/_components/dashboardHeaderSkeleton';
@@ -26,7 +24,6 @@ export default async function BillingPage({
   const billing = await searchParams;
   const isPaymentPending = billing?.billing === 'success';
   const isPaymentCanceled = billing?.billing === 'cancel';
-  const hasRequiredProfileData = Boolean(context.user.cnpj);
 
   return (
     <main className="min-h-screen bg-[#f8f7f3] px-4 py-10 text-[#202417]">
@@ -39,42 +36,29 @@ export default async function BillingPage({
             AgroFinance Billing
           </p>
           <h1 className="max-w-3xl text-4xl font-bold">
-            {hasRequiredProfileData
-              ? `Escolha um plano para continuar usando ${
-                  context.farm?.name ?? 'sua fazenda'
-                }`
-              : 'Complete seus dados para escolher um plano'}
+            Ative o acesso para {context.farm?.name ?? 'sua fazenda'}
           </h1>
           <p className="max-w-2xl text-sm text-[#5e654f]">
-            Primeiro complete seus dados, depois valide o cartao no Stripe. A
-            liberacao do acesso acontece somente depois dessa confirmacao.
+            O AgroFinance esta em fase de testes — o acesso e liberado por
+            cupom, sem precisar cadastrar cartao.
           </p>
         </div>
 
-        {!hasRequiredProfileData ? (
-          <CompleteBillingProfile
-            initialName={context.user.name}
-            email={context.user.email}
-          />
-        ) : isPaymentPending ? (
+        {isPaymentPending ? (
           <BillingStatus />
         ) : (
           <>
             {isPaymentCanceled ? (
               <div className="rounded-xl border border-[#f1c0c0] bg-[#fff3f3] p-6 text-base text-[#7a2a2a] shadow-sm">
-                <p className="font-semibold">Pagamento cancelado</p>
+                <p className="font-semibold">Ativacao cancelada</p>
                 <p className="mt-2 text-sm">
-                  O processo de pagamento foi cancelado. Selecione um plano para
-                  tentar novamente.
+                  O processo foi cancelado. Digite o cupom novamente para
+                  tentar de novo.
                 </p>
               </div>
             ) : null}
 
-            <div className="rounded-md border border-[#d9d5c8] bg-white p-4 text-sm text-[#4d543f]">
-              A validacao do cartao e feita no Stripe. Enquanto ela nao for
-              confirmada, o acesso ao dashboard ainda nao fica ativo.
-            </div>
-            <BillingPlans plans={BILLING_PLANS} />
+            <CouponRedeemForm />
           </>
         )}
       </section>

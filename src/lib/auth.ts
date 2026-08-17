@@ -3,7 +3,6 @@ import bcrypt from 'bcryptjs';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import { randomUUID } from 'crypto';
 import prisma from '@/lib/prisma';
-import { updateStripeSeats } from '@/lib/stripeSeats';
 import {
   createFarmSession,
   validateFarmSession,
@@ -151,9 +150,6 @@ export const authOptions: NextAuthOptions = {
             data: { activeFarmId: pendingInvite.farmId },
           });
         });
-        if (pendingInvite.role !== 'VIEWER') {
-          void updateStripeSeats(pendingInvite.farmId, +1);
-        }
         return;
       }
 

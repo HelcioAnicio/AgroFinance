@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { randomBytes } from 'crypto';
 import { requireFarmContext } from '@/lib/tenant';
 import {
-  updateStripeSeats,
   getBillableSeatCount,
   getFarmBillingFieldsSafe,
 } from '@/lib/stripeSeats';
@@ -82,15 +81,6 @@ export async function PATCH(request: Request) {
     if (membership.role === 'OWNER') return NextResponse.json({ error: 'Não é possível alterar o dono.' }, { status: 403 });
     await prisma.farmMembership.update({ where: { id: memberId }, data: { role } });
 
-    // Atualiza assentos no Stripe conforme transição de/para VIEWER
-    const wasViewer = membership.role === 'VIEWER';
-    const isNowViewer = role === 'VIEWER';
-    if (wasViewer && !isNowViewer) {
-      void updateStripeSeats(context.farm.id, +1); // VIEWER → cobrado
-    } else if (!wasViewer && isNowViewer) {
-      void updateStripeSeats(context.farm.id, -1); // cobrado → VIEWER (gratuito)
-    }
-
     return NextResponse.json({ ok: true });
   }
 
@@ -127,10 +117,6 @@ export async function DELETE(request: Request) {
     if (!membership) return NextResponse.json({ error: 'Membro não encontrado.' }, { status: 404 });
     if (membership.role === 'OWNER') return NextResponse.json({ error: 'Não é possível remover o dono.' }, { status: 403 });
     await prisma.farmMembership.delete({ where: { id: memberId } });
-    // VIEWER é gratuito — só decrementa se era um membro cobrado
-    if (membership.role !== 'VIEWER') {
-      void updateStripeSeats(context.farm.id, -1);
-    }
     return NextResponse.json({ ok: true });
   }
 

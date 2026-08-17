@@ -1,7 +1,6 @@
 import prisma from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
-import { updateStripeSeats } from '@/lib/stripeSeats';
 import bcrypt from 'bcryptjs';
 
 export async function POST(request: NextRequest) {
@@ -138,14 +137,6 @@ export async function POST(request: NextRequest) {
 
       return { user, inviteFarmId: null, inviteRole: null };
     });
-
-    // Incrementa seat no Stripe se o novo usuário não é VIEWER
-    if (
-      registerNewUser.inviteFarmId &&
-      registerNewUser.inviteRole !== 'VIEWER'
-    ) {
-      void updateStripeSeats(registerNewUser.inviteFarmId, +1);
-    }
 
     return NextResponse.json(
       {
