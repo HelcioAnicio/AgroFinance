@@ -19,8 +19,7 @@ import {
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { BILLING_PLANS } from '@/lib/billing';
-import BillingPlans from '@/app/billing/plans';
+import CouponRedeemForm from '@/app/billing/coupon-redeem-form';
 import EnsureFarmModal from '@/components/ui/ensureFarmModal';
 
 type ProfileUser = {
@@ -58,10 +57,9 @@ const EditableUserProfile: React.FC<EditableUserProfileProps> = ({ user }) => {
   const router = useRouter();
   const [form, setForm] = useState<ProfileUser>(user);
   const [isSaving, setIsSaving] = useState(false);
-  const [showPlans, setShowPlans] = useState(false);
+  const [showCoupon, setShowCoupon] = useState(false);
   const membership = form.farmMemberships?.[0];
   const farm = membership?.farm;
-  const hasDocument = Boolean(form.cnpj?.trim());
   const hasValidatedTrial =
     farm?.subscriptionStatus === 'TRIALING' &&
     Boolean(farm.stripeSubscriptionId) &&
@@ -334,11 +332,11 @@ const EditableUserProfile: React.FC<EditableUserProfileProps> = ({ user }) => {
                 <div>
                   <div className="flex items-center gap-2 text-sm font-bold text-[#49651f]">
                     <CreditCard className="size-4" />
-                    Assinatura e planos
+                    Assinatura e acesso
                   </div>
                   <p className="mt-2 max-w-2xl text-sm text-[#5e654f]">
-                    A liberacao do acesso acontece somente depois que o Stripe
-                    valida o cartao e confirma a assinatura.
+                    O AgroFinance esta em fase de testes — o acesso e liberado
+                    por cupom, sem precisar cadastrar cartao.
                   </p>
                 </div>
                 {hasValidatedPlan ? (
@@ -355,34 +353,27 @@ const EditableUserProfile: React.FC<EditableUserProfileProps> = ({ user }) => {
                 )}
               </div>
 
-              {!hasDocument ? (
-                <div className="mt-5 rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-                  Informe CPF ou CNPJ e salve as alteracoes antes de escolher um
-                  plano.
-                </div>
-              ) : membership?.role === 'OWNER' ? (
+              {membership?.role === 'OWNER' ? (
                 <div className="mt-5">
                   <Button
                     type="button"
                     className="w-full bg-[#49651f] text-white hover:bg-[#3f571b] md:w-fit"
-                    onClick={() => setShowPlans((current) => !current)}
+                    onClick={() => setShowCoupon((current) => !current)}
                   >
-                    {showPlans ? 'Ocultar planos' : 'Escolher ou alterar plano'}
+                    {showCoupon ? 'Ocultar' : 'Ativar cupom'}
                   </Button>
                 </div>
               ) : (
                 <div className="mt-5 rounded-md border border-[#e1ded3] bg-[#f8f7f3] p-4 text-sm text-[#5e654f]">
-                  Apenas o proprietario da fazenda pode gerenciar planos.
+                  Apenas o proprietario da fazenda pode ativar o acesso.
                 </div>
               )}
             </section>
           </main>
         </div>
 
-        {/* Planos expandidos fora do grid — ocupa largura total em telas grandes */}
-        {showPlans && membership?.role === 'OWNER' && hasDocument && (
-          <BillingPlans plans={BILLING_PLANS} />
-        )}
+        {/* Cupom expandido fora do grid — ocupa largura total em telas grandes */}
+        {showCoupon && membership?.role === 'OWNER' && <CouponRedeemForm />}
 
         <section className="grid gap-4 md:grid-cols-3">
           {helperCards.map((card) => {

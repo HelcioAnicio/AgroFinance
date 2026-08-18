@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { updateStripeSeats } from '@/lib/stripeSeats';
 import prisma from '@/lib/prisma';
 
 export async function POST(request: Request) {
@@ -80,11 +79,6 @@ export async function POST(request: Request) {
       data: { activeFarmId: invite.farmId },
     }),
   ]);
-
-  // VIEWER é gratuito — só incrementa assento para roles cobrados
-  if (invite.role !== 'VIEWER') {
-    void updateStripeSeats(invite.farmId, +1);
-  }
 
   return NextResponse.json({ success: true, farmId: invite.farmId });
 }

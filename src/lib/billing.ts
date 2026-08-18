@@ -91,7 +91,7 @@ export const BILLING_PLANS = [
     name: 'Basico',
     interval: 'year',
     label: 'Anual',
-    amountInCents: 178800,
+    amountInCents: 143040, // 12x mensal com 20% de desconto
     maxSeats: 5,
     support: 'Email',
     description: 'Para o pequeno produtor que quer sair do papel.',
@@ -113,7 +113,7 @@ export const BILLING_PLANS = [
     name: 'Pro',
     interval: 'year',
     label: 'Anual',
-    amountInCents: 466800,
+    amountInCents: 373440, // 12x mensal com 20% de desconto
     maxSeats: 15,
     support: 'WhatsApp',
     description: 'Para operacoes que buscam ROI com reproducao e GMD.',
@@ -139,7 +139,7 @@ export const BILLING_PLANS = [
     name: 'Premium',
     interval: 'year',
     label: 'Anual',
-    amountInCents: 1078800,
+    amountInCents: 863040, // 12x mensal com 20% de desconto
     maxSeats: null,
     support: 'Consultivo 24/7',
     description: 'Para gestao agroindustrial com controle contabil completo.',

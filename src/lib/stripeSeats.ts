@@ -2,12 +2,6 @@ import prisma from '@/lib/prisma';
 
 const STRIPE_API = 'https://api.stripe.com/v1';
 
-type FarmSeatRow = {
-  stripeSubscriptionId: string | null;
-  stripeSubscriptionItemId: string | null;
-  subscriptionStatus: string;
-};
-
 type FarmBillingFields = {
   name: string;
   subscriptionStatus: string;
@@ -83,66 +77,6 @@ export async function getBillableSeatCount(farmId: string): Promise<number> {
 
   const billable = rows.filter((m) => m.role !== 'VIEWER').length;
   return Math.max(1, billable);
-}
-
-/**
- * Atualiza a quantidade de assentos na assinatura mensal do Stripe.
- * Só age se a fazenda tiver uma assinatura mensal ativa com item registrado.
- * Usa proration_behavior='always_invoice' para cobrar/creditar proporcionalmente.
- */
-export async function updateStripeSeats(
-  farmId: string,
-  seatDelta: number
-): Promise<void> {
-  const secretKey = process.env.STRIPE_SECRET_KEY;
-  if (!secretKey) return;
-
-  const farm = (await getFarmBillingFieldsSafe(farmId)) as FarmSeatRow | null;
-
-  if (!farm?.stripeSubscriptionId || !farm?.stripeSubscriptionItemId) return;
-  if (!['ACTIVE', 'TRIALING'].includes(farm.subscriptionStatus)) return;
-
-  const itemId = farm.stripeSubscriptionItemId;
-
-  const itemRes = await fetch(`${STRIPE_API}/subscription_items/${itemId}`, {
-    headers: { Authorization: `Bearer ${secretKey}` },
-  });
-
-  if (!itemRes.ok) {
-    console.error(
-      '[SEATS] Falha ao buscar subscription item',
-      await itemRes.text()
-    );
-    return;
-  }
-
-  const item = (await itemRes.json()) as { quantity?: number };
-  const currentQty = typeof item.quantity === 'number' ? item.quantity : 1;
-  const newQty = Math.max(1, currentQty + seatDelta);
-
-  if (newQty === currentQty) return;
-
-  const params = new URLSearchParams();
-  params.set('quantity', String(newQty));
-  params.set('proration_behavior', 'always_invoice');
-
-  const updateRes = await fetch(`${STRIPE_API}/subscription_items/${itemId}`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${secretKey}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: params.toString(),
-  });
-
-  if (!updateRes.ok) {
-    console.error(
-      '[SEATS] Falha ao atualizar quantidade de assentos',
-      await updateRes.text()
-    );
-  } else {
-    console.log(`[SEATS] farm=${farmId} qty ${currentQty} → ${newQty}`);
-  }
 }
 
 /**
