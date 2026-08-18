@@ -150,27 +150,12 @@ export const authOptions: NextAuthOptions = {
             data: { activeFarmId: pendingInvite.farmId },
           });
         });
-        return;
       }
 
-      const trialEndsAt = new Date();
-
-      const farm = await prisma.farm.create({
-        data: {
-          name: user.name ? `${user.name} Fazenda` : 'Minha Fazenda',
-          ownerUserId: user.id,
-          trialEndsAt,
-          subscriptionStatus: 'INCOMPLETE',
-        },
-      });
-
-      await prisma.farmMembership.create({
-        data: {
-          farmId: farm.id,
-          userId: user.id,
-          role: 'OWNER',
-        },
-      });
+      // Sem convite pendente: o usuario fica sem fazenda por enquanto. Ele
+      // escolhe entre criar uma nova ou entrar com um convite na tela
+      // pos-login (EnsureFarmModal), em vez de criar uma fazenda as cegas
+      // aqui.
     },
   },
   // pages: {

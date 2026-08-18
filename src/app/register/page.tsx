@@ -13,7 +13,6 @@ import { IoLockClosedOutline } from 'react-icons/io5';
 
 interface DataUserState {
   name: string;
-  farmName: string;
   email: string;
   cnpj: string;
   password: string;
@@ -22,7 +21,6 @@ interface DataUserState {
 
 const emptyForm: DataUserState = {
   name: '',
-  farmName: '',
   email: '',
   cnpj: '',
   password: '',
@@ -50,9 +48,7 @@ const Register = () => {
   const sendFormRegister = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    const requiredFields = inviteToken
-      ? ['name', 'email', 'cnpj', 'password', 'secondPassword']
-      : ['name', 'farmName', 'email', 'cnpj', 'password', 'secondPassword'];
+    const requiredFields = ['name', 'email', 'cnpj', 'password', 'secondPassword'];
     const newErrors = requiredFields.reduce<Record<string, boolean>>(
       (acc, field) => {
         acc[field] = !userRegister[field as keyof DataUserState]?.trim();
@@ -140,20 +136,6 @@ const Register = () => {
               onChange={handleInputValues}
             />
           </label>
-
-          {!inviteToken && (
-            <label className="relative text-xs font-bold uppercase tracking-[0.16em] text-[#6b705f]">
-              Nome da fazenda
-              <FaRegBuilding className="absolute left-3 top-[2.45rem] text-lg text-[#8a8f80]" />
-              <input
-                className={inputClass('farmName')}
-                name="farmName"
-                placeholder="Ex: Fazenda Santa Fe"
-                value={userRegister.farmName}
-                onChange={handleInputValues}
-              />
-            </label>
-          )}
 
           <label className="relative text-xs font-bold uppercase tracking-[0.16em] text-[#6b705f]">
             E-mail corporativo
