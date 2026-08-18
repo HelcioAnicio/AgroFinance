@@ -35,6 +35,29 @@ export async function POST(request: Request) {
     );
   }
 
+  // Valida o cupom no servidor ANTES de criar a sessão: só assim sabemos, no
+  // momento de montar os parâmetros, se o total vai ficar zerado (e podemos
+  // liberar o checkout sem cartão). Sem isso, 'if_required' não teria como
+  // distinguir "zerado pelo cupom" de "zerado pelo trial de 30 dias".
+  const requestedCouponCode = String(body.couponCode ?? '').trim();
+  let promotionCodeId: string | undefined;
+
+  if (requestedCouponCode) {
+    const promoResponse = await fetch(
+      `https://api.stripe.com/v1/promotion_codes?code=${encodeURIComponent(requestedCouponCode)}&active=true`,
+      { headers: { Authorization: `Bearer ${secretKey}` } }
+    );
+    const promoData = await promoResponse.json();
+    promotionCodeId = promoResponse.ok ? promoData.data?.[0]?.id : undefined;
+
+    if (!promotionCodeId) {
+      return NextResponse.json(
+        { error: 'Cupom invalido ou expirado.' },
+        { status: 400 }
+      );
+    }
+  }
+
   // Cancel existing Stripe subscription if they already have one to avoid multiple active plans
   if (context.farm.stripeSubscriptionId) {
     try {
@@ -74,6 +97,10 @@ export async function POST(request: Request) {
     installmentsEnabled ? 'true' : 'false'
   );
   params.set('payment_method_types[]', 'card');
+  // Cartão só deixa de ser obrigatório quando um cupom válido (verificado
+  // acima) zera o total. Sem cupom, continua exigindo cartão normalmente —
+  // inclusive durante o trial de 30 dias.
+  params.set('payment_method_collection', promotionCodeId ? 'if_required' : 'always');
   if (isAnnualPayment) {
     params.set('payment_intent_data[metadata][farmId]', context.farm.id);
     params.set('payment_intent_data[metadata][planId]', plan.id);
@@ -84,11 +111,6 @@ export async function POST(request: Request) {
     );
   } else {
     params.set('subscription_data[trial_period_days]', '30');
-    // 'if_required' em vez de 'always': se um cupom de 100% zerar a fatura
-    // (ou o teste de 30 dias não tiver cobrança imediata), o Stripe não pede
-    // cartão. O end_behavior abaixo cancela a assinatura automaticamente se
-    // o teste terminar sem cartão cadastrado.
-    params.set('payment_method_collection', 'if_required');
     params.set(
       'subscription_data[trial_settings][end_behavior][missing_payment_method]',
       'cancel'
@@ -107,7 +129,11 @@ export async function POST(request: Request) {
     'line_items[0][price_data][product_data][name]',
     `AgroFinance ${plan.name} ${plan.label}`
   );
-  params.set('allow_promotion_codes', 'true');
+  if (promotionCodeId) {
+    params.set('discounts[0][promotion_code]', promotionCodeId);
+  } else {
+    params.set('allow_promotion_codes', 'true');
+  }
 
   const response = await fetch('https://api.stripe.com/v1/checkout/sessions', {
     method: 'POST',

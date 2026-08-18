@@ -47,6 +47,7 @@ export default function BillingPlans({
 }) {
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [interval, setInterval] = useState<'month' | 'year'>('month');
+  const [couponCode, setCouponCode] = useState('');
   const visiblePlans = useMemo(
     () => plans.filter((plan) => plan.interval === interval),
     [interval, plans]
@@ -59,7 +60,11 @@ export default function BillingPlans({
       const response = await fetch('/api/billing/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ planId, installments: true }),
+        body: JSON.stringify({
+          planId,
+          installments: true,
+          couponCode: couponCode.trim() || undefined,
+        }),
       });
       const data = await response.json();
 
@@ -112,6 +117,18 @@ export default function BillingPlans({
           Planos anuais cobram o total do ano e permitem parcelamento no
           checkout.
         </div>
+      </div>
+
+      <div className="flex flex-col gap-1 md:max-w-xs">
+        <label className="text-xs font-semibold uppercase tracking-[0.14em] text-[#6d7f3d]">
+          Tem um cupom? (opcional)
+        </label>
+        <input
+          className="h-10 rounded-md border border-[#e1ded3] bg-white px-3 text-sm outline-none focus:border-[#49651f]"
+          value={couponCode}
+          onChange={(event) => setCouponCode(event.target.value)}
+          placeholder="Codigo do cupom"
+        />
       </div>
 
       <div
