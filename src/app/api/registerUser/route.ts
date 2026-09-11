@@ -22,7 +22,6 @@ export async function POST(request: NextRequest) {
       'cnpj',
       'password',
       'image',
-      'farmName',
       'inviteToken',
     ] as const;
 
@@ -32,7 +31,6 @@ export async function POST(request: NextRequest) {
       cnpj: string;
       password: string;
       image: string;
-      farmName: string;
       inviteToken: string;
     }>;
 
@@ -42,7 +40,6 @@ export async function POST(request: NextRequest) {
       cnpj?: string;
       password?: string;
       image?: string;
-      farmName?: string;
       inviteToken?: string;
     };
 
@@ -68,8 +65,6 @@ export async function POST(request: NextRequest) {
     };
 
     console.log('createPayload:', createPayload);
-
-    const trialEndsAt = new Date();
 
     const registerNewUser = await prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
@@ -115,36 +110,23 @@ export async function POST(request: NextRequest) {
           where: { id: user.id },
           data: { activeFarmId: invite.farmId },
         });
-        return { user, inviteFarmId: invite.farmId, inviteRole: invite.role };
       }
 
-      const farm = await tx.farm.create({
-        data: {
-          name: partialPayload.farmName || `${user.name} Fazenda`,
-          ownerUserId: user.id,
-          trialEndsAt,
-          subscriptionStatus: 'INCOMPLETE',
-        },
-      });
-
-      await tx.farmMembership.create({
-        data: {
-          farmId: farm.id,
-          userId: user.id,
-          role: 'OWNER',
-        },
-      });
-
-      return { user, inviteFarmId: null, inviteRole: null };
+      // Sem convite: o usuario fica sem fazenda por enquanto. Ele escolhe
+      // entre criar uma nova ou entrar com um convite na tela pos-login
+      // (EnsureFarmModal), em vez de criar uma fazenda as cegas aqui — isso
+      // evitava que digitar o nome de uma fazenda existente criasse uma
+      // duplicata.
+      return user;
     });
 
     return NextResponse.json(
       {
         message: 'Usuario cadastrado com sucesso',
         user: {
-          id: registerNewUser.user.id,
-          name: registerNewUser.user.name,
-          email: registerNewUser.user.email,
+          id: registerNewUser.id,
+          name: registerNewUser.name,
+          email: registerNewUser.email,
         },
       },
       { status: 201 }
