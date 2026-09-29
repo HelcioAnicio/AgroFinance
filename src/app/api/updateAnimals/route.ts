@@ -77,40 +77,10 @@ export async function PUT(req: Request) {
       );
     }
 
-    const fieldsToRemove = [
-      'bull',
-      'offspringFromBull',
-      'bullIatfRel',
-      'offspringFromBullIatf',
-      'father',
-      'offspringFromFather',
-      'mother',
-      'offspringFromMother',
-      'owner',
-      'externalBull',
-      'externalBullIatfRel',
-      'dewormings',
-      'diseases',
-      'vaccines',
-      'weightHistories',
-      'calfLossHistories',
-      'farm',
-      'createdAt',
-      'updatedAt',
-    ];
-    fieldsToRemove.forEach((field) => delete allDataForm[field]);
-
     const calfLossEvent = allDataForm.calfLossEvent;
     const recordType = parseWeightRecordType(allDataForm.weightRecordType);
     const measuredAt = parseWeightRecordDate(allDataForm.weightRecordDate);
     const statusChangeDate = allDataForm.statusChangeDate;
-
-    delete allDataForm.weightRecordType;
-    delete allDataForm.weightRecordDate;
-    delete allDataForm.statusChangeDate;
-    delete allDataForm.calfLossEvent;
-    delete allDataForm.ownerId;
-    delete allDataForm.farmId;
 
     if (allDataForm.bodyConditionScore !== null) {
       allDataForm.bodyConditionScore = Number(allDataForm.bodyConditionScore);
@@ -184,6 +154,7 @@ export async function PUT(req: Request) {
     }
 
     const {
+      // IDs de relacionamento
       motherId,
       fatherId,
       bullId,
@@ -191,6 +162,42 @@ export async function PUT(req: Request) {
       externalBullId,
       externalBullIatfId,
       externalBullFatherId,
+
+      // Objetos de relacionamento (para garantir que sejam removidos)
+      mother,
+      father,
+      bull,
+      bullIatfRel,
+      externalBull,
+      externalBullIatfRel,
+      externalBullFather,
+
+      // Campos que não devem ir para o update
+      weightRecordType,
+      weightRecordDate,
+      ownerId,
+      farmId,
+      createdAt,
+      updatedAt,
+
+      // Campos que já tratamos
+      calfLossEvent: _calfLossEvent,
+      statusChangeDate: _statusChangeDate,
+
+      // Listas de relacionamento
+      offspringFromBull,
+      offspringFromFather,
+      offspringFromMother,
+      offspringFromBullIatf,
+      dewormings,
+      diseases,
+      vaccines,
+      weightHistories,
+      statusHistories,
+      calfLossHistories,
+      calfLossFatherHistories,
+      reproductionManagements,
+
       ...restOfData
     } = allDataForm;
 
@@ -202,7 +209,9 @@ export async function PUT(req: Request) {
       oldId: string | null
     ) => {
       if (newId) {
-        updatePayload[fieldName] = { connect: { id: newId } };
+        if (newId !== oldId) {
+          updatePayload[fieldName] = { connect: { id: newId } };
+        }
       } else if (oldId) {
         updatePayload[fieldName] = { disconnect: true };
       }
