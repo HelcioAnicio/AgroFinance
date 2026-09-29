@@ -154,7 +154,6 @@ export async function PUT(req: Request) {
     }
 
     const {
-      // IDs de relacionamento
       motherId,
       fatherId,
       bullId,
@@ -162,8 +161,6 @@ export async function PUT(req: Request) {
       externalBullId,
       externalBullIatfId,
       externalBullFatherId,
-
-      // Objetos de relacionamento (para garantir que sejam removidos)
       mother,
       father,
       bull,
@@ -171,20 +168,15 @@ export async function PUT(req: Request) {
       externalBull,
       externalBullIatfRel,
       externalBullFather,
-
-      // Campos que não devem ir para o update
+      farmId,
+      farm,
       weightRecordType,
       weightRecordDate,
       ownerId,
-      farmId,
       createdAt,
       updatedAt,
-
-      // Campos que já tratamos
       calfLossEvent: _calfLossEvent,
       statusChangeDate: _statusChangeDate,
-
-      // Listas de relacionamento
       offspringFromBull,
       offspringFromFather,
       offspringFromMother,
@@ -197,7 +189,6 @@ export async function PUT(req: Request) {
       calfLossHistories,
       calfLossFatherHistories,
       reproductionManagements,
-
       ...restOfData
     } = allDataForm;
 
@@ -243,7 +234,7 @@ export async function PUT(req: Request) {
 
       const updatedAnimal = await tx.animal.update({
         where: { id: allDataForm.id },
-        data: { ...updatePayload, farmId: context.farm.id },
+        data: { ...updatePayload, farm: { connect: { id: context.farm.id } } },
       });
 
       const hasWeightChanged =
