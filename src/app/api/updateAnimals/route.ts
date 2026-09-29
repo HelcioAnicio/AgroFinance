@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 import { revalidateTag } from 'next/cache';
-import { sendPushToUser } from '@/lib/webPush';
 import prisma from '@/lib/prisma';
 import {
   parseWeightRecordDate,
@@ -48,14 +47,16 @@ export async function GET(req: Request) {
 
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id');
-  if (!id) return NextResponse.json({ message: 'ID nao fornecido' }, { status: 400 });
+  if (!id)
+    return NextResponse.json({ message: 'ID nao fornecido' }, { status: 400 });
 
   const found = await prisma.animal.findFirst({
     where: { id, farmId: context.farm.id },
     select: { id: true, updatedAt: true },
   });
 
-  if (!found) return NextResponse.json({ message: 'Animal nao encontrado' }, { status: 404 });
+  if (!found)
+    return NextResponse.json({ message: 'Animal nao encontrado' }, { status: 404 });
   return NextResponse.json(found);
 }
 
@@ -76,40 +77,10 @@ export async function PUT(req: Request) {
       );
     }
 
-    const fieldsToRemove = [
-      'bull',
-      'offspringFromBull',
-      'bullIatfRel',
-      'offspringFromBullIatf',
-      'father',
-      'offspringFromFather',
-      'mother',
-      'offspringFromMother',
-      'owner',
-      'externalBull',
-      'externalBullIatfRel',
-      'dewormings',
-      'diseases',
-      'vaccines',
-      'weightHistories',
-      'calfLossHistories',
-      'farm',
-      'createdAt',
-      'updatedAt',
-    ];
-    fieldsToRemove.forEach((field) => delete allDataForm[field]);
-
     const calfLossEvent = allDataForm.calfLossEvent;
     const recordType = parseWeightRecordType(allDataForm.weightRecordType);
     const measuredAt = parseWeightRecordDate(allDataForm.weightRecordDate);
     const statusChangeDate = allDataForm.statusChangeDate;
-
-    delete allDataForm.weightRecordType;
-    delete allDataForm.weightRecordDate;
-    delete allDataForm.statusChangeDate;
-    delete allDataForm.calfLossEvent;
-    delete allDataForm.ownerId;
-    delete allDataForm.farmId;
 
     if (allDataForm.bodyConditionScore !== null) {
       allDataForm.bodyConditionScore = Number(allDataForm.bodyConditionScore);
@@ -126,9 +97,9 @@ export async function PUT(req: Request) {
       allDataForm.birthDate = parsedBirthDate;
     }
 
-    if (allDataForm.expectedDueDate === '') {
+    if (allDataForm.expectedDueDate === '' || allDataForm.expectedDueDate == null) {
       allDataForm.expectedDueDate = null;
-    } else if (allDataForm.expectedDueDate != null) {
+    } else {
       const parsedExpectedDueDate = new Date(allDataForm.expectedDueDate);
       if (Number.isNaN(parsedExpectedDueDate.getTime())) {
         return NextResponse.json(
@@ -156,18 +127,21 @@ export async function PUT(req: Request) {
         reproductiveStatus: true,
         expectedDueDate: true,
         ownerId: true,
+        farmId: true,
+        motherId: true,
+        fatherId: true,
+        bullId: true,
+        bullIatfId: true,
         externalBullId: true,
         externalBullIatfId: true,
-        farmId: true,
+        externalBullFatherId: true,
       },
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const farmOwnerId = (context.farm as any).ownerUserId as string | null;
     const isInFarm =
       existingAnimal !== null &&
       (existingAnimal.farmId === context.farm.id ||
-        // Allow editing animals not yet migrated (farmId null) if owned by the farm owner
         (existingAnimal.farmId === null &&
           (existingAnimal.ownerId === farmOwnerId ||
             existingAnimal.ownerId === context.user.id)));
@@ -179,6 +153,77 @@ export async function PUT(req: Request) {
       );
     }
 
+    const {
+      motherId,
+      fatherId,
+      bullId,
+      bullIatfId,
+      externalBullId,
+      externalBullIatfId,
+      externalBullFatherId,
+      mother,
+      father,
+      bull,
+      bullIatfRel,
+      externalBull,
+      externalBullIatfRel,
+      externalBullFather,
+      farmId,
+      farm,
+      weightRecordType,
+      weightRecordDate,
+      ownerId,
+      createdAt,
+      updatedAt,
+      calfLossEvent: _calfLossEvent,
+      statusChangeDate: _statusChangeDate,
+      offspringFromBull,
+      offspringFromFather,
+      offspringFromMother,
+      offspringFromBullIatf,
+      dewormings,
+      diseases,
+      vaccines,
+      weightHistories,
+      statusHistories,
+      calfLossHistories,
+      calfLossFatherHistories,
+      reproductionManagements,
+      ...restOfData
+    } = allDataForm;
+
+    const updatePayload: any = { ...restOfData };
+
+    const handleRelation = (
+      fieldName: string,
+      newId: string | null,
+      oldId: string | null
+    ) => {
+      if (newId) {
+        if (newId !== oldId) {
+          updatePayload[fieldName] = { connect: { id: newId } };
+        }
+      } else if (oldId) {
+        updatePayload[fieldName] = { disconnect: true };
+      }
+    };
+
+    handleRelation('mother', motherId, existingAnimal.motherId);
+    handleRelation('father', fatherId, existingAnimal.fatherId);
+    handleRelation('bull', bullId, existingAnimal.bullId);
+    handleRelation('bullIatfRel', bullIatfId, existingAnimal.bullIatfId);
+    handleRelation('externalBull', externalBullId, existingAnimal.externalBullId);
+    handleRelation(
+      'externalBullIatfRel',
+      externalBullIatfId,
+      existingAnimal.externalBullIatfId
+    );
+    handleRelation(
+      'externalBullFather',
+      externalBullFatherId,
+      existingAnimal.externalBullFatherId
+    );
+
     const data = await prisma.$transaction(async (tx) => {
       await decrementExternalBullDosesForUsageDelta(
         tx,
@@ -189,7 +234,7 @@ export async function PUT(req: Request) {
 
       const updatedAnimal = await tx.animal.update({
         where: { id: allDataForm.id },
-        data: { ...allDataForm, farmId: context.farm.id },
+        data: { ...updatePayload, farm: { connect: { id: context.farm.id } } },
       });
 
       const hasWeightChanged =
@@ -229,7 +274,6 @@ export async function PUT(req: Request) {
           },
         });
 
-        // Auto-create a financial income entry when an animal is sold
         const isSold =
           updatedAnimal.status === 'sold' || updatedAnimal.status === 'vendido';
         if (isSold) {
@@ -448,11 +492,11 @@ export async function PUT(req: Request) {
 
     revalidateTag(`animal-${data.id}`);
 
-    // Send push immediately if notification is active now (or very soon)
     if (createNotification) {
       const notifyAt = new Date(createNotification.notifyAt);
       const diff = notifyAt.getTime() - Date.now();
       if (diff <= 60_000) {
+        const { sendPushToUser } = await import('@/lib/webPush');
         void sendPushToUser(data.ownerId, {
           title: 'AgroFinance',
           body: createNotification.message,
