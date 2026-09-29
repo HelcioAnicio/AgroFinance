@@ -1,8 +1,6 @@
-'use client';
 import { NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 import { revalidateTag } from 'next/cache';
-import { sendPushToUser } from '@/lib/webPush';
 import prisma from '@/lib/prisma';
 import {
   parseWeightRecordDate,
@@ -170,7 +168,6 @@ export async function PUT(req: Request) {
       },
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const farmOwnerId = (context.farm as any).ownerUserId as string | null;
     const isInFarm =
       existingAnimal !== null &&
@@ -499,6 +496,7 @@ export async function PUT(req: Request) {
       const notifyAt = new Date(createNotification.notifyAt);
       const diff = notifyAt.getTime() - Date.now();
       if (diff <= 60_000) {
+        const { sendPushToUser } = await import('@/lib/webPush');
         void sendPushToUser(data.ownerId, {
           title: 'AgroFinance',
           body: createNotification.message,
