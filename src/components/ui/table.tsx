@@ -115,7 +115,7 @@ const getCategoryLabel = (animal: Animal) => {
   if (animal.category === 'calf') return 'Bezerro';
   if (animal.category === 'steer' && animal.gender === 'male') return 'Garrote';
   if (animal.category === 'steer' && animal.gender === 'female')
-    return 'Novilho';
+    return 'Novilha';
   if (animal.category === 'cow') return 'Vaca';
   if (animal.category === 'old cow') return 'Vaca velha';
   if (animal.category === 'ox') return 'Boi';
@@ -313,8 +313,7 @@ export const Table: React.FC<TableProps> = ({
 
       const result = await res.json();
       if (result.success) {
-        toast.success(`Lista cadastrada com sucesso!
-          A página será recarregada para mostrar os novos animais.`);
+        toast.success(`Lista cadastrada com sucesso!\n          A página será recarregada para mostrar os novos animais.`);
         setImportDialogOpen(false);
         setTimeout(() => {
           window.location.reload();
@@ -366,14 +365,18 @@ export const Table: React.FC<TableProps> = ({
 
   const pregnantCowsCount = listAnimals.filter(
     (animal) =>
-      (animal.category === 'cow' || animal.category === 'old cow') &&
+      (animal.category === 'cow' ||
+        animal.category === 'old cow' ||
+        animal.category === 'steer') &&
       isFemale(animal.gender) &&
       animal.reproductiveStatus === 'pregnant'
   ).length;
 
   const emptyCowsCount = listAnimals.filter(
     (animal) =>
-      (animal.category === 'cow' || animal.category === 'old cow') &&
+      (animal.category === 'cow' ||
+        animal.category === 'old cow' ||
+        animal.category === 'steer') &&
       isFemale(animal.gender) &&
       animal.reproductiveStatus === 'empty'
   ).length;
