@@ -426,14 +426,17 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                     .filter(
                       (animal) =>
                         animal.gender === 'female' &&
-                        animal.category !== 'steer' &&
                         animal.category !== 'neonate' &&
                         animal.status === 'active'
                     )
-                    .map((animal) => ({
-                      label: `Vaca ${animal.manualId}`,
-                      value: animal.id,
-                    })),
+                    .map((animal) => {
+                      const categoryLabel =
+                        animal.category === 'steer' ? 'Novilha' : 'Vaca';
+                      return {
+                        label: `${categoryLabel} ${animal.manualId}`,
+                        value: animal.id,
+                      };
+                    }),
                 ]}
                 defaultOption="Escolha a mãe"
               />
