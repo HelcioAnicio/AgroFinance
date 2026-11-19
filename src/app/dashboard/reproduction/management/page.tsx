@@ -168,11 +168,12 @@ const ReproductionManagementPage = () => {
     setShowAnimalDropdown(false);
   }, [currentStage, stageDates, editingId]);
 
-  const translateCategory = (cat = '') => {
+  const translateCategory = (cat = '', gender: string) => {
     const c = cat.toLowerCase();
     if (c === 'neonate') return 'Neonato';
     if (c === 'calf') return 'Bezerro';
-    if (c === 'steer') return 'Garrote';
+    if (c === 'steer' && gender === 'male') return 'Garrote';
+    if (c === 'steer' && gender === 'female') return 'Novilha';
     if (c === 'cow') return 'Vaca';
     if (c === 'old cow') return 'Vaca velha';
     if (c === 'ox') return 'Boi';
@@ -185,7 +186,7 @@ const ReproductionManagementPage = () => {
   const isCow = (a: Animal) => {
     const c = a.category?.toLowerCase();
     return (
-      a.status?.toLowerCase() === 'active' && (c === 'cow' || c === 'old cow')
+      a.status?.toLowerCase() === 'active' && c !== 'neonate' && c !== 'calf'
     );
   };
 
@@ -624,7 +625,11 @@ const ReproductionManagementPage = () => {
                               {animal.manualId}
                             </span>
                             <span className="text-muted-foreground">
-                              — {translateCategory(animal.category)}
+                              —{' '}
+                              {translateCategory(
+                                animal.category,
+                                animal.gender
+                              )}
                               {isPregnant ? ' (prenha)' : ''}
                             </span>
                           </button>
