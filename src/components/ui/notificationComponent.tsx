@@ -11,7 +11,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { Check, Trash2 } from 'lucide-react';
+import { FaEnvelopeOpen, FaEnvelope, FaTrash } from 'react-icons/fa';
 
 interface TableProps {
   notifications: Notification[];
@@ -99,7 +99,7 @@ export const NotificationComponent: React.FC<TableProps> = ({
             </Badge>
           )}
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="flex w-full min-w-0 max-w-72 flex-col justify-end gap-3">
+        <DropdownMenuContent className="absolute -right-20 top-0 flex h-[85vh] w-full min-w-max max-w-52 flex-col gap-3 overflow-y-scroll pt-10">
           {visibleNotifications.length === 0 && (
             <DropdownMenuItem className="text-xs text-muted-foreground">
               Nenhuma notificacao
@@ -109,10 +109,14 @@ export const NotificationComponent: React.FC<TableProps> = ({
           {visibleNotifications.map((notification: Notification) => (
             <DropdownMenuItem
               key={notification.id}
-              className={`flex w-full items-center justify-between gap-2 text-xs ${notification.read === false ? 'bg-secondary text-background hover:bg-secondary' : 'bg-background hover:bg-background'}`}
+              className={`flex w-full items-center justify-between gap-2 text-xs ${notification.read === false ? 'bg-secondary font-bold text-background hover:bg-secondary' : 'bg-background font-thin hover:bg-background'}`}
             >
               <Link
-                href={notification.animalId ? `/dashboard/${notification.animalId}` : `/dashboard/profile`}
+                href={
+                  notification.animalId
+                    ? `/dashboard/${notification.animalId}`
+                    : `/dashboard/profile`
+                }
                 className="flex min-w-0 flex-1 items-center gap-2"
                 onClick={() => handleStateRead(notification)}
               >
@@ -122,7 +126,7 @@ export const NotificationComponent: React.FC<TableProps> = ({
                 <span className="truncate">{notification.message}</span>
               </Link>
               <div className="flex items-center gap-1">
-                {!notification.read && (
+                {!notification.read ? (
                   <button
                     type="button"
                     aria-label="Marcar notificacao como lida"
@@ -133,7 +137,20 @@ export const NotificationComponent: React.FC<TableProps> = ({
                     }}
                     className="rounded-sm p-1 transition-colors hover:bg-primary/20"
                   >
-                    <Check className="size-4" />
+                    <FaEnvelopeOpen className="size-4" />
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    aria-label="Marcar notificacao como não lida"
+                    onClick={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      void handleStateRead(notification);
+                    }}
+                    className="rounded-sm p-1 transition-colors hover:bg-primary/20"
+                  >
+                    <FaEnvelope className="size-4" />
                   </button>
                 )}
                 <button
@@ -146,7 +163,7 @@ export const NotificationComponent: React.FC<TableProps> = ({
                   }}
                   className="rounded-sm p-1 transition-colors hover:bg-destructive/20"
                 >
-                  <Trash2 className="size-4" />
+                  <FaTrash className="size-4" />
                 </button>
               </div>
             </DropdownMenuItem>

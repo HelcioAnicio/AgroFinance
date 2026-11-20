@@ -34,7 +34,9 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
 }) => {
   const [fatherType, setFatherType] = useState('interno');
 
-  const handleFatherTypeChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleFatherTypeChange = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     setFatherType(event.target.value);
     setAllDataForm((prev) => ({
       ...prev,
@@ -43,7 +45,9 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
     }));
   };
 
-  const handleFatherSelection = (event: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleFatherSelection = (
+    event: React.ChangeEvent<HTMLSelectElement>
+  ) => {
     const { value } = event.target;
     if (fatherType === 'interno') {
       setAllDataForm((prev) => ({
@@ -144,22 +148,12 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
         newCategory = 'neonate';
       } else if (ageInMonths <= 12) {
         newCategory = 'calf';
-      } else if (ageInMonths <= 24) {
-        newCategory = 'steer';
       } else if (ageInMonths <= 36) {
-        newCategory = allDataForm.gender === 'male' ? 'steer' : 'cow';
-      } else if (ageInMonths >= 37 && ageInMonths <= 120) {
-        if (allDataForm.gender === 'male') {
-          newCategory = isReproductive ? 'bull' : 'ox';
-        } else {
-          newCategory = 'cow';
-        }
+        newCategory = 'steer';
+      } else if (ageInMonths >= 37 && allDataForm.gender === 'male') {
+        newCategory = isReproductive ? 'bull' : 'ox';
       } else {
-        if (allDataForm.gender === 'male') {
-          newCategory = isReproductive ? 'old bull' : 'old ox';
-        } else {
-          newCategory = 'old cow';
-        }
+        newCategory = 'cow';
       }
 
       if (allDataForm.category !== newCategory) {
@@ -463,7 +457,7 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                   id="fatherId"
                   value={allDataForm.fatherId ?? ''}
                   onChange={handleFatherSelection}
-                   options={[
+                  options={[
                     { label: 'Comercial', value: 'comercial' },
                     ...animals
                       .filter(
@@ -488,9 +482,9 @@ export const CardFormMain: React.FC<CardFormMainProps> = ({
                   value={allDataForm.externalBullFatherId ?? ''}
                   onChange={handleFatherSelection}
                   options={externalBulls.map((bull) => ({
-                      label: bull.name,
-                      value: bull.id,
-                    }))}
+                    label: bull.name,
+                    value: bull.id,
+                  }))}
                   defaultOption="Escolha o touro externo"
                 />
               )}
